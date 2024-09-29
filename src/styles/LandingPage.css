@@ -1,38 +1,51 @@
 /* src/styles/LandingPage.css */
 .landing-page {
-  font-family: Arial, sans-serif;
+  font-family: 'Roboto', Arial, sans-serif; /* Modern font stack */
+  line-height: 1.6; /* Better readability */
+  color: #333; /* Softer, readable text color */
+  margin: 0;
+  padding: 0;
 }
 
+/* Hero Section */
 .hero-section {
   background-color: #007bff;
   color: white;
-  padding: 60px 20px;
+  padding: 80px 20px;
   text-align: center;
+  background: linear-gradient(135deg, #007bff, #0056b3); /* Gradient background */
 }
 
 .hero-title {
-  font-size: 2.5em;
+  font-size: 3em;
+  font-weight: bold;
   margin-bottom: 20px;
 }
 
 .hero-description {
-  font-size: 1.2em;
-  margin-bottom: 30px;
+  font-size: 1.5em;
+  margin-bottom: 40px;
 }
 
 .hero-buttons {
   display: flex;
   justify-content: center;
-  gap: 20px;
+  gap: 30px;
 }
 
 .cta-button {
-  padding: 15px 30px;
-  font-size: 1em;
+  padding: 15px 40px;
+  font-size: 1.2em;
   border: none;
-  border-radius: 5px;
+  border-radius: 50px; /* Circular buttons */
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  transition: all 0.3s ease;
+  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+}
+
+.cta-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 15px rgba(0, 0, 0, 0.2); /* Add subtle hover shadow */
 }
 
 .primary {
@@ -53,21 +66,188 @@
   background-color: #5a6268;
 }
 
+/* Features Section */
 .features-section {
-  padding: 40px 20px;
+  padding: 60px 20px;
   text-align: center;
+  background-color: #f9f9f9;
+}
+
+.features-section h2 {
+  font-size: 2.5em;
+  margin-bottom: 40px;
 }
 
 .features {
   display: flex;
   justify-content: center;
   gap: 40px;
+  flex-wrap: wrap; /* Responsive */
 }
 
 .feature {
-  max-width: 250px;
+  max-width: 300px;
+  background-color: #ffffff;
+  padding: 25px;
+  border-radius: 15px;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.feature:hover {
+  transform: translateY(-5px); /* Hover animation */
+  box-shadow: 0 12px 20px rgba(0, 0, 0, 0.15);
+}
+
+.feature h3 {
+  font-size: 1.5em;
+  margin-bottom: 15px;
+}
+
+.feature p {
+  font-size: 1.1em;
+  color: #666;
+}
+
+/* Trust Section */
+.trust-section {
+  padding: 60px 20px;
+  text-align: center;
   background-color: #f8f9fa;
+}
+
+.trust-section h2 {
+  font-size: 2.5em;
+  margin-bottom: 40px;
+}
+
+.trust-logos {
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+  flex-wrap: wrap;
+  margin-bottom: 40px;
+}
+
+.trust-logos img {
+  max-width: 120px;
+  height: auto;
+}
+
+.testimonial {
+  font-size: 1.2em;
+  color: #555;
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 30px;
+  border-radius: 10px;
+  background-color: #ffffff;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.testimonial:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 20px rgba(0, 0, 0, 0.15);
+}
+
+/* Services Section */
+.services-section {
+  padding: 60px 20px;
+  text-align: center;
+  background-color: #f9f9f9;
+}
+
+.services-section h2 {
+  font-size: 2.5em;
+  margin-bottom: 40px;
+}
+
+.services-grid {
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+  flex-wrap: wrap; /* Responsive */
+}
+
+.service-card {
+  width: 250px;
   padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  background-color: #ffffff;
+  border-radius: 15px;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  text-decoration: none;
+  color: inherit;
+}
+
+.service-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 20px rgba(0, 0, 0, 0.15);
+}
+
+.service-icon {
+  max-width: 100px;
+  margin-bottom: 15px;
+}
+
+.service-card h3 {
+  font-size: 1.5em;
+  margin-bottom: 10px;
+}
+
+.service-card p {
+  font-size: 1em;
+  color: #666;
+}
+
+/* Call to Action Footer */
+.cta-footer {
+  padding: 60px 20px;
+  text-align: center;
+  background-color: #007bff;
+  color: white;
+}
+
+.cta-footer h2 {
+  font-size: 2.5em;
+  margin-bottom: 40px;
+}
+
+.cta-footer .footer-cta {
+  background-color: #28a745;
+  padding: 15px 40px;
+  border-radius: 50px;
+  font-size: 1.2em;
+  transition: all 0.3s ease;
+}
+
+.cta-footer .footer-cta:hover {
+  background-color: #218838;
+  transform: translateY(-2px);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .features {
+    flex-direction: column;
+  }
+
+  .cta-button {
+    width: 100%;
+    margin-top: 15px;
+  }
+
+  .hero-title {
+    font-size: 2em;
+  }
+
+  .hero-description {
+    font-size: 1.1em;
+  }
+
+  .services-grid {
+    flex-direction: column;
+  }
 }

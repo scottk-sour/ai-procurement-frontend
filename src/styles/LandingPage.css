@@ -1,19 +1,45 @@
 /* src/styles/LandingPage.css */
 .landing-page {
   font-family: 'Roboto', Arial, sans-serif; /* Modern font stack */
-  line-height: 1.6; /* Better readability */
-  color: #333; /* Softer, readable text color */
+  line-height: 1.6; /* Improved readability */
+  color: #333; /* Softer text color */
   margin: 0;
   padding: 0;
 }
 
+/* Navigation Bar */
+.navbar {
+  background-color: #0056b3; /* Darker shade for navbar */
+  padding: 15px 20px;
+  position: sticky; /* Keeps navbar fixed on top */
+  top: 0;
+  z-index: 1000; /* Keeps navbar above other content */
+}
+
+.navbar-links {
+  display: flex;
+  justify-content: space-around; /* Evenly spaced links */
+  list-style-type: none; /* Remove bullets */
+}
+
+.navbar-links a {
+  color: white; /* Link color */
+  text-decoration: none; /* Remove underline */
+  font-weight: bold; /* Bold text */
+  padding: 10px 15px; /* Padding for links */
+}
+
+.navbar-links a:hover {
+  background-color: #28a745; /* Background change on hover */
+  border-radius: 5px; /* Rounded corners */
+}
+
 /* Hero Section */
 .hero-section {
-  background-color: #007bff;
+  background: linear-gradient(135deg, #007bff, #0056b3); /* Gradient background */
   color: white;
   padding: 80px 20px;
   text-align: center;
-  background: linear-gradient(135deg, #007bff, #0056b3); /* Gradient background */
 }
 
 .hero-title {
@@ -45,7 +71,7 @@
 
 .cta-button:hover {
   transform: translateY(-2px);
-  box-shadow: 0 10px 15px rgba(0, 0, 0, 0.2); /* Add subtle hover shadow */
+  box-shadow: 0 10px 15px rgba(0, 0, 0, 0.2); /* Subtle hover shadow */
 }
 
 .primary {
@@ -134,6 +160,7 @@
   height: auto;
 }
 
+/* Testimonials */
 .testimonial {
   font-size: 1.2em;
   color: #555;

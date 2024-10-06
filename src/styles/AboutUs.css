@@ -1,0 +1,126 @@
+/* src/styles/AboutUs.css */
+
+/* Main container styling */
+.about-us-container {
+    padding: 20px;
+    max-width: 800px;
+    margin: auto;
+    font-family: 'Roboto', Arial, sans-serif;
+    color: #333;
+    line-height: 1.6;
+}
+
+/* Title styling */
+.about-us-title {
+    text-align: center;
+    color: #007bff; /* Title color */
+    margin-bottom: 30px;
+    font-size: 2.5em;
+}
+
+/* Section titles */
+h2 {
+    color: #007bff; /* Section titles color */
+    margin-top: 20px;
+    font-size: 1.8em;
+}
+
+/* New section styles */
+.mission, .how-it-works, .join-us {
+    margin-top: 40px;
+    padding: 20px;
+    background-color: #f4f4f4;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); /* Light shadow for sections */
+}
+
+/* Subheading styles inside "How It Works" */
+.how-it-works h3 {
+    margin-top: 20px;
+    color: #007bff;
+    font-size: 1.4em;
+}
+
+/* Paragraph spacing in sections */
+.mission p, .how-it-works p, .join-us p {
+    margin-bottom: 15px;
+}
+
+/* Styling the list in "How It Works" */
+ul {
+    list-style-type: disc; /* Bullet points */
+    margin-left: 20px; /* Indent for lists */
+}
+
+/* Team member section */
+.team-member {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    margin-bottom: 20px;
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+    transition: box-shadow 0.3s ease; /* Smooth hover effect */
+}
+
+.team-member:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Hover shadow */
+}
+
+.role {
+    font-style: italic;
+    color: #777; /* Role color */
+}
+
+/* Styling for blockquote in testimonials */
+blockquote {
+    border-left: 3px solid #007bff; /* Blue left border for quotes */
+    padding-left: 15px; /* Space for quote */
+    margin: 10px 0; /* Margin for quotes */
+    color: #555; /* Gray color for quotes */
+    font-style: italic;
+}
+
+/* Footer section */
+.about-us-footer {
+    text-align: center;
+    margin-top: 30px;
+    padding: 20px;
+    background-color: #f4f4f4;
+    border-top: 1px solid #ddd;
+    font-weight: bold;
+}
+
+.about-us-footer a {
+    color: #007bff;
+    text-decoration: none;
+}
+
+.about-us-footer a:hover {
+    text-decoration: underline;
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+    .about-us-container {
+        padding: 15px;
+    }
+
+    .about-us-title {
+        font-size: 2em;
+    }
+
+    h2 {
+        font-size: 1.5em;
+    }
+
+    .team-member {
+        padding: 10px;
+    }
+
+    .about-us-footer {
+        font-size: 0.9em;
+    }
+}

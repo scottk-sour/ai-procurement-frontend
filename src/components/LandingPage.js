@@ -1,12 +1,37 @@
 // src/components/LandingPage.js
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import '../styles/LandingPage.css';
+import '../components/HeroSection.css'; // Import HeroSection.css for styling
 import TestimonialCarousel from './TestimonialCarousel';
 
 const LandingPage = () => {
+  const [menuOpen, setMenuOpen] = useState(false); // State to control menu visibility
+
+  const toggleMenu = () => {
+    setMenuOpen(!menuOpen); // Toggle the menu state
+  };
+
   return (
     <div className="landing-page">
+      {/* Navigation Bar */}
+      <nav className="navbar">
+        <button className="hamburger" onClick={toggleMenu}>
+          <span className="bar"></span>
+          <span className="bar"></span>
+          <span className="bar"></span>
+        </button>
+        <div className={`navbar-links ${menuOpen ? 'active' : ''}`}>
+          <Link to="/">Home</Link>
+          <Link to="/about">About Us</Link>
+          <Link to="/services">Services</Link>
+          <Link to="/products">Products</Link>
+          <Link to="/blog">Blog</Link>
+          <Link to="/contact">Contact Us</Link>
+          <Link to="/faq">FAQs</Link>
+          <Link to="/testimonials">Testimonials</Link>
+        </div>
+      </nav>
+
       {/* Hero Section */}
       <header className="hero-section">
         <h1 className="hero-title">
@@ -45,22 +70,22 @@ const LandingPage = () => {
         <h2>Our Services</h2>
         <div className="services-grid">
           <Link to="/services/photocopiers" className="service-card">
-            <img src="https://via.placeholder.com/150" alt="Photocopiers" className="service-icon" />
+            <img src="https://placehold.co/400x300?text=Photocopiers" loading="lazy" alt="Photocopiers" className="service-icon" />
             <h3>Photocopiers</h3>
             <p>Save on top-rated photocopier vendors with special deals.</p>
           </Link>
           <Link to="/services/telecoms" className="service-card">
-            <img src="https://via.placeholder.com/150" alt="Telecoms" className="service-icon" />
+            <img src="https://placehold.co/400x300?text=Telecoms" loading="lazy" alt="Telecoms" className="service-icon" />
             <h3>Telecoms</h3>
             <p>Discover the best telecom solutions tailored to your business.</p>
           </Link>
           <Link to="/services/cctv" className="service-card">
-            <img src="https://via.placeholder.com/150" alt="CCTV" className="service-icon" />
+            <img src="https://placehold.co/400x300?text=CCTV" loading="lazy" alt="CCTV" className="service-icon" />
             <h3>CCTV</h3>
             <p>Find the right CCTV solutions to protect your assets.</p>
           </Link>
           <Link to="/services/it" className="service-card">
-            <img src="https://via.placeholder.com/150" alt="IT Solutions" className="service-icon" />
+            <img src="https://placehold.co/400x300?text=IT+Solutions" loading="lazy" alt="IT Solutions" className="service-icon" />
             <h3>IT Solutions</h3>
             <p>Explore IT services and vendors offering the best deals.</p>
           </Link>

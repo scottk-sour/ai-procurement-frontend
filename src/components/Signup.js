@@ -1,49 +1,103 @@
 // src/components/Signup.js
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import '../styles/Signup.css'; // Import the styles for the signup page
 
 const Signup = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [passwordVisible, setPasswordVisible] = useState(false); // State to toggle password visibility
+  const [passwordStrength, setPasswordStrength] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const navigate = useNavigate();
+
+  const checkPasswordStrength = (password) => {
+    if (password.length < 6) return 'Weak';
+    if (password.match(/[A-Z]/) && password.match(/[0-9]/)) return 'Strong';
+    return 'Medium';
+  };
+
+  const handlePasswordChange = (e) => {
+    const newPassword = e.target.value;
+    setPassword(newPassword);
+    setPasswordStrength(checkPasswordStrength(newPassword));
+  };
 
   const handleSignup = async (e) => {
     e.preventDefault();
+    if (password !== confirmPassword) {
+      setError("Passwords do not match!");
+      return;
+    }
+
     try {
+      setLoading(true);
+      setError('');
+
       const response = await fetch('http://localhost:5000/api/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password }),
       });
 
+      const data = await response.json();
+
       if (response.ok) {
-        alert('Signup successful, please log in.');
-        navigate('/login'); // Redirect to login page
+        alert("Signup successful! You can now log in.");
+        navigate('/login');
       } else {
-        alert('Signup failed.');
+        setError(data.error || 'Signup failed.');
       }
     } catch (error) {
       console.error('Error during signup:', error);
+      setError('An error occurred during signup. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <form onSubmit={handleSignup}>
-      <h2>Sign Up</h2>
-      <input
-        type="text"
-        placeholder="Username"
-        value={username}
-        onChange={(e) => setUsername(e.target.value)}
-      />
-      <input
-        type="password"
-        placeholder="Password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-      />
-      <button type="submit">Sign Up</button>
-    </form>
+    <div className="signup-container">
+      <form onSubmit={handleSignup} className="signup-form">
+        <h2>Create Account</h2>
+        {error && <p className="error-message">{error}</p>}
+        <input
+          type="text"
+          placeholder="Username"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          required
+        />
+        <div className="password-field">
+          <input
+            type={passwordVisible ? "text" : "password"}
+            placeholder="Password"
+            value={password}
+            onChange={handlePasswordChange}
+            required
+          />
+          <button
+            type="button"
+            onClick={() => setPasswordVisible(!passwordVisible)}
+          >
+            {passwordVisible ? "Hide" : "Show"}
+          </button>
+        </div>
+        <p>Password Strength: {passwordStrength}</p>
+        <input
+          type="password"
+          placeholder="Confirm Password"
+          value={confirmPassword}
+          onChange={(e) => setConfirmPassword(e.target.value)}
+          required
+        />
+        <button type="submit" className="cta-button primary" disabled={loading}>
+          {loading ? 'Loading...' : 'Sign Up'}
+        </button>
+      </form>
+    </div>
   );
 };
 

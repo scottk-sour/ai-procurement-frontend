@@ -36,6 +36,7 @@
     transform: rotate(360deg);
   }
 }
+
 /* Additional styles */
 .app-container {
   display: flex;
@@ -44,27 +45,56 @@
   justify-content: center;
   min-height: 100vh;
   background-color: #f8f9fa;
-  font-family: Arial, sans-serif;
+  font-family: 'Roboto', Arial, sans-serif; /* Use consistent font */
 }
 
+/* Headings */
 h1 {
-  color: #007bff;
+  color: #007bff; /* Matches primary color in your app */
 }
 
 h2 {
   margin-top: 20px;
-  color: #28a745;
+  color: #28a745; /* Matches secondary color */
 }
 
+/* Lists */
 ul {
   list-style-type: none;
   padding: 0;
 }
 
 li {
-  background-color: #e9ecef;
+  background-color: #e9ecef; /* Light background for list items */
   margin: 5px 0;
   padding: 10px;
   border-radius: 4px;
   text-align: center;
+}
+
+/* Ensure buttons are consistent */
+button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+button:hover {
+  background-color: #0056b3;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .app-container {
+    padding: 20px;
+    text-align: center;
+  }
+  
+  h1 {
+    font-size: 2em;
+  }
 }

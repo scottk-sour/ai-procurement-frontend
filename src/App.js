@@ -5,6 +5,7 @@ import LandingPage from './components/LandingPage';
 import Login from './components/Login';
 import Signup from './components/Signup';
 import UserDashboard from './components/UserDashboard';
+import NotFound from './components/NotFound'; // Import the NotFound component
 
 const PrivateRoute = ({ children }) => {
   const token = localStorage.getItem('token');
@@ -27,6 +28,7 @@ function App() {
               </PrivateRoute>
             }
           />
+          <Route path="*" element={<NotFound />} /> {/* NotFound Component */}
         </Routes>
       </div>
     </Router>

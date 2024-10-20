@@ -1,36 +1,15 @@
 // src/components/LandingPage.js
-import React, { useState } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
-import '../components/HeroSection.css'; // Import HeroSection.css for styling
+import NavigationBar from './NavigationBar'; // Import the NavigationBar component
 import TestimonialCarousel from './TestimonialCarousel';
+import '../styles/LandingPage.css'; // Import LandingPage CSS (ensure the path is correct)
 
 const LandingPage = () => {
-  const [menuOpen, setMenuOpen] = useState(false); // State to control menu visibility
-
-  const toggleMenu = () => {
-    setMenuOpen(!menuOpen); // Toggle the menu state
-  };
-
   return (
     <div className="landing-page">
       {/* Navigation Bar */}
-      <nav className="navbar">
-        <button className="hamburger" onClick={toggleMenu}>
-          <span className="bar"></span>
-          <span className="bar"></span>
-          <span className="bar"></span>
-        </button>
-        <div className={`navbar-links ${menuOpen ? 'active' : ''}`}>
-          <Link to="/">Home</Link>
-          <Link to="/about">About Us</Link>
-          <Link to="/services">Services</Link>
-          <Link to="/products">Products</Link>
-          <Link to="/blog">Blog</Link>
-          <Link to="/contact">Contact Us</Link>
-          <Link to="/faq">FAQs</Link>
-          <Link to="/testimonials">Testimonials</Link>
-        </div>
-      </nav>
+      <NavigationBar /> {/* Use the NavigationBar component */}
 
       {/* Hero Section */}
       <header className="hero-section">

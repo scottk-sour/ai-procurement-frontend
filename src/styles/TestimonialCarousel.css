@@ -1,5 +1,14 @@
 /* src/styles/TestimonialCarousel.css */
 
+.trust-section {
+  background-image: url('/assets/images/copiertest3.png'); /* Make sure the path is correct */
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  padding: 4rem 2rem;
+  color: #fff; /* Optional: Change text color to be readable over the image */
+}
+
 .testimonial-list {
   width: 80%;
   margin: 0 auto;
@@ -11,7 +20,7 @@
 }
 
 .testimonial-item {
-  background-color: #fff;
+  background-color: rgba(255, 255, 255, 0.8); /* Slight transparency to ensure readability */
   border: 1px solid #ddd;
   border-radius: 8px;
   box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);

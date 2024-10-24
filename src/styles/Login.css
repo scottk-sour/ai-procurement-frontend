@@ -1,40 +1,59 @@
-/* src/styles/Login.css */
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh; /* Vertically center the login form */
+}
 
 .login-form {
-    max-width: 400px;
-    margin: 50px auto;
-    padding: 20px;
-    background-color: #f9f9f9;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  }
-  
-  .login-form h2 {
-    margin-bottom: 20px;
-    font-size: 2em;
-    text-align: center;
-  }
-  
-  .login-form input {
-    width: 100%;
-    padding: 10px;
-    margin-bottom: 15px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-  }
-  
-  .login-form button {
-    width: 100%;
-    padding: 10px;
-    background-color: #007bff;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-  }
-  
-  .login-form button:hover {
-    background-color: #0056b3;
-  }
-  
+  max-width: 400px;
+  margin: 50px auto;
+  padding: 20px;
+  background-color: #f9f9f9;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Add box shadow for the box effect */
+  text-align: center; /* Center the content inside the box */
+}
+
+.login-form h2 {
+  margin-bottom: 20px;
+  font-size: 2em;
+  text-align: center;
+}
+
+.login-form input {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 15px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.login-form button {
+  width: 100%;
+  padding: 10px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.login-form button:hover {
+  background-color: #0056b3;
+}
+
+.redirect-text {
+  margin-top: 20px;
+  text-align: center;
+}
+
+.redirect-text a {
+  color: #007bff;
+  text-decoration: none;
+}
+
+.redirect-text a:hover {
+  text-decoration: underline;
+}

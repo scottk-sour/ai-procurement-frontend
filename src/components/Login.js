@@ -67,10 +67,10 @@ const Login = () => {
         <button type="submit" className="cta-button primary" disabled={loading}>
           {loading ? 'Loading...' : 'Login'} {/* Change button text while loading */}
         </button>
+        <p className="redirect-text">
+          Don't have an account? <a href="/signup">Sign Up</a>
+        </p>
       </form>
-      <p className="redirect-text">
-        Don't have an account? <a href="/signup">Sign Up</a>
-      </p>
     </div>
   );
 };

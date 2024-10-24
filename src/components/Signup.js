@@ -1,4 +1,3 @@
-// src/components/Signup.js
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../styles/Signup.css'; // Import the styles for the signup page
@@ -27,6 +26,13 @@ const Signup = () => {
 
   const handleSignup = async (e) => {
     e.preventDefault();
+    
+    // Validation for empty fields
+    if (!username || !password || !confirmPassword) {
+      setError('All fields are required!');
+      return;
+    }
+
     if (password !== confirmPassword) {
       setError("Passwords do not match!");
       return;
@@ -48,11 +54,18 @@ const Signup = () => {
         alert("Signup successful! You can now log in.");
         navigate('/login');
       } else {
-        setError(data.error || 'Signup failed.');
+        // Different error handling based on HTTP status
+        if (response.status === 400) {
+          setError(data.error || 'Signup failed: Bad request.');
+        } else if (response.status === 500) {
+          setError('Signup failed: Server error. Please try again later.');
+        } else {
+          setError(data.error || 'Signup failed. Please try again.');
+        }
       }
     } catch (error) {
       console.error('Error during signup:', error);
-      setError('An error occurred during signup. Please try again.');
+      setError('An unexpected error occurred. Please try again later.');
     } finally {
       setLoading(false);
     }
@@ -81,6 +94,7 @@ const Signup = () => {
           <button
             type="button"
             onClick={() => setPasswordVisible(!passwordVisible)}
+            className="toggle-password-visibility"
           >
             {passwordVisible ? "Hide" : "Show"}
           </button>

@@ -1,15 +1,14 @@
-// src/components/LandingPage.js
 import React from 'react';
 import { Link } from 'react-router-dom';
 import NavigationBar from './NavigationBar'; // Import the NavigationBar component
-import TestimonialCarousel from './TestimonialCarousel';
+import TestimonialCarousel from './TestimonialCarousel'; // Import your testimonial component
 import '../styles/LandingPage.css'; // Import LandingPage CSS (ensure the path is correct)
 
 const LandingPage = () => {
   return (
     <div className="landing-page">
       {/* Navigation Bar */}
-      <NavigationBar /> {/* Use the NavigationBar component */}
+      <NavigationBar />
 
       {/* Hero Section */}
       <header className="hero-section">
@@ -49,22 +48,22 @@ const LandingPage = () => {
         <h2>Our Services</h2>
         <div className="services-grid">
           <Link to="/services/photocopiers" className="service-card">
-            <img src="https://placehold.co/400x300?text=Photocopiers" loading="lazy" alt="Photocopiers" className="service-icon" />
+            <img src={process.env.PUBLIC_URL + '/assets/images/copiertest2.png'} loading="lazy" alt="Photocopiers" className="service-icon" />
             <h3>Photocopiers</h3>
             <p>Save on top-rated photocopier vendors with special deals.</p>
           </Link>
           <Link to="/services/telecoms" className="service-card">
-            <img src="https://placehold.co/400x300?text=Telecoms" loading="lazy" alt="Telecoms" className="service-icon" />
+            <img src={process.env.PUBLIC_URL + '/assets/images/telecom.png'} loading="lazy" alt="Telecoms" className="service-icon" />
             <h3>Telecoms</h3>
             <p>Discover the best telecom solutions tailored to your business.</p>
           </Link>
           <Link to="/services/cctv" className="service-card">
-            <img src="https://placehold.co/400x300?text=CCTV" loading="lazy" alt="CCTV" className="service-icon" />
+            <img src={process.env.PUBLIC_URL + '/assets/images/cctv.png'} loading="lazy" alt="CCTV" className="service-icon" />
             <h3>CCTV</h3>
             <p>Find the right CCTV solutions to protect your assets.</p>
           </Link>
           <Link to="/services/it" className="service-card">
-            <img src="https://placehold.co/400x300?text=IT+Solutions" loading="lazy" alt="IT Solutions" className="service-icon" />
+            <img src={process.env.PUBLIC_URL + '/assets/images/it-services.png'} loading="lazy" alt="IT Solutions" className="service-icon" />
             <h3>IT Solutions</h3>
             <p>Explore IT services and vendors offering the best deals.</p>
           </Link>

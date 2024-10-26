@@ -1,35 +1,37 @@
 import React, { useState } from 'react';
-import { NavLink } from 'react-router-dom'; // Use NavLink for active styling
+import { NavLink } from 'react-router-dom';
+import './NavigationBar.css'; // Make sure to have CSS linked for styling
 
 const NavigationBar = () => {
-  const [menuOpen, setMenuOpen] = useState(false); // State to control menu visibility
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const toggleMenu = () => {
-    setMenuOpen(!menuOpen); // Toggle the menu state
+    setMenuOpen(!menuOpen);
   };
 
-  // Define the menu links to avoid repetition and simplify future changes
   const menuLinks = [
     { path: "/", label: "Home" },
     { path: "/dashboard", label: "Dashboard" },
     { path: "/request-quote", label: "Request Quote" },
     { path: "/services", label: "Services" },
-    { path: "/about", label: "About Us" },
+    { path: "/about-us", label: "About Us" },
     { path: "/contact", label: "Contact Us" }
   ];
 
   return (
     <nav className="navbar">
       <div className="navbar-brand">
-        <NavLink to="/" exact activeClassName="active-link">Home</NavLink>
-        {/* Optionally, add a logo here */}
+        <NavLink to="/" end className={({ isActive }) => isActive ? "active-link" : ""}>
+          {/* Replace with logo image if available */}
+          <span className="logo">Logo</span>
+        </NavLink>
       </div>
 
-      {/* Hamburger Button */}
-      <button 
-        className="hamburger" 
-        onClick={toggleMenu} 
-        aria-label="Toggle Menu" 
+      {/* Hamburger Menu */}
+      <button
+        className="hamburger"
+        onClick={toggleMenu}
+        aria-label="Toggle navigation menu"
         aria-expanded={menuOpen}
       >
         <span className="bar"></span>
@@ -40,7 +42,12 @@ const NavigationBar = () => {
       {/* Navbar Links */}
       <div className={`navbar-links ${menuOpen ? 'active' : ''}`}>
         {menuLinks.map((link, index) => (
-          <NavLink key={index} to={link.path} activeClassName="active-link" onClick={() => setMenuOpen(false)}>
+          <NavLink
+            key={index}
+            to={link.path}
+            className={({ isActive }) => isActive ? "active-link" : ""}
+            onClick={() => setMenuOpen(false)}
+          >
             {link.label}
           </NavLink>
         ))}

@@ -1,3 +1,4 @@
+/* Container for Services Overview */
 .services-overview {
   display: grid;
   grid-template-columns: repeat(2, 1fr); /* 2 columns */
@@ -6,27 +7,55 @@
   background-color: #f9f9f9;
 }
 
+/* Service Item Styling */
 .service-item {
   background: white;
   padding: 1.5rem;
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   text-align: center;
+  transition: transform 0.3s ease, box-shadow 0.3s ease; /* Smooth hover effect */
+}
+
+.service-item:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15); /* Enhanced shadow on hover */
 }
 
 .service-item h3 {
   margin-bottom: 1rem;
   color: #007bff;
+  font-size: 1.4em;
 }
 
 .service-item p {
   color: #555;
+  line-height: 1.6;
+  font-size: 1em;
 }
 
+/* Service Image Styling */
 .service-image {
   width: 100%;
   height: auto;
   max-height: 150px; /* Limit the height of the image */
   object-fit: cover; /* Maintain aspect ratio */
+  border-radius: 5px; /* Rounded corners for images */
   margin-bottom: 1rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow for images */
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .services-overview {
+    grid-template-columns: 1fr; /* 1 column layout for smaller screens */
+  }
+
+  .service-item {
+    padding: 1rem;
+  }
+
+  .service-item h3 {
+    font-size: 1.2em;
+  }
 }

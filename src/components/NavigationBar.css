@@ -7,14 +7,25 @@
     top: 0;
     z-index: 1000; /* Above other content */
     display: flex;
-    justify-content: space-between; /* Space links evenly */
+    justify-content: center; /* Center the content */
     align-items: center;
+}
+
+/* Navigation Bar Links Container */
+.navbar-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    max-width: 1200px; /* Adjust based on your preferred max width */
 }
 
 /* Links Styling */
 .navbar-links {
     display: flex;
     gap: 30px; /* Adds spacing between links */
+    justify-content: center; /* Center the links */
+    flex: 1; /* Take remaining space */
 }
 
 .navbar-links a {
@@ -36,28 +47,26 @@
     color: white; /* Ensure text is readable */
 }
 
-/* Hamburger Menu (hidden on larger screens) */
-.hamburger {
-    display: none; /* Hide on larger screens */
-    flex-direction: column;
-    cursor: pointer;
+/* Logo/Brand Link */
+.navbar-brand {
+    margin-right: auto;
 }
 
-.bar {
-    width: 25px;
-    height: 3px;
-    background-color: white;
-    margin: 4px 0;
+/* Hamburger Menu for Mobile */
+.hamburger {
+    display: none;
+    flex-direction: column;
+    cursor: pointer;
 }
 
 /* Mobile Styles */
 @media (max-width: 768px) {
     .hamburger {
-        display: flex; /* Show on smaller screens */
+        display: flex;
     }
 
     .navbar-links {
-        display: none; /* Hidden by default */
+        display: none;
     }
 
     .navbar-links.active {
@@ -65,7 +74,7 @@
         flex-direction: column;
         gap: 15px;
         position: absolute;
-        top: 100%; /* Align below navbar */
+        top: 100%;
         left: 0;
         width: 100%;
         background-color: #0056b3;

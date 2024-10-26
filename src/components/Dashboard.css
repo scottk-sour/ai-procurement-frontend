@@ -1,0 +1,46 @@
+import React from 'react';
+import './Dashboard.css';
+
+const Dashboard = () => {
+  return (
+    <div className="dashboard-container">
+      {/* Sidebar */}
+      <aside className="sidebar">
+        <h3>Dashboard</h3>
+        <ul>
+          <li>Request a Quote</li>
+          <li>Compare Vendors</li>
+          <li>Manage Account</li>
+        </ul>
+      </aside>
+
+      {/* Main Content */}
+      <main className="dashboard-content">
+        <h1>Welcome to Your Dashboard!</h1>
+
+        <section className="widget">
+          <h2>Recent Activity</h2>
+          <p>No recent activity.</p>
+        </section>
+
+        <section className="widget">
+          <h2>Pending Quotes</h2>
+          <p>No pending quotes.</p>
+        </section>
+
+        <section className="widget">
+          <h2>Alerts</h2>
+          <p>No alerts at the moment.</p>
+        </section>
+
+        <div className="widget-controls">
+          <button>Toggle Recent Activity</button>
+          <button>Toggle Pending Quotes</button>
+          <button>Toggle Alerts</button>
+        </div>
+      </main>
+    </div>
+  );
+};
+
+export default Dashboard;

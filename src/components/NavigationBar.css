@@ -1,62 +1,77 @@
 /* Navigation Bar */
 .navbar {
-    width: 100%; /* Full width */
-    background-color: #0056b3; /* Background color */
+    width: 100%;
+    background-color: #0056b3;
     padding: 15px 20px;
-    position: sticky; /* Keeps navbar fixed on top */
+    position: sticky;
     top: 0;
-    z-index: 1000; /* Above other content */
+    z-index: 1000;
     display: flex;
-    justify-content: center; /* Center the content */
+    justify-content: center;
     align-items: center;
 }
 
-/* Navigation Bar Links Container */
+/* Container for Centered Content */
 .navbar-content {
     display: flex;
     justify-content: space-between;
     align-items: center;
     width: 100%;
-    max-width: 1200px; /* Adjust based on your preferred max width */
+    max-width: 1200px;
 }
 
 /* Links Styling */
 .navbar-links {
     display: flex;
-    gap: 30px; /* Adds spacing between links */
-    justify-content: center; /* Center the links */
-    flex: 1; /* Take remaining space */
+    gap: 30px;
+    justify-content: center;
+    flex: 1;
 }
 
+/* Standard Links Styling */
 .navbar-links a {
-    color: white; /* Link color */
-    text-decoration: none; /* Remove underline */
-    font-weight: bold; /* Bold text */
-    padding: 10px 15px; /* Padding for links */
-    font-size: 1.2em; /* Larger font size */
+    color: white;
+    text-decoration: none;
+    font-weight: bold;
+    padding: 10px 15px;
+    font-size: 1.2em;
 }
 
 .navbar-links a:hover {
-    background-color: #28a745; /* Hover background color */
-    border-radius: 5px; /* Rounded corners */
+    background-color: #28a745;
+    border-radius: 5px;
 }
 
-/* Active Link Styling */
 .navbar-links a.active-link {
-    background-color: #28a745; /* Active background color */
-    color: white; /* Ensure text is readable */
+    background-color: #28a745;
+    color: white;
 }
 
-/* Logo/Brand Link */
-.navbar-brand {
-    margin-right: auto;
+/* User and Vendor Login Links */
+.user-login, .vendor-login {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 8px 15px;
+    font-weight: bold;
+    border-radius: 5px;
+    color: white;
 }
 
-/* Hamburger Menu for Mobile */
-.hamburger {
-    display: none;
-    flex-direction: column;
-    cursor: pointer;
+.user-login {
+    background-color: #007bff;
+}
+
+.user-login:hover {
+    background-color: #0056b3;
+}
+
+.vendor-login {
+    background-color: #28a745;
+}
+
+.vendor-login:hover {
+    background-color: #218838;
 }
 
 /* Mobile Styles */
@@ -79,5 +94,11 @@
         width: 100%;
         background-color: #0056b3;
         padding: 20px;
+    }
+
+    .user-login, .vendor-login {
+        width: 100%;
+        justify-content: center;
+        margin: 5px 0;
     }
 }

@@ -1,3 +1,4 @@
+/* General App Styles */
 .App {
   text-align: center;
 }
@@ -37,7 +38,7 @@
   }
 }
 
-/* Additional styles */
+/* Main Container for Centered Layout */
 .app-container {
   display: flex;
   flex-direction: column;
@@ -45,17 +46,19 @@
   justify-content: center;
   min-height: 100vh;
   background-color: #f8f9fa;
-  font-family: 'Roboto', Arial, sans-serif; /* Use consistent font */
+  font-family: 'Roboto', Arial, sans-serif;
+  padding: 20px;
 }
 
 /* Headings */
 h1 {
-  color: #007bff; /* Matches primary color in your app */
+  color: #007bff;
+  margin-bottom: 20px;
 }
 
 h2 {
   margin-top: 20px;
-  color: #28a745; /* Matches secondary color */
+  color: #28a745;
 }
 
 /* Lists */
@@ -65,14 +68,14 @@ ul {
 }
 
 li {
-  background-color: #e9ecef; /* Light background for list items */
+  background-color: #e9ecef;
   margin: 5px 0;
   padding: 10px;
   border-radius: 4px;
   text-align: center;
 }
 
-/* Ensure buttons are consistent */
+/* Consistent Button Styling */
 button {
   background-color: #007bff;
   color: white;
@@ -81,13 +84,38 @@ button {
   border-radius: 5px;
   cursor: pointer;
   transition: background-color 0.3s ease;
+  font-weight: bold;
 }
 
 button:hover {
   background-color: #0056b3;
 }
 
-/* Responsive adjustments */
+/* Form-Specific Styles (for forms like Vendor Signup) */
+.signup-form, .vendor-signup-form {
+  max-width: 400px;
+  margin: 50px auto;
+  padding: 20px;
+  background-color: #f9f9f9;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.signup-form h2, .vendor-signup-form h2 {
+  font-size: 2em;
+  color: #007bff;
+  text-align: center;
+}
+
+.signup-form input, .vendor-signup-form input {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 15px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+/* Responsive Adjustments */
 @media (max-width: 768px) {
   .app-container {
     padding: 20px;

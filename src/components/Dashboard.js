@@ -1,20 +1,25 @@
 import React, { useState } from 'react';
-import './Dashboard.css'; // Make sure to create and link this CSS file for styling
+import './Dashboard.css';
 
 const Dashboard = () => {
-  const [widgets, setWidgets] = useState({
+  // State for toggling visibility of sections
+  const [showSections, setShowSections] = useState({
     recentActivity: true,
     pendingQuotes: true,
     alerts: true,
   });
 
-  const toggleWidget = (widget) => {
-    setWidgets({ ...widgets, [widget]: !widgets[widget] });
+  // Toggle function for each section
+  const toggleSection = (section) => {
+    setShowSections((prevState) => ({
+      ...prevState,
+      [section]: !prevState[section],
+    }));
   };
 
   return (
     <div className="dashboard-container">
-      {/* Navigation Pane */}
+      {/* Sidebar */}
       <aside className="sidebar">
         <h3>Dashboard</h3>
         <ul>
@@ -24,39 +29,41 @@ const Dashboard = () => {
         </ul>
       </aside>
 
-      {/* Main Content Area */}
+      {/* Main Content */}
       <main className="dashboard-content">
         <h1>Welcome to Your Dashboard!</h1>
 
-        {widgets.recentActivity && (
+        {/* Conditional rendering of widgets */}
+        {showSections.recentActivity && (
           <section className="widget">
             <h2>Recent Activity</h2>
             <p>No recent activity.</p>
           </section>
         )}
 
-        {widgets.pendingQuotes && (
+        {showSections.pendingQuotes && (
           <section className="widget">
             <h2>Pending Quotes</h2>
             <p>No pending quotes.</p>
           </section>
         )}
 
-        {widgets.alerts && (
+        {showSections.alerts && (
           <section className="widget">
             <h2>Alerts</h2>
             <p>No alerts at the moment.</p>
           </section>
         )}
 
+        {/* Toggle Buttons */}
         <div className="widget-controls">
-          <button onClick={() => toggleWidget('recentActivity')}>
+          <button onClick={() => toggleSection('recentActivity')}>
             Toggle Recent Activity
           </button>
-          <button onClick={() => toggleWidget('pendingQuotes')}>
+          <button onClick={() => toggleSection('pendingQuotes')}>
             Toggle Pending Quotes
           </button>
-          <button onClick={() => toggleWidget('alerts')}>
+          <button onClick={() => toggleSection('alerts')}>
             Toggle Alerts
           </button>
         </div>

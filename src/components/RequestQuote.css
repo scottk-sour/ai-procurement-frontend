@@ -1,0 +1,48 @@
+.request-quote-container {
+    max-width: 600px;
+    margin: auto;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .request-quote-container h2 {
+    text-align: center;
+    color: #333;
+    margin-bottom: 20px;
+  }
+  
+  .request-quote-container form {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .request-quote-container label {
+    margin-bottom: 10px;
+    color: #555;
+    font-weight: bold;
+  }
+  
+  .request-quote-container input,
+  .request-quote-container textarea,
+  .request-quote-container button {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+  
+  .request-quote-container button {
+    background-color: #28a745;
+    color: white;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .request-quote-container button:hover {
+    background-color: #218838;
+  }
+  

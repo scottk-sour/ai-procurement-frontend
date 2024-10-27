@@ -1,22 +1,28 @@
 // src/components/VendorSignup.js
 import React, { useState } from 'react';
 import axios from 'axios';
-import './VendorSignup.css'; // Import CSS if you have styling for this component
+import Select from 'react-select';
+import './VendorSignup.css';
+
+const servicesOptions = [
+  { value: 'Printing', label: 'Printing' },
+  { value: 'Telecom', label: 'Telecom' },
+  { value: 'IT Support', label: 'IT Support' },
+  { value: 'CCTV', label: 'CCTV' },
+  // Add more options as needed
+];
 
 const VendorSignup = () => {
-  // State to hold form data and any messages
   const [formData, setFormData] = useState({
     businessName: '',
     email: '',
     password: '',
-    servicesOffered: '',
+    servicesOffered: [],
     phone: '',
     address: '',
   });
+  const [message, setMessage] = useState('');
 
-  const [message, setMessage] = useState(''); // Success or error message
-
-  // Handle input changes
   const handleChange = (e) => {
     setFormData({
       ...formData,
@@ -24,13 +30,18 @@ const VendorSignup = () => {
     });
   };
 
-  // Handle form submission
+  const handleServicesChange = (selectedOptions) => {
+    setFormData({
+      ...formData,
+      servicesOffered: selectedOptions.map(option => option.value), // Store only values
+    });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      // Make a POST request to your backend's vendor signup endpoint
       const response = await axios.post('http://localhost:5000/api/vendor-signup', formData);
-      setMessage(response.data.message); // Set success message
+      setMessage(response.data.message);
     } catch (error) {
       setMessage(error.response?.data?.message || 'Error signing up vendor');
     }
@@ -54,8 +65,14 @@ const VendorSignup = () => {
           <input type="password" name="password" value={formData.password} onChange={handleChange} required />
         </label>
         <label>
-          Services Offered (comma-separated):
-          <input type="text" name="servicesOffered" value={formData.servicesOffered} onChange={handleChange} required />
+          Services Offered:
+          <Select
+            isMulti
+            options={servicesOptions}
+            onChange={handleServicesChange}
+            placeholder="Select services"
+            className="services-select"
+          />
         </label>
         <label>
           Phone:

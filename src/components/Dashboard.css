@@ -1,46 +1,136 @@
-import React from 'react';
-import './Dashboard.css';
+/* Main container styling */
+.dashboard-container {
+  display: flex;
+  font-family: 'Roboto', sans-serif;
+  min-height: 100vh;
+  background-color: #f8f9fa;
+  max-width: 1200px; /* Restrict maximum width */
+  margin: 0 auto; /* Center horizontally */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Optional: shadow for central effect */
+}
 
-const Dashboard = () => {
-  return (
-    <div className="dashboard-container">
-      {/* Sidebar */}
-      <aside className="sidebar">
-        <h3>Dashboard</h3>
-        <ul>
-          <li>Request a Quote</li>
-          <li>Compare Vendors</li>
-          <li>Manage Account</li>
-        </ul>
-      </aside>
+/* Sidebar styling */
+.sidebar {
+  width: 250px;
+  background-color: #0056b3;
+  color: white;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  border-radius: 10px; /* Slight rounding for a softer look */
+}
 
-      {/* Main Content */}
-      <main className="dashboard-content">
-        <h1>Welcome to Your Dashboard!</h1>
+.sidebar h3 {
+  font-size: 1.8rem;
+  margin-bottom: 20px;
+  text-align: center;
+}
 
-        <section className="widget">
-          <h2>Recent Activity</h2>
-          <p>No recent activity.</p>
-        </section>
+.sidebar ul {
+  list-style-type: none;
+  padding: 0;
+  width: 100%;
+}
 
-        <section className="widget">
-          <h2>Pending Quotes</h2>
-          <p>No pending quotes.</p>
-        </section>
+.sidebar ul li {
+  padding: 15px;
+  background-color: #007bff;
+  margin-bottom: 10px;
+  text-align: center;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
 
-        <section className="widget">
-          <h2>Alerts</h2>
-          <p>No alerts at the moment.</p>
-        </section>
+.sidebar ul li:hover {
+  background-color: #0056b3;
+  color: #fff;
+}
 
-        <div className="widget-controls">
-          <button>Toggle Recent Activity</button>
-          <button>Toggle Pending Quotes</button>
-          <button>Toggle Alerts</button>
-        </div>
-      </main>
-    </div>
-  );
-};
+/* Main content styling */
+.dashboard-content {
+  flex: 1;
+  padding: 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Center content within main area */
+}
 
-export default Dashboard;
+.dashboard-content h1 {
+  color: #007bff;
+  margin-bottom: 30px;
+  font-size: 2.5rem;
+}
+
+/* Widget section styling */
+.widget {
+  background-color: #ffffff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+  width: 100%; /* Full width within container */
+  max-width: 700px; /* Restrict widget width */
+}
+
+.widget h2 {
+  font-size: 1.8rem;
+  color: #333;
+  margin-bottom: 15px;
+}
+
+.widget p {
+  color: #555;
+  font-size: 1rem;
+}
+
+/* Button controls styling */
+.widget-controls {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+  justify-content: center; /* Center align buttons */
+}
+
+.widget-controls button {
+  padding: 10px 15px;
+  font-size: 1rem;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.widget-controls button:hover {
+  background-color: #0056b3;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .dashboard-container {
+    flex-direction: column;
+    max-width: 100%; /* Allow full width on smaller screens */
+    box-shadow: none;
+  }
+
+  .sidebar {
+    width: 100%;
+    position: relative;
+    border-radius: 0;
+  }
+
+  .dashboard-content {
+    padding: 20px;
+    align-items: flex-start; /* Align content to the start for smaller screens */
+  }
+
+  .widget-controls button {
+    font-size: 0.9rem;
+    padding: 8px 12px;
+  }
+}

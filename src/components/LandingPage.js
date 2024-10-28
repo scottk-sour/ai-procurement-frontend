@@ -10,8 +10,11 @@ const LandingPage = () => {
       {/* Navigation Bar */}
       <NavigationBar />
 
-      {/* Hero Section */}
-      <header className="hero-section">
+      {/* Hero Section with Background Image */}
+      <header
+        className="hero-section"
+        style={{ backgroundImage: `url(${process.env.PUBLIC_URL + '/assets/images/landingpagepic.png'})` }}
+      >
         <h1 className="hero-title">
           Get Tailored Vendor Quotes Instantly with AI-Powered Procurement
         </h1>
@@ -24,8 +27,8 @@ const LandingPage = () => {
         </div>
       </header>
 
-      {/* Features Section */}
-      <section className="features-section">
+      {/* Features Section with Blue Background */}
+      <section className="features-section blue-background">
         <h2>Why Choose Our Platform?</h2>
         <div className="features">
           <div className="feature">

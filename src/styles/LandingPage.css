@@ -10,7 +10,7 @@
 /* Navigation Bar */
 .navbar {
   width: 100%;
-  background-color: #0056b3;
+  background-color: #1e3a8a; /* Darker, more sophisticated blue */
   padding: 15px 20px;
   position: sticky;
   top: 0;
@@ -18,29 +18,6 @@
   display: flex;
   justify-content: center;
   align-items: center;
-}
-
-.navbar-links {
-  display: flex;
-  gap: 30px;
-}
-
-.hamburger {
-  display: none;
-  cursor: pointer;
-  flex-direction: column;
-  justify-content: space-around;
-  width: 30px;
-  height: 21px;
-  background: none;
-  border: none;
-}
-
-.hamburger .bar {
-  width: 100%;
-  height: 3px;
-  background-color: white;
-  border-radius: 5px;
 }
 
 .navbar-links a {
@@ -52,36 +29,15 @@
 }
 
 .navbar-links a:hover {
-  background-color: #28a745;
+  background-color: #217346; /* Subdued green for hover */
   border-radius: 5px;
 }
 
-/* Mobile Styles */
-@media (max-width: 768px) {
-  .hamburger {
-    display: flex;
-  }
-
-  .navbar-links {
-    display: none;
-  }
-
-  .navbar-links.active {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-    position: absolute;
-    top: 100%;
-    left: 0;
-    width: 100%;
-    background-color: #0056b3;
-    padding: 20px;
-  }
-}
-
-/* Hero Section */
+/* Hero Section with Background Image and Overlay */
 .hero-section {
-  background: linear-gradient(135deg, rgba(0, 123, 255, 0.9), rgba(0, 86, 179, 0.9)); /* Adjusted opacity for better readability */
+  background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), 
+              url('/assets/images/landingpagepic.png') no-repeat center center;
+  background-size: cover;
   color: white;
   padding: 80px 20px;
   text-align: center;
@@ -91,24 +47,18 @@
   font-size: 3em;
   font-weight: bold;
   margin-bottom: 20px;
-  color: #ffffff; /* Ensures the text is white */
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5); /* Adds a slight shadow for improved readability */
+  color: #ffffff;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
 }
 
 .hero-description {
   font-size: 1.5em;
   margin-bottom: 40px;
   color: #ffffff;
-  text-shadow: 1px 1px 5px rgba(0, 0, 0, 0.4); /* Adds a shadow to make the description text clearer */
+  text-shadow: 1px 1px 5px rgba(0, 0, 0, 0.4);
 }
 
-.hero-buttons {
-  display: flex;
-  justify-content: center;
-  gap: 30px;
-}
-
-.cta-button {
+.hero-buttons .cta-button {
   padding: 15px 40px;
   font-size: 1.2em;
   border: none;
@@ -118,18 +68,13 @@
   box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
 }
 
-.cta-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 15px rgba(0, 0, 0, 0.2);
-}
-
 .primary {
-  background-color: #28a745;
+  background-color: #217346; /* Softer, more subdued green */
   color: white;
 }
 
 .primary:hover {
-  background-color: #218838;
+  background-color: #1e5d2e;
 }
 
 .secondary {
@@ -141,12 +86,12 @@
   background-color: #5a6268;
 }
 
-/* Features Section */
+/* Features Section with Blue Background and White Feature Boxes */
 .features-section {
   padding: 60px 20px;
   text-align: center;
-  background: url('/assets/images/landingpagepic.png') no-repeat center center;
-  background-size: cover;
+  background-color: #1e3a8a; /* Deep blue */
+  color: white;
 }
 
 .features-section h2 {
@@ -163,7 +108,7 @@
 
 .feature {
   max-width: 300px;
-  background-color: rgba(255, 255, 255, 0.9); /* Semi-transparent background */
+  background-color: #f5f5f5; /* Soft gray background for feature boxes */
   padding: 25px;
   border-radius: 15px;
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
@@ -178,6 +123,7 @@
 .feature h3 {
   font-size: 1.5em;
   margin-bottom: 15px;
+  color: #333;
 }
 
 .feature p {
@@ -189,13 +135,13 @@
 .services-section {
   padding: 60px 20px;
   text-align: center;
-  background: url('/assets/images/landingpagepic.png') no-repeat center center;
-  background-size: cover;
+  background-color: #f0f0f0; /* Light gray background for subtle contrast */
 }
 
 .services-section h2 {
   font-size: 2.5em;
   margin-bottom: 40px;
+  color: #1e3a8a; /* Deep blue for text */
 }
 
 .services-grid {
@@ -208,7 +154,8 @@
 .service-card {
   width: 250px;
   padding: 20px;
-  background-color: rgba(255, 255, 255, 0.9); /* Semi-transparent background */
+  background-color: #ffffff;
+  border: 1px solid #ddd; /* Subtle border for structure */
   border-radius: 15px;
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
   text-align: center;
@@ -230,6 +177,7 @@
 .service-card h3 {
   font-size: 1.5em;
   margin-bottom: 10px;
+  color: #333;
 }
 
 .service-card p {
@@ -241,7 +189,7 @@
 .cta-footer {
   padding: 60px 20px;
   text-align: center;
-  background-color: #007bff;
+  background-color: #1e3a8a;
   color: white;
 }
 
@@ -251,7 +199,7 @@
 }
 
 .cta-footer .footer-cta {
-  background-color: #28a745;
+  background-color: #217346;
   padding: 15px 40px;
   border-radius: 50px;
   font-size: 1.2em;
@@ -259,7 +207,7 @@
 }
 
 .cta-footer .footer-cta:hover {
-  background-color: #218838;
+  background-color: #1e5d2e;
   transform: translateY(-2px);
 }
 

@@ -51,22 +51,22 @@ const LandingPage = () => {
         <h2>Our Services</h2>
         <div className="services-grid">
           <Link to="/services/photocopiers" className="service-card">
-            <img src={process.env.PUBLIC_URL + '/assets/images/copiertest2.png'} loading="lazy" alt="Photocopiers" className="service-icon" />
+            <img src={process.env.PUBLIC_URL + '/assets/images/photocopier.PNG'} loading="lazy" alt="Photocopiers" className="service-icon" />
             <h3>Photocopiers</h3>
             <p>Save on top-rated photocopier vendors with special deals.</p>
           </Link>
           <Link to="/services/telecoms" className="service-card">
-            <img src={process.env.PUBLIC_URL + '/assets/images/telecom.png'} loading="lazy" alt="Telecoms" className="service-icon" />
+            <img src={process.env.PUBLIC_URL + '/assets/images/phone.PNG'} loading="lazy" alt="Telecoms" className="service-icon" />
             <h3>Telecoms</h3>
             <p>Discover the best telecom solutions tailored to your business.</p>
           </Link>
           <Link to="/services/cctv" className="service-card">
-            <img src={process.env.PUBLIC_URL + '/assets/images/cctv.png'} loading="lazy" alt="CCTV" className="service-icon" />
+            <img src={process.env.PUBLIC_URL + '/assets/images/cctv.PNG'} loading="lazy" alt="CCTV" className="service-icon" />
             <h3>CCTV</h3>
             <p>Find the right CCTV solutions to protect your assets.</p>
           </Link>
           <Link to="/services/it" className="service-card">
-            <img src={process.env.PUBLIC_URL + '/assets/images/it-services.png'} loading="lazy" alt="IT Solutions" className="service-icon" />
+            <img src={process.env.PUBLIC_URL + '/assets/images/wifi.PNG'} loading="lazy" alt="IT Solutions" className="service-icon" />
             <h3>IT Solutions</h3>
             <p>Explore IT services and vendors offering the best deals.</p>
           </Link>

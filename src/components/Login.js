@@ -33,6 +33,7 @@ const Login = () => {
 
       if (response.ok) {
         localStorage.setItem('token', data.token); // Store the JWT token
+        localStorage.setItem('userName', data.name || 'User'); // Store the user's name if available
         navigate('/dashboard'); // Redirect to the dashboard
       } else {
         setError(data.error || 'Login failed'); // Set error message

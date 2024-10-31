@@ -1,8 +1,8 @@
 // src/components/VendorLogin.js
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import './VendorLogin.css'; // Ensure you have the appropriate styling
+import '../styles/VendorLogin.css';
 
 const VendorLogin = () => {
   const [formData, setFormData] = useState({
@@ -10,6 +10,8 @@ const VendorLogin = () => {
     password: '',
   });
   const [message, setMessage] = useState('');
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     setFormData({
@@ -20,11 +22,27 @@ const VendorLogin = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
+    setMessage('');
+
     try {
       const response = await axios.post('http://localhost:5000/api/vendor-login', formData);
-      setMessage(response.data.message || 'Logged in successfully!');
+      
+      if (response.data.token) {
+        localStorage.setItem('vendorToken', response.data.token);
+        setMessage('Logged in successfully! Redirecting...');
+        setTimeout(() => navigate('/vendor-dashboard'), 1000); // Redirect to Vendor Dashboard
+      } else {
+        setMessage('Login successful, but no token received.');
+      }
     } catch (error) {
-      setMessage(error.response?.data?.message || 'Login failed.');
+      if (error.response && error.response.status === 401) {
+        setMessage('Invalid email or password. Please try again.');
+      } else {
+        setMessage(error.response?.data?.message || 'An error occurred during login. Please try again later.');
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -53,7 +71,9 @@ const VendorLogin = () => {
             required
           />
         </label>
-        <button type="submit">Login</button>
+        <button type="submit" disabled={loading}>
+          {loading ? 'Logging in...' : 'Login'}
+        </button>
       </form>
       <p>
         Don't have an account? <Link to="/vendor-signup">Sign Up</Link>

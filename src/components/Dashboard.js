@@ -1,8 +1,12 @@
+// src/components/Dashboard.js
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { FaQuoteRight, FaBalanceScale, FaUserCog, FaBell, FaTasks } from 'react-icons/fa';
 import '../styles/Dashboard.css';
 
 const Dashboard = () => {
+  const navigate = useNavigate();
+
   // State for toggling visibility of sections
   const [showSections, setShowSections] = useState({
     recentActivity: true,
@@ -18,15 +22,20 @@ const Dashboard = () => {
     }));
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    navigate('/login');
+  };
+
   return (
     <div className="dashboard-container">
       {/* Sidebar */}
       <aside className="sidebar">
         <h3>Dashboard</h3>
         <ul>
-          <li><FaQuoteRight /> Request a Quote</li>
-          <li><FaBalanceScale /> Compare Vendors</li>
-          <li><FaUserCog /> Manage Account</li>
+          <li onClick={() => navigate('/request-quote')}><FaQuoteRight /> Request a Quote</li>
+          <li onClick={() => navigate('/compare-vendors')}><FaBalanceScale /> Compare Vendors</li>
+          <li onClick={() => navigate('/manage-account')}><FaUserCog /> Manage Account</li>
         </ul>
       </aside>
 
@@ -34,6 +43,19 @@ const Dashboard = () => {
       <main className="dashboard-content">
         <h1 className="dashboard-title">Welcome to Your Dashboard!</h1>
         <p className="dashboard-subtitle">Manage your activities and stay updated.</p>
+
+        {/* Quick Actions */}
+        <div className="quick-actions">
+          <button className="dashboard-button" onClick={() => navigate('/request-quote')}>
+            Request a Quote
+          </button>
+          <button className="dashboard-button" onClick={() => navigate('/compare-vendors')}>
+            Compare Vendors
+          </button>
+          <button className="dashboard-button" onClick={() => navigate('/manage-account')}>
+            Manage Account
+          </button>
+        </div>
 
         {/* Widgets */}
         <div className="widgets-container">
@@ -76,18 +98,10 @@ const Dashboard = () => {
           )}
         </div>
 
-        {/* Toggle Buttons for All Widgets */}
-        <div className="widget-controls">
-          <button onClick={() => toggleSection('recentActivity')} className="control-button">
-            Toggle Recent Activity
-          </button>
-          <button onClick={() => toggleSection('pendingQuotes')} className="control-button">
-            Toggle Pending Quotes
-          </button>
-          <button onClick={() => toggleSection('alerts')} className="control-button">
-            Toggle Alerts
-          </button>
-        </div>
+        {/* Logout Button */}
+        <button className="logout" onClick={handleLogout}>
+          Logout
+        </button>
       </main>
     </div>
   );

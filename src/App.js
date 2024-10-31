@@ -4,6 +4,7 @@ import LandingPage from './components/LandingPage';
 import Login from './components/Login';
 import Signup from './components/Signup';
 import UserDashboard from './components/UserDashboard';
+import VendorDashboard from './components/VendorDashboard'; // New import
 import RequestQuote from './components/RequestQuote';
 import CompareVendors from './components/CompareVendors';
 import ManageAccount from './components/ManageAccount';
@@ -13,11 +14,18 @@ import VendorSignup from './components/VendorSignup';
 import VendorLogin from './components/VendorLogin';
 import ContactUs from './components/ContactUs'; 
 import NotFound from './components/NotFound';
-import Footer from './components/Footer'; // Import Footer component
+import Footer from './components/Footer';
 
+// Protect user dashboard with user token
 const PrivateRoute = ({ children }) => {
   const token = localStorage.getItem('token');
   return token ? children : <Navigate to="/login" />;
+};
+
+// Protect vendor dashboard with vendor token
+const VendorPrivateRoute = ({ children }) => {
+  const vendorToken = localStorage.getItem('vendorToken');
+  return vendorToken ? children : <Navigate to="/vendor-login" />;
 };
 
 function App() {
@@ -30,6 +38,7 @@ function App() {
           <Route path="/vendor-login" element={<VendorLogin />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/dashboard" element={<PrivateRoute><UserDashboard /></PrivateRoute>} />
+          <Route path="/vendor-dashboard" element={<VendorPrivateRoute><VendorDashboard /></VendorPrivateRoute>} />
           <Route path="/request-quote" element={<PrivateRoute><RequestQuote /></PrivateRoute>} />
           <Route path="/compare-vendors" element={<PrivateRoute><CompareVendors /></PrivateRoute>} />
           <Route path="/manage-account" element={<PrivateRoute><ManageAccount /></PrivateRoute>} />
@@ -39,7 +48,7 @@ function App() {
           <Route path="/vendor-signup" element={<VendorSignup />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
-        <Footer /> {/* Add Footer outside Routes to display it on all pages */}
+        <Footer />
       </div>
     </Router>
   );

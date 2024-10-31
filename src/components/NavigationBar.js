@@ -1,19 +1,30 @@
 // src/components/NavigationBar.js
 import React, { useState } from 'react';
-import { NavLink } from 'react-router-dom';
-import './NavigationBar.css'; // Make sure to have CSS linked for styling
-import { FaUser, FaStore } from 'react-icons/fa'; // Icons for users and vendors
+import { NavLink, useNavigate } from 'react-router-dom';
+import './NavigationBar.css';
+import { FaUser, FaStore } from 'react-icons/fa';
 
 const NavigationBar = () => {
   const [menuOpen, setMenuOpen] = useState(false);
+  const navigate = useNavigate();
 
   const toggleMenu = () => {
     setMenuOpen(!menuOpen);
   };
 
+  // Function to handle Dashboard click with login check
+  const handleDashboardClick = () => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      navigate('/dashboard');
+    } else {
+      navigate('/login');
+    }
+    setMenuOpen(false); // Close menu if on mobile
+  };
+
   const menuLinks = [
     { path: "/", label: "Home" },
-    { path: "/dashboard", label: "Dashboard" },
     { path: "/request-quote", label: "Request Quote" },
     { path: "/services", label: "Services" },
     { path: "/about-us", label: "About Us" },
@@ -22,7 +33,7 @@ const NavigationBar = () => {
 
   return (
     <nav className="navbar">
-      <div className="navbar-content"> {/* Wrapper for centering content */}
+      <div className="navbar-content">
         <div className="navbar-brand">
           <NavLink to="/" end className={({ isActive }) => isActive ? "active-link" : ""}>
             <span className="logo">Logo</span>
@@ -51,7 +62,12 @@ const NavigationBar = () => {
               {link.label}
             </NavLink>
           ))}
-          
+
+          {/* Dashboard Link with Login Check */}
+          <button className="dashboard-link" onClick={handleDashboardClick}>
+            Dashboard
+          </button>
+
           {/* User Login and Vendor Login Links */}
           <NavLink to="/login" className="user-login" onClick={() => setMenuOpen(false)}>
             <FaUser /> User Login
@@ -60,7 +76,7 @@ const NavigationBar = () => {
             <FaStore /> Vendor Login
           </NavLink>
         </div>
-      </div> {/* Closing navbar-content */}
+      </div>
     </nav>
   );
 };

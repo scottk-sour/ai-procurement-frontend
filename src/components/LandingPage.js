@@ -90,17 +90,17 @@ const LandingPage = () => {
             </div>
           </div>
           <div className="company-card">
-            <img src={process.env.PUBLIC_URL + '/assets/logos/company3.png'} alt="Company 3" className="company-logo" />
+            <img src={process.env.PUBLIC_URL + '/assets/images/Ascari.png'} alt="Ascari" className="company-logo" />
             <div className="company-info">
-              <h3>Company 3</h3>
+              <h3>Ascari</h3>
               <p className="company-role">Chief Financial Officer</p>
               <p>"The best solution for comparing vendor quotes and making cost-effective decisions."</p>
             </div>
           </div>
           <div className="company-card">
-            <img src={process.env.PUBLIC_URL + '/assets/logos/company4.png'} alt="Company 4" className="company-logo" />
+            <img src={process.env.PUBLIC_URL + '/assets/images/GoCompare.png'} alt="GoCompare" className="company-logo" />
             <div className="company-info">
-              <h3>Company 4</h3>
+              <h3>GoCompare</h3>
               <p className="company-role">CEO</p>
               <p>"Our go-to platform for finding the right vendors with ease."</p>
             </div>

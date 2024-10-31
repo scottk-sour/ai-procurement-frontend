@@ -74,17 +74,17 @@ const LandingPage = () => {
         <h2>Trusted by Leading Companies</h2>
         <div className="trusted-companies">
           <div className="company-card">
-            <img src={process.env.PUBLIC_URL + '/assets/logos/company1.png'} alt="Company 1" className="company-logo" />
+            <img src={process.env.PUBLIC_URL + '/assets/images/waleswest.png'} alt="WalesWest" className="company-logo" />
             <div className="company-info">
-              <h3>Company 1</h3>
-              <p className="company-role">Operations Manager</p>
-              <p>"The platform streamlined our vendor selection process and saved us countless hours."</p>
+              <h3>WalesWest</h3>
+              <p className="company-role">Trusted Partner</p>
+              <p>"An essential platform that connects us to reliable vendors and optimizes our procurement process."</p>
             </div>
           </div>
           <div className="company-card">
-            <img src={process.env.PUBLIC_URL + '/assets/logos/company2.png'} alt="Company 2" className="company-logo" />
+            <img src={process.env.PUBLIC_URL + '/assets/images/monmotors.png'} alt="Mon Motors" className="company-logo" />
             <div className="company-info">
-              <h3>Company 2</h3>
+              <h3>Mon Motors</h3>
               <p className="company-role">Procurement Specialist</p>
               <p>"A great tool for finding trusted vendors quickly. Highly recommend!"</p>
             </div>

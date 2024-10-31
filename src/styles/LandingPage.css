@@ -10,7 +10,7 @@
 /* Navigation Bar */
 .navbar {
   width: 100%;
-  background-color: #1e3a8a; /* Darker, more sophisticated blue */
+  background-color: #1e3a8a;
   padding: 15px 20px;
   position: sticky;
   top: 0;
@@ -29,11 +29,11 @@
 }
 
 .navbar-links a:hover {
-  background-color: #217346; /* Subdued green for hover */
+  background-color: #217346;
   border-radius: 5px;
 }
 
-/* Hero Section with Background Image and Overlay */
+/* Hero Section */
 .hero-section {
   background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), 
               url('/assets/images/landingpagepic.png') no-repeat center center;
@@ -58,6 +58,7 @@
   text-shadow: 1px 1px 5px rgba(0, 0, 0, 0.4);
 }
 
+/* Call to Action Buttons */
 .hero-buttons .cta-button {
   padding: 15px 40px;
   font-size: 1.2em;
@@ -69,7 +70,7 @@
 }
 
 .primary {
-  background-color: #217346; /* Softer, more subdued green */
+  background-color: #217346;
   color: white;
 }
 
@@ -86,11 +87,11 @@
   background-color: #5a6268;
 }
 
-/* Features Section with Blue Background and White Feature Boxes */
+/* Features Section */
 .features-section {
   padding: 60px 20px;
   text-align: center;
-  background-color: #1e3a8a; /* Deep blue */
+  background-color: #1e3a8a;
   color: white;
 }
 
@@ -108,7 +109,7 @@
 
 .feature {
   max-width: 300px;
-  background-color: #f5f5f5; /* Soft gray background for feature boxes */
+  background-color: #f5f5f5;
   padding: 25px;
   border-radius: 15px;
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
@@ -135,15 +136,16 @@
 .services-section {
   padding: 60px 20px;
   text-align: center;
-  background-color: #f0f0f0; /* Light gray background for subtle contrast */
+  background-color: #f0f0f0;
 }
 
 .services-section h2 {
   font-size: 2.5em;
   margin-bottom: 40px;
-  color: #1e3a8a; /* Deep blue for text */
+  color: #1e3a8a;
 }
 
+/* Service Cards */
 .services-grid {
   display: flex;
   justify-content: center;
@@ -155,12 +157,11 @@
   width: 250px;
   padding: 20px;
   background-color: #ffffff;
-  border: 1px solid #ddd; /* Subtle border for structure */
+  border: 1px solid #ddd;
   border-radius: 15px;
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
   text-align: center;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
-  text-decoration: none;
   color: inherit;
 }
 
@@ -174,15 +175,68 @@
   margin-bottom: 15px;
 }
 
-.service-card h3 {
-  font-size: 1.5em;
-  margin-bottom: 10px;
-  color: #333;
+/* Trusted by Leading Companies Section */
+.trust-section {
+  padding: 60px 20px;
+  text-align: center;
+  background-color: #f8f9fa;
 }
 
-.service-card p {
-  font-size: 1em;
+.trust-section h2 {
+  font-size: 2.5em;
+  margin-bottom: 30px;
+  color: #1e3a8a;
+}
+
+/* Company Cards */
+.trusted-companies {
+  display: flex;
+  justify-content: center;
+  gap: 30px; /* Increase spacing between cards */
+  flex-wrap: wrap;
+}
+
+.company-card {
+  display: flex;
+  flex-direction: column; /* Stack logo and info vertically */
+  align-items: center; /* Center align content */
+  background-color: #ffffff;
+  border-radius: 12px; /* Slightly larger corner radius */
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1); /* Softer shadow */
+  padding: 20px;
+  max-width: 300px; /* Set a consistent width */
+  text-align: center; /* Center align text */
+  transition: transform 0.3s ease, box-shadow 0.3s ease; /* Smooth transition */
+}
+
+.company-card:hover {
+  transform: translateY(-5px); /* Subtle lift on hover */
+  box-shadow: 0 12px 20px rgba(0, 0, 0, 0.2); /* Enhanced shadow on hover */
+}
+
+.company-logo {
+  max-width: 80px;
+  margin-bottom: 15px;
+  padding: 10px;
+  background-color: #f0f0f0; /* Light background around logo */
+  border-radius: 8px; /* Rounded logo background */
+}
+
+.company-info h3 {
+  margin: 10px 0 5px; /* Tidy spacing */
+  color: #1e3a8a;
+  font-size: 1.2em;
+}
+
+.company-role {
+  font-size: 0.9em;
   color: #666;
+  margin-bottom: 10px;
+}
+
+.company-info p {
+  color: #555;
+  font-size: 1em;
 }
 
 /* Call to Action Footer */
@@ -230,7 +284,8 @@
     font-size: 1.1em;
   }
 
-  .services-grid {
+  .services-grid, .trusted-companies {
     flex-direction: column;
+    gap: 20px;
   }
 }

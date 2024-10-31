@@ -1,8 +1,8 @@
+// src/components/LandingPage.js
 import React from 'react';
 import { Link } from 'react-router-dom';
-import NavigationBar from './NavigationBar'; // Import the NavigationBar component
-import TestimonialCarousel from './TestimonialCarousel'; // Import your testimonial component
-import '../styles/LandingPage.css'; // Import LandingPage CSS (ensure the path is correct)
+import NavigationBar from './NavigationBar';
+import '../styles/LandingPage.css';
 
 const LandingPage = () => {
   return (
@@ -15,19 +15,15 @@ const LandingPage = () => {
         className="hero-section"
         style={{ backgroundImage: `url(${process.env.PUBLIC_URL + '/assets/images/landingpagepic.png'})` }}
       >
-        <h1 className="hero-title">
-          Get Tailored Vendor Quotes Instantly with AI-Powered Procurement
-        </h1>
-        <p className="hero-description">
-          Connect with top vendors and get quotes in minutes.
-        </p>
+        <h1 className="hero-title">Get Tailored Vendor Quotes Instantly with AI-Powered Procurement</h1>
+        <p className="hero-description">Connect with top vendors and get quotes in minutes.</p>
         <div className="hero-buttons">
           <Link to="/login" className="cta-button primary">Login</Link>
           <Link to="/signup" className="cta-button secondary">Sign Up</Link>
         </div>
       </header>
 
-      {/* Features Section with Blue Background */}
+      {/* Features Section */}
       <section className="features-section blue-background">
         <h2>Why Choose Our Platform?</h2>
         <div className="features">
@@ -73,10 +69,43 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* Trust and Testimonials Section */}
+      {/* Trusted by Leading Companies Section */}
       <section className="trust-section">
         <h2>Trusted by Leading Companies</h2>
-        <TestimonialCarousel />
+        <div className="trusted-companies">
+          <div className="company-card">
+            <img src={process.env.PUBLIC_URL + '/assets/logos/company1.png'} alt="Company 1" className="company-logo" />
+            <div className="company-info">
+              <h3>Company 1</h3>
+              <p className="company-role">Operations Manager</p>
+              <p>"The platform streamlined our vendor selection process and saved us countless hours."</p>
+            </div>
+          </div>
+          <div className="company-card">
+            <img src={process.env.PUBLIC_URL + '/assets/logos/company2.png'} alt="Company 2" className="company-logo" />
+            <div className="company-info">
+              <h3>Company 2</h3>
+              <p className="company-role">Procurement Specialist</p>
+              <p>"A great tool for finding trusted vendors quickly. Highly recommend!"</p>
+            </div>
+          </div>
+          <div className="company-card">
+            <img src={process.env.PUBLIC_URL + '/assets/logos/company3.png'} alt="Company 3" className="company-logo" />
+            <div className="company-info">
+              <h3>Company 3</h3>
+              <p className="company-role">Chief Financial Officer</p>
+              <p>"The best solution for comparing vendor quotes and making cost-effective decisions."</p>
+            </div>
+          </div>
+          <div className="company-card">
+            <img src={process.env.PUBLIC_URL + '/assets/logos/company4.png'} alt="Company 4" className="company-logo" />
+            <div className="company-info">
+              <h3>Company 4</h3>
+              <p className="company-role">CEO</p>
+              <p>"Our go-to platform for finding the right vendors with ease."</p>
+            </div>
+          </div>
+        </div>
       </section>
 
       {/* Call to Action */}

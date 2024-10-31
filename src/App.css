@@ -115,14 +115,64 @@ button:hover {
   border-radius: 5px;
 }
 
-/* Responsive Adjustments */
+/* Footer Styles */
+.footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  padding: 40px;
+  background-color: #1e3a8a;
+  color: white;
+  font-size: 0.9rem;
+}
+
+.footer-section {
+  flex: 1 1 200px;
+  margin: 10px;
+}
+
+.footer-section h4 {
+  font-size: 1.1rem;
+  margin-bottom: 15px;
+}
+
+.footer-section ul {
+  list-style: none;
+  padding: 0;
+}
+
+.footer-section li {
+  margin-bottom: 8px;
+}
+
+.footer-section a {
+  color: white;
+  text-decoration: none;
+  transition: color 0.3s;
+}
+
+.footer-section a:hover {
+  color: #ffdd57; /* Yellow hover color for links */
+}
+
+/* Responsive Adjustments for Footer */
 @media (max-width: 768px) {
   .app-container {
     padding: 20px;
     text-align: center;
   }
-  
+
   h1 {
     font-size: 2em;
+  }
+
+  .footer {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .footer-section {
+    flex: 1 1 100%;
+    margin-bottom: 20px;
   }
 }

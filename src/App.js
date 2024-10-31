@@ -11,8 +11,9 @@ import AboutUs from './components/AboutUs';
 import ServicesOverview from './components/ServicesOverview';
 import VendorSignup from './components/VendorSignup';
 import VendorLogin from './components/VendorLogin';
-import ContactUs from './components/ContactUs'; // Import ContactUs component
+import ContactUs from './components/ContactUs'; 
 import NotFound from './components/NotFound';
+import Footer from './components/Footer'; // Import Footer component
 
 const PrivateRoute = ({ children }) => {
   const token = localStorage.getItem('token');
@@ -34,10 +35,11 @@ function App() {
           <Route path="/manage-account" element={<PrivateRoute><ManageAccount /></PrivateRoute>} />
           <Route path="/about-us" element={<AboutUs />} />
           <Route path="/services" element={<ServicesOverview />} />
-          <Route path="/contact" element={<ContactUs />} /> {/* Add ContactUs route */}
+          <Route path="/contact" element={<ContactUs />} />
           <Route path="/vendor-signup" element={<VendorSignup />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
+        <Footer /> {/* Add Footer outside Routes to display it on all pages */}
       </div>
     </Router>
   );

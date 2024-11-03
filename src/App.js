@@ -4,7 +4,7 @@ import LandingPage from './components/LandingPage';
 import Login from './components/Login';
 import Signup from './components/Signup';
 import UserDashboard from './components/UserDashboard';
-import VendorDashboard from './components/VendorDashboard'; // New import
+import VendorDashboard from './components/VendorDashboard';
 import RequestQuote from './components/RequestQuote';
 import CompareVendors from './components/CompareVendors';
 import ManageAccount from './components/ManageAccount';
@@ -15,14 +15,15 @@ import VendorLogin from './components/VendorLogin';
 import ContactUs from './components/ContactUs'; 
 import NotFound from './components/NotFound';
 import Footer from './components/Footer';
+import ManageListings from './components/ManageListings'; // New import
+import ViewOrders from './components/ViewOrders'; // New import
+import AccountSettings from './components/AccountSettings'; // New import
 
-// Protect user dashboard with user token
 const PrivateRoute = ({ children }) => {
   const token = localStorage.getItem('token');
   return token ? children : <Navigate to="/login" />;
 };
 
-// Protect vendor dashboard with vendor token
 const VendorPrivateRoute = ({ children }) => {
   const vendorToken = localStorage.getItem('vendorToken');
   return vendorToken ? children : <Navigate to="/vendor-login" />;
@@ -46,6 +47,12 @@ function App() {
           <Route path="/services" element={<ServicesOverview />} />
           <Route path="/contact" element={<ContactUs />} />
           <Route path="/vendor-signup" element={<VendorSignup />} />
+          
+          {/* New Vendor Routes */}
+          <Route path="/manage-listings" element={<VendorPrivateRoute><ManageListings /></VendorPrivateRoute>} />
+          <Route path="/view-orders" element={<VendorPrivateRoute><ViewOrders /></VendorPrivateRoute>} />
+          <Route path="/account-settings" element={<VendorPrivateRoute><AccountSettings /></VendorPrivateRoute>} />
+
           <Route path="*" element={<NotFound />} />
         </Routes>
         <Footer />

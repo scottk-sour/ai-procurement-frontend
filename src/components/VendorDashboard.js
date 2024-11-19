@@ -9,34 +9,80 @@ const VendorDashboard = () => {
   const navigate = useNavigate();
   const [vendorName, setVendorName] = useState('Vendor');
   const [uploadStatus, setUploadStatus] = useState('');
+  const [vendor, setVendor] = useState(null);
 
+  // Fetch vendor details on component mount
   useEffect(() => {
     const name = localStorage.getItem('vendorName');
     if (name) {
       setVendorName(name);
     }
-  }, []);
 
+    const fetchVendorDetails = async () => {
+      const token = localStorage.getItem('vendorToken');
+      if (token) {
+        try {
+          const response = await axios.get('http://localhost:5000/api/vendors/profile', {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          setVendor(response.data.vendor);
+        } catch (error) {
+          if (error.response?.status === 401) {
+            localStorage.removeItem('vendorToken');
+            localStorage.removeItem('vendorName');
+            navigate('/vendor-login');
+          } else {
+            console.error('Error fetching vendor details:', error.message);
+          }
+        }
+      } else {
+        navigate('/vendor-login');
+      }
+    };
+
+    fetchVendorDetails();
+  }, [navigate]);
+
+  // Handle logout
   const handleLogout = () => {
     localStorage.removeItem('vendorToken');
     localStorage.removeItem('vendorName');
     navigate('/vendor-login');
   };
 
+  // Handle file upload
   const handleFileUpload = async (event) => {
     const file = event.target.files[0];
     if (file) {
       const formData = new FormData();
       formData.append('file', file);
+
+      const token = localStorage.getItem('vendorToken');
+      if (!token) {
+        setUploadStatus({ message: 'Please log in to upload files.', type: 'error' });
+        navigate('/vendor-login');
+        return;
+      }
+
       try {
-        await axios.post('http://localhost:5000/api/upload', formData, {
+        const response = await axios.post('http://localhost:5000/api/vendors/upload', formData, {
           headers: {
             'Content-Type': 'multipart/form-data',
+            'Authorization': `Bearer ${token}`,
           },
         });
+
         setUploadStatus({ message: 'File uploaded successfully!', type: 'success' });
+        setVendor(response.data.vendor);
       } catch (error) {
-        setUploadStatus({ message: 'File upload failed.', type: 'error' });
+        if (error.response?.status === 401) {
+          setUploadStatus({ message: 'Session expired. Please log in again.', type: 'error' });
+          localStorage.removeItem('vendorToken');
+          navigate('/vendor-login');
+        } else {
+          console.error('Error uploading file:', error.response?.data || error.message);
+          setUploadStatus({ message: 'File upload failed.', type: 'error' });
+        }
       }
     }
   };
@@ -99,9 +145,9 @@ const VendorDashboard = () => {
       <div className="recent-activity">
         <h2><FaBell /> Recent Activity</h2>
         <ul>
-          <li><FaBell /> New order received on 2024-11-01</li>
-          <li><FaBell /> Listing updated on 2024-10-30</li>
-          <li><FaBell /> Profile updated on 2024-10-28</li>
+          {vendor?.uploads?.map((file, index) => (
+            <li key={index}><FaBell /> Uploaded file: {file}</li>
+          ))}
         </ul>
       </div>
     </div>

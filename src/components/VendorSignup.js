@@ -14,10 +14,10 @@ const servicesOptions = [
 
 const VendorSignup = () => {
   const [formData, setFormData] = useState({
-    businessName: '',
+    name: '', // Updated from businessName to name
     email: '',
     password: '',
-    servicesOffered: [],
+    services: [], // Updated from servicesOffered to services
     phone: '',
     address: '',
   });
@@ -33,16 +33,18 @@ const VendorSignup = () => {
   const handleServicesChange = (selectedOptions) => {
     setFormData({
       ...formData,
-      servicesOffered: selectedOptions.map(option => option.value), // Store only values
+      services: selectedOptions.map(option => option.value), // Updated key to services
     });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post('http://localhost:5000/api/vendor-signup', formData);
-      setMessage(response.data.message);
+      // Updated API endpoint to match backend route
+      const response = await axios.post('http://localhost:5000/api/vendors/signup', formData);
+      setMessage(response.data.message || 'Vendor registered successfully!');
     } catch (error) {
+      console.error('Error signing up vendor:', error);
       setMessage(error.response?.data?.message || 'Error signing up vendor');
     }
   };
@@ -54,7 +56,8 @@ const VendorSignup = () => {
       <form onSubmit={handleSubmit}>
         <label>
           Business Name:
-          <input type="text" name="businessName" value={formData.businessName} onChange={handleChange} required />
+          {/* Updated input name from businessName to name */}
+          <input type="text" name="name" value={formData.name} onChange={handleChange} required />
         </label>
         <label>
           Email:

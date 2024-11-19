@@ -12,21 +12,23 @@ import AboutUs from './components/AboutUs';
 import ServicesOverview from './components/ServicesOverview';
 import VendorSignup from './components/VendorSignup';
 import VendorLogin from './components/VendorLogin';
-import ContactUs from './components/ContactUs'; 
+import ContactUs from './components/ContactUs';
 import NotFound from './components/NotFound';
 import Footer from './components/Footer';
-import ManageListings from './components/ManageListings'; // New import
-import ViewOrders from './components/ViewOrders'; // New import
-import AccountSettings from './components/AccountSettings'; // New import
+import ManageListings from './components/ManageListings';
+import ViewOrders from './components/ViewOrders';
+import AccountSettings from './components/AccountSettings';
 
+// Private route for user authentication
 const PrivateRoute = ({ children }) => {
-  const token = localStorage.getItem('token');
-  return token ? children : <Navigate to="/login" />;
+  const token = localStorage.getItem('userToken'); // Updated to match your Login.js
+  return token ? children : <Navigate to="/login" replace />;
 };
 
+// Private route for vendor authentication
 const VendorPrivateRoute = ({ children }) => {
   const vendorToken = localStorage.getItem('vendorToken');
-  return vendorToken ? children : <Navigate to="/vendor-login" />;
+  return vendorToken ? children : <Navigate to="/vendor-login" replace />;
 };
 
 function App() {
@@ -34,25 +36,29 @@ function App() {
     <Router>
       <div className="App">
         <Routes>
+          {/* Public Routes */}
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<Login />} />
-          <Route path="/vendor-login" element={<VendorLogin />} />
           <Route path="/signup" element={<Signup />} />
-          <Route path="/dashboard" element={<PrivateRoute><UserDashboard /></PrivateRoute>} />
-          <Route path="/vendor-dashboard" element={<VendorPrivateRoute><VendorDashboard /></VendorPrivateRoute>} />
-          <Route path="/request-quote" element={<PrivateRoute><RequestQuote /></PrivateRoute>} />
-          <Route path="/compare-vendors" element={<PrivateRoute><CompareVendors /></PrivateRoute>} />
-          <Route path="/manage-account" element={<PrivateRoute><ManageAccount /></PrivateRoute>} />
+          <Route path="/vendor-login" element={<VendorLogin />} />
+          <Route path="/vendor-signup" element={<VendorSignup />} />
           <Route path="/about-us" element={<AboutUs />} />
           <Route path="/services" element={<ServicesOverview />} />
           <Route path="/contact" element={<ContactUs />} />
-          <Route path="/vendor-signup" element={<VendorSignup />} />
-          
-          {/* New Vendor Routes */}
+
+          {/* Protected Routes for Users */}
+          <Route path="/dashboard" element={<PrivateRoute><UserDashboard /></PrivateRoute>} />
+          <Route path="/request-quote" element={<PrivateRoute><RequestQuote /></PrivateRoute>} />
+          <Route path="/compare-vendors" element={<PrivateRoute><CompareVendors /></PrivateRoute>} />
+          <Route path="/manage-account" element={<PrivateRoute><ManageAccount /></PrivateRoute>} />
+
+          {/* Protected Routes for Vendors */}
+          <Route path="/vendor-dashboard" element={<VendorPrivateRoute><VendorDashboard /></VendorPrivateRoute>} />
           <Route path="/manage-listings" element={<VendorPrivateRoute><ManageListings /></VendorPrivateRoute>} />
           <Route path="/view-orders" element={<VendorPrivateRoute><ViewOrders /></VendorPrivateRoute>} />
           <Route path="/account-settings" element={<VendorPrivateRoute><AccountSettings /></VendorPrivateRoute>} />
 
+          {/* Fallback Route for 404 */}
           <Route path="*" element={<NotFound />} />
         </Routes>
         <Footer />

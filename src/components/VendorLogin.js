@@ -26,7 +26,8 @@ const VendorLogin = () => {
     setMessage('');
 
     try {
-      const response = await axios.post('http://localhost:5000/api/vendor-login', formData);
+      // Updated API endpoint to match backend route
+      const response = await axios.post('http://localhost:5000/api/vendors/login', formData);
       
       if (response.data.token) {
         localStorage.setItem('vendorToken', response.data.token);
@@ -36,7 +37,7 @@ const VendorLogin = () => {
         setMessage('Login successful, but no token received.');
       }
     } catch (error) {
-      if (error.response && error.response.status === 401) {
+      if (error.response && (error.response.status === 400 || error.response.status === 401)) {
         setMessage('Invalid email or password. Please try again.');
       } else {
         setMessage(error.response?.data?.message || 'An error occurred during login. Please try again later.');

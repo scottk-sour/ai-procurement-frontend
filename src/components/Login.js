@@ -1,61 +1,60 @@
-// src/components/Login.js
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import './Login.css'; // Import the CSS file for styles
+import './Login.css';
 
 const Login = () => {
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false); // Loading state
-  const [error, setError] = useState(''); // Error message state
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    setLoading(true); // Set loading to true before API call
-    setError(''); // Clear previous errors
+    setLoading(true);
+    setError('');
 
     // Basic validation
-    if (username.trim() === '' || password.trim() === '') {
-      setError('Username and password are required');
+    if (email.trim() === '' || password.trim() === '') {
+      setError('Email and password are required');
       setLoading(false);
       return;
     }
 
     try {
-      const response = await fetch('http://localhost:5000/api/login', {
+      const response = await fetch('http://localhost:5000/api/users/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ email, password }),
       });
 
       const data = await response.json();
 
       if (response.ok) {
-        localStorage.setItem('token', data.token); // Store the JWT token
+        localStorage.setItem('userToken', data.token); // Store the JWT token
         localStorage.setItem('userName', data.name || 'User'); // Store the user's name if available
-        navigate('/dashboard'); // Redirect to the dashboard
+        navigate('/dashboard');
       } else {
-        setError(data.error || 'Login failed'); // Set error message
+        setError(data.message || 'Login failed');
       }
     } catch (error) {
       console.error('Error during login:', error);
       setError('An error occurred during login. Please try again.');
     } finally {
-      setLoading(false); // Reset loading state
+      setLoading(false);
     }
   };
 
   return (
     <div className="login-container">
       <form onSubmit={handleLogin} className="login-form">
-        <h2>Login</h2> {/* Move the heading inside the form */}
-        {error && <p className="error-message">{error}</p>} {/* Display error messages */}
+        <h2>Login</h2>
+        {error && <p className="error-message">{error}</p>}
         <input
-          type="text"
-          placeholder="Username"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
+          type="email"
+          placeholder="Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
           required
         />
         <input
@@ -66,7 +65,7 @@ const Login = () => {
           required
         />
         <button type="submit" className="cta-button primary" disabled={loading}>
-          {loading ? 'Loading...' : 'Login'} {/* Change button text while loading */}
+          {loading ? 'Loading...' : 'Login'}
         </button>
         <p className="redirect-text">
           Don't have an account? <a href="/signup">Sign Up</a>

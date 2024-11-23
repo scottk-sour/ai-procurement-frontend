@@ -1,0 +1,9 @@
+.admin-dashboard-container {
+    padding: 20px;
+    font-family: 'Roboto', sans-serif;
+}
+
+.admin-dashboard-header {
+    font-size: 24px;
+    font-weight: bold;
+}

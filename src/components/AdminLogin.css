@@ -1,0 +1,12 @@
+.admin-login-container {
+    max-width: 400px;
+    margin: 0 auto;
+    padding: 20px;
+    font-family: 'Roboto', sans-serif;
+}
+
+.admin-login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}

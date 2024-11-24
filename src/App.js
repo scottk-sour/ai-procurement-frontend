@@ -22,22 +22,25 @@ import AdminLogin from './components/AdminLogin';
 import AdminDashboard from './components/AdminDashboard';
 import AdminUserManagement from './components/AdminUserManagement';
 
+// Utility to validate token existence
+const isTokenValid = (token) => token && token !== '';
+
 // Private route for user authentication
 const PrivateRoute = ({ children }) => {
   const token = localStorage.getItem('userToken');
-  return token ? children : <Navigate to="/login" replace />;
+  return isTokenValid(token) ? children : <Navigate to="/login" replace />;
 };
 
 // Private route for vendor authentication
 const VendorPrivateRoute = ({ children }) => {
   const vendorToken = localStorage.getItem('vendorToken');
-  return vendorToken ? children : <Navigate to="/vendor-login" replace />;
+  return isTokenValid(vendorToken) ? children : <Navigate to="/vendor-login" replace />;
 };
 
 // Private route for admin authentication
 const AdminPrivateRoute = ({ children }) => {
   const adminToken = localStorage.getItem('adminToken');
-  return adminToken ? children : <Navigate to="/admin-login" replace />;
+  return isTokenValid(adminToken) ? children : <Navigate to="/admin-login" replace />;
 };
 
 function App() {

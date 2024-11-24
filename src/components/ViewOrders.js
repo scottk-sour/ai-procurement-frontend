@@ -9,6 +9,9 @@ function ViewOrders() {
     { id: 3, name: "Product C", date: "2024-10-25", status: "Shipped" },
   ]);
 
+  const [showForm, setShowForm] = useState(false); // Controls visibility of the Edit Order form
+  const [currentOrder, setCurrentOrder] = useState(null); // Holds the currently edited order
+
   useEffect(() => {
     // This is where you could fetch orders from the backend API
     // axios.get('/api/orders').then(response => setOrders(response.data));
@@ -26,6 +29,26 @@ function ViewOrders() {
       setOrders((prevOrders) => prevOrders.filter(order => order.id !== orderId));
       alert(`Order #${orderId} canceled.`);
     }
+  };
+
+  const handleEditOrder = (order) => {
+    setCurrentOrder(order); // Load the selected order into the form
+    setShowForm(true); // Show the modal
+  };
+
+  const handleSaveOrder = (e) => {
+    e.preventDefault();
+    setOrders((prevOrders) =>
+      prevOrders.map((order) =>
+        order.id === currentOrder.id ? currentOrder : order
+      )
+    );
+    setShowForm(false); // Close the modal
+    alert(`Order #${currentOrder.id} has been updated.`);
+  };
+
+  const handleFormChange = (field, value) => {
+    setCurrentOrder((prevOrder) => ({ ...prevOrder, [field]: value }));
   };
 
   return (
@@ -55,11 +78,59 @@ function ViewOrders() {
                     Cancel
                   </button>
                 )}
+                <button onClick={() => handleEditOrder(order)}>Edit</button>
               </td>
             </tr>
           ))}
         </tbody>
       </table>
+
+      {/* Edit Order Modal */}
+      {showForm && currentOrder && (
+        <div className="modal">
+          <div className="modal-content">
+            <h3>Edit Order #{currentOrder.id}</h3>
+            <form onSubmit={handleSaveOrder}>
+              <label>
+                Product/Service Name:
+                <input
+                  type="text"
+                  value={currentOrder.name}
+                  onChange={(e) => handleFormChange("name", e.target.value)}
+                  required
+                />
+              </label>
+              <label>
+                Order Date:
+                <input
+                  type="date"
+                  value={currentOrder.date}
+                  onChange={(e) => handleFormChange("date", e.target.value)}
+                  required
+                />
+              </label>
+              <label>
+                Status:
+                <select
+                  value={currentOrder.status}
+                  onChange={(e) => handleFormChange("status", e.target.value)}
+                >
+                  <option value="Pending">Pending</option>
+                  <option value="Shipped">Shipped</option>
+                  <option value="Completed">Completed</option>
+                  <option value="Cancelled">Cancelled</option>
+                </select>
+              </label>
+              <div className="modal-actions">
+                <button type="submit">Save Changes</button>
+                <button type="button" onClick={() => setShowForm(false)}>
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,9 +1,95 @@
-.admin-dashboard-container {
+/* General Styles for the Admin Dashboard */
+.admin-dashboard {
     padding: 20px;
     font-family: 'Roboto', sans-serif;
+    background-color: #f8f9fa;
+    color: #333;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    max-width: 1200px;
+    margin: 0 auto;
 }
 
-.admin-dashboard-header {
-    font-size: 24px;
+/* Header Styles */
+.admin-dashboard h1 {
+    font-size: 2.5rem;
     font-weight: bold;
+    margin-bottom: 20px;
+    color: #0056b3;
+    text-align: center;
+}
+
+/* Section Styles */
+.dashboard-section {
+    margin-bottom: 30px;
+    background-color: #ffffff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.dashboard-section h2 {
+    font-size: 1.8rem;
+    color: #0056b3;
+    margin-bottom: 15px;
+}
+
+/* List Styles */
+.dashboard-section ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+
+.dashboard-section li {
+    padding: 10px 15px;
+    font-size: 1.1rem;
+    border-bottom: 1px solid #ddd;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.dashboard-section li:last-child {
+    border-bottom: none;
+}
+
+/* Link Styles */
+.dashboard-section a {
+    text-decoration: none;
+    color: #007bff;
+    transition: color 0.2s;
+}
+
+.dashboard-section a:hover {
+    color: #0056b3;
+    text-decoration: underline;
+}
+
+/* Loading and Error Styles */
+.admin-dashboard.loading {
+    text-align: center;
+    font-size: 1.5rem;
+    color: #666;
+}
+
+.admin-dashboard.error {
+    text-align: center;
+    font-size: 1.2rem;
+    color: #d9534f;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .admin-dashboard h1 {
+        font-size: 2rem;
+    }
+
+    .dashboard-section h2 {
+        font-size: 1.5rem;
+    }
+
+    .dashboard-section li {
+        font-size: 1rem;
+    }
 }

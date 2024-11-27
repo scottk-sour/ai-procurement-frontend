@@ -10,6 +10,10 @@ import CompareVendors from './components/CompareVendors';
 import ManageAccount from './components/ManageAccount';
 import AboutUs from './components/AboutUs';
 import ServicesOverview from './components/ServicesOverview';
+import Photocopiers from './components/services/Photocopiers';
+import Telecoms from './components/services/Telecoms';
+import CCTV from './components/services/CCTV';
+import ITSolutions from './components/services/ITSolutions';
 import VendorSignup from './components/VendorSignup';
 import VendorLogin from './components/VendorLogin';
 import ContactUs from './components/ContactUs';
@@ -22,22 +26,22 @@ import AdminLogin from './components/AdminLogin';
 import AdminDashboard from './components/AdminDashboard';
 import AdminUserManagement from './components/AdminUserManagement';
 
-// Utility to validate token existence
-const isTokenValid = (token) => token && token !== '';
+// Utility function to validate token existence
+const isTokenValid = (token) => token && token.trim() !== '';
 
-// Private route for user authentication
+// Private Route Wrapper for User Authentication
 const PrivateRoute = ({ children }) => {
   const token = localStorage.getItem('userToken');
   return isTokenValid(token) ? children : <Navigate to="/login" replace />;
 };
 
-// Private route for vendor authentication
+// Private Route Wrapper for Vendor Authentication
 const VendorPrivateRoute = ({ children }) => {
   const vendorToken = localStorage.getItem('vendorToken');
   return isTokenValid(vendorToken) ? children : <Navigate to="/vendor-login" replace />;
 };
 
-// Private route for admin authentication
+// Private Route Wrapper for Admin Authentication
 const AdminPrivateRoute = ({ children }) => {
   const adminToken = localStorage.getItem('adminToken');
   return isTokenValid(adminToken) ? children : <Navigate to="/admin-login" replace />;
@@ -56,28 +60,104 @@ function App() {
           <Route path="/vendor-signup" element={<VendorSignup />} />
           <Route path="/about-us" element={<AboutUs />} />
           <Route path="/services" element={<ServicesOverview />} />
+          <Route path="/services/photocopiers" element={<Photocopiers />} />
+          <Route path="/services/telecoms" element={<Telecoms />} />
+          <Route path="/services/cctv" element={<CCTV />} />
+          <Route path="/services/it" element={<ITSolutions />} />
           <Route path="/contact" element={<ContactUs />} />
           <Route path="/admin-login" element={<AdminLogin />} />
 
-          {/* Protected Routes for Users */}
-          <Route path="/dashboard" element={<PrivateRoute><UserDashboard /></PrivateRoute>} />
-          <Route path="/request-quote" element={<PrivateRoute><RequestQuote /></PrivateRoute>} />
-          <Route path="/compare-vendors" element={<PrivateRoute><CompareVendors /></PrivateRoute>} />
-          <Route path="/manage-account" element={<PrivateRoute><ManageAccount /></PrivateRoute>} />
+          {/* User Protected Routes */}
+          <Route
+            path="/dashboard"
+            element={
+              <PrivateRoute>
+                <UserDashboard />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/request-quote"
+            element={
+              <PrivateRoute>
+                <RequestQuote />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/compare-vendors"
+            element={
+              <PrivateRoute>
+                <CompareVendors />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/manage-account"
+            element={
+              <PrivateRoute>
+                <ManageAccount />
+              </PrivateRoute>
+            }
+          />
 
-          {/* Protected Routes for Vendors */}
-          <Route path="/vendor-dashboard" element={<VendorPrivateRoute><VendorDashboard /></VendorPrivateRoute>} />
-          <Route path="/manage-listings" element={<VendorPrivateRoute><ManageListings /></VendorPrivateRoute>} />
-          <Route path="/view-orders" element={<VendorPrivateRoute><ViewOrders /></VendorPrivateRoute>} />
-          <Route path="/account-settings" element={<VendorPrivateRoute><AccountSettings /></VendorPrivateRoute>} />
+          {/* Vendor Protected Routes */}
+          <Route
+            path="/vendor-dashboard"
+            element={
+              <VendorPrivateRoute>
+                <VendorDashboard />
+              </VendorPrivateRoute>
+            }
+          />
+          <Route
+            path="/manage-listings"
+            element={
+              <VendorPrivateRoute>
+                <ManageListings />
+              </VendorPrivateRoute>
+            }
+          />
+          <Route
+            path="/view-orders"
+            element={
+              <VendorPrivateRoute>
+                <ViewOrders />
+              </VendorPrivateRoute>
+            }
+          />
+          <Route
+            path="/account-settings"
+            element={
+              <VendorPrivateRoute>
+                <AccountSettings />
+              </VendorPrivateRoute>
+            }
+          />
 
-          {/* Protected Routes for Admin */}
-          <Route path="/admin-dashboard" element={<AdminPrivateRoute><AdminDashboard /></AdminPrivateRoute>} />
-          <Route path="/admin-users" element={<AdminPrivateRoute><AdminUserManagement /></AdminPrivateRoute>} />
+          {/* Admin Protected Routes */}
+          <Route
+            path="/admin-dashboard"
+            element={
+              <AdminPrivateRoute>
+                <AdminDashboard />
+              </AdminPrivateRoute>
+            }
+          />
+          <Route
+            path="/admin-users"
+            element={
+              <AdminPrivateRoute>
+                <AdminUserManagement />
+              </AdminPrivateRoute>
+            }
+          />
 
           {/* Fallback Route for 404 */}
           <Route path="*" element={<NotFound />} />
         </Routes>
+
+        {/* Footer */}
         <Footer />
       </div>
     </Router>

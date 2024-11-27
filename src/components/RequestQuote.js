@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import './RequestQuote.css';
+import './RequestQuote.css'; // Import the CSS for styling
 
 const RequestQuote = () => {
   const [formData, setFormData] = useState({
@@ -11,14 +11,49 @@ const RequestQuote = () => {
     budgetRange: '',
   });
 
+  const [isSubmitting, setIsSubmitting] = useState(false); // State to track submission
+
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Handle form submission logic, e.g., send formData to the backend.
-    console.log('Form Submitted:', formData);
+    console.log('Submit button clicked'); // Log when the submit button is clicked
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch('/api/submit-request', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
+
+      console.log('Response received:', response); // Log the raw response
+
+      if (!response.ok) {
+        throw new Error('Failed to submit the request');
+      }
+
+      const data = await response.json();
+      console.log('Form submitted successfully:', data); // Log parsed response
+      alert('Request submitted successfully!');
+
+      // Reset form after submission
+      setFormData({
+        serviceType: '',
+        quantity: '',
+        preferredVendor: '',
+        deadline: '',
+        specialRequirements: '',
+        budgetRange: '',
+      });
+    } catch (error) {
+      console.error('Error submitting form:', error);
+      alert('Failed to submit the request. Please try again later.');
+    } finally {
+      setIsSubmitting(false); // Reset submission state
+    }
   };
 
   return (
@@ -27,13 +62,18 @@ const RequestQuote = () => {
       <form onSubmit={handleSubmit}>
         <label>
           Service/Product Type:
-          <input
-            type="text"
+          <select
             name="serviceType"
             value={formData.serviceType}
             onChange={handleChange}
             required
-          />
+          >
+            <option value="" disabled>Select a service type</option>
+            <option value="CCTV">CCTV</option>
+            <option value="Photocopiers">Photocopiers</option>
+            <option value="IT">IT</option>
+            <option value="Telecoms">Telecoms</option>
+          </select>
         </label>
         <label>
           Quantity:
@@ -42,6 +82,7 @@ const RequestQuote = () => {
             name="quantity"
             value={formData.quantity}
             onChange={handleChange}
+            placeholder="Enter the quantity"
             required
           />
         </label>
@@ -52,6 +93,7 @@ const RequestQuote = () => {
             name="preferredVendor"
             value={formData.preferredVendor}
             onChange={handleChange}
+            placeholder="Vendor name"
           />
         </label>
         <label>
@@ -61,6 +103,7 @@ const RequestQuote = () => {
             name="deadline"
             value={formData.deadline}
             onChange={handleChange}
+            required
           />
         </label>
         <label>
@@ -69,18 +112,27 @@ const RequestQuote = () => {
             name="specialRequirements"
             value={formData.specialRequirements}
             onChange={handleChange}
+            placeholder="Enter any additional details (optional)"
           />
         </label>
         <label>
-          Budget Range:
-          <input
-            type="text"
+          Budget Range (£):
+          <select
             name="budgetRange"
             value={formData.budgetRange}
             onChange={handleChange}
-          />
+            required
+          >
+            <option value="" disabled>Select a budget range</option>
+            <option value="Under 500">Under £500</option>
+            <option value="500-1000">£500 - £1000</option>
+            <option value="1000-5000">£1000 - £5000</option>
+            <option value="Over 5000">Over £5000</option>
+          </select>
         </label>
-        <button type="submit">Submit Request</button>
+        <button type="submit" disabled={isSubmitting}>
+          {isSubmitting ? 'Submitting...' : 'Submit Request'}
+        </button>
       </form>
     </div>
   );

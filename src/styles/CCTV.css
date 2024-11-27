@@ -1,0 +1,14 @@
+.cctv-page {
+    padding: 20px;
+  }
+  
+  .cctv-page h1 {
+    font-size: 2rem;
+    color: #007bff;
+  }
+  
+  .cctv-page p {
+    font-size: 1.2rem;
+    color: #555;
+  }
+  

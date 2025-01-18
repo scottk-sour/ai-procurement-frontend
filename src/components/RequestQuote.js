@@ -23,16 +23,29 @@ const RequestQuote = () => {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch('/api/submit-request', {
+      // Retrieve the token from localStorage or another storage mechanism
+      const token = localStorage.getItem('token');
+      if (!token) {
+        alert('You must be logged in to submit a quote request.');
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Send the request to the backend
+      const response = await fetch('http://localhost:5000/api/submit-request', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`, // Include the authorization token
+        },
         body: JSON.stringify(formData),
       });
 
       console.log('Response received:', response); // Log the raw response
 
       if (!response.ok) {
-        throw new Error('Failed to submit the request');
+        const errorData = await response.json(); // Parse backend error message
+        throw new Error(errorData.message || 'Failed to submit the request');
       }
 
       const data = await response.json();
@@ -50,7 +63,7 @@ const RequestQuote = () => {
       });
     } catch (error) {
       console.error('Error submitting form:', error);
-      alert('Failed to submit the request. Please try again later.');
+      alert(error.message || 'Failed to submit the request. Please try again later.');
     } finally {
       setIsSubmitting(false); // Reset submission state
     }
@@ -68,7 +81,9 @@ const RequestQuote = () => {
             onChange={handleChange}
             required
           >
-            <option value="" disabled>Select a service type</option>
+            <option value="" disabled>
+              Select a service type
+            </option>
             <option value="CCTV">CCTV</option>
             <option value="Photocopiers">Photocopiers</option>
             <option value="IT">IT</option>
@@ -123,7 +138,9 @@ const RequestQuote = () => {
             onChange={handleChange}
             required
           >
-            <option value="" disabled>Select a budget range</option>
+            <option value="" disabled>
+              Select a budget range
+            </option>
             <option value="Under 500">Under £500</option>
             <option value="500-1000">£500 - £1000</option>
             <option value="1000-5000">£1000 - £5000</option>

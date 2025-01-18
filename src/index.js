@@ -1,13 +1,13 @@
-// src/index.js
 import React from 'react';
-import ReactDOM from 'react-dom';
-import './index.css'; // This imports the global styles
-import App from './App'; // Import the main App component
+import { createRoot } from 'react-dom/client';
+import './index.css';
+import App from './App';
 
-// Render the App component into the root div in index.html
-ReactDOM.render(
+const container = document.getElementById('root');
+const root = createRoot(container);
+
+root.render(
   <React.StrictMode>
     <App />
-  </React.StrictMode>,
-  document.getElementById('root') // Finds the element with the ID of 'root' in public/index.html
+  </React.StrictMode>
 );

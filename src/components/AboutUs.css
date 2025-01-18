@@ -2,6 +2,9 @@
 .about-us-container {
   font-family: Arial, sans-serif;
   color: #333;
+  margin: 0;
+  padding: 0;
+  line-height: 1.6;
 }
 
 /* Full-width banner with background image */
@@ -30,7 +33,7 @@
 }
 
 .banner-title {
-  font-size: 3em;
+  font-size: 3rem;
   font-weight: bold;
   z-index: 2;
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
@@ -66,8 +69,9 @@
   margin-bottom: 20px;
 }
 
-.company-overview h2, .mission h2 {
-  font-size: 1.8em;
+.company-overview h2,
+.mission h2 {
+  font-size: 1.8rem;
   color: #007bff;
   margin-bottom: 10px;
   border-bottom: 2px solid #007bff;
@@ -81,13 +85,20 @@ p {
   margin-bottom: 20px;
 }
 
+/* Specific paragraph styling for black text */
+.how-it-works-grid .card p {
+  font-size: 1.1rem; /* Uniform size */
+  color: #000; /* Black text */
+  text-align: justify;
+}
+
 /* How It Works Section */
 .how-it-works {
   margin-top: 20px;
 }
 
 .section-title {
-  font-size: 2em;
+  font-size: 2rem;
   color: #0056b3;
   text-align: center;
   margin-bottom: 20px;
@@ -96,13 +107,19 @@ p {
 /* Grid Layout for How It Works Cards */
 .how-it-works-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 20px;
+}
+
+.how-it-works-grid .card h3 {
+  font-size: 1.5rem;
+  margin-bottom: 15px;
+  text-align: center;
 }
 
 /* Join Us Section */
 .join-us h2 {
-  font-size: 1.8em;
+  font-size: 1.8rem;
   color: #007bff;
   margin-bottom: 10px;
 }
@@ -114,7 +131,7 @@ p {
 }
 
 .about-us-footer h2 {
-  font-size: 1.6em;
+  font-size: 1.6rem;
   color: #28a745;
   margin-bottom: 10px;
 }
@@ -133,7 +150,7 @@ p {
 /* Responsive Styling */
 @media (max-width: 768px) {
   .banner-title {
-    font-size: 2em;
+    font-size: 2rem;
   }
 
   .two-column {

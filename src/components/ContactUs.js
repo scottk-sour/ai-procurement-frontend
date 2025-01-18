@@ -47,9 +47,9 @@ const ContactUs = () => {
 
       <div className="contact-info">
         <h2>Contact Information</h2>
-        <p><strong>Email:</strong> contact@example.com</p>
-        <p><strong>Phone:</strong> (123) 456-7890</p>
-        <p><strong>Address:</strong> 123 Main St, City, Country</p>
+        <p><strong>Email:</strong> scottkdavies@me.com</p>
+        <p><strong>Phone:</strong> 07854208418</p>
+        <p><strong>Address:</strong> 155 Oaksfor, Coed Eva, Cwmbran, NP44 6UN</p>
       </div>
     </div>
   );

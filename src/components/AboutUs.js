@@ -1,98 +1,147 @@
-// src/components/AboutUs.js
-import React from "react";
-import "./AboutUs.css";
+import React from 'react';
+import './AboutUs.css';
 
-const AboutUs = () => {
+function AboutUs() {
+  const platformName = 'Your Platform Name';
+
   return (
     <div className="about-us-container">
-      {/* Full-width banner with background image */}
-      <section
-        className="banner"
-        style={{ backgroundImage: `url(/assets/images/landingpagepic.png)` }}
-      >
-        <h1 className="banner-title">About Us</h1>
+      {/* HERO SECTION */}
+      <section className="hero-section">
+        <div className="hero-overlay">
+          <h1>About Us</h1>
+          <p>Welcome to {platformName}</p>
+        </div>
       </section>
 
-      <div className="content-wrapper">
-        {/* Two-column layout for overview and mission */}
-        <div className="two-column section-background">
-          <section className="company-overview box-shadow">
-            <h2>Welcome to [Your Platform Name]</h2>
-            <p>
-              I'm Scott Davies, and I've spent over 25 years in sales,
-              procurement, and digital marketing. Throughout my career, I've
-              witnessed firsthand the challenges businesses face when sourcing
-              reliable vendors for office equipment. Many organisations
-              struggle with time-consuming and costly procurement processes,
-              often falling victim to aggressive sales tactics that promise the
-              world but fail to deliver.
-            </p>
-          </section>
-
-          <section className="mission box-shadow">
-            <h2>Our Mission</h2>
-            <p>
-              Recognising these challenges, we created{" "}
-              <strong>[Your Platform Name]</strong>, an AI-powered procurement
-              platform that revolutionises the way businesses source products
-              and services. Our platform offers personalised, competitive
-              quotes from a curated selection of vendors, streamlining
-              procurement and ensuring that companies receive the best value
-              for their investments.
-            </p>
-          </section>
-        </div>
-
-        {/* How It Works Section */}
-        <section className="how-it-works section-background">
-          <h2 className="section-title">How It Works</h2>
-          <div className="how-it-works-grid">
-            <div className="card box-shadow">
-              <h3>User Interaction and Data Collection</h3>
-              <p>
-                Our intuitive form allows users to easily input their
-                procurement needs, including product specifications, budget, and
-                service preferences.
-              </p>
-            </div>
-            <div className="card box-shadow">
-              <h3>AI-Driven Vendor Matching</h3>
-              <p>
-                Our advanced AI algorithms intelligently match user
-                requirements with the most suitable vendors, eliminating
-                guesswork and manual effort.
-              </p>
-            </div>
-            <div className="card box-shadow">
-              <h3>Automated Quote Generation</h3>
-              <p>
-                Users receive detailed, customised quotes within seconds, saving
-                significant time and effort.
-              </p>
-            </div>
-            <div className="card box-shadow">
-              <h3>Quote Presentation and Comparison</h3>
-              <p>
-                A user-friendly comparison interface empowers users to make
-                informed decisions based on price, features, and vendor ratings.
-              </p>
-            </div>
-          </div>
-        </section>
-
-        <footer className="about-us-footer">
-          <h2>Get in Touch</h2>
+      {/* INTRODUCTION / SCOTT DAVIES */}
+      <section className="introduction-section">
+        <div className="intro-text">
+          <h2>Hello and Welcome</h2>
           <p>
-            Want to learn more about us?{" "}
-            <a href="/contact" className="contact-link">
-              Contact us
-            </a>
-            .
+            Hi, I’m Scott Davies, the founder of {platformName}. With over 25 years of experience
+            in sales, procurement, and digital marketing, I’ve witnessed firsthand the challenges
+            businesses face when navigating the procurement process. From time-consuming vendor
+            searches to unreliable quotes, I knew there had to be a better way. That’s why I founded
+            {` ${platformName}`}: to revolutionise how businesses find the right solutions.
           </p>
-        </footer>
-      </div>
+        </div>
+        <div className="founder-image">
+          {/* Replace with a real image URL or import your image */}
+          <img
+            src="https://via.placeholder.com/400x400"
+            alt="Scott Davies"
+          />
+        </div>
+      </section>
+
+      {/* OUR MISSION & OUR STORY (TWO-COLUMN LAYOUT) */}
+      <section className="two-column-section">
+        <div className="column">
+          <h2>Our Mission</h2>
+          <p>
+            At {platformName}, our mission is simple yet transformative:
+            to empower businesses by making procurement smarter, faster,
+            and more cost-effective. We aim to eliminate inefficiencies and
+            deliver tailored vendor solutions through our AI-powered platform.
+          </p>
+          <p>
+            We believe that businesses should focus on growth, not on wading
+            through complex procurement processes. That’s why we use cutting-edge
+            technology to match businesses with trusted vendors, saving both time
+            and money.
+          </p>
+        </div>
+        <div className="column">
+          <h2>Our Story</h2>
+          <p>
+            Throughout my career, I’ve seen businesses struggle to find reliable
+            vendors. Many fall victim to aggressive sales tactics or outdated
+            procurement methods that fail to meet their needs. Recognising this gap,
+            I combined my expertise in procurement with innovative AI technology
+            to create a platform that simplifies and personalises the entire process.
+          </p>
+          <p>
+            Since launching {platformName}, we’ve helped countless businesses streamline
+            their procurement, reduce costs, and build lasting partnerships with trusted vendors.
+          </p>
+        </div>
+      </section>
+
+      {/* WHY CHOOSE US? */}
+      <section className="why-choose-us-section">
+        <h2>Why Choose Us?</h2>
+        <ul className="features-list">
+          <li>
+            <strong>Personalised Matching:</strong> Our advanced AI algorithms analyse your
+            unique needs to connect you with the most suitable vendors.
+          </li>
+          <li>
+            <strong>Instant Quotes:</strong> Receive detailed and competitive quotes
+            within seconds, saving valuable time.
+          </li>
+          <li>
+            <strong>Trusted Vendors:</strong> We partner with a curated network of
+            reliable vendors to ensure quality and value.
+          </li>
+          <li>
+            <strong>Customer Focused:</strong> Our platform is designed with your
+            convenience in mind, making procurement effortless and stress-free.
+          </li>
+        </ul>
+      </section>
+
+      {/* CORE VALUES */}
+      <section className="core-values-section">
+        <h2>Our Core Values</h2>
+        <ul className="values-list">
+          <li>
+            <strong>Transparency:</strong> We prioritise honest and clear communication
+            at every stage.
+          </li>
+          <li>
+            <strong>Efficiency:</strong> Our platform is built to save you time
+            and resources.
+          </li>
+          <li>
+            <strong>Innovation:</strong> We constantly improve our technology to
+            deliver the best results.
+          </li>
+          <li>
+            <strong>Customer Satisfaction:</strong> Your success is our top priority.
+          </li>
+        </ul>
+      </section>
+
+      {/* OUR VISION */}
+      <section className="vision-section">
+        <h2>Our Vision</h2>
+        <p>
+          We’re committed to transforming procurement for businesses of all sizes. As we
+          grow, we aim to expand our network of trusted vendors, refine our AI algorithms,
+          and continue leading the digital procurement revolution.
+        </p>
+      </section>
+
+      {/* GET IN TOUCH */}
+      <section className="get-in-touch-section">
+        <h2>Get in Touch</h2>
+        <p>
+          Whether you’re a business looking for tailored solutions or a vendor ready to
+          showcase your services, we’re here to help. Visit our Contact Us page to connect
+          with us, or learn more about our process on the How It Works page.
+        </p>
+        <p>Let’s make procurement smarter, together.</p>
+        <p>
+          Scott Davies<br />
+          Founder, {platformName}
+        </p>
+
+        {/* Example CTA button */}
+        <button className="cta-button">Contact Us</button>
+      </section>
     </div>
   );
-};
+}
 
 export default AboutUs;

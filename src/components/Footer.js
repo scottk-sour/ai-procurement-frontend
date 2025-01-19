@@ -1,5 +1,6 @@
-// src/components/Footer.js
+// Footer.js
 import React from 'react';
+import { Link } from 'react-router-dom'; // Import Link from react-router-dom
 import '../styles/Footer.css';
 
 const Footer = () => {
@@ -8,29 +9,27 @@ const Footer = () => {
       <div className="footer-section">
         <h4>More Information</h4>
         <ul>
-          <li><a href="/partners">Our Partners</a></li>
-          <li><a href="/sitemap">Sitemap</a></li>
-          <li><a href="/work-with-us">Who We Work With</a></li>
-          <li><a href="/make-money">How We Make Money</a></li>
-          <li><a href="/about-us">About Us</a></li>
-          <li><a href="/editorial-guidelines">Our Editorial Guidelines</a></li>
+          <li><Link to="/sitemap">Sitemap</Link></li>
+          <li><Link to="/about-us">About Us</Link></li>
+          <li><Link to="/how-it-works">How Our AI Works</Link></li>
+          <li><Link to="/privacy-policy">Privacy Policy</Link></li>
         </ul>
       </div>
       
       <div className="footer-section">
         <h4>News & Content</h4>
         <ul>
-          <li><a href="/press-contacts">Press Contacts</a></li>
-          <li><a href="/marketing">Our Marketing Activity</a></li>
-          <li><a href="/experts">Meet the Experts</a></li>
+          <li><Link to="/press-contacts">Press Contacts</Link></li>
+          <li><Link to="/marketing">Our Marketing Activity</Link></li>
+          <li><Link to="/experts">Meet the Experts</Link></li>
         </ul>
       </div>
 
       <div className="footer-section">
         <h4>Get in Touch</h4>
         <ul>
-          <li><a href="/contact">Contact Us</a></li>
-          <li><a href="/careers">Careers</a></li>
+          <li><Link to="/contact">Contact Us</Link></li>
+          <li><Link to="/careers">Careers</Link></li>
         </ul>
       </div>
 

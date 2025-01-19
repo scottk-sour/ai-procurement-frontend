@@ -35,30 +35,35 @@
 
 /* Hero Section */
 .hero-section {
-  background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), 
-              url('/assets/images/landingpagepic.png') no-repeat center center;
+  background: linear-gradient(
+      rgba(0, 0, 0, 0.6),
+      rgba(0, 0, 0, 0.6)
+    ),
+    url('/assets/images/landingpagepic.png') no-repeat center center;
   background-size: cover;
-  color: white;
-  padding: 80px 20px;
+  min-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
   text-align: center;
+  padding: 0 20px;
+  color: #fff;
 }
 
 .hero-title {
   font-size: 3em;
   font-weight: bold;
   margin-bottom: 20px;
-  color: #ffffff;
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
 }
 
 .hero-description {
   font-size: 1.5em;
   margin-bottom: 40px;
-  color: #ffffff;
   text-shadow: 1px 1px 5px rgba(0, 0, 0, 0.4);
 }
 
-/* Call to Action Buttons */
 .hero-buttons .cta-button {
   padding: 15px 40px;
   font-size: 1.2em;
@@ -67,11 +72,13 @@
   cursor: pointer;
   transition: all 0.3s ease;
   box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+  text-decoration: none;
 }
 
+/* Primary & Secondary Buttons */
 .primary {
   background-color: #217346;
-  color: white;
+  color: #fff;
 }
 
 .primary:hover {
@@ -80,7 +87,7 @@
 
 .secondary {
   background-color: #6c757d;
-  color: white;
+  color: #fff;
 }
 
 .secondary:hover {
@@ -92,7 +99,7 @@
   padding: 60px 20px;
   text-align: center;
   background-color: #1e3a8a;
-  color: white;
+  color: #fff;
 }
 
 .features-section h2 {
@@ -145,7 +152,6 @@
   color: #1e3a8a;
 }
 
-/* Service Cards */
 .services-grid {
   display: flex;
   justify-content: center;
@@ -156,13 +162,14 @@
 .service-card {
   width: 250px;
   padding: 20px;
-  background-color: #ffffff;
+  background-color: #fff;
   border: 1px solid #ddd;
   border-radius: 15px;
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
   text-align: center;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
   color: inherit;
+  text-decoration: none;
 }
 
 .service-card:hover {
@@ -188,42 +195,41 @@
   color: #1e3a8a;
 }
 
-/* Company Cards */
 .trusted-companies {
   display: flex;
   justify-content: center;
-  gap: 30px; /* Increase spacing between cards */
+  gap: 30px;
   flex-wrap: wrap;
 }
 
 .company-card {
   display: flex;
-  flex-direction: column; /* Stack logo and info vertically */
-  align-items: center; /* Center align content */
-  background-color: #ffffff;
-  border-radius: 12px; /* Slightly larger corner radius */
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1); /* Softer shadow */
+  flex-direction: column;
+  align-items: center;
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
   padding: 20px;
-  max-width: 300px; /* Set a consistent width */
-  text-align: center; /* Center align text */
-  transition: transform 0.3s ease, box-shadow 0.3s ease; /* Smooth transition */
+  max-width: 300px;
+  text-align: center;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .company-card:hover {
-  transform: translateY(-5px); /* Subtle lift on hover */
-  box-shadow: 0 12px 20px rgba(0, 0, 0, 0.2); /* Enhanced shadow on hover */
+  transform: translateY(-5px);
+  box-shadow: 0 12px 20px rgba(0, 0, 0, 0.2);
 }
 
 .company-logo {
   max-width: 80px;
   margin-bottom: 15px;
   padding: 10px;
-  background-color: #f0f0f0; /* Light background around logo */
-  border-radius: 8px; /* Rounded logo background */
+  background-color: #f0f0f0;
+  border-radius: 8px;
 }
 
 .company-info h3 {
-  margin: 10px 0 5px; /* Tidy spacing */
+  margin: 10px 0 5px;
   color: #1e3a8a;
   font-size: 1.2em;
 }
@@ -244,7 +250,7 @@
   padding: 60px 20px;
   text-align: center;
   background-color: #1e3a8a;
-  color: white;
+  color: #fff;
 }
 
 .cta-footer h2 {
@@ -284,7 +290,8 @@
     font-size: 1.1em;
   }
 
-  .services-grid, .trusted-companies {
+  .services-grid,
+  .trusted-companies {
     flex-direction: column;
     gap: 20px;
   }

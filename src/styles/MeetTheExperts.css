@@ -1,0 +1,89 @@
+.experts-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+    font-family: Arial, sans-serif;
+    color: #333;
+  }
+  
+  .experts-container h1 {
+    text-align: center;
+    margin-bottom: 1rem;
+  }
+  
+  .experts-intro {
+    text-align: center;
+    max-width: 800px;
+    margin: 0 auto 2rem auto;
+    line-height: 1.6;
+  }
+  
+  .experts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 2rem;
+  }
+  
+  .expert-card {
+    background-color: #fafafa;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 1.5rem;
+    text-align: center;
+    transition: box-shadow 0.3s ease;
+  }
+  
+  .expert-card:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  }
+  
+  .expert-image {
+    width: 120px;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 50%;
+    margin-bottom: 1rem;
+  }
+  
+  .expert-title {
+    color: #007bff;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+  }
+  
+  .expert-bio {
+    font-size: 0.95rem;
+    line-height: 1.4;
+    margin-bottom: 1rem;
+  }
+  
+  .cta-button {
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    padding: 0.6rem 1.2rem;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 0.3s ease;
+  }
+  
+  .cta-button:hover {
+    background-color: #0056b3;
+  }
+  
+  .experts-cta {
+    text-align: center;
+    margin-top: 3rem;
+  }
+  
+  .experts-cta h3 {
+    margin-bottom: 0.5rem;
+  }
+  
+  .experts-cta p {
+    max-width: 600px;
+    margin: 0 auto 1rem auto;
+    line-height: 1.6;
+  }
+  

@@ -1,3 +1,4 @@
+// App.js
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import LandingPage from './components/LandingPage';
@@ -25,6 +26,12 @@ import AccountSettings from './components/AccountSettings';
 import AdminLogin from './components/AdminLogin';
 import AdminDashboard from './components/AdminDashboard';
 import AdminUserManagement from './components/AdminUserManagement';
+import WhyChooseUs from './components/WhyChooseUs';
+import HowItWorks from './components/HowItWorks';
+import PrivacyPolicy from './components/PrivacyPolicy';
+
+// 1. Import the MeetTheExperts component
+import MeetTheExperts from './components/MeetTheExperts';
 
 // Utility function to validate token existence
 const isTokenValid = (token) => token && token.trim() !== '';
@@ -66,6 +73,12 @@ function App() {
           <Route path="/services/it" element={<ITSolutions />} />
           <Route path="/contact" element={<ContactUs />} />
           <Route path="/admin-login" element={<AdminLogin />} />
+          <Route path="/why-choose-us" element={<WhyChooseUs />} />
+          <Route path="/how-it-works" element={<HowItWorks />} />
+          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+          
+          {/* 2. Update the "Meet the Experts" public route to "/experts" */}
+          <Route path="/experts" element={<MeetTheExperts />} />
 
           {/* User Protected Routes */}
           <Route

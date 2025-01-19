@@ -1,126 +1,148 @@
-/* src/styles/AboutUs.css */
-
-/* Main container styling */
+/* Container for the entire about us content */
 .about-us-container {
-    padding: 20px;
-    max-width: 800px;
-    margin: auto;
-    font-family: 'Roboto', Arial, sans-serif;
+    font-family: 'Arial', sans-serif;
     color: #333;
-    line-height: 1.6;
-}
-
-/* Title styling */
-.about-us-title {
-    text-align: center;
-    color: #007bff; /* Title color */
-    margin-bottom: 30px;
-    font-size: 2.5em;
-}
-
-/* Section titles */
-h2 {
-    color: #007bff; /* Section titles color */
-    margin-top: 20px;
-    font-size: 1.8em;
-}
-
-/* New section styles */
-.mission, .how-it-works, .join-us {
-    margin-top: 40px;
-    padding: 20px;
-    background-color: #f4f4f4;
-    border-radius: 10px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); /* Light shadow for sections */
-}
-
-/* Subheading styles inside "How It Works" */
-.how-it-works h3 {
-    margin-top: 20px;
-    color: #007bff;
-    font-size: 1.4em;
-}
-
-/* Paragraph spacing in sections */
-.mission p, .how-it-works p, .join-us p {
-    margin-bottom: 15px;
-}
-
-/* Styling the list in "How It Works" */
-ul {
-    list-style-type: disc; /* Bullet points */
-    margin-left: 20px; /* Indent for lists */
-}
-
-/* Team member section */
-.team-member {
+    margin: 0;
+    padding: 0;
+  }
+  
+  /* Hero Section */
+  .hero-section {
+    position: relative;
+    background: url('https://via.placeholder.com/1200x600') center/cover no-repeat;
+    height: 40vh; /* Adjust as desired */
     display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    margin-bottom: 20px;
-    padding: 15px;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    background-color: #f9f9f9;
-    transition: box-shadow 0.3s ease; /* Smooth hover effect */
-}
-
-.team-member:hover {
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Hover shadow */
-}
-
-.role {
-    font-style: italic;
-    color: #777; /* Role color */
-}
-
-/* Styling for blockquote in testimonials */
-blockquote {
-    border-left: 3px solid #007bff; /* Blue left border for quotes */
-    padding-left: 15px; /* Space for quote */
-    margin: 10px 0; /* Margin for quotes */
-    color: #555; /* Gray color for quotes */
-    font-style: italic;
-}
-
-/* Footer section */
-.about-us-footer {
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .hero-overlay {
+    background-color: rgba(0, 0, 0, 0.4);
+    padding: 2rem;
     text-align: center;
-    margin-top: 30px;
-    padding: 20px;
-    background-color: #f4f4f4;
-    border-top: 1px solid #ddd;
-    font-weight: bold;
-}
-
-.about-us-footer a {
-    color: #007bff;
-    text-decoration: none;
-}
-
-.about-us-footer a:hover {
-    text-decoration: underline;
-}
-
-/* Responsive Styles */
-@media (max-width: 768px) {
-    .about-us-container {
-        padding: 15px;
+  }
+  
+  .hero-overlay h1,
+  .hero-overlay p {
+    color: #fff;
+    margin: 0.5rem 0;
+  }
+  
+  .hero-overlay h1 {
+    font-size: 2.5rem;
+  }
+  
+  /* Introduction Section */
+  .introduction-section {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2rem;
+    padding: 2rem;
+    align-items: center;
+    background-color: #f9f9f9;
+  }
+  
+  .intro-text {
+    flex: 1;
+    min-width: 250px;
+  }
+  
+  .founder-image {
+    flex: 1;
+    text-align: center;
+  }
+  
+  .founder-image img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+  }
+  
+  /* Two-Column Section (Mission & Story) */
+  .two-column-section {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2rem;
+    padding: 2rem;
+    background-color: #fff;
+  }
+  
+  .two-column-section .column {
+    flex: 1;
+    min-width: 300px;
+  }
+  
+  /* Why Choose Us Section */
+  .why-choose-us-section {
+    padding: 2rem;
+    background-color: #f9f9f9;
+  }
+  
+  .features-list {
+    list-style-type: none;
+    padding: 0;
+  }
+  
+  .features-list li {
+    margin-bottom: 1rem;
+  }
+  
+  /* Core Values Section */
+  .core-values-section {
+    padding: 2rem;
+    background-color: #fff;
+  }
+  
+  .values-list {
+    list-style-type: none;
+    padding: 0;
+  }
+  
+  .values-list li {
+    margin-bottom: 1rem;
+  }
+  
+  /* Vision Section */
+  .vision-section {
+    padding: 2rem;
+    background-color: #f9f9f9;
+  }
+  
+  /* Get in Touch Section */
+  .get-in-touch-section {
+    padding: 2rem;
+    background-color: #fff;
+  }
+  
+  .cta-button {
+    background-color: #007bff;
+    border: none;
+    color: #fff;
+    font-size: 1rem;
+    padding: 0.75rem 1.5rem;
+    cursor: pointer;
+    border-radius: 4px;
+    margin-top: 1rem;
+    transition: background-color 0.3s ease;
+  }
+  
+  .cta-button:hover {
+    background-color: #0056b3;
+  }
+  
+  /* Responsive Adjustments */
+  @media (max-width: 768px) {
+    .hero-section {
+      height: 30vh;
     }
-
-    .about-us-title {
-        font-size: 2em;
+  
+    .hero-overlay h1 {
+      font-size: 2rem;
     }
-
-    h2 {
-        font-size: 1.5em;
+  
+    .introduction-section,
+    .two-column-section {
+      flex-direction: column;
     }
-
-    .team-member {
-        padding: 10px;
-    }
-
-    .about-us-footer {
-        font-size: 0.9em;
-    }
-}
+  }
+  

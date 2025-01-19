@@ -1,0 +1,172 @@
+/* Hero Section */
+.hero-section {
+    position: relative;
+    background-image: url('https://via.placeholder.com/1920x1080');
+    background-size: cover;
+    background-position: center;
+    min-height: 300px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 20px;
+    color: #fff;
+  }
+  
+  .hero-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.4); /* Transparent overlay for better text contrast */
+    z-index: 1;
+  }
+  
+  .hero-content {
+    position: relative;
+    z-index: 2;
+  }
+  
+  .hero-content h1 {
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.7);
+  }
+  
+  .hero-content p {
+    font-size: 1.2rem;
+    margin-bottom: 20px;
+  }
+  
+  .cta-button {
+    background-color: #007bff;
+    border: none;
+    color: #fff;
+    padding: 10px 20px;
+    font-size: 1rem;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+  }
+  
+  .cta-button:hover {
+    background-color: #0056b3;
+    transform: scale(1.05);
+  }
+  
+  /* Step Section */
+  .step-section {
+    padding: 30px 20px;
+    margin: 20px auto;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    max-width: 800px;
+  }
+  
+  .step-section h2 {
+    font-size: 1.8rem;
+    margin-bottom: 15px;
+    color: #333;
+    border-bottom: 2px solid #007bff;
+    display: inline-block;
+    padding-bottom: 5px;
+  }
+  
+  .step-section p {
+    font-size: 1rem;
+    color: #666;
+    line-height: 1.6;
+  }
+  
+  .step-details h3 {
+    font-size: 1.2rem;
+    margin-top: 15px;
+    color: #007bff;
+  }
+  
+  .step-details ul {
+    list-style-type: disc;
+    padding-left: 20px;
+    margin-top: 10px;
+  }
+  
+  .step-details ul li {
+    margin-bottom: 8px;
+    font-size: 0.95rem;
+  }
+  
+  /* Call-to-Action Section */
+  .cta-section {
+    text-align: center;
+    padding: 40px 20px;
+    background-color: #007bff;
+    color: white;
+    border-radius: 8px;
+    margin-top: 30px;
+  }
+  
+  .cta-section h2 {
+    font-size: 2rem;
+    margin-bottom: 15px;
+  }
+  
+  .cta-section p {
+    font-size: 1rem;
+    margin-bottom: 20px;
+  }
+  
+  .cta-section .cta-button {
+    background-color: #ffdd57;
+    color: #333;
+    padding: 12px 25px;
+    border: none;
+    font-size: 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+  }
+  
+  .cta-section .cta-button:hover {
+    background-color: #ffc107;
+    transform: scale(1.05);
+  }
+  
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    .hero-content h1 {
+      font-size: 2rem;
+    }
+  
+    .hero-content p {
+      font-size: 1rem;
+    }
+  
+    .step-section {
+      padding: 20px;
+      margin: 15px auto;
+    }
+  
+    .step-section h2 {
+      font-size: 1.5rem;
+    }
+  
+    .step-section p {
+      font-size: 0.95rem;
+    }
+  
+    .cta-section h2 {
+      font-size: 1.6rem;
+    }
+  
+    .cta-section p {
+      font-size: 0.9rem;
+    }
+  
+    .cta-section .cta-button {
+      padding: 10px 20px;
+      font-size: 0.9rem;
+    }
+  }
+  

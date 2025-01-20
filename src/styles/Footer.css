@@ -8,7 +8,7 @@
   color: #ffffff;
   font-size: 0.9rem;
   text-align: left;
-  border-top: 4px solid #ffdd57; /* Adding a subtle separator */
+  border-top: 4px solid #217346; /* Updated separator colour */
   gap: 20px;
 }
 
@@ -20,9 +20,9 @@
 
 .footer-section h4 {
   font-size: 1.4rem;
-  color: #ffdd57; /* Yellow to complement the blue background */
+  color: #217346; /* Updated heading colour */
   margin-bottom: 15px;
-  border-bottom: 2px solid #ffdd57;
+  border-bottom: 2px solid #217346;
   padding-bottom: 5px;
 }
 
@@ -44,13 +44,13 @@
 }
 
 .footer-section a:hover {
-  color: #ffdd57; /* Yellow hover color for links */
+  color: #217346; /* Updated hover colour for links */
   text-decoration: underline; /* Adds emphasis */
 }
 
 .footer-section ul li::before {
   content: "➤"; /* Adds a subtle arrow before list items */
-  color: #ffdd57;
+  color: #217346; /* Updated arrow colour */
   margin-right: 8px;
   font-size: 0.9rem;
   vertical-align: middle;
@@ -59,22 +59,22 @@
 /* Footer Responsive Adjustments */
 @media (max-width: 768px) {
   .footer {
-      flex-direction: column;
-      text-align: center;
-      gap: 30px; /* Adds spacing between sections */
+    flex-direction: column;
+    text-align: center;
+    gap: 30px; /* Adds spacing between sections */
   }
 
   .footer-section {
-      flex: 1 1 100%;
-      margin-bottom: 20px;
+    flex: 1 1 100%;
+    margin-bottom: 20px;
   }
 
   .footer-section h4 {
-      text-align: center;
+    text-align: center;
   }
 
   .footer-section ul {
-      text-align: center;
+    text-align: center;
   }
 }
 
@@ -94,6 +94,6 @@
 }
 
 .footer-social a:hover {
-  color: #ffdd57;
+  color: #217346; /* Updated hover colour */
   transform: scale(1.1); /* Adds a slight zoom effect on hover */
 }

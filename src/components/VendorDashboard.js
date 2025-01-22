@@ -1,4 +1,3 @@
-// src/components/VendorDashboard.js
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaBox, FaChartLine, FaBell, FaCog, FaDollarSign, FaSignOutAlt, FaUpload } from 'react-icons/fa';
@@ -10,80 +9,66 @@ const VendorDashboard = () => {
   const [vendorName, setVendorName] = useState('Vendor');
   const [uploadStatus, setUploadStatus] = useState('');
   const [vendor, setVendor] = useState(null);
+  const [theme, setTheme] = useState('light');
 
-  // Fetch vendor details on component mount
   useEffect(() => {
     const name = localStorage.getItem('vendorName');
-    if (name) {
-      setVendorName(name);
-    }
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    setTheme(savedTheme);
+    document.documentElement.setAttribute('data-theme', savedTheme);
+
+    if (name) setVendorName(name);
 
     const fetchVendorDetails = async () => {
       const token = localStorage.getItem('vendorToken');
-      if (token) {
-        try {
-          const response = await axios.get('http://localhost:5000/api/vendors/profile', {
-            headers: { 'Authorization': `Bearer ${token}` }
-          });
-          setVendor(response.data.vendor);
-        } catch (error) {
-          if (error.response?.status === 401) {
-            localStorage.removeItem('vendorToken');
-            localStorage.removeItem('vendorName');
-            navigate('/vendor-login');
-          } else {
-            console.error('Error fetching vendor details:', error.message);
-          }
-        }
-      } else {
+      if (!token) {
         navigate('/vendor-login');
+        return;
+      }
+      try {
+        const response = await axios.get('http://localhost:5000/api/vendors/profile', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setVendor(response.data.vendor);
+      } catch (error) {
+        if (error.response?.status === 401) {
+          localStorage.clear();
+          navigate('/vendor-login');
+        } else console.error('Error fetching vendor details:', error.message);
       }
     };
 
     fetchVendorDetails();
   }, [navigate]);
 
-  // Handle logout
   const handleLogout = () => {
-    localStorage.removeItem('vendorToken');
-    localStorage.removeItem('vendorName');
+    localStorage.clear();
     navigate('/vendor-login');
   };
 
-  // Handle file upload
+  const toggleTheme = () => {
+    const newTheme = theme === 'light' ? 'dark' : 'light';
+    setTheme(newTheme);
+    document.documentElement.setAttribute('data-theme', newTheme);
+    localStorage.setItem('theme', newTheme);
+  };
+
   const handleFileUpload = async (event) => {
     const file = event.target.files[0];
-    if (file) {
-      const formData = new FormData();
-      formData.append('file', file);
+    if (!file) return;
+    const formData = new FormData();
+    formData.append('file', file);
+    const token = localStorage.getItem('vendorToken');
 
-      const token = localStorage.getItem('vendorToken');
-      if (!token) {
-        setUploadStatus({ message: 'Please log in to upload files.', type: 'error' });
-        navigate('/vendor-login');
-        return;
-      }
-
-      try {
-        const response = await axios.post('http://localhost:5000/api/vendors/upload', formData, {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-            'Authorization': `Bearer ${token}`,
-          },
-        });
-
-        setUploadStatus({ message: 'File uploaded successfully!', type: 'success' });
-        setVendor(response.data.vendor);
-      } catch (error) {
-        if (error.response?.status === 401) {
-          setUploadStatus({ message: 'Session expired. Please log in again.', type: 'error' });
-          localStorage.removeItem('vendorToken');
-          navigate('/vendor-login');
-        } else {
-          console.error('Error uploading file:', error.response?.data || error.message);
-          setUploadStatus({ message: 'File upload failed.', type: 'error' });
-        }
-      }
+    try {
+      const response = await axios.post('http://localhost:5000/api/vendors/upload', formData, {
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+      setUploadStatus({ message: 'File uploaded successfully!', type: 'success' });
+      setVendor(response.data.vendor);
+    } catch (error) {
+      console.error('Error uploading file:', error.message);
+      setUploadStatus({ message: 'File upload failed.', type: 'error' });
     }
   };
 
@@ -91,9 +76,14 @@ const VendorDashboard = () => {
     <div className="vendor-dashboard-container">
       <div className="vendor-dashboard-header">
         <h1>Welcome, {vendorName}!</h1>
-        <button className="logout-button" onClick={handleLogout}>
-          <FaSignOutAlt /> Logout
-        </button>
+        <div>
+          <button className="logout-button" onClick={handleLogout}>
+            <FaSignOutAlt /> Logout
+          </button>
+          <button className="theme-toggle-button" onClick={toggleTheme}>
+            {theme === 'light' ? '🌙 Dark Mode' : '☀️ Light Mode'}
+          </button>
+        </div>
       </div>
 
       <div className="vendor-quick-actions">
@@ -106,47 +96,35 @@ const VendorDashboard = () => {
         <button className="dashboard-button" onClick={() => navigate('/account-settings')}>
           <FaCog /> Account Settings
         </button>
-        
-        {/* Upload Documents Button */}
         <label className="upload-label">
           <FaUpload /> Upload Documents
-          <input 
-            type="file" 
-            className="file-input" 
-            onChange={handleFileUpload} 
-            style={{ display: 'none' }}
-          />
+          <input type="file" className="file-input" onChange={handleFileUpload} />
         </label>
-        {uploadStatus.message && (
-          <p className={`upload-status ${uploadStatus.type}`}>
-            {uploadStatus.message}
-          </p>
-        )}
       </div>
 
       <div className="vendor-stats-widgets">
         <div className="stat-widget">
-          <FaDollarSign className="widget-icon" />
+          <FaDollarSign />
           <h3>Total Revenue</h3>
-          <p>$12,000</p>
+          <p>${vendor?.totalRevenue || 0}</p>
         </div>
         <div className="stat-widget">
-          <FaBox className="widget-icon" />
+          <FaBox />
           <h3>Active Listings</h3>
-          <p>15</p>
+          <p>{vendor?.activeListings || 0}</p>
         </div>
         <div className="stat-widget">
-          <FaChartLine className="widget-icon" />
+          <FaChartLine />
           <h3>Total Orders</h3>
-          <p>350</p>
+          <p>{vendor?.totalOrders || 0}</p>
         </div>
       </div>
 
       <div className="recent-activity">
         <h2><FaBell /> Recent Activity</h2>
         <ul>
-          {vendor?.uploads?.map((file, index) => (
-            <li key={index}><FaBell /> Uploaded file: {file}</li>
+          {vendor?.uploads?.map((file, idx) => (
+            <li key={idx}><FaBell /> {file.fileName}</li>
           ))}
         </ul>
       </div>

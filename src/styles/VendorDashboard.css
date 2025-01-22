@@ -4,9 +4,11 @@
     margin: 0 auto;
     padding: 40px;
     font-family: 'Roboto', sans-serif;
-    background-color: #f8f9fa;
+    background-color: var(--bg-color, #f8f9fa);
+    color: var(--text-color, #333);
     border-radius: 12px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 /* Dashboard Header */
@@ -18,24 +20,25 @@
 }
 
 .vendor-dashboard-header h1 {
-    font-size: 2.2rem;
-    color: #0056b3;
+    font-size: 2.4rem;
+    color: var(--primary-color, #0056b3);
     font-weight: 600;
 }
 
 .logout-button {
-    padding: 8px 16px;
-    background-color: #d9534f;
-    color: white;
+    padding: 10px 20px;
+    background-color: var(--button-bg, #d9534f);
+    color: var(--text-color, #fff);
     border: none;
     border-radius: 5px;
     cursor: pointer;
-    transition: background-color 0.3s ease;
+    transition: background-color 0.3s ease, transform 0.2s;
     font-weight: bold;
 }
 
 .logout-button:hover {
-    background-color: #c9302c;
+    background-color: var(--button-hover-bg, #c9302c);
+    transform: translateY(-2px);
 }
 
 /* Quick Actions */
@@ -47,25 +50,26 @@
 }
 
 .dashboard-button {
-    flex: 1 1 calc(25% - 20px);
+    flex: 1 1 calc(33% - 20px);
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
     padding: 15px;
-    background-color: #007bff;
-    color: white;
+    background-color: var(--button-bg, #007bff);
+    color: var(--text-color, #fff);
     border: none;
     border-radius: 8px;
-    font-size: 1rem;
+    font-size: 1.1rem;
     cursor: pointer;
-    transition: background-color 0.3s ease, transform 0.2s;
-    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.3s ease, transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .dashboard-button:hover {
-    background-color: #0056b3;
-    transform: translateY(-2px);
+    background-color: var(--button-hover-bg, #0056b3);
+    transform: translateY(-3px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
 }
 
 /* Upload Section */
@@ -75,16 +79,17 @@
     justify-content: center;
     gap: 8px;
     padding: 15px;
-    background-color: #007bff;
-    color: white;
+    background-color: var(--button-bg, #007bff);
+    color: var(--text-color, #fff);
     border-radius: 8px;
     cursor: pointer;
-    transition: background-color 0.3s ease;
-    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.3s ease, transform 0.2s;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .upload-label:hover {
-    background-color: #0056b3;
+    background-color: var(--button-hover-bg, #0056b3);
+    transform: translateY(-3px);
 }
 
 .file-input {
@@ -121,27 +126,33 @@
 
 .stat-widget {
     flex: 1;
-    background-color: #ffffff;
+    background-color: var(--widget-bg, #ffffff);
     padding: 20px;
     border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     text-align: center;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.stat-widget:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
 }
 
 .stat-widget h3 {
     font-size: 1.2rem;
-    color: #333;
+    color: var(--text-color, #333);
 }
 
 .stat-widget p {
-    font-size: 1.5rem;
+    font-size: 1.6rem;
     font-weight: bold;
-    color: #0056b3;
+    color: var(--primary-color, #0056b3);
 }
 
 /* Recent Activity Section */
 .recent-activity {
-    background-color: #ffffff;
+    background-color: var(--widget-bg, #ffffff);
     padding: 25px;
     border-radius: 12px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
@@ -150,7 +161,7 @@
 
 .recent-activity h2 {
     font-size: 1.6rem;
-    color: #0056b3;
+    color: var(--primary-color, #0056b3);
     margin-bottom: 20px;
     font-weight: 600;
 }
@@ -163,12 +174,17 @@
 }
 
 .recent-activity li {
-    padding: 10px 0;
+    padding: 12px 0;
     display: flex;
     align-items: center;
     font-size: 1rem;
     border-bottom: 1px solid #e9ecef;
-    color: #495057;
+    color: var(--text-color, #495057);
+    transition: background-color 0.2s ease;
+}
+
+.recent-activity li:hover {
+    background-color: var(--hover-bg, #f1f4f9);
 }
 
 .recent-activity li:last-child {
@@ -176,6 +192,6 @@
 }
 
 .recent-activity li svg {
-    color: #007bff;
+    color: var(--primary-color, #007bff);
     margin-right: 10px;
 }

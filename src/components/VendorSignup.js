@@ -5,24 +5,26 @@ import Select from 'react-select';
 import './VendorSignup.css';
 
 const servicesOptions = [
-  { value: 'Printing', label: 'Printing' },
-  { value: 'Telecom', label: 'Telecom' },
-  { value: 'IT Support', label: 'IT Support' },
   { value: 'CCTV', label: 'CCTV' },
-  // Add more options as needed
+  { value: 'Photocopiers', label: 'Photocopiers' },
+  { value: 'IT', label: 'IT Support' },
+  { value: 'Telecoms', label: 'Telecoms' },
+  // Add more options if needed
 ];
 
 const VendorSignup = () => {
   const [formData, setFormData] = useState({
-    name: '', // Updated from businessName to name
+    name: '', // Matches backend "name"
+    company: '', // Added "company" to match backend requirements
     email: '',
     password: '',
-    services: [], // Updated from servicesOffered to services
-    phone: '',
-    address: '',
+    services: [], // Matches backend "services"
+    phone: '', // Optional, depending on your backend model
+    address: '', // Optional, depending on your backend model
   });
   const [message, setMessage] = useState('');
 
+  // Handle input field changes
   const handleChange = (e) => {
     setFormData({
       ...formData,
@@ -30,17 +32,19 @@ const VendorSignup = () => {
     });
   };
 
+  // Handle services multi-select
   const handleServicesChange = (selectedOptions) => {
     setFormData({
       ...formData,
-      services: selectedOptions.map(option => option.value), // Updated key to services
+      services: selectedOptions.map(option => option.value),
     });
   };
 
+  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      // Updated API endpoint to match backend route
+      // Send form data to backend
       const response = await axios.post('http://localhost:5000/api/vendors/signup', formData);
       setMessage(response.data.message || 'Vendor registered successfully!');
     } catch (error) {
@@ -52,12 +56,15 @@ const VendorSignup = () => {
   return (
     <div className="vendor-signup-container">
       <h2>Vendor Signup</h2>
-      {message && <p className="message">{message}</p>}
+      {message && <p className={`message ${message.includes('Error') ? 'error' : 'success'}`}>{message}</p>}
       <form onSubmit={handleSubmit}>
         <label>
-          Business Name:
-          {/* Updated input name from businessName to name */}
+          Vendor Name:
           <input type="text" name="name" value={formData.name} onChange={handleChange} required />
+        </label>
+        <label>
+          Company Name:
+          <input type="text" name="company" value={formData.company} onChange={handleChange} required />
         </label>
         <label>
           Email:

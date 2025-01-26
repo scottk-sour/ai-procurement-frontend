@@ -8,17 +8,19 @@ import '../styles/VendorDashboard.css';
 const VendorDashboard = () => {
   const navigate = useNavigate();
   const [vendorName, setVendorName] = useState('Vendor');
-  const [uploadStatus, setUploadStatus] = useState(null); // To display file upload status
+  const [uploadStatus, setUploadStatus] = useState(null);
   const [vendor, setVendor] = useState(null);
   const [theme, setTheme] = useState('light');
 
   // Fetch dashboard details on load
   useEffect(() => {
-    const savedTheme = localStorage.getItem('theme') || 'light';
-    setTheme(savedTheme);
-    document.documentElement.setAttribute('data-theme', savedTheme);
+    const initializeDashboard = async () => {
+      // Set saved theme
+      const savedTheme = localStorage.getItem('theme') || 'light';
+      setTheme(savedTheme);
+      document.documentElement.setAttribute('data-theme', savedTheme);
 
-    const fetchDashboardData = async () => {
+      // Fetch vendor data
       const token = localStorage.getItem('vendorToken');
       if (!token) {
         navigate('/vendor-login');
@@ -32,16 +34,15 @@ const VendorDashboard = () => {
         setVendor(response.data);
         setVendorName(response.data.vendorName || 'Vendor');
       } catch (error) {
+        console.error('Error fetching dashboard data:', error.message);
         if (error.response?.status === 401) {
           localStorage.clear();
           navigate('/vendor-login');
-        } else {
-          console.error('Error fetching dashboard data:', error.message);
         }
       }
     };
 
-    fetchDashboardData();
+    initializeDashboard();
   }, [navigate]);
 
   // Handle logout
@@ -82,6 +83,10 @@ const VendorDashboard = () => {
     }
   };
 
+  const navigateToQuotes = (status) => {
+    navigate(`/quotes?status=${status}`);
+  };
+
   return (
     <div className="vendor-dashboard-container">
       <div className="vendor-dashboard-header">
@@ -96,7 +101,6 @@ const VendorDashboard = () => {
         </div>
       </div>
 
-      {/* Display upload status */}
       {uploadStatus && (
         <p className={`upload-status ${uploadStatus.type}`}>
           {uploadStatus.message}
@@ -140,10 +144,10 @@ const VendorDashboard = () => {
       <div className="quote-funnel">
         <h2>Quote Funnel</h2>
         <ul>
-          <li>Created: {vendor?.quoteFunnelData?.created || 0}</li>
-          <li>Pending: {vendor?.quoteFunnelData?.pending || 0}</li>
-          <li>Won: {vendor?.quoteFunnelData?.won || 0}</li>
-          <li>Lost: {vendor?.quoteFunnelData?.lost || 0}</li>
+          <li onClick={() => navigateToQuotes('created')}>Created: {vendor?.quoteFunnelData?.created || 0}</li>
+          <li onClick={() => navigateToQuotes('pending')}>Pending: {vendor?.quoteFunnelData?.pending || 0}</li>
+          <li onClick={() => navigateToQuotes('won')}>Won: {vendor?.quoteFunnelData?.won || 0}</li>
+          <li onClick={() => navigateToQuotes('lost')}>Lost: {vendor?.quoteFunnelData?.lost || 0}</li>
         </ul>
       </div>
 

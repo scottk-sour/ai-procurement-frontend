@@ -36,6 +36,7 @@
     transition: background-color 0.3s ease, transform 0.2s;
     font-weight: bold;
     margin-left: 10px;
+    text-transform: uppercase;
 }
 
 .logout-button:hover,
@@ -68,6 +69,8 @@
     transition: background-color 0.3s ease, transform 0.2s, box-shadow 0.2s;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     text-align: center;
+    text-transform: uppercase;
+    font-weight: bold;
 }
 
 .dashboard-button:hover {
@@ -90,6 +93,8 @@
     transition: background-color 0.3s ease, transform 0.2s;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     text-align: center;
+    font-weight: bold;
+    text-transform: uppercase;
 }
 
 .upload-label:hover {
@@ -139,6 +144,7 @@
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     text-align: center;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
+    position: relative;
 }
 
 .stat-widget:hover {
@@ -165,8 +171,26 @@
 }
 
 .quote-funnel li {
-    padding: 8px 0;
-    border-bottom: 1px solid #e9ecef;
+    padding: 12px 15px;
+    margin: 8px 0;
+    cursor: pointer;
+    background-color: var(--button-bg, #007bff);
+    color: #fff;
+    border-radius: 6px;
+    transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.2s ease;
+    font-weight: bold;
+    text-align: center;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.quote-funnel li:hover {
+    background-color: var(--button-hover-bg, #0056b3);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.quote-funnel li:active {
+    transform: translateY(0);
 }
 
 /* Revenue Chart */

@@ -29,7 +29,7 @@ import WhyChooseUs from './components/WhyChooseUs';
 import HowItWorks from './components/HowItWorks';
 import PrivacyPolicy from './components/PrivacyPolicy';
 import MeetTheExperts from './components/MeetTheExperts';
-import QuoteDetails from './components/quotes/QuoteDetails'; // Handle dynamic quote statuses
+import QuoteDetails from './components/QuoteDetails';
 
 // Utility function to validate token existence
 const isTokenValid = (token) => token && token.trim() !== '';
@@ -77,7 +77,7 @@ function App() {
 
           {/* User Protected Routes */}
           <Route
-            path="/user-dashboard"
+            path="/dashboard"
             element={
               <PrivateRoute>
                 <UserDashboard />
@@ -142,8 +142,9 @@ function App() {
               </VendorPrivateRoute>
             }
           />
+          {/* Updated route: now matches /quotes, not /quotes/:status */}
           <Route
-            path="/quotes/:status"
+            path="/quotes"
             element={
               <VendorPrivateRoute>
                 <QuoteDetails />

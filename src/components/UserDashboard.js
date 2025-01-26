@@ -111,22 +111,13 @@ const UserDashboard = () => {
       </div>
 
       <div className="quick-actions">
-        <button
-          className="dashboard-button request-quote"
-          onClick={() => navigate('/request-quote')}
-        >
+        <button className="dashboard-button request-quote" onClick={() => navigate('/request-quote')}>
           <FaQuoteRight /> Request a Quote
         </button>
-        <button
-          className="dashboard-button compare-vendors"
-          onClick={() => navigate('/compare-vendors')}
-        >
+        <button className="dashboard-button compare-vendors" onClick={() => navigate('/compare-vendors')}>
           <FaBalanceScale /> Compare Vendors
         </button>
-        <button
-          className="dashboard-button manage-account"
-          onClick={() => navigate('/manage-account')}
-        >
+        <button className="dashboard-button manage-account" onClick={() => navigate('/manage-account')}>
           <FaUserCog /> Manage Account
         </button>
       </div>

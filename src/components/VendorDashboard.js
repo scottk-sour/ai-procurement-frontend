@@ -1,6 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaBox, FaChartLine, FaBell, FaCog, FaDollarSign, FaSignOutAlt, FaUpload } from 'react-icons/fa';
+import {
+  FaBox,
+  FaChartLine,
+  FaBell,
+  FaCog,
+  FaDollarSign,
+  FaSignOutAlt,
+  FaUpload,
+} from 'react-icons/fa';
 import { LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip } from 'recharts';
 import axios from 'axios';
 import '../styles/VendorDashboard.css';
@@ -83,12 +91,25 @@ const VendorDashboard = () => {
     }
   };
 
+  // Navigate to quotes based on status
   const navigateToQuotes = (status) => {
     navigate(`/quotes?status=${status}`);
   };
 
+  // For convenience, destructure your analytics (if present)
+  const analytics = vendor?.analytics || {};
+  const {
+    conversionRate = 0,
+    averageOrderValue = 0,
+    retentionRate = 0,
+    leadSources = [],
+    topProducts = [],
+    salesByRegion = [],
+  } = analytics;
+
   return (
     <div className="vendor-dashboard-container">
+      {/* Header */}
       <div className="vendor-dashboard-header">
         <h1>Welcome, {vendorName}!</h1>
         <div>
@@ -101,12 +122,14 @@ const VendorDashboard = () => {
         </div>
       </div>
 
+      {/* Upload status messages */}
       {uploadStatus && (
         <p className={`upload-status ${uploadStatus.type}`}>
           {uploadStatus.message}
         </p>
       )}
 
+      {/* Quick actions */}
       <div className="vendor-quick-actions">
         <button className="dashboard-button" onClick={() => navigate('/manage-listings')}>
           <FaBox /> Manage Listings
@@ -123,11 +146,12 @@ const VendorDashboard = () => {
         </label>
       </div>
 
+      {/* Key KPIs */}
       <div className="vendor-stats-widgets">
         <div className="stat-widget">
           <FaDollarSign />
           <h3>Total Revenue</h3>
-          <p>${vendor?.kpis?.totalRevenue || 0}</p>
+          <p>£{vendor?.kpis?.totalRevenue || 0}</p>
         </div>
         <div className="stat-widget">
           <FaBox />
@@ -141,16 +165,26 @@ const VendorDashboard = () => {
         </div>
       </div>
 
+      {/* Quote Funnel */}
       <div className="quote-funnel">
         <h2>Quote Funnel</h2>
         <ul>
-          <li onClick={() => navigateToQuotes('created')}>Created: {vendor?.quoteFunnelData?.created || 0}</li>
-          <li onClick={() => navigateToQuotes('pending')}>Pending: {vendor?.quoteFunnelData?.pending || 0}</li>
-          <li onClick={() => navigateToQuotes('won')}>Won: {vendor?.quoteFunnelData?.won || 0}</li>
-          <li onClick={() => navigateToQuotes('lost')}>Lost: {vendor?.quoteFunnelData?.lost || 0}</li>
+          <li onClick={() => navigateToQuotes('created')}>
+            Created: {vendor?.quoteFunnelData?.created || 0}
+          </li>
+          <li onClick={() => navigateToQuotes('pending')}>
+            Pending: {vendor?.quoteFunnelData?.pending || 0}
+          </li>
+          <li onClick={() => navigateToQuotes('won')}>
+            Won: {vendor?.quoteFunnelData?.won || 0}
+          </li>
+          <li onClick={() => navigateToQuotes('lost')}>
+            Lost: {vendor?.quoteFunnelData?.lost || 0}
+          </li>
         </ul>
       </div>
 
+      {/* Monthly Revenue Chart */}
       <div className="revenue-chart">
         <h2>Monthly Revenue</h2>
         <LineChart width={600} height={300} data={vendor?.revenueData || []}>
@@ -162,12 +196,83 @@ const VendorDashboard = () => {
         </LineChart>
       </div>
 
+      {/* Performance & Analytics */}
+      <div className="analytics-section">
+        <h2>Performance and Analytics</h2>
+        <div className="analytics-cards">
+          <div className="analytics-card">
+            <h3>Conversion Rate</h3>
+            <p>{conversionRate.toFixed(2)}%</p>
+          </div>
+          <div className="analytics-card">
+            <h3>Average Order Value</h3>
+            <p>£{averageOrderValue.toFixed(2)}</p>
+          </div>
+          <div className="analytics-card">
+            <h3>Customer Retention Rate</h3>
+            <p>{retentionRate.toFixed(2)}%</p>
+          </div>
+        </div>
+
+        {/* Lead Sources */}
+        <div className="analytics-subsection">
+          <h3>Lead Sources</h3>
+          {leadSources.length === 0 ? (
+            <p>No lead source data available.</p>
+          ) : (
+            <ul>
+              {leadSources.map((source, index) => (
+                <li key={index}>
+                  <strong>{source.type}:</strong> {source.percentage}%
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
+        {/* Top Performing Products */}
+        <div className="analytics-subsection">
+          <h3>Top Performing Products/Services</h3>
+          {topProducts.length === 0 ? (
+            <p>No top products data available.</p>
+          ) : (
+            <ul>
+              {topProducts.map((item, index) => (
+                <li key={index}>
+                  <strong>{item.name}:</strong> £{item.revenue}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
+        {/* Sales by Region */}
+        <div className="analytics-subsection">
+          <h3>Sales by Region</h3>
+          {salesByRegion.length === 0 ? (
+            <p>No regional sales data available.</p>
+          ) : (
+            <ul>
+              {salesByRegion.map((region, index) => (
+                <li key={index}>
+                  <strong>{region.region}:</strong> £{region.sales}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </div>
+
+      {/* Recent Activity */}
       <div className="recent-activity">
-        <h2><FaBell /> Recent Activity</h2>
+        <h2>
+          <FaBell /> Recent Activity
+        </h2>
         <ul>
           {vendor?.uploads?.map((file, idx) => (
             <li key={idx}>
-              <FaUpload /> {file.fileName} - Uploaded on {new Date(file.uploadDate).toLocaleDateString()}
+              <FaUpload /> {file.fileName} - Uploaded on{' '}
+              {new Date(file.uploadDate).toLocaleDateString()}
             </li>
           ))}
         </ul>

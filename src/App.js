@@ -10,7 +10,6 @@ import RequestQuote from './components/RequestQuote';
 import CompareVendors from './components/CompareVendors';
 import ManageAccount from './components/ManageAccount';
 import AboutUs from './components/AboutUs';
-import ServicesOverview from './components/ServicesOverview';
 import Photocopiers from './components/services/Photocopiers';
 import Telecoms from './components/services/Telecoms';
 import CCTV from './components/services/CCTV';
@@ -29,8 +28,6 @@ import AdminUserManagement from './components/AdminUserManagement';
 import WhyChooseUs from './components/WhyChooseUs';
 import HowItWorks from './components/HowItWorks';
 import PrivacyPolicy from './components/PrivacyPolicy';
-
-// 1. Import the MeetTheExperts component
 import MeetTheExperts from './components/MeetTheExperts';
 
 // Utility function to validate token existence
@@ -66,7 +63,6 @@ function App() {
           <Route path="/vendor-login" element={<VendorLogin />} />
           <Route path="/vendor-signup" element={<VendorSignup />} />
           <Route path="/about-us" element={<AboutUs />} />
-          <Route path="/services" element={<ServicesOverview />} />
           <Route path="/services/photocopiers" element={<Photocopiers />} />
           <Route path="/services/telecoms" element={<Telecoms />} />
           <Route path="/services/cctv" element={<CCTV />} />
@@ -76,8 +72,6 @@ function App() {
           <Route path="/why-choose-us" element={<WhyChooseUs />} />
           <Route path="/how-it-works" element={<HowItWorks />} />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-          
-          {/* 2. Update the "Meet the Experts" public route to "/experts" */}
           <Route path="/experts" element={<MeetTheExperts />} />
 
           {/* User Protected Routes */}

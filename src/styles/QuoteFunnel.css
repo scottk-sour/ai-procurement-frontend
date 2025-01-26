@@ -1,0 +1,73 @@
+/* Quote Funnel Container */
+.quote-funnel {
+    background-color: var(--widget-bg, #ffffff);
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    text-align: center;
+  }
+  
+  /* Heading */
+  .quote-funnel h3 {
+    font-size: 1.8rem;
+    color: var(--primary-color, #0056b3);
+    margin-bottom: 20px;
+    font-weight: 600;
+  }
+  
+  /* List Styling */
+  .quote-funnel-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  
+  /* List Items */
+  .quote-funnel-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 15px;
+    margin: 10px 0;
+    cursor: pointer;
+    background-color: var(--button-bg, #007bff);
+    color: var(--text-color, #ffffff);
+    border-radius: 6px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Hover Effect */
+  .quote-funnel-item:hover {
+    background-color: var(--button-hover-bg, #0056b3);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  }
+  
+  /* Active State */
+  .quote-funnel-item:active {
+    transform: translateY(0);
+    background-color: var(--button-active-bg, #004080);
+  }
+  
+  /* Accessibility Focus State */
+  .quote-funnel-item:focus {
+    outline: 2px solid var(--focus-color, #ffc107);
+    outline-offset: 2px;
+  }
+  
+  /* Responsive Styling */
+  @media (max-width: 768px) {
+    .quote-funnel h3 {
+      font-size: 1.6rem;
+    }
+  
+    .quote-funnel-item {
+      font-size: 1rem;
+      padding: 10px;
+    }
+  }
+  

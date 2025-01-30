@@ -1,148 +1,331 @@
-/* Container for the entire about us content */
-.about-us-container {
-    font-family: 'Arial', sans-serif;
-    color: #333;
-    margin: 0;
-    padding: 0;
-  }
-  
-  /* Hero Section */
-  .hero-section {
-    position: relative;
-    background: url('https://via.placeholder.com/1200x600') center/cover no-repeat;
-    height: 40vh; /* Adjust as desired */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  
-  .hero-overlay {
-    background-color: rgba(0, 0, 0, 0.4);
-    padding: 2rem;
-    text-align: center;
-  }
-  
-  .hero-overlay h1,
-  .hero-overlay p {
-    color: #fff;
-    margin: 0.5rem 0;
-  }
-  
-  .hero-overlay h1 {
+.aboutUsPage {
+  font-family: 'Poppins', sans-serif; /* Modern, clean font */
+  color: #333;
+  line-height: 1.6;
+}
+
+/* Hero Section */
+.heroSection {
+  position: relative;
+  width: 100%;
+  height: 75vh;
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 5%;
+  text-align: center;
+}
+
+.heroOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6); /* Darker overlay for better readability */
+  z-index: 1;
+}
+
+.heroContent {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  color: #fff;
+  padding: 20px;
+  max-width: 900px;
+}
+
+.heroContent h1 {
+  font-size: 3.2rem;
+  margin-bottom: 15px;
+  font-weight: 600;
+  text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.8);
+}
+
+.heroContent p {
+  font-size: 1.4rem;
+  margin-bottom: 30px;
+  opacity: 0.9;
+  text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.8);
+}
+
+.heroButton {
+  display: inline-block;
+  padding: 14px 28px;
+  background-color: #ff5722;
+  color: #fff;
+  text-decoration: none;
+  border-radius: 6px;
+  font-size: 1.2rem;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.heroButton:hover {
+  background-color: #e64a19;
+  transform: translateY(-3px);
+}
+
+/* General Section Styling */
+section {
+  padding: 70px 20px;
+  text-align: center;
+}
+
+section h2 {
+  font-size: 2.8rem;
+  margin-bottom: 25px;
+  font-weight: 600;
+}
+
+section p {
+  font-size: 1.2rem;
+  max-width: 900px;
+  margin: 0 auto;
+  opacity: 0.9;
+}
+
+/* About Us Section */
+.aboutUsSection {
+  background-color: #f9f9f9;
+  padding: 80px 20px;
+}
+
+.founderName {
+  font-size: 1.4rem;
+  font-weight: bold;
+  margin-top: 15px;
+}
+
+/* Mission & Vision Sections */
+.missionSection, .visionSection {
+  background-color: #fff;
+}
+
+/* Our Story Section */
+.ourStorySection {
+  background-color: #f9f9f9;
+}
+
+/* Why Choose Us Section */
+.whyChooseUsSection {
+  background-color: #fff;
+}
+
+.featuresList {
+  list-style-type: none;
+  padding: 0;
+  margin: 20px auto;
+  max-width: 900px;
+  text-align: left;
+}
+
+.featuresList li {
+  font-size: 1.2rem;
+  margin-bottom: 15px;
+  padding-left: 25px;
+  position: relative;
+}
+
+.featuresList li::before {
+  content: "✓";
+  color: #ff5722;
+  font-size: 1.4rem;
+  font-weight: bold;
+  position: absolute;
+  left: 0;
+  top: 3px;
+}
+
+/* Core Values Section */
+.coreValuesSection {
+  background-color: #f9f9f9;
+}
+
+.valuesList {
+  list-style-type: none;
+  padding: 0;
+  margin: 20px auto;
+  max-width: 900px;
+  text-align: left;
+}
+
+.valuesList li {
+  font-size: 1.2rem;
+  margin-bottom: 15px;
+  padding-left: 25px;
+  position: relative;
+}
+
+.valuesList li::before {
+  content: "★";
+  color: #2196f3;
+  font-size: 1.4rem;
+  font-weight: bold;
+  position: absolute;
+  left: 0;
+  top: 3px;
+}
+
+/* Team Section */
+.teamSection {
+  background-color: #f1f1f1;
+}
+
+.teamMembers {
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+  flex-wrap: wrap;
+}
+
+.teamMember {
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  width: 220px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+  text-align: center;
+  transition: transform 0.3s ease;
+}
+
+.teamMember:hover {
+  transform: scale(1.05);
+}
+
+.teamMember img {
+  width: 100%;
+  height: auto;
+  border-radius: 50%;
+  margin-bottom: 15px;
+}
+
+.teamMember h3 {
+  font-size: 1.4rem;
+  margin-bottom: 5px;
+  font-weight: 600;
+}
+
+.teamMember p {
+  font-size: 1rem;
+  color: #777;
+}
+
+/* Testimonials Section */
+.testimonialsSection {
+  background-color: #fff;
+}
+
+.testimonialsSection blockquote {
+  font-size: 1.4rem;
+  font-style: italic;
+  max-width: 900px;
+  margin: 20px auto;
+  padding: 20px;
+  border-left: 5px solid #ff5722;
+  background: rgba(255, 87, 34, 0.1);
+  text-align: center;
+}
+
+.testimonialAuthor {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #555;
+}
+
+/* Call to Action Section */
+.ctaSection {
+  background-color: #f9f9f9;
+}
+
+.ctaButtons {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-top: 20px;
+}
+
+.primaryButton, .secondaryButton {
+  padding: 14px 28px;
+  border: none;
+  border-radius: 6px;
+  text-decoration: none;
+  font-size: 1.2rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.primaryButton {
+  background-color: #2196f3;
+  color: #fff;
+}
+
+.primaryButton:hover {
+  background-color: #1976d2;
+  transform: translateY(-3px);
+}
+
+.secondaryButton {
+  background-color: #e0e0e0;
+  color: #333;
+}
+
+.secondaryButton:hover {
+  background-color: #bdbdbd;
+  transform: translateY(-3px);
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .heroContent h1 {
     font-size: 2.5rem;
   }
-  
-  /* Introduction Section */
-  .introduction-section {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 2rem;
-    padding: 2rem;
-    align-items: center;
-    background-color: #f9f9f9;
+
+  .heroContent p {
+    font-size: 1.2rem;
   }
-  
-  .intro-text {
-    flex: 1;
-    min-width: 250px;
+
+  section {
+    padding: 50px 15px;
   }
-  
-  .founder-image {
-    flex: 1;
+
+  .featuresList li, .valuesList li {
+    font-size: 1.1rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .heroSection {
+    height: 50vh;
+  }
+
+  .heroContent h1 {
+    font-size: 2rem;
+  }
+
+  .heroContent p {
+    font-size: 1rem;
+  }
+
+  .teamMembers {
+    gap: 20px;
+  }
+
+  .teamMember {
+    width: 180px;
+    padding: 15px;
+  }
+
+  .ctaButtons {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .primaryButton, .secondaryButton {
+    width: 100%;
     text-align: center;
   }
-  
-  .founder-image img {
-    max-width: 100%;
-    height: auto;
-    border-radius: 8px;
-  }
-  
-  /* Two-Column Section (Mission & Story) */
-  .two-column-section {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 2rem;
-    padding: 2rem;
-    background-color: #fff;
-  }
-  
-  .two-column-section .column {
-    flex: 1;
-    min-width: 300px;
-  }
-  
-  /* Why Choose Us Section */
-  .why-choose-us-section {
-    padding: 2rem;
-    background-color: #f9f9f9;
-  }
-  
-  .features-list {
-    list-style-type: none;
-    padding: 0;
-  }
-  
-  .features-list li {
-    margin-bottom: 1rem;
-  }
-  
-  /* Core Values Section */
-  .core-values-section {
-    padding: 2rem;
-    background-color: #fff;
-  }
-  
-  .values-list {
-    list-style-type: none;
-    padding: 0;
-  }
-  
-  .values-list li {
-    margin-bottom: 1rem;
-  }
-  
-  /* Vision Section */
-  .vision-section {
-    padding: 2rem;
-    background-color: #f9f9f9;
-  }
-  
-  /* Get in Touch Section */
-  .get-in-touch-section {
-    padding: 2rem;
-    background-color: #fff;
-  }
-  
-  .cta-button {
-    background-color: #007bff;
-    border: none;
-    color: #fff;
-    font-size: 1rem;
-    padding: 0.75rem 1.5rem;
-    cursor: pointer;
-    border-radius: 4px;
-    margin-top: 1rem;
-    transition: background-color 0.3s ease;
-  }
-  
-  .cta-button:hover {
-    background-color: #0056b3;
-  }
-  
-  /* Responsive Adjustments */
-  @media (max-width: 768px) {
-    .hero-section {
-      height: 30vh;
-    }
-  
-    .hero-overlay h1 {
-      font-size: 2rem;
-    }
-  
-    .introduction-section,
-    .two-column-section {
-      flex-direction: column;
-    }
-  }
-  
+}

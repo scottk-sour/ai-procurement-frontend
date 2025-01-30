@@ -8,23 +8,23 @@ const HowItWorks = () => {
       step: "Step 1",
       title: "Chat with Our AI Advisor",
       content:
-        "Forget endless forms or complicated processes. Our friendly AI advisor will guide you through a conversational chat to learn about your requirements, preferences, and budget.",
+        "Forget endless forms or complicated processes. Our AI-powered advisor simplifies procurement by engaging in a smart, interactive conversation to understand your requirements.",
       details: [
         {
           title: "For Businesses:",
           points: [
-            "Your requirements, such as photocopiers, telecoms, or IT solutions.",
-            "Your priorities, like cost savings or speed of delivery.",
-            "Your preferences, such as eco-friendly options or local vendors.",
-            "Your budget and timeline.",
+            "Specify your needs, whether it's photocopiers, telecoms, or IT solutions.",
+            "Highlight priorities such as cost, efficiency, or sustainability.",
+            "Indicate preferences like vendor location or eco-friendly solutions.",
+            "Define your budget and expected timeline.",
           ],
         },
         {
           title: "For Vendors:",
           points: [
-            "Details about your unique solutions or products.",
-            "Your service area and delivery capabilities.",
-            "Pricing competitiveness and discount options.",
+            "Showcase your unique solutions and offerings.",
+            "Define your service areas and capabilities.",
+            "Provide competitive pricing and discount options.",
           ],
         },
       ],
@@ -33,20 +33,20 @@ const HowItWorks = () => {
       step: "Step 2",
       title: "AI-Driven Matching & Analysis",
       content:
-        "Our AI algorithms analyze your input to match you with tailored options from our database of trusted vendors.",
+        "Our AI algorithms assess your input and match you with tailored vendor solutions from our network of trusted providers.",
       details: [
         {
           title: "For Businesses:",
           points: [
-            "Receive three tailored vendor options that best meet your needs.",
-            "Options are prioritised based on value, suitability, and preferences.",
+            "Receive three highly tailored vendor recommendations.",
+            "Matches prioritised based on best value, suitability, and preferences.",
           ],
         },
         {
           title: "For Vendors:",
           points: [
-            "Connect with businesses whose needs align with your offerings.",
-            "Gain valuable insights into client requirements.",
+            "Connect with businesses actively seeking your products/services.",
+            "Gain data-driven insights into client preferences and industry trends.",
           ],
         },
       ],
@@ -55,25 +55,25 @@ const HowItWorks = () => {
       step: "Step 3",
       title: "Instant Quotes Tailored to Your Needs",
       content:
-        "For businesses, receive personalised quotes with pricing, features, and vendor ratings. Vendors gain direct access to matching inquiries.",
+        "Businesses receive personalised quotes outlining pricing, features, and vendor ratings. Vendors get instant access to real-time inquiries from interested clients.",
     },
     {
       step: "Step 4",
       title: "Real-Time Communication",
       content:
-        "Communicate directly through the platform to refine quotes, clarify details, and ensure the best solution.",
+        "Streamline collaboration by communicating directly through our platform to refine quotes, ask questions, and ensure the perfect solution for your needs.",
     },
     {
       step: "Step 5",
       title: "Seamless Finalisation",
       content:
-        "Finalise deals directly through the platform, with all documents and contracts ready to save time and effort.",
+        "Finalise deals effortlessly with built-in contract management. Our platform ensures smooth transactions and secure documentation for a hassle-free experience.",
     },
     {
       step: "Step 6",
       title: "Continuous Learning & Improvement",
       content:
-        "Our platform continually learns from every interaction, improving matches for both businesses and vendors.",
+        "Our AI continuously learns from interactions, refining recommendations and improving procurement experiences for both businesses and vendors over time.",
     },
   ];
 
@@ -84,38 +84,40 @@ const HowItWorks = () => {
         <div className="hero-overlay"></div>
         <div className="hero-content">
           <h1>Revolutionising Procurement</h1>
-          <p>Experience a smarter, easier, and more efficient way to manage procurement.</p>
+          <p>Experience a smarter, faster, and more efficient way to manage procurement with AI-driven intelligence.</p>
         </div>
       </section>
 
-      {/* Step Sections */}
-      {steps.map((step, index) => (
-        <section className="step-section" key={index}>
-          <h2>
-            {step.step}: {step.title}
-          </h2>
-          <p>{step.content}</p>
-          {step.details && (
-            <div className="step-details">
-              {step.details.map((detail, detailIndex) => (
-                <div key={detailIndex}>
-                  <h3>{detail.title}</h3>
-                  <ul>
-                    {detail.points.map((point, pointIndex) => (
-                      <li key={pointIndex}>{point}</li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
-            </div>
-          )}
-        </section>
-      ))}
+      {/* Steps Section */}
+      <div className="steps-container">
+        {steps.map((step, index) => (
+          <section className="step-section" key={index}>
+            <h2>
+              {step.step}: {step.title}
+            </h2>
+            <p>{step.content}</p>
+            {step.details && (
+              <div className="step-details">
+                {step.details.map((detail, detailIndex) => (
+                  <div key={detailIndex} className="step-box">
+                    <h3>{detail.title}</h3>
+                    <ul>
+                      {detail.points.map((point, pointIndex) => (
+                        <li key={pointIndex}>{point}</li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+        ))}
+      </div>
 
       {/* Call-to-Action Section */}
       <section className="cta-section">
         <h2>Ready to Experience Smarter Procurement?</h2>
-        <p>Join [Your Platform Name] today and take your procurement to the next level.</p>
+        <p>Join <strong>Your Platform Name</strong> today and transform the way you do business.</p>
         <button className="cta-button">Get Started Now</button>
       </section>
     </div>

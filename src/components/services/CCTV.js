@@ -1,6 +1,7 @@
 import React from 'react';
-import { Link } from 'react-router-dom';  // 1. Import Link
-import styles from './CCTV.module.css';   // Adjust path if necessary
+import { Link } from 'react-router-dom';
+import styles from './CCTV.module.css';
+import heroImage from '../../assets/images/Camera.png';
 
 const CCTV = () => {
   return (
@@ -9,14 +10,15 @@ const CCTV = () => {
       <header
         className={styles.heroSection}
         style={{
-          backgroundImage: 'url("placeholder-hero-cctv.jpg")', // Placeholder image
+          backgroundImage: `url(${heroImage})`, // Using the imported PNG image
+          backgroundSize: 'cover', // Ensure the image covers the hero section
+          backgroundPosition: 'center', // Center the image within the section
         }}
       >
         <div className={styles.heroOverlay} />
         <div className={styles.heroContent}>
           <h1>Secure Your Premises with AI-Driven CCTV Solutions</h1>
           <p>Discover how modern, intelligent surveillance can protect and optimise your business.</p>
-          {/* Updated hero button to link to /signup */}
           <Link to="/signup" className={styles.heroButton}>
             Explore Security Options
           </Link>
@@ -88,7 +90,6 @@ const CCTV = () => {
           Enter your requirements into our platform and discover which CCTV systems best fit your business.
         </p>
         <div className={styles.ctaButtons}>
-          {/* Updated primary button to link to /signup */}
           <Link to="/signup" className={styles.primaryButton}>
             Start Your AI-Guided Search
           </Link>

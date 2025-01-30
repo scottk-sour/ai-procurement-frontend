@@ -1,6 +1,7 @@
 import React from 'react';
-import { Link } from 'react-router-dom';  // 1. Import Link from react-router-dom
-import styles from './Photocopiers.module.css';
+import { Link } from 'react-router-dom'; // Import Link from react-router-dom
+import styles from './Photocopiers.module.css'; // Import CSS module
+import heroImage from '../../assets/images/Best-photocopiers.png'; // Correct path to the image
 
 const Photocopiers = () => {
   return (
@@ -9,14 +10,14 @@ const Photocopiers = () => {
       <header
         className={styles.heroSection}
         style={{
-          backgroundImage: 'url("placeholder-hero.jpg")', // Placeholder hero image
+          backgroundImage: `url(${heroImage})`, // Use the correct hero image
         }}
       >
         <div className={styles.heroOverlay} />
         <div className={styles.heroContent}>
           <h1>Optimise Your Printing & Discover Cost Savings</h1>
           <p>Compare and learn about multifunctional devices—without bias.</p>
-          {/* Updated hero button to link to /signup */}
+          {/* Button linking to signup */}
           <Link to="/signup" className={styles.heroButton}>
             Start Your AI-Guided Search
           </Link>
@@ -85,7 +86,7 @@ const Photocopiers = () => {
         </p>
       </section>
 
-      {/* Testimonial */}
+      {/* Testimonial Section */}
       <section className={styles.testimonialSection}>
         <blockquote>
           “We reduced our yearly printing expenses by 25% using the AI platform to compare different machines. It was
@@ -99,7 +100,7 @@ const Photocopiers = () => {
         <h2>Ready to Explore Your Options?</h2>
         <p>Start comparing models from top manufacturers, all in one place. No hidden agendas—just actionable insights.</p>
         <div className={styles.ctaButtons}>
-          {/* Updated primary button to Link to /signup */}
+          {/* Button linking to signup */}
           <Link to="/signup" className={styles.primaryButton}>
             Let the AI Find My Ideal Device
           </Link>

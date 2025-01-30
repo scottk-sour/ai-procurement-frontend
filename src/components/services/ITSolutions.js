@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom'; // Import Link for navigation
 import styles from './ITServices.module.css'; // Adjust the path/name as needed
+import backgroundImage from '../../assets/images/ITS.png'; // Import your background image
 
 const ITServices = () => {
   return (
@@ -9,14 +10,15 @@ const ITServices = () => {
       <header
         className={styles.heroSection}
         style={{
-          backgroundImage: 'url("placeholder-hero-it.jpg")', // Replace with your own hero image
+          backgroundImage: `url(${backgroundImage})`, // Set the imported image as the background
         }}
       >
         <div className={styles.heroOverlay} />
         <div className={styles.heroContent}>
           <h1>Empower Your Business with Modern IT Solutions</h1>
-          <p>Discover flexible software, reliable hardware, and expert support—tailored by our AI platform.</p>
-
+          <p>
+            Discover flexible software, reliable hardware, and expert support—tailored by our AI platform.
+          </p>
           {/* Updated hero button: Link to /signup */}
           <Link to="/signup" className={styles.heroButton}>
             Begin Your AI-Guided IT Search

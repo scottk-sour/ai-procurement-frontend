@@ -1,6 +1,7 @@
 import React from 'react';
-import { Link } from 'react-router-dom';  // Import Link for navigation
+import { Link } from 'react-router-dom'; // Import Link for navigation
 import styles from './Telecoms.module.css'; // Adjust path as needed
+import heroImage from '../../assets/images/VoIP-System-1200x900.jpg'; // Import the correct image
 
 const Telecoms = () => {
   return (
@@ -9,7 +10,7 @@ const Telecoms = () => {
       <header
         className={styles.heroSection}
         style={{
-          backgroundImage: 'url("placeholder-hero-telecoms.jpg")', // Replace with your own image
+          backgroundImage: `url(${heroImage})`, // Use the imported image
         }}
       >
         <div className={styles.heroOverlay} />

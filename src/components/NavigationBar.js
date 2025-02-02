@@ -1,4 +1,3 @@
-// src/components/NavigationBar.js
 import React, { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import './NavigationBar.css';
@@ -20,23 +19,23 @@ const NavigationBar = () => {
     } else {
       navigate('/login');
     }
-    setMenuOpen(false); // Close menu if on mobile
+    setMenuOpen(false);
   };
 
   const menuLinks = [
-    { path: "/", label: "Home" },
     { path: "/request-quote", label: "Request Quote" },
     { path: "/services", label: "Services" },
     { path: "/about-us", label: "About Us" },
-    { path: "/contact", label: "Contact Us" }
+    { path: "/contact", label: "Contact Us" },
+    { path: "/faq", label: "FAQ" }
   ];
 
   return (
     <nav className="navbar">
       <div className="navbar-content">
         <div className="navbar-brand">
-          <NavLink to="/" end className={({ isActive }) => isActive ? "active-link" : ""}>
-            <span className="logo">Logo</span>
+          <NavLink to="/" end onClick={() => setMenuOpen(false)}>
+            <span className="logo">TENDORAI</span>
           </NavLink>
         </div>
 

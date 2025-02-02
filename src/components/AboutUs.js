@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import '../styles/AboutUs.css'; // Ensure correct import path
 
-import heroImage from '../assets/images/111.png'; // Ensure the image exists in the correct location
+import heroImage from '../assets/images/team.png'; // Ensure the image exists in the correct location
 
 const AboutUs = () => {
   return (
@@ -17,7 +17,7 @@ const AboutUs = () => {
         <div className="heroOverlay" /> {/* Overlay for better text readability */}
         <div className="heroContent">
           <h1>Hello and Welcome</h1>
-          <p>Hi, I’m Scott Davies, the founder of TendorAI.</p>
+          <p>Hi, I’m Scott Davies, the founder of TENDORAI.</p>
         </div>
       </header>
 
@@ -26,7 +26,7 @@ const AboutUs = () => {
         <h2>About Me</h2>
         <p>
           With over 25 years of experience in sales, procurement, and digital marketing, I’ve witnessed firsthand the challenges businesses face when navigating the procurement process. 
-          From time-consuming vendor searches to unreliable quotes, I knew there had to be a better way. That’s why I founded Your Platform Name: to revolutionise how businesses find the right solutions.
+          From time-consuming vendor searches to unreliable quotes, I knew there had to be a better way. That’s why I founded TENDORAI: to revolutionise how businesses find the right solutions.
         </p>
         <p className="founderName"><strong>Scott Davies</strong></p>
       </section>
@@ -35,7 +35,7 @@ const AboutUs = () => {
       <section className="missionSection">
         <h2>Our Mission</h2>
         <p>
-          At Your Platform Name, our mission is simple yet transformative: to empower businesses by making procurement smarter, faster, and more cost-effective. 
+          At TENDORAI, our mission is simple yet transformative: to empower businesses by making procurement smarter, faster, and more cost-effective. 
           We aim to eliminate inefficiencies and deliver tailored vendor solutions through our AI-powered platform.
         </p>
         <p>
@@ -52,7 +52,7 @@ const AboutUs = () => {
           Recognising this gap, I combined my expertise in procurement with innovative AI technology to create a platform that simplifies and personalises the entire process.
         </p>
         <p>
-          Since launching Your Platform Name, we’ve helped countless businesses streamline their procurement, reduce costs, and build lasting partnerships with trusted vendors.
+          Since launching TENDORAI, we’ve helped countless businesses streamline their procurement, reduce costs, and build lasting partnerships with trusted vendors.
         </p>
       </section>
 
@@ -95,7 +95,7 @@ const AboutUs = () => {
           Visit our Contact Us page to connect with us, or learn more about our process on the How It Works page.
         </p>
         <p>Let’s make procurement smarter, together.</p>
-        <p className="founderName"><strong>Scott Davies</strong><br/>Founder, Your Platform Name</p>
+        <p className="founderName"><strong>Scott Davies</strong><br/>Founder, TENDORAI</p>
 
         <div className="ctaButtons">
           <Link to="/contact" className="primaryButton">Contact Us</Link>

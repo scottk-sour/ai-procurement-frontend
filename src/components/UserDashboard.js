@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  FaQuoteRight, FaBalanceScale, FaUserCog, FaBell, FaTasks, FaUpload, FaUserCircle, FaMoon, FaSun
+  FaQuoteRight, FaBalanceScale, FaUserCog, FaBell, FaTasks,
+  FaUpload, FaUserCircle, FaMoon, FaSun, FaFileAlt
 } from 'react-icons/fa';
 import '../styles/UserDashboard.css';
 
@@ -15,6 +16,7 @@ const UserDashboard = () => {
   const [recentActivity, setRecentActivity] = useState([]);
   const [uploadedFiles, setUploadedFiles] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [theme, setTheme] = useState(localStorage.getItem('theme') || 'light');
 
   useEffect(() => {
@@ -29,42 +31,40 @@ const UserDashboard = () => {
     if (name) setUserName(name);
     if (email) setUserEmail(email);
 
-    fetchRecentActivity();
-    fetchUploadedFiles();
+    fetchDashboardData();
   }, [navigate]);
 
-  const fetchRecentActivity = async () => {
+  const fetchDashboardData = async () => {
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:5000/api/users/recent-activity', {
-        headers: { Authorization: `Bearer ${localStorage.getItem('userToken')}` },
-      });
-      const data = await response.json();
-      setRecentActivity(data.activities || []);
-    } catch (error) {
-      console.error('Error fetching recent activity:', error);
-    }
-    setLoading(false);
-  };
+      const token = localStorage.getItem('userToken');
+      const [activityRes, filesRes] = await Promise.all([
+        fetch(`http://localhost:5000/api/users/recent-activity?nocache=${new Date().getTime()}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+        fetch(`http://localhost:5000/api/users/uploaded-files?nocache=${new Date().getTime()}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+      ]);
 
-  const fetchUploadedFiles = async () => {
-    setLoading(true);
-    try {
-      const response = await fetch('http://localhost:5000/api/users/uploaded-files', {
-        headers: { Authorization: `Bearer ${localStorage.getItem('userToken')}` },
-      });
-      const data = await response.json();
-      setUploadedFiles(data.files || []);
+      if (!activityRes.ok || !filesRes.ok) {
+        throw new Error('Failed to fetch dashboard data.');
+      }
+
+      const activityData = await activityRes.json();
+      const filesData = await filesRes.json();
+
+      setRecentActivity(activityData.activities || []);
+      setUploadedFiles(filesData.files || []);
     } catch (error) {
-      console.error('Error fetching uploaded files:', error);
+      console.error('Error fetching dashboard data:', error);
+      setMessage('⚠ Error loading data. Please try again.');
     }
     setLoading(false);
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('userToken');
-    localStorage.removeItem('userName');
-    localStorage.removeItem('userEmail');
+    localStorage.clear();
     navigate('/login');
   };
 
@@ -72,7 +72,7 @@ const UserDashboard = () => {
 
   const handleUpload = async () => {
     if (!file) {
-      setMessage('Please select a file to upload');
+      setMessage('⚠ Please select a file to upload.');
       return;
     }
 
@@ -81,6 +81,8 @@ const UserDashboard = () => {
     formData.append('documentType', documentType);
 
     setLoading(true);
+    setUploadProgress(0);
+
     try {
       const response = await fetch('http://localhost:5000/api/users/upload', {
         method: 'POST',
@@ -90,16 +92,18 @@ const UserDashboard = () => {
 
       const data = await response.json();
       if (response.ok) {
-        setMessage('File uploaded successfully');
-        fetchUploadedFiles();
+        setMessage('✅ File uploaded successfully!');
+        setUploadProgress(100);
+        fetchDashboardData();
       } else {
-        setMessage(data.message || 'Error uploading file');
+        setMessage(data.message || '⚠ Upload failed.');
       }
     } catch (error) {
       console.error('Error uploading file:', error);
-      setMessage('An error occurred during upload');
+      setMessage('⚠ An error occurred during upload.');
     }
     setLoading(false);
+    setTimeout(() => setUploadProgress(0), 2000); // Reset progress after 2 sec
   };
 
   const toggleTheme = () => {
@@ -153,12 +157,12 @@ const UserDashboard = () => {
           <input type="file" className="file-input" onChange={handleFileChange} />
         </label>
         <button onClick={handleUpload} disabled={loading}>
-          {loading ? 'Uploading...' : 'Upload Document'}
+          {loading ? `Uploading... ${uploadProgress}%` : 'Upload Document'}
         </button>
         {message && <p>{message}</p>}
         <ul>
           {uploadedFiles.map((file, idx) => (
-            <li key={idx}>{file.fileName}</li>
+            <li key={idx}><FaFileAlt /> {file.fileName}</li>
           ))}
         </ul>
       </div>

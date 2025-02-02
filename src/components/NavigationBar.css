@@ -2,53 +2,85 @@
 .navbar {
     width: 100%;
     background-color: #0056b3;
-    padding: 15px 20px;
+    padding: 15px 0;
     position: sticky;
     top: 0;
     z-index: 1000;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-/* Container for Centered Content */
-.navbar-content {
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+  }
+  
+  /* Container for Full-Width Content with Side Padding */
+  .navbar-content {
     display: flex;
     justify-content: space-between;
     align-items: center;
     width: 100%;
-    max-width: 1200px;
-}
-
-/* Links Styling */
-.navbar-links {
+    padding: 0 20px;
+  }
+  
+  /* Logo Styling */
+  .navbar-brand {
+    /* Extra right margin to create space between logo and nav links */
+    margin-right: 50px;
+  }
+  
+  .navbar-brand .logo {
+    font-size: 1.8em;
+    font-weight: bold;
+    color: white;
+    letter-spacing: 1px;
+    transition: color 0.3s ease;
+  }
+  
+  .navbar-brand .logo:hover {
+    color: #28a745;
+  }
+  
+  /* Links Styling */
+  .navbar-links {
     display: flex;
     gap: 30px;
-    justify-content: center;
-    flex: 1;
-}
-
-/* Standard Links Styling */
-.navbar-links a {
+    align-items: center;
+  }
+  
+  /* Standard Links Styling */
+  .navbar-links a {
     color: white;
     text-decoration: none;
     font-weight: bold;
     padding: 10px 15px;
-    font-size: 1.2em;
-}
-
-.navbar-links a:hover {
+    font-size: 1.1em;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+  
+  .navbar-links a:hover {
     background-color: #28a745;
     border-radius: 5px;
-}
-
-.navbar-links a.active-link {
+  }
+  
+  .navbar-links a.active-link {
     background-color: #28a745;
     color: white;
-}
-
-/* User and Vendor Login Links */
-.user-login, .vendor-login {
+  }
+  
+  /* Dashboard Button Styling */
+  .dashboard-link {
+    background: none;
+    border: none;
+    color: white;
+    font-weight: bold;
+    padding: 10px 15px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .dashboard-link:hover {
+    background-color: #28a745;
+    border-radius: 5px;
+  }
+  
+  /* User and Vendor Login Links */
+  .user-login, .vendor-login {
     display: flex;
     align-items: center;
     gap: 5px;
@@ -56,49 +88,71 @@
     font-weight: bold;
     border-radius: 5px;
     color: white;
-}
-
-.user-login {
+    text-decoration: none;
+    transition: background-color 0.3s ease;
+  }
+  
+  .user-login {
     background-color: #007bff;
-}
-
-.user-login:hover {
+  }
+  
+  .user-login:hover {
     background-color: #0056b3;
-}
-
-.vendor-login {
+  }
+  
+  .vendor-login {
     background-color: #28a745;
-}
-
-.vendor-login:hover {
+  }
+  
+  .vendor-login:hover {
     background-color: #218838;
-}
-
-/* Mobile Styles */
-@media (max-width: 768px) {
+  }
+  
+  /* Hamburger Button Styling */
+  .hamburger {
+    display: none;
+    flex-direction: column;
+    gap: 5px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 10px;
+  }
+  
+  .hamburger .bar {
+    width: 25px;
+    height: 3px;
+    background-color: white;
+    transition: all 0.3s ease;
+  }
+  
+  /* Mobile Styles */
+  @media (max-width: 768px) {
     .hamburger {
-        display: flex;
+      display: flex;
     }
-
+  
     .navbar-links {
-        display: none;
+      display: none;
     }
-
+  
     .navbar-links.active {
-        display: flex;
-        flex-direction: column;
-        gap: 15px;
-        position: absolute;
-        top: 100%;
-        left: 0;
-        width: 100%;
-        background-color: #0056b3;
-        padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      position: absolute;
+      top: 100%;
+      left: 0;
+      width: 100%;
+      background-color: #0056b3;
+      padding: 20px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
     }
-
+  
     .user-login, .vendor-login {
-        width: 100%;
-        justify-content: center;
-        margin: 5px 0;
+      width: 100%;
+      justify-content: center;
+      margin: 5px 0;
     }
-}
+  }
+  

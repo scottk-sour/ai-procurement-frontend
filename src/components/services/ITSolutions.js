@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom'; // Import Link for navigation
 import styles from './ITServices.module.css'; // Adjust the path/name as needed
-import backgroundImage from '../../assets/images/ITS.png'; // Import your background image
+import backgroundImage from '../../assets/images/IT Support.png'; // Import your background image
 
 const ITServices = () => {
   return (

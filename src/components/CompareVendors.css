@@ -1,86 +1,90 @@
-/* src/components/CompareVendors.css */
-
 .compare-vendors-container {
-    padding: 20px;
-    max-width: 800px;
-    margin: 0 auto;
-    font-family: Arial, sans-serif;
-  }
-  
-  .compare-vendors-title {
-    font-size: 24px;
-    color: #007bff; /* Matches your header/footer color */
-    margin-bottom: 20px;
-  }
-  
-  .filter-sort-container {
-    margin-bottom: 15px;
-    text-align: right;
-  }
-  
-  .filter-sort-label {
-    font-size: 14px;
-    color: #333;
-  }
-  
-  .filter-sort-select {
-    margin-left: 8px;
-    padding: 5px;
-    border-radius: 4px;
-    border: 1px solid #ddd;
-  }
-  
-  .compare-vendors-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-bottom: 20px;
-  }
-  
-  .compare-vendors-table th,
-  .compare-vendors-table td {
-    border: 1px solid #ddd;
-    padding: 10px;
-    text-align: left;
-  }
-  
-  .compare-vendors-table th {
-    background-color: #f4f4f4;
-    color: #333;
-  }
-  
-  .compare-vendors-table tr:nth-child(even) {
-    background-color: #f9f9f9;
-  }
-  
-  .profile-button {
-    background-color: #007bff;
-    color: white;
-    border: none;
-    padding: 6px 12px;
-    border-radius: 4px;
-    cursor: pointer;
-  }
-  
-  .profile-button:hover {
-    background-color: #0056b3;
-  }
-  
-  .request-quote-container {
-    text-align: center;
-    margin-top: 20px;
-  }
-  
-  .request-quote-button {
-    background-color: #007bff;
-    color: white;
-    padding: 10px 20px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 16px;
-  }
-  
-  .request-quote-button:hover {
-    background-color: #0056b3;
-  }
-  
+  text-align: center;
+  padding: 20px;
+}
+
+.compare-vendors-title {
+  font-size: 26px;
+  margin-bottom: 20px;
+}
+
+.vendor-cards {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.vendor-card {
+  border: 2px solid #ddd;
+  padding: 15px;
+  width: 250px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: 0.3s;
+  background-color: #f9f9f9;
+  text-align: center;
+}
+
+.vendor-card:hover {
+  border-color: #007bff;
+}
+
+.vendor-card.selected {
+  border-color: #28a745;
+  background-color: #eaffea;
+}
+
+.vendor-logo {
+  width: 100px;
+  height: 100px;
+  margin-bottom: 10px;
+}
+
+.profile-button {
+  margin-top: 10px;
+  padding: 5px 10px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.request-quote-container {
+  margin-top: 20px;
+}
+
+.request-quote-button {
+  padding: 10px 20px;
+  background-color: #28a745;
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  border-radius: 5px;
+}
+
+.request-quote-button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+/* ⭐ Star Ratings */
+.star {
+  font-size: 16px;
+  color: #ffc107;
+  margin-right: 2px;
+}
+
+.full-star {
+  color: #ffc107;
+}
+
+.half-star {
+  color: #ffc107;
+}
+
+.empty-star {
+  color: #ccc;
+}

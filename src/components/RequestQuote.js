@@ -15,12 +15,12 @@ const RequestQuote = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
-  // ✅ Handle Input Changes
+  // Handle Input Changes
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // ✅ Handle Form Submission
+  // Handle Form Submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -35,7 +35,7 @@ const RequestQuote = () => {
         return;
       }
 
-      // ✅ Prepare Request Data
+      // Prepare Request Data
       const userRequirements = {
         serviceType: formData.serviceType,
         quantity: Number(formData.quantity),
@@ -45,12 +45,12 @@ const RequestQuote = () => {
         specialRequirements: formData.specialRequirements,
       };
 
-      // ✅ Send API Request to AI System
+      // Send API Request to AI System
       const response = await fetch("http://localhost:5000/api/quotes/request", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`, // Include the authorization token
+          Authorization: `Bearer ${token}`, // Include the authorisation token
         },
         body: JSON.stringify({ userRequirements }), // Send user requirements
       });
@@ -61,10 +61,10 @@ const RequestQuote = () => {
         throw new Error(data.message || "Failed to submit the request.");
       }
 
-      console.log("✅ AI Response:", data);
+      console.log("AI Response:", data);
       setVendors(data.recommendedVendors || []); // Store recommended vendors
     } catch (error) {
-      console.error("❌ Error:", error.message);
+      console.error("Error:", error.message);
       setErrorMessage(error.message || "Failed to fetch recommendations.");
     } finally {
       setIsSubmitting(false);
@@ -126,7 +126,7 @@ const RequestQuote = () => {
       {/* Display Error Message */}
       {errorMessage && <p style={{ color: "red" }}>{errorMessage}</p>}
 
-      {/* ✅ Display AI-Recommended Vendors */}
+      {/* Display AI-Recommended Vendors */}
       {vendors.length > 0 && (
         <div>
           <h3>Top AI-Recommended Vendors:</h3>

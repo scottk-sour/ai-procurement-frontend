@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  FaQuoteRight, FaBalanceScale, FaUserCog, FaBell, FaTasks,
-  FaUpload, FaUserCircle, FaMoon, FaSun, FaFileAlt
+  FaQuoteRight, FaBalanceScale, FaUserCog, FaBell, 
+  FaUpload, FaUserCircle, FaMoon, FaSun, FaFileAlt, FaChartBar
 } from 'react-icons/fa';
 import '../styles/UserDashboard.css';
 
@@ -39,12 +39,8 @@ const UserDashboard = () => {
     try {
       const token = localStorage.getItem('userToken');
       const [activityRes, filesRes] = await Promise.all([
-        fetch(`http://localhost:5000/api/users/recent-activity?nocache=${new Date().getTime()}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        fetch(`http://localhost:5000/api/users/uploaded-files?nocache=${new Date().getTime()}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
+        fetch(`http://localhost:5000/api/users/recent-activity`, { headers: { Authorization: `Bearer ${token}` } }),
+        fetch(`http://localhost:5000/api/users/uploaded-files`, { headers: { Authorization: `Bearer ${token}` } }),
       ]);
 
       if (!activityRes.ok || !filesRes.ok) {
@@ -103,7 +99,7 @@ const UserDashboard = () => {
       setMessage('⚠ An error occurred during upload.');
     }
     setLoading(false);
-    setTimeout(() => setUploadProgress(0), 2000); // Reset progress after 2 sec
+    setTimeout(() => setUploadProgress(0), 2000);
   };
 
   const toggleTheme = () => {
@@ -132,7 +128,7 @@ const UserDashboard = () => {
         </div>
       </div>
 
-      {/* Quick Actions */}
+      {/* 🔹 Quick Actions */}
       <div className="quick-actions">
         <button className="dashboard-button request-quote" onClick={() => navigate('/request-quote')}>
           <FaQuoteRight /> Request a Quote
@@ -145,38 +141,47 @@ const UserDashboard = () => {
         </button>
       </div>
 
-      {/* File Upload Section */}
+      {/* 🔹 Dashboard Overview Cards */}
+      <div className="dashboard-cards">
+        <div className="dashboard-card">
+          <FaChartBar className="dashboard-icon" />
+          <h3>Total Quotes Requested</h3>
+          <p>12</p>
+        </div>
+        <div className="dashboard-card">
+          <FaFileAlt className="dashboard-icon" />
+          <h3>Uploaded Documents</h3>
+          <p>{uploadedFiles.length}</p>
+        </div>
+        <div className="dashboard-card">
+          <FaBell className="dashboard-icon" />
+          <h3>Pending Vendor Responses</h3>
+          <p>4</p>
+        </div>
+      </div>
+
+      {/* 🔹 File Upload Section */}
       <div className="file-upload-section">
         <h2><FaUpload /> Upload Documents</h2>
         <select value={documentType} onChange={(e) => setDocumentType(e.target.value)}>
           <option value="contract">Contract</option>
           <option value="bill">Bill</option>
         </select>
-        <label className="upload-label">
-          <FaUpload /> Choose File
-          <input type="file" className="file-input" onChange={handleFileChange} />
-        </label>
+        <input type="file" className="file-input" onChange={handleFileChange} />
         <button onClick={handleUpload} disabled={loading}>
           {loading ? `Uploading... ${uploadProgress}%` : 'Upload Document'}
         </button>
         {message && <p>{message}</p>}
-        <ul>
-          {uploadedFiles.map((file, idx) => (
-            <li key={idx}><FaFileAlt /> {file.fileName}</li>
-          ))}
-        </ul>
       </div>
 
-      {/* Recent Activity Section */}
+      {/* 🔹 Recent Activity */}
       <div className="recent-activity">
-        <h2><FaTasks /> Recent Activity</h2>
-        {loading ? <p>Loading...</p> : (
-          <ul>
-            {recentActivity.map((activity, idx) => (
-              <li key={idx}><FaBell /> {activity.description} on {activity.date}</li>
-            ))}
-          </ul>
-        )}
+        <h2><FaBell /> Recent Activity</h2>
+        <ul>
+          {recentActivity.map((activity, idx) => (
+            <li key={idx}><FaBell /> {activity.description} on {activity.date}</li>
+          ))}
+        </ul>
       </div>
     </div>
   );

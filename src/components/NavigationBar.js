@@ -1,48 +1,28 @@
-import React, { useState } from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import React, { useState, useRef, useEffect } from 'react';
+import { NavLink } from 'react-router-dom';
 import './NavigationBar.css';
 import { FaUser, FaStore } from 'react-icons/fa';
+import { gsap } from 'gsap';
 
 const NavigationBar = () => {
   const [menuOpen, setMenuOpen] = useState(false);
-  const navigate = useNavigate();
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
 
   // ✅ Toggles the mobile menu
   const toggleMenu = () => {
     setMenuOpen(!menuOpen);
   };
 
-  // ✅ Ensures users are logged in before accessing dashboard
-  const handleDashboardClick = () => {
-    const token = localStorage.getItem('userToken'); // Ensure token is correctly referenced
-    if (token) {
-      navigate('/dashboard');
-    } else {
-      alert('⚠ You must be logged in to access the dashboard.');
-      navigate('/login');
+  // ✅ Handles the dropdown animation
+  useEffect(() => {
+    if (isDropdownOpen) {
+      gsap.fromTo(dropdownRef.current, 
+        { opacity: 0, y: -10 }, 
+        { opacity: 1, y: 0, duration: 0.3 }
+      );
     }
-    setMenuOpen(false);
-  };
-
-  // ✅ Checks authentication before navigating to Request a Quote
-  const handleRequestQuoteClick = () => {
-    const token = localStorage.getItem('userToken');
-    if (!token) {
-      alert('⚠ You must be logged in to request a quote.');
-      navigate('/login'); // Redirects to login first
-    } else {
-      navigate('/request-quote');
-    }
-    setMenuOpen(false);
-  };
-
-  // ✅ Define menu links dynamically
-  const menuLinks = [
-    { path: "/services", label: "Services" },
-    { path: "/about-us", label: "About Us" },
-    { path: "/contact", label: "Contact Us" },
-    { path: "/faq", label: "FAQ" }
-  ];
+  }, [isDropdownOpen]);
 
   return (
     <nav className="navbar">
@@ -68,26 +48,27 @@ const NavigationBar = () => {
 
         {/* Navigation Links */}
         <div className={`navbar-links ${menuOpen ? 'active' : ''}`}>
-          {menuLinks.map((link, index) => (
-            <NavLink
-              key={index}
-              to={link.path}
-              className={({ isActive }) => isActive ? "active-link" : ""}
-              onClick={() => setMenuOpen(false)}
-            >
-              {link.label}
-            </NavLink>
-          ))}
+          <NavLink to="/" onClick={() => setMenuOpen(false)}>Home</NavLink>
 
-          {/* ✅ Request Quote Link with Authentication Check */}
-          <button className="request-quote-link" onClick={handleRequestQuoteClick}>
-            Request a Quote
-          </button>
+          {/* ✅ Services Dropdown */}
+          <div 
+            className="dropdown-container"
+            onMouseEnter={() => setIsDropdownOpen(true)}
+            onMouseLeave={() => setIsDropdownOpen(false)}
+          >
+            <span className="dropdown-title">Services ▼</span>
+            {isDropdownOpen && (
+              <ul ref={dropdownRef} className="dropdown-menu">
+                <li><NavLink to="/cctv" onClick={() => setMenuOpen(false)}>CCTV</NavLink></li>
+                <li><NavLink to="/photocopiers" onClick={() => setMenuOpen(false)}>Photocopiers</NavLink></li>
+                <li><NavLink to="/telecoms" onClick={() => setMenuOpen(false)}>Telecoms</NavLink></li>
+              </ul>
+            )}
+          </div>
 
-          {/* ✅ Dashboard Link with Authentication Check */}
-          <button className="dashboard-link" onClick={handleDashboardClick}>
-            Dashboard
-          </button>
+          <NavLink to="/about-us" onClick={() => setMenuOpen(false)}>About Us</NavLink>
+          <NavLink to="/contact" onClick={() => setMenuOpen(false)}>Contact</NavLink>
+          <NavLink to="/faq" onClick={() => setMenuOpen(false)}>FAQ</NavLink>
 
           {/* ✅ User & Vendor Login Links */}
           <NavLink to="/login" className="user-login" onClick={() => setMenuOpen(false)}>

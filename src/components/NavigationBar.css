@@ -1,142 +1,181 @@
 /* Navigation Bar */
 .navbar {
-    width: 100%;
-    background-color: #0056b3;
-    padding: 15px 0;
-    position: sticky;
-    top: 0;
-    z-index: 1000;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
-  }
-  
-  /* Container for Full-Width Content with Side Padding */
-  .navbar-content {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    width: 100%;
-    padding: 0 20px;
-  }
-  
-  /* Logo Styling */
-  .navbar-brand {
-    /* Extra right margin to create space between logo and nav links */
-    margin-right: 50px;
-  }
-  
-  .navbar-brand .logo {
-    font-size: 1.8em;
-    font-weight: bold;
-    color: white;
-    letter-spacing: 1px;
-    transition: color 0.3s ease;
-  }
-  
-  .navbar-brand .logo:hover {
-    color: #28a745;
-  }
-  
-  /* Links Styling */
-  .navbar-links {
-    display: flex;
-    gap: 30px;
-    align-items: center;
-  }
-  
-  /* Standard Links Styling */
-  .navbar-links a {
-    color: white;
-    text-decoration: none;
-    font-weight: bold;
-    padding: 10px 15px;
-    font-size: 1.1em;
-    transition: background-color 0.3s ease, color 0.3s ease;
-  }
-  
-  .navbar-links a:hover {
-    background-color: #28a745;
-    border-radius: 5px;
-  }
-  
-  .navbar-links a.active-link {
-    background-color: #28a745;
-    color: white;
-  }
-  
-  /* Dashboard Button Styling */
-  .dashboard-link {
-    background: none;
-    border: none;
-    color: white;
-    font-weight: bold;
-    padding: 10px 15px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-  }
-  
-  .dashboard-link:hover {
-    background-color: #28a745;
-    border-radius: 5px;
-  }
-  
-  /* User and Vendor Login Links */
-  .user-login, .vendor-login {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    padding: 8px 15px;
-    font-weight: bold;
-    border-radius: 5px;
-    color: white;
-    text-decoration: none;
-    transition: background-color 0.3s ease;
-  }
-  
-  .user-login {
-    background-color: #007bff;
-  }
-  
-  .user-login:hover {
-    background-color: #0056b3;
-  }
-  
-  .vendor-login {
-    background-color: #28a745;
-  }
-  
-  .vendor-login:hover {
-    background-color: #218838;
-  }
-  
-  /* Hamburger Button Styling */
+  width: 100%;
+  background-color: #0056b3;
+  padding: 15px 0;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+}
+
+/* Container for Full-Width Content with Side Padding */
+.navbar-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 0 20px;
+}
+
+/* Logo Styling */
+.navbar-brand {
+  margin-right: 50px;
+}
+
+.navbar-brand .logo {
+  font-size: 1.8em;
+  font-weight: bold;
+  color: white;
+  letter-spacing: 1px;
+  transition: color 0.3s ease;
+}
+
+.navbar-brand .logo:hover {
+  color: #28a745;
+}
+
+/* Navigation Links Styling */
+.navbar-links {
+  display: flex;
+  gap: 30px;
+  align-items: center;
+}
+
+/* Standard Navigation Links */
+.navbar-links a {
+  color: white;
+  text-decoration: none;
+  font-weight: bold;
+  padding: 10px 15px;
+  font-size: 1.1em;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.navbar-links a:hover {
+  background-color: #28a745;
+  border-radius: 5px;
+}
+
+.navbar-links a.active-link {
+  background-color: #28a745;
+  color: white;
+}
+
+/* ✅ Services Dropdown Menu */
+.dropdown-container {
+  position: relative;
+  display: inline-block;
+  cursor: pointer;
+  padding: 10px;
+  color: white;
+  font-weight: bold;
+  font-size: 1.1em;
+}
+
+/* Dropdown menu */
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background: white;
+  color: black;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  border-radius: 5px;
+  list-style: none;
+  padding: 10px;
+  min-width: 160px;
+  display: flex;
+  flex-direction: column;
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  visibility: hidden;
+}
+
+/* When dropdown is active */
+.dropdown-container:hover .dropdown-menu {
+  opacity: 1;
+  transform: translateY(0);
+  visibility: visible;
+}
+
+/* Dropdown items */
+.dropdown-menu li {
+  padding: 10px;
+}
+
+.dropdown-menu li a {
+  text-decoration: none;
+  color: #007bff;
+  display: block;
+  font-weight: bold;
+}
+
+.dropdown-menu li a:hover {
+  background: #007bff;
+  color: white;
+  border-radius: 5px;
+}
+
+/* ✅ User and Vendor Login Links */
+.user-login, .vendor-login {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 8px 15px;
+  font-weight: bold;
+  border-radius: 5px;
+  color: white;
+  text-decoration: none;
+  transition: background-color 0.3s ease;
+}
+
+.user-login {
+  background-color: #007bff;
+}
+
+.user-login:hover {
+  background-color: #0056b3;
+}
+
+.vendor-login {
+  background-color: #28a745;
+}
+
+.vendor-login:hover {
+  background-color: #218838;
+}
+
+/* ✅ Hamburger Button Styling (for mobile menu) */
+.hamburger {
+  display: none;
+  flex-direction: column;
+  gap: 5px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 10px;
+}
+
+.hamburger .bar {
+  width: 25px;
+  height: 3px;
+  background-color: white;
+  transition: all 0.3s ease;
+}
+
+/* ✅ Mobile Styles */
+@media (max-width: 768px) {
   .hamburger {
-    display: none;
-    flex-direction: column;
-    gap: 5px;
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 10px;
-  }
-  
-  .hamburger .bar {
-    width: 25px;
-    height: 3px;
-    background-color: white;
-    transition: all 0.3s ease;
-  }
-  
-  /* Mobile Styles */
-  @media (max-width: 768px) {
-    .hamburger {
       display: flex;
-    }
-  
-    .navbar-links {
+  }
+
+  .navbar-links {
       display: none;
-    }
-  
-    .navbar-links.active {
+  }
+
+  .navbar-links.active {
       display: flex;
       flex-direction: column;
       gap: 15px;
@@ -147,12 +186,37 @@
       background-color: #0056b3;
       padding: 20px;
       box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-    }
-  
-    .user-login, .vendor-login {
+  }
+
+  .user-login, .vendor-login {
       width: 100%;
       justify-content: center;
       margin: 5px 0;
-    }
   }
-  
+
+  /* ✅ Make dropdowns work in mobile menu */
+  .dropdown-container {
+      display: block;
+      text-align: center;
+      padding: 15px;
+  }
+
+  .dropdown-menu {
+      position: static;
+      box-shadow: none;
+      background: none;
+      padding: 0;
+      transform: none;
+      opacity: 1;
+      visibility: visible;
+      display: none;
+  }
+
+  .dropdown-container:hover .dropdown-menu {
+      display: block;
+  }
+
+  .dropdown-menu li {
+      text-align: center;
+  }
+}

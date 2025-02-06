@@ -1,0 +1,33 @@
+.quotes-requested-container {
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 20px;
+    background-color: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    font-family: Arial, sans-serif;
+  }
+  
+  .quotes-requested-container h2 {
+    text-align: center;
+    font-size: 1.8rem;
+    color: #0056b3;
+  }
+  
+  .quotes-list {
+    list-style: none;
+    padding: 0;
+  }
+  
+  .quote-item {
+    padding: 12px;
+    border-bottom: 1px solid #ddd;
+    font-size: 1.1rem;
+  }
+  
+  .error-message {
+    color: red;
+    text-align: center;
+    font-weight: bold;
+  }
+  

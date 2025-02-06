@@ -1,70 +1,92 @@
 import React, { useState } from "react";
-import "./RequestQuote.css"; // Import the CSS for styling
+import { useNavigate } from "react-router-dom";
+import { useDropzone } from "react-dropzone";
+import "./RequestQuote.css";
 
 const RequestQuote = () => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    serviceType: "",
-    quantity: "",
-    preferredVendor: "",
-    deadline: "",
-    specialRequirements: "",
-    budgetRange: "",
+    companyName: "",
+    industryType: "",
+    numEmployees: "",
+    numLocations: "",
+    multiFloor: "No",
+    leaseOrOwn: "Lease",
+    currentMachines: "",
+    leaseEndDate: "",
+    monthlyLeasePayment: "",
+    settlementCost: "",
+    printVolume: "",
+    printColor: "No",
+    paperTrays: "1 Tray",
+    specialFeatures: [],
+    budget: "",
   });
 
-  const [vendors, setVendors] = useState([]); // Stores AI-recommended vendors
+  const [uploadedFiles, setUploadedFiles] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
-  // Handle Input Changes
+  // ✅ Handle Input Changes
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value, type, checked } = e.target;
+    if (type === "checkbox") {
+      setFormData((prev) => ({
+        ...prev,
+        specialFeatures: checked
+          ? [...prev.specialFeatures, value]
+          : prev.specialFeatures.filter((item) => item !== value),
+      }));
+    } else {
+      setFormData({ ...formData, [name]: value });
+    }
   };
 
-  // Handle Form Submission
+  // ✅ Handle File Upload
+  const { getRootProps, getInputProps } = useDropzone({
+    accept: ".pdf,.xlsx,.csv",
+    onDrop: (acceptedFiles) => {
+      setUploadedFiles([...uploadedFiles, ...acceptedFiles]);
+    },
+  });
+
+  // ✅ Handle Form Submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
     setErrorMessage("");
-    setVendors([]); // Clear previous vendors before making a new request
 
     try {
-      const token = localStorage.getItem("token"); // Get user token
+      const token = localStorage.getItem("token");
       if (!token) {
         alert("You must be logged in to submit a quote request.");
-        setIsSubmitting(false);
+        navigate("/login");
         return;
       }
 
       // Prepare Request Data
-      const userRequirements = {
-        serviceType: formData.serviceType,
-        quantity: Number(formData.quantity),
-        budget: formData.budgetRange,
-        preferredVendor: formData.preferredVendor,
-        deadline: formData.deadline,
-        specialRequirements: formData.specialRequirements,
-      };
+      const requestData = new FormData();
+      Object.keys(formData).forEach((key) => {
+        requestData.append(key, formData[key]);
+      });
 
-      // Send API Request to AI System
+      uploadedFiles.forEach((file) => {
+        requestData.append("documents", file);
+      });
+
+      // ✅ Send API Request to AI System
       const response = await fetch("http://localhost:5000/api/quotes/request", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`, // Include the authorisation token
-        },
-        body: JSON.stringify({ userRequirements }), // Send user requirements
+        headers: { Authorization: `Bearer ${token}` },
+        body: requestData,
       });
 
       const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || "Failed to submit the request.");
-      }
+      if (!response.ok) throw new Error(data.message || "Failed to submit the request.");
 
       console.log("AI Response:", data);
-      setVendors(data.recommendedVendors || []); // Store recommended vendors
+      navigate("/compare-vendors"); // Redirect to compare vendors page
     } catch (error) {
-      console.error("Error:", error.message);
       setErrorMessage(error.message || "Failed to fetch recommendations.");
     } finally {
       setIsSubmitting(false);
@@ -75,68 +97,53 @@ const RequestQuote = () => {
     <div className="request-quote-container">
       <h2>Request a Quote</h2>
       <form onSubmit={handleSubmit}>
-        <label>
-          Service/Product Type:
-          <select name="serviceType" value={formData.serviceType} onChange={handleChange} required>
-            <option value="" disabled>Select a service type</option>
-            <option value="CCTV">CCTV</option>
-            <option value="Photocopiers">Photocopiers</option>
-            <option value="IT">IT</option>
-            <option value="Telecoms">Telecoms</option>
-          </select>
-        </label>
 
-        <label>
-          Quantity:
-          <input type="number" name="quantity" value={formData.quantity} onChange={handleChange} placeholder="Enter the quantity" required />
-        </label>
+        {/* 🏢 Business Details */}
+        <label>Company Name: <input type="text" name="companyName" value={formData.companyName} onChange={handleChange} required /></label>
+        <label>Industry Type: <input type="text" name="industryType" value={formData.industryType} onChange={handleChange} required /></label>
+        <label>Number of Employees: <input type="number" name="numEmployees" value={formData.numEmployees} onChange={handleChange} required /></label>
+        <label>Number of Office Locations: <input type="number" name="numLocations" value={formData.numLocations} onChange={handleChange} required /></label>
+        <label>Multiple Floors? <select name="multiFloor" value={formData.multiFloor} onChange={handleChange}><option>Yes</option><option>No</option></select></label>
 
-        <label>
-          Preferred Vendor (optional):
-          <input type="text" name="preferredVendor" value={formData.preferredVendor} onChange={handleChange} placeholder="Vendor name" />
-        </label>
+        {/* 📄 Printer Details */}
+        <label>Do you lease or own your machines? <select name="leaseOrOwn" value={formData.leaseOrOwn} onChange={handleChange}><option>Lease</option><option>Own</option></select></label>
+        <label>Current Printer Model: <input type="text" name="currentMachines" value={formData.currentMachines} onChange={handleChange} required /></label>
+        {formData.leaseOrOwn === "Lease" && (
+          <>
+            <label>Lease End Date: <input type="date" name="leaseEndDate" value={formData.leaseEndDate} onChange={handleChange} /></label>
+            <label>Monthly Lease Payment (£): <input type="number" name="monthlyLeasePayment" value={formData.monthlyLeasePayment} onChange={handleChange} /></label>
+            <label>Settlement Cost (£): <input type="number" name="settlementCost" value={formData.settlementCost} onChange={handleChange} /></label>
+          </>
+        )}
 
-        <label>
-          Deadline:
-          <input type="date" name="deadline" value={formData.deadline} onChange={handleChange} required />
-        </label>
+        {/* 🖨 Printing Usage */}
+        <label>Monthly Print Volume (pages): <input type="number" name="printVolume" value={formData.printVolume} onChange={handleChange} required /></label>
+        <label>Do you print in color? <select name="printColor" value={formData.printColor} onChange={handleChange}><option>Yes</option><option>No</option></select></label>
+        <label>Number of Paper Trays: <select name="paperTrays" value={formData.paperTrays} onChange={handleChange}><option>1 Tray</option><option>2 Trays</option><option>3 Trays</option><option>4+ Trays</option></select></label>
 
-        <label>
-          Special Requirements:
-          <textarea name="specialRequirements" value={formData.specialRequirements} onChange={handleChange} placeholder="Enter additional details (optional)" />
-        </label>
+        {/* ⭐ Special Features */}
+        <fieldset>
+          <legend>Special Features:</legend>
+          <label><input type="checkbox" name="specialFeatures" value="Secure Print" onChange={handleChange} /> Secure Print (PIN/User Auth)</label>
+          <label><input type="checkbox" name="specialFeatures" value="Stapling & Finishing" onChange={handleChange} /> Stapling & Finishing</label>
+          <label><input type="checkbox" name="specialFeatures" value="Cloud Printing" onChange={handleChange} /> Cloud Printing</label>
+          <label><input type="checkbox" name="specialFeatures" value="Mobile Printing" onChange={handleChange} /> Mobile Printing</label>
+        </fieldset>
 
-        <label>
-          Budget Range (£):
-          <select name="budgetRange" value={formData.budgetRange} onChange={handleChange} required>
-            <option value="" disabled>Select a budget range</option>
-            <option value="Under 500">Under £500</option>
-            <option value="500-1000">£500 - £1000</option>
-            <option value="1000-5000">£1000 - £5000</option>
-            <option value="Over 5000">Over £5000</option>
-          </select>
-        </label>
+        {/* 💰 Budget */}
+        <label>Budget Range (£): <input type="text" name="budget" value={formData.budget} onChange={handleChange} required /></label>
 
-        {/* Submit Button */}
-        <button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? "Submitting..." : "Submit Request"}
-        </button>
-      </form>
-
-      {/* Display Error Message */}
-      {errorMessage && <p style={{ color: "red" }}>{errorMessage}</p>}
-
-      {/* Display AI-Recommended Vendors */}
-      {vendors.length > 0 && (
-        <div>
-          <h3>Top AI-Recommended Vendors:</h3>
-          <ul>
-            {vendors.map((vendor, index) => (
-              <li key={index}>{vendor}</li>
-            ))}
-          </ul>
+        {/* 📂 Upload Documents */}
+        <div {...getRootProps()} className="dropzone">
+          <input {...getInputProps()} />
+          <p>Drag & drop lease agreements, invoices, and usage reports here, or click to upload.</p>
         </div>
-      )}
+
+        {/* 🚀 Submit Button */}
+        <button type="submit" disabled={isSubmitting}>{isSubmitting ? "Submitting..." : "Submit Request"}</button>
+
+      </form>
+      {errorMessage && <p style={{ color: "red" }}>{errorMessage}</p>}
     </div>
   );
 };

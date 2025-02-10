@@ -1,9 +1,16 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  FaQuoteRight, FaBalanceScale, FaUserCog, FaBell,
-  FaUpload, FaUserCircle, FaFileAlt, FaChartBar, 
-  FaCloudUploadAlt, FaDownload, FaTrash, FaArrowRight
+  FaQuoteRight,
+  FaBalanceScale,
+  FaUserCog,
+  FaBell,
+  FaUpload,
+  FaUserCircle,
+  FaFileAlt,
+  FaChartBar,
+  FaCloudUploadAlt,
+  FaArrowRight,
 } from "react-icons/fa";
 import "../styles/UserDashboard.css";
 
@@ -27,10 +34,8 @@ const UserDashboard = () => {
       navigate("/login");
       return;
     }
-
     setUserName(localStorage.getItem("userName") || "User");
     setUserEmail(localStorage.getItem("userEmail") || "");
-
     fetchDashboardData();
   }, [navigate]);
 
@@ -38,11 +43,21 @@ const UserDashboard = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem("userToken");
+      const userId = localStorage.getItem("userId");
+      // Fetch data concurrently.
       const [activityRes, filesRes, quotesRes, pendingRes] = await Promise.all([
-        fetch(`http://localhost:5000/api/users/recent-activity`, { headers: { Authorization: `Bearer ${token}` } }),
-        fetch(`http://localhost:5000/api/users/uploaded-files`, { headers: { Authorization: `Bearer ${token}` } }),
-        fetch(`http://localhost:5000/api/quotes/user`, { headers: { Authorization: `Bearer ${token}` } }),
-        fetch(`http://localhost:5000/api/quotes/pending`, { headers: { Authorization: `Bearer ${token}` } })
+        fetch(`http://localhost:5000/api/users/recent-activity`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+        fetch(`http://localhost:5000/api/users/uploaded-files`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+        fetch(`http://localhost:5000/api/quotes/user?userId=${userId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+        fetch(`http://localhost:5000/api/quotes/pending`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
       ]);
 
       if (!activityRes.ok || !filesRes.ok || !quotesRes.ok || !pendingRes.ok) {
@@ -56,8 +71,8 @@ const UserDashboard = () => {
 
       setRecentActivity(activityData.activities || []);
       setUploadedFiles(filesData.files || []);
-      setTotalQuotes(quotesData.length || 0);
-      setPendingResponses(pendingData.length || 0);
+      setTotalQuotes((quotesData.quotes && quotesData.quotes.length) || 0);
+      setPendingResponses((pendingData.quotes && pendingData.quotes.length) || 0);
     } catch (error) {
       console.error("Error fetching dashboard data:", error);
       setMessage("⚠ Error loading data. Please try again.");
@@ -121,34 +136,57 @@ const UserDashboard = () => {
           </div>
         </div>
         <div className="header-actions">
-          <button className="logout-button" onClick={() => { localStorage.clear(); navigate("/login"); }}>
+          <button
+            className="logout-button"
+            onClick={() => {
+              localStorage.clear();
+              navigate("/login");
+            }}
+          >
             Logout
           </button>
         </div>
       </div>
 
-      {/* 🔹 Quick Actions Section */}
+      {/* Quick Actions Section */}
       <div className="quick-actions">
-        <button className="dashboard-button request-quote" onClick={() => navigate("/request-quote")}>
+        <button
+          className="dashboard-button request-quote"
+          onClick={() => navigate("/request-quote")}
+        >
           <FaQuoteRight /> Request a Quote
         </button>
-        <button className="dashboard-button compare-vendors" onClick={() => navigate("/compare-vendors")}>
+        <button
+          className="dashboard-button compare-vendors"
+          onClick={() => navigate("/compare-vendors")}
+        >
           <FaBalanceScale /> Compare Vendors
         </button>
-        <button className="dashboard-button manage-account" onClick={() => navigate("/manage-account")}>
+        <button
+          className="dashboard-button manage-account"
+          onClick={() => navigate("/manage-account")}
+        >
           <FaUserCog /> Manage Account
         </button>
       </div>
 
-      {/* 🔹 Dashboard Overview */}
+      {/* Dashboard Overview */}
       <div className="dashboard-cards">
-        <div className="dashboard-card" onClick={() => navigate("/quotes-requested")} style={{ cursor: 'pointer' }}>
+        <div
+          className="dashboard-card"
+          onClick={() => navigate("/quotes-requested")}
+          style={{ cursor: "pointer" }}
+        >
           <FaChartBar className="dashboard-icon" />
           <h3>Total Quotes Requested</h3>
           <p>{totalQuotes}</p>
           <FaArrowRight className="arrow-icon" />
         </div>
-        <div className="dashboard-card" onClick={() => navigate("/uploaded-documents")} style={{ cursor: 'pointer' }}>
+        <div
+          className="dashboard-card"
+          onClick={() => navigate("/uploaded-documents")}
+          style={{ cursor: "pointer" }}
+        >
           <FaFileAlt className="dashboard-icon" />
           <h3>Uploaded Documents</h3>
           <p>{uploadedFiles.length}</p>
@@ -161,26 +199,51 @@ const UserDashboard = () => {
         </div>
       </div>
 
-      {/* 🔹 File Upload Section */}
-      <div className="file-upload-section">
-        <h2><FaUpload /> Upload Documents</h2>
+      {/* Recent Activity Section */}
+      <div className="recent-activity-section">
+        <h2>Recent Activity</h2>
+        {recentActivity && recentActivity.length > 0 ? (
+          <ul className="recent-activity-list">
+            {recentActivity.map((activity, index) => (
+              <li key={index}>
+                {/* Render specific properties of each activity object */}
+                <strong>{activity.description}</strong>{" "}
+                <span>({new Date(activity.date).toLocaleString()})</span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p>No recent activity available.</p>
+        )}
+      </div>
 
+      {/* File Upload Section */}
+      <div className="file-upload-section">
+        <h2>
+          <FaUpload /> Upload Documents
+        </h2>
         <label>Select Document Type:</label>
-        <select value={documentType} onChange={(e) => setDocumentType(e.target.value)}>
+        <select
+          value={documentType}
+          onChange={(e) => setDocumentType(e.target.value)}
+        >
           <option value="contract">Contract</option>
           <option value="bill">Bill</option>
         </select>
-
         <div className="upload-dropzone">
           <FaCloudUploadAlt size={50} />
-          <p>{file ? file.name : "Drag & Drop a file here or Click to Upload"}</p>
-          <input type="file" onChange={handleFileChange} accept=".pdf,.doc,.docx,.png,.jpg,.jpeg" />
+          <p>
+            {file ? file.name : "Drag & Drop a file here or Click to Upload"}
+          </p>
+          <input
+            type="file"
+            onChange={handleFileChange}
+            accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
+          />
         </div>
-
         <button className="upload-button" onClick={handleUpload} disabled={loading}>
           {loading ? `Uploading... ${uploadProgress}%` : "Upload Document"}
         </button>
-
         {message && <p className="upload-message">{message}</p>}
       </div>
     </div>

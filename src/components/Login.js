@@ -31,14 +31,22 @@ const Login = () => {
       const data = await response.json();
 
       if (response.ok) {
-        localStorage.setItem('userToken', data.token); // Store the JWT token
+        console.log("✅ Login successful, storing token...");
+        
+        // ✅ Standardized token storage (Matches RequestQuote.js)
+        localStorage.setItem('token', data.token); // Store the JWT token correctly
         localStorage.setItem('userName', data.name || 'User'); // Store the user's name if available
-        navigate('/dashboard');
+        localStorage.setItem('userId', data.userId); // Store userId for later use
+
+        // ✅ Confirm token storage
+        console.log("🔍 Stored Token:", localStorage.getItem('token'));
+
+        navigate('/dashboard'); // Redirect after login
       } else {
         setError(data.message || 'Login failed');
       }
     } catch (error) {
-      console.error('Error during login:', error);
+      console.error('❌ Error during login:', error);
       setError('An error occurred during login. Please try again.');
     } finally {
       setLoading(false);
@@ -56,6 +64,7 @@ const Login = () => {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
+          autoComplete="email"
         />
         <input
           type="password"
@@ -63,6 +72,7 @@ const Login = () => {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
+          autoComplete="current-password"
         />
         <button type="submit" className="cta-button primary" disabled={loading}>
           {loading ? 'Loading...' : 'Login'}

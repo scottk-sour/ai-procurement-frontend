@@ -1,70 +1,106 @@
+/* 📌 General Container */
 .compare-vendors-container {
   text-align: center;
   padding: 20px;
 }
 
+/* 📌 Title Styling */
 .compare-vendors-title {
   font-size: 26px;
+  font-weight: bold;
   margin-bottom: 20px;
+  color: #333;
 }
 
+/* 📌 Vendor Cards Layout */
 .vendor-cards {
   display: flex;
+  flex-wrap: wrap;
   gap: 15px;
   justify-content: center;
-  flex-wrap: wrap;
+  margin-top: 10px;
 }
 
+/* 📌 Vendor Card Styling */
 .vendor-card {
   border: 2px solid #ddd;
-  padding: 15px;
-  width: 250px;
+  padding: 20px;
+  width: 280px;
   border-radius: 10px;
   cursor: pointer;
-  transition: 0.3s;
+  transition: transform 0.3s ease-in-out, border-color 0.3s ease-in-out;
   background-color: #f9f9f9;
   text-align: center;
+  box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.1);
 }
 
+/* 📌 Hover Effect */
 .vendor-card:hover {
   border-color: #007bff;
+  transform: translateY(-3px);
 }
 
+/* 📌 Selected Vendor Highlight */
 .vendor-card.selected {
   border-color: #28a745;
   background-color: #eaffea;
+  box-shadow: 0px 0px 10px rgba(40, 167, 69, 0.5);
 }
 
-.vendor-logo {
-  width: 100px;
-  height: 100px;
+/* 📌 Vendor Name Styling */
+.vendor-card h3 {
+  font-size: 20px;
+  color: #007bff;
   margin-bottom: 10px;
+  font-weight: bold;
 }
 
+/* 📌 Vendor Details Styling */
+.vendor-card p {
+  font-size: 14px;
+  margin: 5px 0;
+  color: #555;
+}
+
+/* 📌 Profile Button */
 .profile-button {
+  display: inline-block;
   margin-top: 10px;
-  padding: 5px 10px;
+  padding: 8px 12px;
   background-color: #007bff;
   color: white;
   border: none;
   border-radius: 5px;
   cursor: pointer;
+  transition: background-color 0.3s ease-in-out;
 }
 
+.profile-button:hover {
+  background-color: #0056b3;
+}
+
+/* 📌 Request Quote Section */
 .request-quote-container {
   margin-top: 20px;
 }
 
+/* 📌 Request Quote Button */
 .request-quote-button {
-  padding: 10px 20px;
+  padding: 12px 24px;
   background-color: #28a745;
   color: white;
   border: none;
   cursor: pointer;
   font-size: 16px;
   border-radius: 5px;
+  transition: background-color 0.3s ease-in-out;
 }
 
+.request-quote-button:hover {
+  background-color: #218838;
+}
+
+/* 📌 Disabled Button */
 .request-quote-button:disabled {
   background-color: #ccc;
   cursor: not-allowed;
@@ -72,9 +108,9 @@
 
 /* ⭐ Star Ratings */
 .star {
-  font-size: 16px;
+  font-size: 18px;
   color: #ffc107;
-  margin-right: 2px;
+  margin-right: 3px;
 }
 
 .full-star {
@@ -87,4 +123,16 @@
 
 .empty-star {
   color: #ccc;
+}
+
+/* 📌 Mobile Responsive */
+@media (max-width: 768px) {
+  .vendor-cards {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .vendor-card {
+    width: 90%;
+  }
 }

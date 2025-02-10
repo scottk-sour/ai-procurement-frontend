@@ -1,6 +1,7 @@
-// src/components/QuoteRequestForm.js
+// src/components/QuoteRequestForm.jsx
+
 import React, { useState } from 'react';
-import './QuoteRequestForm.css'; // Import the CSS file for styling
+import './QuoteRequestForm.css';
 
 const QuoteRequestForm = () => {
   // State to manage the current step
@@ -18,76 +19,100 @@ const QuoteRequestForm = () => {
   // Functions to handle input changes
   const handleInputChange = (event) => {
     const { name, value } = event.target;
-    setFormData({
-      ...formData,
+    setFormData(prevData => ({
+      ...prevData,
       [name]: value,
-    });
+    }));
   };
 
   // Functions to navigate between steps
   const nextStep = () => {
-    // Simple validation example
     if (currentStep === 1) {
       if (!formData.name || !formData.email) {
         alert('Please fill out all fields in this step.');
-        return; // Prevents moving to the next step if validation fails
+        return;
       }
     }
     if (currentStep === 2) {
       if (!formData.itemDescription || !formData.quantity) {
         alert('Please fill out all fields in this step.');
-        return; // Prevents moving to the next step if validation fails
+        return;
       }
     }
-
-    // Move to the next step if validation passes
-    setCurrentStep(currentStep + 1);
+    setCurrentStep(prevStep => prevStep + 1);
   };
 
   const prevStep = () => {
-    setCurrentStep(currentStep - 1);
+    setCurrentStep(prevStep => prevStep - 1);
   };
 
   // Handle form submission
   const handleSubmit = async () => {
-    // Simulate API endpoint (replace with your actual endpoint)
-    const apiUrl = 'https://jsonplaceholder.typicode.com/posts';
+    // Retrieve the actual userId from localStorage
+    const userId = localStorage.getItem('userId');
+    if (!userId) {
+      alert('User ID is missing. Please log in again.');
+      return;
+    }
+
+    // Construct the payload for the backend.
+    const payload = {
+      userId: userId,
+      userRequirements: {
+        colour: formData.notes || "N/A", // Using notes as a placeholder for colour
+        min_speed: parseInt(formData.quantity, 10) || 0,
+        max_lease_price: 1000, // Placeholder value; adjust as needed
+        required_functions: formData.itemDescription,
+      },
+    };
+
+    const apiUrl = 'http://localhost:5000/api/quotes/request';
+
+    // Retrieve the token from localStorage using the correct key
+    const token = localStorage.getItem('userToken');
+    if (!token) {
+      alert('Authentication token is missing. Please log in again.');
+      return;
+    }
 
     try {
       const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(payload),
       });
 
       if (!response.ok) {
-        throw new Error('Something went wrong with the form submission.');
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to submit the form.');
       }
 
       const result = await response.json();
       console.log('Form Data Submitted:', result);
-      
-      // Display a success message
       alert('Your quote request has been submitted successfully!');
 
-      // Reset the form if needed
-      setFormData({
-        name: '',
-        email: '',
-        itemDescription: '',
-        quantity: '',
-        notes: '',
-      });
-      setCurrentStep(1); // Reset to the first step
+      // Reset the form and current step (using setTimeout to defer non-critical tasks)
+      setTimeout(() => {
+        setFormData({
+          name: '',
+          email: '',
+          itemDescription: '',
+          quantity: '',
+          notes: '',
+        });
+        setCurrentStep(1);
+      }, 0);
+
     } catch (error) {
       console.error('Error:', error);
-      alert('Failed to submit the form. Please try again.');
+      alert(error.message || 'Failed to submit the form. Please try again.');
     }
   };
 
-  // Functions to render form content based on the current step
+  // Render form content based on the current step
   const renderStepContent = () => {
     switch (currentStep) {
       case 1:
@@ -159,22 +184,13 @@ const QuoteRequestForm = () => {
 
   return (
     <div className="quote-request-form">
-      <div className="progress-indicator">
-        Step {currentStep} of 3
-      </div>
+      <div className="progress-indicator">Step {currentStep} of 3</div>
       {renderStepContent()}
 
-      {/* Navigation Buttons */}
       <div className="form-navigation">
-        {currentStep > 1 && (
-          <button onClick={prevStep}>Previous</button>
-        )}
-        {currentStep < 3 && (
-          <button onClick={nextStep}>Next</button>
-        )}
-        {currentStep === 3 && (
-          <button onClick={handleSubmit}>Submit</button>
-        )}
+        {currentStep > 1 && <button onClick={prevStep}>Previous</button>}
+        {currentStep < 3 && <button onClick={nextStep}>Next</button>}
+        {currentStep === 3 && <button onClick={handleSubmit}>Submit</button>}
       </div>
     </div>
   );

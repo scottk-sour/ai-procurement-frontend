@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Login.css';
 
@@ -8,6 +8,14 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
+
+  // Redirect if already logged in
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      navigate('/dashboard');
+    }
+  }, [navigate]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -39,7 +47,6 @@ const Login = () => {
 
         console.log("🔍 Stored Token:", localStorage.getItem('token'));
 
-        // **DEBUG LOG: Check if navigate() is called**
         console.log("🛠️ Navigating to dashboard...");
         navigate('/dashboard'); // Redirect after login
       } else {

@@ -2,23 +2,25 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "./ManageListings.css";
 
-const API_BASE_URL = "http://localhost:5000/api/vendors/listings"; // ✅ Ensure correct API base URL
+const API_BASE_URL = "http://localhost:5000/api/vendors/listings"; // Ensure correct API base URL
 
 const ManageListings = () => {
-  const token = localStorage.getItem("token"); // ✅ Removed unused setToken (Fixed ESLint warning)
+  // Use the vendor token from localStorage
+  const token = localStorage.getItem("vendorToken");
+
   const [listings, setListings] = useState([]);
   const [showForm, setShowForm] = useState(false);
+  // Using "title" and "description" as required by the Listing model
   const [newListing, setNewListing] = useState({
-    name: "",
-    category: "",
+    title: "",
+    description: "",
     price: "",
-    status: "Active",
   });
   const [currentEditId, setCurrentEditId] = useState(null);
-  const [loading, setLoading] = useState(true); // ✅ Added loading state
-  const [error, setError] = useState(null); // ✅ Added error state
+  const [loading, setLoading] = useState(true); // Loading state
+  const [error, setError] = useState(null); // Error state
 
-  // ✅ Fetch listings from the backend on component mount
+  // Fetch listings from the backend on component mount
   useEffect(() => {
     const fetchListings = async () => {
       try {
@@ -27,7 +29,9 @@ const ManageListings = () => {
         });
         setListings(response.data);
       } catch (error) {
-        setError(error.response?.data?.message || "Error fetching listings.");
+        setError(
+          error.response?.data?.message || "Error fetching listings."
+        );
         console.error("❌ Error fetching listings:", error.message);
       } finally {
         setLoading(false);
@@ -36,25 +40,32 @@ const ManageListings = () => {
     fetchListings();
   }, [token]);
 
+  // Open form for adding a new listing
   const handleAddNewListing = () => {
     setCurrentEditId(null);
-    setNewListing({ name: "", category: "", price: "", status: "Active" });
+    setNewListing({ title: "", description: "", price: "" });
     setShowForm(true);
   };
 
+  // Open form for editing an existing listing
   const handleEdit = (id) => {
     const listingToEdit = listings.find((listing) => listing._id === id);
     if (listingToEdit) {
-      setNewListing(listingToEdit);
+      setNewListing({
+        title: listingToEdit.title,
+        description: listingToEdit.description,
+        price: listingToEdit.price,
+      });
       setCurrentEditId(id);
       setShowForm(true);
     }
   };
 
+  // Handle form submission for adding/updating a listing
   const handleSaveNewListing = async (e) => {
     e.preventDefault();
 
-    // ✅ Validate that price is a valid number
+    // Validate that price is a valid number
     if (isNaN(parseFloat(newListing.price))) {
       setError("❌ Invalid price entered.");
       return;
@@ -62,17 +73,26 @@ const ManageListings = () => {
 
     try {
       let response;
+      const payload = {
+        ...newListing,
+        price: parseFloat(newListing.price),
+      };
+
       if (currentEditId) {
-        // ✅ Update an existing listing
+        // Update an existing listing
         response = await axios.put(
           `${API_BASE_URL}/${currentEditId}`,
-          { ...newListing, price: parseFloat(newListing.price) },
+          payload,
           { headers: { Authorization: `Bearer ${token}` } }
         );
-        setListings(listings.map((listing) => (listing._id === currentEditId ? response.data : listing)));
+        setListings(
+          listings.map((listing) =>
+            listing._id === currentEditId ? response.data : listing
+          )
+        );
       } else {
-        // ✅ Add a new listing
-        response = await axios.post(API_BASE_URL, { ...newListing, price: parseFloat(newListing.price) }, {
+        // Add a new listing
+        response = await axios.post(API_BASE_URL, payload, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setListings([...listings, response.data]);
@@ -85,6 +105,7 @@ const ManageListings = () => {
     }
   };
 
+  // Handle deletion of a listing
   const handleDelete = async (id) => {
     if (window.confirm("⚠️ Are you sure you want to delete this listing?")) {
       try {
@@ -99,48 +120,70 @@ const ManageListings = () => {
     }
   };
 
+  // Reset the form state
   const resetForm = () => {
-    setNewListing({ name: "", category: "", price: "", status: "Active" });
+    setNewListing({ title: "", description: "", price: "" });
     setCurrentEditId(null);
     setShowForm(false);
-    setError(null); // ✅ Reset error state
+    setError(null);
   };
 
   return (
     <div className="manage-listings-container">
       <h2>Manage Listings</h2>
-      {error && <p className="error-message">{error}</p>} {/* ✅ Display error messages */}
+      {error && <p className="error-message">{error}</p>}
       {loading ? (
-        <p>Loading listings...</p> // ✅ Show loading indicator
+        <p>Loading listings...</p>
       ) : (
         <>
           <button className="add-listing-button" onClick={handleAddNewListing}>
             ➕ Add New Listing
           </button>
-
           {listings.length === 0 ? (
-            <p>No listings available.</p> // ✅ Display message when no listings exist
+            <p>No listings available.</p>
           ) : (
             <table className="listings-table">
               <thead>
                 <tr>
-                  <th>Product/Service Name</th>
-                  <th>Category</th>
+                  <th>Title</th>
+                  <th>Description</th>
                   <th>Price</th>
-                  <th>Status</th>
+                  <th>Active</th>
+                  <th>Files</th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {listings.map((listing) => (
                   <tr key={listing._id}>
-                    <td>{listing.name}</td>
-                    <td>{listing.category}</td>
+                    <td>{listing.title}</td>
+                    <td>{listing.description}</td>
                     <td>£{listing.price.toFixed(2)}</td>
-                    <td>{listing.status}</td>
+                    <td>{listing.isActive ? "Yes" : "No"}</td>
                     <td>
-                      <button onClick={() => handleEdit(listing._id)}>✏️ Edit</button>
-                      <button onClick={() => handleDelete(listing._id)}>🗑 Delete</button>
+                      {listing.uploads && listing.uploads.length > 0 ? (
+                        listing.uploads.map((file, index) => (
+                          <div key={index}>
+                            <a
+                              href={`/${file.filePath}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              {file.fileName}
+                            </a>
+                          </div>
+                        ))
+                      ) : (
+                        "No files"
+                      )}
+                    </td>
+                    <td>
+                      <button onClick={() => handleEdit(listing._id)}>
+                        ✏️ Edit
+                      </button>
+                      <button onClick={() => handleDelete(listing._id)}>
+                        🗑 Delete
+                      </button>
                     </td>
                   </tr>
                 ))}
@@ -156,51 +199,48 @@ const ManageListings = () => {
             <h3>{currentEditId ? "Edit Listing" : "Add New Listing"}</h3>
             <form onSubmit={handleSaveNewListing}>
               <label>
-                Product/Service Name:
+                Title:
                 <input
                   type="text"
-                  value={newListing.name}
-                  onChange={(e) => setNewListing({ ...newListing, name: e.target.value })}
+                  value={newListing.title}
+                  onChange={(e) =>
+                    setNewListing({ ...newListing, title: e.target.value })
+                  }
                   required
                 />
               </label>
               <label>
-                Category:
-                <select
-                  value={newListing.category}
-                  onChange={(e) => setNewListing({ ...newListing, category: e.target.value })}
+                Description:
+                <textarea
+                  value={newListing.description}
+                  onChange={(e) =>
+                    setNewListing({
+                      ...newListing,
+                      description: e.target.value,
+                    })
+                  }
                   required
-                >
-                  <option value="">Select a category</option>
-                  <option value="Photocopiers">Photocopiers</option>
-                  <option value="IT Services">IT Services</option>
-                  <option value="Telecoms">Telecoms</option>
-                  <option value="CCTV">CCTV</option>
-                </select>
+                />
               </label>
               <label>
                 Price:
                 <input
                   type="number"
                   value={newListing.price}
-                  onChange={(e) => setNewListing({ ...newListing, price: e.target.value })}
+                  onChange={(e) =>
+                    setNewListing({ ...newListing, price: e.target.value })
+                  }
                   placeholder="Enter price"
                   required
                 />
               </label>
-              <label>
-                Status:
-                <select
-                  value={newListing.status}
-                  onChange={(e) => setNewListing({ ...newListing, status: e.target.value })}
-                >
-                  <option value="Active">Active</option>
-                  <option value="Draft">Draft</option>
-                </select>
-              </label>
               <div className="modal-actions">
-                <button type="submit">{currentEditId ? "💾 Save Changes" : "✅ Add Listing"}</button>
-                <button type="button" onClick={resetForm}>❌ Cancel</button>
+                <button type="submit">
+                  {currentEditId ? "💾 Save Changes" : "✅ Add Listing"}
+                </button>
+                <button type="button" onClick={resetForm}>
+                  ❌ Cancel
+                </button>
               </div>
             </form>
           </div>

@@ -33,17 +33,17 @@ import UploadedDocuments from "./pages/UploadedDocuments";
 import NotFound from "./components/NotFound";
 import Footer from "./components/Footer";
 
-// Importing Private Routes from Separate Files
+// Importing Private Routes
 import PrivateRoute from "./routes/PrivateRoute";
 import VendorPrivateRoute from "./routes/VendorPrivateRoute";
 import AdminPrivateRoute from "./routes/AdminPrivateRoute";
 
 function AppRoutes() {
-  const location = useLocation(); // 🔹 Ensures React updates routes on navigation
+  const location = useLocation();
 
   return (
-    <Routes key={location.pathname}> {/* 🔹 Forces re-render on path changes */}
-      {/* 🔹 Public Routes */}
+    <Routes key={location.pathname}>
+      {/* Public Routes */}
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
@@ -61,14 +61,14 @@ function AppRoutes() {
       <Route path="/privacy-policy" element={<PrivacyPolicy />} />
       <Route path="/experts" element={<MeetTheExperts />} />
 
-      {/* 🔹 User Protected Routes */}
+      {/* User Protected Routes */}
       <Route path="/dashboard" element={<PrivateRoute><UserDashboard /></PrivateRoute>} />
       <Route path="/request-quote" element={<PrivateRoute><RequestQuote /></PrivateRoute>} />
       <Route path="/compare-vendors" element={<PrivateRoute><CompareVendors /></PrivateRoute>} />
       <Route path="/manage-account" element={<PrivateRoute><ManageAccount /></PrivateRoute>} />
       <Route path="/quotes-requested" element={<PrivateRoute><QuotesRequested /></PrivateRoute>} />
 
-      {/* 🔹 Vendor Protected Routes */}
+      {/* Vendor Protected Routes */}
       <Route path="/vendor-dashboard" element={<VendorPrivateRoute><VendorDashboard /></VendorPrivateRoute>} />
       <Route path="/manage-listings" element={<VendorPrivateRoute><ManageListings /></VendorPrivateRoute>} />
       <Route path="/view-orders" element={<VendorPrivateRoute><ViewOrders /></VendorPrivateRoute>} />
@@ -77,11 +77,11 @@ function AppRoutes() {
       <Route path="/quotes" element={<VendorPrivateRoute><QuoteDetails /></VendorPrivateRoute>} />
       <Route path="/uploaded-documents" element={<VendorPrivateRoute><UploadedDocuments /></VendorPrivateRoute>} />
 
-      {/* 🔹 Admin Protected Routes */}
+      {/* Admin Protected Routes */}
       <Route path="/admin-dashboard" element={<AdminPrivateRoute><AdminDashboard /></AdminPrivateRoute>} />
       <Route path="/admin-users" element={<AdminPrivateRoute><AdminUserManagement /></AdminPrivateRoute>} />
 
-      {/* 🔹 404 Not Found Route */}
+      {/* 404 Not Found Route */}
       <Route path="*" element={<NotFound />} />
     </Routes>
   );

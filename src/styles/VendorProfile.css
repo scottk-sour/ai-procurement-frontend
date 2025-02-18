@@ -1,0 +1,103 @@
+/* Container Styling */
+.vendor-profile-container {
+    max-width: 700px;
+    margin: 50px auto;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    background: #ffffff;
+    transition: all 0.3s ease-in-out;
+  }
+  
+  /* Header */
+  .vendor-profile-container h2 {
+    text-align: center;
+    color: #222;
+    font-size: 1.8rem;
+    font-weight: bold;
+    margin-bottom: 20px;
+  }
+  
+  /* Form Label Styling */
+  .vendor-profile-container label {
+    display: block;
+    margin: 15px 0 5px;
+    font-weight: 600;
+    color: #555;
+  }
+  
+  /* Input & Select Styling */
+  .vendor-profile-container input,
+  .vendor-profile-container select {
+    width: 100%;
+    padding: 12px;
+    margin-top: 5px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 1rem;
+    background: #f8f9fa;
+    transition: border 0.3s ease-in-out;
+  }
+  
+  /* Input Focus Effect */
+  .vendor-profile-container input:focus,
+  .vendor-profile-container select:focus {
+    border-color: #007bff;
+    outline: none;
+    background: #fff;
+  }
+  
+  /* Multi-Select Dropdown */
+  .vendor-profile-container select[multiple] {
+    height: auto;
+    min-height: 80px;
+  }
+  
+  /* Logo Preview */
+  .vendor-profile-container .logo-preview {
+    display: block;
+    margin-top: 15px;
+    max-width: 160px;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    transition: transform 0.2s ease-in-out;
+  }
+  
+  .vendor-profile-container .logo-preview:hover {
+    transform: scale(1.05);
+  }
+  
+  /* Submit Button */
+  .vendor-profile-container button {
+    display: block;
+    width: 100%;
+    padding: 12px;
+    margin-top: 20px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    box-shadow: 0 3px 6px rgba(0, 123, 255, 0.3);
+  }
+  
+  .vendor-profile-container button:hover {
+    background-color: #0056b3;
+    box-shadow: 0 4px 10px rgba(0, 91, 187, 0.5);
+  }
+  
+  /* Mobile Responsiveness */
+  @media (max-width: 768px) {
+    .vendor-profile-container {
+      width: 90%;
+      padding: 20px;
+    }
+  
+    .vendor-profile-container h2 {
+      font-size: 1.5rem;
+    }
+  }
+  

@@ -14,8 +14,7 @@ const Login = () => {
     setLoading(true);
     setError('');
 
-    // Basic validation
-    if (email.trim() === '' || password.trim() === '') {
+    if (!email.trim() || !password.trim()) {
       setError('Email and password are required');
       setLoading(false);
       return;
@@ -33,21 +32,23 @@ const Login = () => {
       if (response.ok) {
         console.log("✅ Login successful, storing token...");
         
-        // ✅ Standardized token storage (Matches RequestQuote.js)
-        localStorage.setItem('token', data.token); // Store the JWT token correctly
-        localStorage.setItem('userName', data.name || 'User'); // Store the user's name if available
-        localStorage.setItem('userId', data.userId); // Store userId for later use
+        // Store authentication details
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('userName', data.name || 'User');
+        localStorage.setItem('userId', data.userId);
 
-        // ✅ Confirm token storage
         console.log("🔍 Stored Token:", localStorage.getItem('token'));
 
+        // **DEBUG LOG: Check if navigate() is called**
+        console.log("🛠️ Navigating to dashboard...");
         navigate('/dashboard'); // Redirect after login
       } else {
-        setError(data.message || 'Login failed');
+        console.error("❌ Login failed:", data.message);
+        setError(data.message || 'Invalid email or password');
       }
     } catch (error) {
       console.error('❌ Error during login:', error);
-      setError('An error occurred during login. Please try again.');
+      setError('A network error occurred. Please try again.');
     } finally {
       setLoading(false);
     }

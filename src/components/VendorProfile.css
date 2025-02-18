@@ -1,0 +1,52 @@
+.vendor-profile-container {
+    max-width: 600px;
+    margin: auto;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    background: #fff;
+  }
+  
+  .vendor-profile-container h2 {
+    text-align: center;
+    color: #333;
+  }
+  
+  .vendor-profile-container label {
+    display: block;
+    margin-top: 10px;
+    font-weight: bold;
+  }
+  
+  .vendor-profile-container input,
+  .vendor-profile-container select {
+    width: 100%;
+    padding: 8px;
+    margin-top: 5px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+  }
+  
+  .vendor-profile-container .logo-preview {
+    display: block;
+    margin-top: 10px;
+    max-width: 150px;
+    border-radius: 10px;
+  }
+  
+  .vendor-profile-container button {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    margin-top: 15px;
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
+  .vendor-profile-container button:hover {
+    background-color: #0056b3;
+  }
+  

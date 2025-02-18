@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import {
   FaBox,
   FaChartLine,
-  FaBell,
   FaCog,
   FaDollarSign,
   FaSignOutAlt,
@@ -23,12 +22,10 @@ const VendorDashboard = () => {
   // Fetch dashboard details on load
   useEffect(() => {
     const initializeDashboard = async () => {
-      // Set saved theme
       const savedTheme = localStorage.getItem('theme') || 'light';
       setTheme(savedTheme);
       document.documentElement.setAttribute('data-theme', savedTheme);
 
-      // Fetch vendor data
       const token = localStorage.getItem('vendorToken');
       if (!token) {
         navigate('/vendor-login');
@@ -39,8 +36,11 @@ const VendorDashboard = () => {
         const response = await axios.get('http://localhost:5000/api/vendors/dashboard', {
           headers: { Authorization: `Bearer ${token}` },
         });
+
+        console.log("Dashboard Data:", response.data); // Debugging log
+
         setVendor(response.data);
-        setVendorName(response.data.vendorName || 'Vendor');
+        setVendorName(response.data.companyName || 'Vendor');
       } catch (error) {
         console.error('Error fetching dashboard data:', error.message);
         if (error.response?.status === 401) {
@@ -80,6 +80,7 @@ const VendorDashboard = () => {
       const response = await axios.post('http://localhost:5000/api/vendors/upload', formData, {
         headers: { Authorization: `Bearer ${token}` },
       });
+
       setUploadStatus({ message: 'File uploaded successfully!', type: 'success' });
       setVendor(response.data.vendor);
     } catch (error) {
@@ -95,17 +96,6 @@ const VendorDashboard = () => {
   const navigateToQuotes = (status) => {
     navigate(`/quotes?status=${status}`);
   };
-
-  // For convenience, destructure your analytics (if present)
-  const analytics = vendor?.analytics || {};
-  const {
-    conversionRate = 0,
-    averageOrderValue = 0,
-    retentionRate = 0,
-    leadSources = [],
-    topProducts = [],
-    salesByRegion = [],
-  } = analytics;
 
   return (
     <div className="vendor-dashboard-container">
@@ -124,9 +114,7 @@ const VendorDashboard = () => {
 
       {/* Upload status messages */}
       {uploadStatus && (
-        <p className={`upload-status ${uploadStatus.type}`}>
-          {uploadStatus.message}
-        </p>
+        <p className={`upload-status ${uploadStatus.type}`}>{uploadStatus.message}</p>
       )}
 
       {/* Quick actions */}
@@ -137,8 +125,8 @@ const VendorDashboard = () => {
         <button className="dashboard-button" onClick={() => navigate('/view-orders')}>
           <FaChartLine /> View Orders
         </button>
-        <button className="dashboard-button" onClick={() => navigate('/account-settings')}>
-          <FaCog /> Account Settings
+        <button className="dashboard-button" onClick={() => navigate('/vendor-profile')}>
+          <FaCog /> Edit Profile
         </button>
         <label className="upload-label">
           <FaUpload /> Upload Documents
@@ -163,6 +151,23 @@ const VendorDashboard = () => {
           <h3>Total Orders</h3>
           <p>{vendor?.kpis?.totalOrders || 0}</p>
         </div>
+      </div>
+
+      {/* Uploaded Products Section */}
+      <div className="uploaded-products">
+        <h2>Uploaded Products</h2>
+        {vendor?.uploads?.length > 0 ? (
+          <ul>
+            {vendor.uploads.map((file, index) => (
+              <li key={index}>
+                📄 {file.fileName} - Uploaded on {new Date(file.uploadDate).toLocaleDateString()}
+                <a href={`http://localhost:5000/${file.filePath}`} download> 📥 Download</a>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p>No uploaded products yet.</p>
+        )}
       </div>
 
       {/* Quote Funnel */}
@@ -194,88 +199,6 @@ const VendorDashboard = () => {
           <YAxis />
           <Tooltip />
         </LineChart>
-      </div>
-
-      {/* Performance & Analytics */}
-      <div className="analytics-section">
-        <h2>Performance and Analytics</h2>
-        <div className="analytics-cards">
-          <div className="analytics-card">
-            <h3>Conversion Rate</h3>
-            <p>{conversionRate.toFixed(2)}%</p>
-          </div>
-          <div className="analytics-card">
-            <h3>Average Order Value</h3>
-            <p>£{averageOrderValue.toFixed(2)}</p>
-          </div>
-          <div className="analytics-card">
-            <h3>Customer Retention Rate</h3>
-            <p>{retentionRate.toFixed(2)}%</p>
-          </div>
-        </div>
-
-        {/* Lead Sources */}
-        <div className="analytics-subsection">
-          <h3>Lead Sources</h3>
-          {leadSources.length === 0 ? (
-            <p>No lead source data available.</p>
-          ) : (
-            <ul>
-              {leadSources.map((source, index) => (
-                <li key={index}>
-                  <strong>{source.type}:</strong> {source.percentage}%
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-
-        {/* Top Performing Products */}
-        <div className="analytics-subsection">
-          <h3>Top Performing Products/Services</h3>
-          {topProducts.length === 0 ? (
-            <p>No top products data available.</p>
-          ) : (
-            <ul>
-              {topProducts.map((item, index) => (
-                <li key={index}>
-                  <strong>{item.name}:</strong> £{item.revenue}
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-
-        {/* Sales by Region */}
-        <div className="analytics-subsection">
-          <h3>Sales by Region</h3>
-          {salesByRegion.length === 0 ? (
-            <p>No regional sales data available.</p>
-          ) : (
-            <ul>
-              {salesByRegion.map((region, index) => (
-                <li key={index}>
-                  <strong>{region.region}:</strong> £{region.sales}
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      </div>
-
-      {/* Recent Activity */}
-      <div className="recent-activity">
-        <h2>
-          <FaBell /> Recent Activity
-        </h2>
-        <ul>
-          {vendor?.uploads?.map((file, idx) => (
-            <li key={idx}>
-              <FaUpload /> {file.fileName} - Uploaded on{' '}
-              {new Date(file.uploadDate).toLocaleDateString()}
-            </li>
-          ))}
-        </ul>
       </div>
     </div>
   );

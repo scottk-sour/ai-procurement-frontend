@@ -30,10 +30,9 @@ const RequestQuote = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
-  // ✅ Handle Input Changes
+  // Handle input changes
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-
     if (type === "checkbox") {
       setFormData((prev) => ({
         ...prev,
@@ -46,7 +45,7 @@ const RequestQuote = () => {
     }
   };
 
-  // ✅ Handle File Upload
+  // Handle file upload using react-dropzone
   const { getRootProps, getInputProps } = useDropzone({
     accept: {
       "application/pdf": [".pdf"],
@@ -58,7 +57,20 @@ const RequestQuote = () => {
     },
   });
 
-  // ✅ Handle Form Submission
+  // Helper to format form data before sending
+  const formatFormData = (data) => {
+    return {
+      ...data,
+      numEmployees: data.numEmployees ? parseInt(data.numEmployees, 10) : 0,
+      numLocations: data.numLocations ? parseInt(data.numLocations, 10) : 0,
+      min_speed: data.min_speed ? parseInt(data.min_speed, 10) : 0,
+      max_lease_price: data.max_lease_price ? parseInt(data.max_lease_price, 10) : 0,
+      multiFloor: data.multiFloor.toLowerCase() === "yes",
+      printColor: data.printColor.toLowerCase() === "yes",
+    };
+  };
+
+  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -74,13 +86,16 @@ const RequestQuote = () => {
         return;
       }
 
-      console.log("🚀 Preparing API request...");
+      // Format the form data to convert types appropriately
+      const formattedData = formatFormData(formData);
+      console.log("🚀 Formatted Data:", formattedData);
+
       let response, data;
 
       if (uploadedFiles.length > 0) {
-        // ✅ If there are files, send `multipart/form-data`
+        // When there are files, send multipart/form-data
         const requestData = new FormData();
-        requestData.append("userRequirements", JSON.stringify(formData));
+        requestData.append("userRequirements", JSON.stringify(formattedData));
         requestData.append("userId", userId);
         uploadedFiles.forEach((file) => requestData.append("documents", file));
 
@@ -88,11 +103,11 @@ const RequestQuote = () => {
 
         response = await fetch("http://localhost:5000/api/quotes/request", {
           method: "POST",
-          headers: { Authorization: `Bearer ${token}` }, // ✅ FormData handles Content-Type
+          headers: { Authorization: `Bearer ${token}` }, // FormData handles Content-Type automatically
           body: requestData,
         });
       } else {
-        // ✅ If no files, send `application/json`
+        // When there are no files, send application/json
         console.log("📤 Sending API Request without files...");
 
         response = await fetch("http://localhost:5000/api/quotes/request", {
@@ -101,18 +116,19 @@ const RequestQuote = () => {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify({ userRequirements: formData, userId }),
+          // Note: We now stringify the formattedData so userRequirements is a valid JSON string.
+          body: JSON.stringify({ userRequirements: JSON.stringify(formattedData), userId }),
         });
       }
 
       data = await response.json();
       console.log("📩 Response data:", data);
 
-      if (!response.ok) throw new Error(data.message || "Failed to submit the request.");
+      if (!response.ok)
+        throw new Error(data.message || "Failed to submit the request.");
 
       console.log("✅ Quote request submitted successfully!");
       navigate("/compare-vendors");
-
     } catch (error) {
       console.error("❌ Error submitting quote:", error);
       setErrorMessage(error.message || "Failed to fetch recommendations.");
@@ -124,51 +140,133 @@ const RequestQuote = () => {
   return (
     <div className="request-quote-container">
       <h2>Request a Quote</h2>
-
       {errorMessage && <p style={{ color: "red" }}>{errorMessage}</p>}
-
       <form onSubmit={handleSubmit}>
-        <label>Company Name: <input type="text" name="companyName" value={formData.companyName} onChange={handleChange} required /></label>
-        <label>Industry Type: <input type="text" name="industryType" value={formData.industryType} onChange={handleChange} required /></label>
-        <label>Number of Employees: <input type="number" name="numEmployees" value={formData.numEmployees} onChange={handleChange} required /></label>
-        <label>Number of Office Locations: <input type="number" name="numLocations" value={formData.numLocations} onChange={handleChange} required /></label>
-        <label>Multiple Floors? 
+        <label>
+          Company Name:{" "}
+          <input
+            type="text"
+            name="companyName"
+            value={formData.companyName}
+            onChange={handleChange}
+            required
+          />
+        </label>
+        <label>
+          Industry Type:{" "}
+          <input
+            type="text"
+            name="industryType"
+            value={formData.industryType}
+            onChange={handleChange}
+            required
+          />
+        </label>
+        <label>
+          Number of Employees:{" "}
+          <input
+            type="number"
+            name="numEmployees"
+            value={formData.numEmployees}
+            onChange={handleChange}
+            required
+          />
+        </label>
+        <label>
+          Number of Office Locations:{" "}
+          <input
+            type="number"
+            name="numLocations"
+            value={formData.numLocations}
+            onChange={handleChange}
+            required
+          />
+        </label>
+        <label>
+          Multiple Floors?{" "}
           <select name="multiFloor" value={formData.multiFloor} onChange={handleChange}>
             <option>Yes</option>
             <option>No</option>
           </select>
         </label>
-
-        <label>Colour Preference: 
+        <label>
+          Colour Preference:{" "}
           <select name="colour" value={formData.colour} onChange={handleChange} required>
             <option value="Black & White">Black & White</option>
             <option value="Color">Color</option>
           </select>
         </label>
-
-        <label>Minimum Speed (PPM): 
-          <input type="number" name="min_speed" value={formData.min_speed} onChange={handleChange} required />
+        <label>
+          Minimum Speed (PPM):{" "}
+          <input
+            type="number"
+            name="min_speed"
+            value={formData.min_speed}
+            onChange={handleChange}
+            required
+          />
         </label>
-
-        <label>Maximum Lease Price (£): 
-          <input type="number" name="max_lease_price" value={formData.max_lease_price} onChange={handleChange} required />
+        <label>
+          Maximum Lease Price (£):{" "}
+          <input
+            type="number"
+            name="max_lease_price"
+            value={formData.max_lease_price}
+            onChange={handleChange}
+            required
+          />
         </label>
-
         <fieldset>
           <legend>Required Functions:</legend>
-          <label><input type="checkbox" name="required_functions" value="Scanning" checked={formData.required_functions.includes("Scanning")} onChange={handleChange} /> Scanning</label>
-          <label><input type="checkbox" name="required_functions" value="Fax" checked={formData.required_functions.includes("Fax")} onChange={handleChange} /> Fax</label>
-          <label><input type="checkbox" name="required_functions" value="Wireless Printing" checked={formData.required_functions.includes("Wireless Printing")} onChange={handleChange} /> Wireless Printing</label>
-          <label><input type="checkbox" name="required_functions" value="Duplex Printing" checked={formData.required_functions.includes("Duplex Printing")} onChange={handleChange} /> Duplex Printing</label>
+          <label>
+            <input
+              type="checkbox"
+              name="required_functions"
+              value="Scanning"
+              checked={formData.required_functions.includes("Scanning")}
+              onChange={handleChange}
+            />{" "}
+            Scanning
+          </label>
+          <label>
+            <input
+              type="checkbox"
+              name="required_functions"
+              value="Fax"
+              checked={formData.required_functions.includes("Fax")}
+              onChange={handleChange}
+            />{" "}
+            Fax
+          </label>
+          <label>
+            <input
+              type="checkbox"
+              name="required_functions"
+              value="Wireless Printing"
+              checked={formData.required_functions.includes("Wireless Printing")}
+              onChange={handleChange}
+            />{" "}
+            Wireless Printing
+          </label>
+          <label>
+            <input
+              type="checkbox"
+              name="required_functions"
+              value="Duplex Printing"
+              checked={formData.required_functions.includes("Duplex Printing")}
+              onChange={handleChange}
+            />{" "}
+            Duplex Printing
+          </label>
         </fieldset>
-
-        {/* 📂 Upload Documents */}
+        {/* Upload Documents */}
         <div {...getRootProps()} className="dropzone">
           <input {...getInputProps()} />
-          <p>Drag & drop lease agreements, invoices, and usage reports here, or click to upload.</p>
+          <p>
+            Drag & drop lease agreements, invoices, and usage reports here, or click to upload.
+          </p>
         </div>
         <p>{uploadedFiles.length} file(s) selected</p>
-
         <button type="submit" disabled={isSubmitting}>
           {isSubmitting ? "Submitting..." : "Submit Request"}
         </button>

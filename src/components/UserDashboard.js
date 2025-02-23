@@ -1,3 +1,4 @@
+// File: components/UserDashboard.js
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -28,14 +29,17 @@ const UserDashboard = () => {
   const [loading, setLoading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
 
+  // Run once on mount (or if navigate changes, which is unlikely)
   useEffect(() => {
     const token = localStorage.getItem("userToken");
     if (!token) {
       navigate("/login");
       return;
     }
+    // Set user details from localStorage
     setUserName(localStorage.getItem("userName") || "User");
     setUserEmail(localStorage.getItem("userEmail") || "");
+    // Fetch dashboard data once on mount
     fetchDashboardData();
   }, [navigate]);
 
@@ -44,7 +48,7 @@ const UserDashboard = () => {
     try {
       const token = localStorage.getItem("userToken");
       const userId = localStorage.getItem("userId");
-      // Fetch data concurrently.
+      // Fetch data concurrently
       const [activityRes, filesRes, quotesRes, pendingRes] = await Promise.all([
         fetch(`http://localhost:5000/api/users/recent-activity`, {
           headers: { Authorization: `Bearer ${token}` },
@@ -206,7 +210,6 @@ const UserDashboard = () => {
           <ul className="recent-activity-list">
             {recentActivity.map((activity, index) => (
               <li key={index}>
-                {/* Render specific properties of each activity object */}
                 <strong>{activity.description}</strong>{" "}
                 <span>({new Date(activity.date).toLocaleString()})</span>
               </li>

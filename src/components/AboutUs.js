@@ -1,105 +1,184 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import '../styles/AboutUs.css'; // Ensure correct import path
-
-import heroImage from '../assets/images/team.png'; // Ensure the image exists in the correct location
+// src/components/AboutUs.js
+import React, { useEffect, useState } from "react";
+import { Link, useLocation } from "react-router-dom";
+import "../styles/AboutUs.css"; // Use your existing regular CSS (updated below)
+import heroImage from "../assets/images/team.png"; // Ensure this exists
 
 const AboutUs = () => {
+  const { pathname } = useLocation();
+  const [isVisible, setIsVisible] = useState(false); // State for animation visibility
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+    // Set visibility after a short delay for animation effect
+    const timer = setTimeout(() => setIsVisible(true), 100);
+    return () => clearTimeout(timer);
+  }, [pathname]);
+
   return (
-    <div className="aboutUsPage">
+    <div className="about-us-page">
       {/* Hero Section */}
-      <header
-        className="heroSection"
-        style={{
-          backgroundImage: `url(${heroImage})`, // Background image
-        }}
-      >
-        <div className="heroOverlay" /> {/* Overlay for better text readability */}
-        <div className="heroContent">
-          <h1>Hello and Welcome</h1>
-          <p>Hi, I’m Scott Davies, the founder of TENDORAI.</p>
+      <header className="hero-section">
+        <div className="hero-overlay" />
+        <div
+          className="hero-background"
+          style={{ backgroundImage: `url(${heroImage})` }}
+          onError={(e) => {
+            e.target.style.backgroundImage = "none";
+            e.target.style.background = "linear-gradient(135deg, #1e3a8a, #2d4a8a)";
+          }}
+          data-parallax-speed="0.3" // Optional: Add for parallax effect (handled in CSS)
+        />
+        <div className="hero-content">
+          <h1 className="hero-title">Discover TENDORAI’s Vision</h1>
+          <p className="hero-subtitle">
+            I’m Scott Davies, founder of TENDORAI—redefining procurement with AI innovation.
+          </p>
+          <Link to="/how-it-works" className="hero-button">
+            Explore Our Journey
+          </Link>
         </div>
       </header>
 
-      {/* About Section */}
-      <section className="aboutUsSection">
-        <h2>About Me</h2>
-        <p>
-          With over 25 years of experience in sales, procurement, and digital marketing, I’ve witnessed firsthand the challenges businesses face when navigating the procurement process. 
-          From time-consuming vendor searches to unreliable quotes, I knew there had to be a better way. That’s why I founded TENDORAI: to revolutionise how businesses find the right solutions.
-        </p>
-        <p className="founderName"><strong>Scott Davies</strong></p>
+      {/* About Me Section */}
+      <section
+        className="about-me-section"
+        data-animation="fadeInUp"
+        data-delay="0"
+        data-visible={isVisible}
+      >
+        <div className="section-container">
+          <h2 className="section-title">Meet Our Founder</h2>
+          <p className="section-text">
+            With over 25 years of expertise in sales, procurement, and digital marketing, I’ve witnessed the inefficiencies plaguing businesses—hours wasted on vendor searches, unreliable quotes, and outdated processes. In 2023, I launched TENDORAI to revolutionize procurement with AI, empowering companies to save time, slash costs, and forge trusted partnerships worldwide.
+          </p>
+          <p className="founder-signature">— Scott Davies, Founder</p>
+        </div>
       </section>
 
-      {/* Mission Statement Section */}
-      <section className="missionSection">
-        <h2>Our Mission</h2>
-        <p>
-          At TENDORAI, our mission is simple yet transformative: to empower businesses by making procurement smarter, faster, and more cost-effective. 
-          We aim to eliminate inefficiencies and deliver tailored vendor solutions through our AI-powered platform.
-        </p>
-        <p>
-          We believe that businesses should focus on growth, not on wading through complex procurement processes. 
-          That’s why we use cutting-edge technology to match businesses with trusted vendors, saving both time and money.
-        </p>
+      {/* Mission Section */}
+      <section
+        className="mission-section"
+        data-animation="fadeInUp"
+        data-delay="200"
+        data-visible={isVisible}
+      >
+        <div className="section-container">
+          <h2 className="section-title">Our Mission</h2>
+          <p className="section-text">
+            At TENDORAI, we’re committed to transforming procurement into a seamless, cost-effective journey. Our AI platform connects businesses with vetted vendors, delivering precise, instant solutions—freeing you to focus on growth and innovation.
+          </p>
+        </div>
       </section>
 
       {/* Our Story Section */}
-      <section className="ourStorySection">
-        <h2>Our Story</h2>
-        <p>
-          Throughout my career, I’ve seen businesses struggle to find reliable vendors. Many fall victim to aggressive sales tactics or outdated procurement methods that fail to meet their needs.
-          Recognising this gap, I combined my expertise in procurement with innovative AI technology to create a platform that simplifies and personalises the entire process.
-        </p>
-        <p>
-          Since launching TENDORAI, we’ve helped countless businesses streamline their procurement, reduce costs, and build lasting partnerships with trusted vendors.
-        </p>
+      <section
+        className="story-section"
+        data-animation="fadeInUp"
+        data-delay="400"
+        data-visible={isVisible}
+      >
+        <div className="section-container">
+          <h2 className="section-title">Our Journey</h2>
+          <p className="section-text">
+            TENDORAI was born from a vision to solve procurement’s persistent challenges. Leveraging decades of industry insight and a passion for technology, I built an AI-driven platform that’s transformed hundreds of businesses since 2023—streamlining workflows, reducing costs, and fostering reliable vendor relationships globally.
+          </p>
+        </div>
       </section>
 
       {/* Why Choose Us Section */}
-      <section className="whyChooseUsSection">
-        <h2>Why Choose Us?</h2>
-        <ul className="featuresList">
-          <li><strong>Personalised Matching:</strong> Our advanced AI algorithms analyse your unique needs to connect you with the most suitable vendors.</li>
-          <li><strong>Instant Quotes:</strong> Receive detailed and competitive quotes within seconds, saving valuable time.</li>
-          <li><strong>Trusted Vendors:</strong> We partner with a curated network of reliable vendors to ensure quality and value.</li>
-          <li><strong>Customer Focused:</strong> Our platform is designed with your convenience in mind, making procurement effortless and stress-free.</li>
-        </ul>
+      <section
+        className="why-choose-us-section"
+        data-animation="fadeInUp"
+        data-delay="600"
+        data-visible={isVisible}
+      >
+        <div className="section-container">
+          <h2 className="section-title">Why Choose TENDORAI?</h2>
+          <div className="features-grid">
+            {[
+              { title: "Precision Matching", text: "AI tailors vendor matches to your exact needs with unmatched accuracy." },
+              { title: "Instant Quotes", text: "Competitive offers delivered in seconds, saving you time and effort." },
+              { title: "Trusted Network", text: "Curated, vetted vendors you can rely on for quality and reliability." },
+              { title: "User-Centric Design", text: "Built for simplicity, efficiency, and a seamless user experience." },
+            ].map((feature, index) => (
+              <div
+                key={index}
+                className="feature-card"
+                data-animation="fadeInUp"
+                data-delay={600 + index * 200}
+                data-visible={isVisible}
+              >
+                <h3 className="feature-title">{feature.title}</h3>
+                <p className="feature-text">{feature.text}</p>
+              </div>
+            ))}
+          </div>
+        </div>
       </section>
 
       {/* Core Values Section */}
-      <section className="coreValuesSection">
-        <h2>Our Core Values</h2>
-        <ul className="valuesList">
-          <li><strong>Transparency:</strong> We prioritise honest and clear communication at every stage.</li>
-          <li><strong>Efficiency:</strong> Our platform is built to save you time and resources.</li>
-          <li><strong>Innovation:</strong> We constantly improve our technology to deliver the best results.</li>
-          <li><strong>Customer Satisfaction:</strong> Your success is our top priority.</li>
-        </ul>
+      <section
+        className="core-values-section"
+        data-animation="fadeInUp"
+        data-delay="1000"
+        data-visible={isVisible}
+      >
+        <div className="section-container">
+          <h2 className="section-title">Our Core Values</h2>
+          <div className="values-grid">
+            {[
+              { title: "Transparency", text: "Open, honest dealings at every step of your journey." },
+              { title: "Efficiency", text: "Maximizing your time and resources with cutting-edge solutions." },
+              { title: "Innovation", text: "Driving progress through AI and forward-thinking technology." },
+              { title: "Customer Success", text: "Your growth and satisfaction are our top priorities." },
+            ].map((value, index) => (
+              <div
+                key={index}
+                className="value-card"
+                data-animation="fadeInUp"
+                data-delay={1000 + index * 200}
+                data-visible={isVisible}
+              >
+                <h3 className="value-title">{value.title}</h3>
+                <p className="value-text">{value.text}</p>
+              </div>
+            ))}
+          </div>
+        </div>
       </section>
 
       {/* Vision Section */}
-      <section className="visionSection">
-        <h2>Our Vision</h2>
-        <p>
-          We’re committed to transforming procurement for businesses of all sizes. 
-          As we grow, we aim to expand our network of trusted vendors, refine our AI algorithms, and continue leading the digital procurement revolution.
-        </p>
+      <section
+        className="vision-section"
+        data-animation="fadeInUp"
+        data-delay="1400"
+        data-visible={isVisible}
+      >
+        <div className="section-container">
+          <h2 className="section-title">Our Vision</h2>
+          <p className="section-text">
+            We aim to redefine procurement globally, making it effortless, accessible, and intelligent for businesses everywhere. By expanding our vendor network and advancing AI technology, TENDORAI leads the digital procurement revolution, empowering a smarter future.
+          </p>
+        </div>
       </section>
 
-      {/* Get in Touch Section */}
-      <section className="getInTouchSection">
-        <h2>Get in Touch</h2>
-        <p>
-          Whether you’re a business looking for tailored solutions or a vendor ready to showcase your services, we’re here to help.
-          Visit our Contact Us page to connect with us, or learn more about our process on the How It Works page.
-        </p>
-        <p>Let’s make procurement smarter, together.</p>
-        <p className="founderName"><strong>Scott Davies</strong><br/>Founder, TENDORAI</p>
-
-        <div className="ctaButtons">
-          <Link to="/contact" className="primaryButton">Contact Us</Link>
-          <Link to="/how-it-works" className="secondaryButton">How It Works</Link>
+      {/* Call to Action Section */}
+      <section
+        className="cta-section"
+        data-animation="fadeInUp"
+        data-delay="1600"
+        data-visible={isVisible}
+      >
+        <div className="section-container">
+          <h2 className="cta-title">Join the AI Procurement Revolution</h2>
+          <p className="cta-subtitle">
+            Ready to transform your vendor sourcing? Let’s partner to unlock TENDORAI’s power for your business.
+          </p>
+          <div className="cta-buttons">
+            <Link to="/contact" className="cta-button primary">Get in Touch Now</Link>
+            <Link to="/how-it-works" className="cta-button secondary">Learn More</Link>
+          </div>
         </div>
       </section>
     </div>

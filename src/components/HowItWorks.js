@@ -1,109 +1,171 @@
 // src/components/HowItWorks.js
-import React from 'react';
-import { Link } from 'react-router-dom';
-import '../styles/HowItWorks.css';
+import React, { useEffect, useState } from "react";
+import { Link, useLocation } from "react-router-dom";
+import "../styles/HowItWorks.css"; // Use your existing regular CSS (updated below)
 
 const HowItWorks = () => {
+  const { pathname } = useLocation();
+  const [isVisible, setIsVisible] = useState(false); // State for animation visibility
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+    // Set visibility after a short delay for animation effect
+    const timer = setTimeout(() => setIsVisible(true), 100);
+    return () => clearTimeout(timer);
+  }, [pathname]);
+
   return (
-    <div className="how-it-works-container">
+    <div className="how-it-works-page">
       {/* Hero Section */}
-      <section className="hero-section">
-        <div className="hero-overlay"></div>
+      <header className="hero-section">
+        <div className="hero-overlay" />
+        <div
+          className="hero-background"
+          style={{ backgroundImage: `url(${process.env.PUBLIC_URL}/assets/images/ai2.png)` }}
+          onError={(e) => {
+            e.target.style.backgroundImage = "none";
+            e.target.style.background = "linear-gradient(135deg, #1e3a8a, #2d4a8a)";
+          }}
+          data-parallax-speed="0.3"
+        />
         <div className="hero-content">
-          <h1>Revolutionising Procurement – 100% Free for Users</h1>
-          <p>AI-powered procurement that saves you time, money, and effort—completely free!</p>
+          <h1 className="hero-title">Revolutionize Procurement with AI—Free for Users</h1>
+          <p className="hero-subtitle">
+            Unleash the power of AI to save time, reduce costs, and streamline procurement—at no cost.
+          </p>
+          <Link to="/signup" className="hero-button">
+            Start Free Today
+          </Link>
         </div>
-      </section>
+      </header>
 
-      {/* Step-by-Step Process */}
-      <div className="steps-container">
-        <section className="step-section">
-          <h2>Step 1: Sign Up & Set Your Preferences</h2>
-          <p>Signing up is quick, easy, and completely free.</p>
-          <ul>
-            <li>🔹 <strong>Create an Account</strong> – Register your business in seconds.</li>
-            <li>🔹 <strong>Define Your Needs</strong> – Tell us what products or services you’re looking for.</li>
-            <li>🔹 <strong>Set Preferences</strong> – Choose preferred vendors or let AI suggest the best matches.</li>
-          </ul>
-        </section>
-
-        <section className="step-section">
-          <h2>Step 2: Request a Quote in Seconds</h2>
-          <p>No phone calls or endless forms—just instant AI-powered quotes.</p>
-          <ul>
-            <li>🔹 <strong>Enter your request</strong> (e.g., "5 high-speed office printers with a lease option").</li>
-            <li>🔹 <strong>Upload any supporting documents</strong> (optional, such as invoices or vendor contracts).</li>
-            <li>🔹 <strong>Click ‘Request a Quote’</strong> – Our AI instantly starts analyzing your needs.</li>
-          </ul>
-        </section>
-
-        <section className="step-section">
-          <h2>Step 3: AI Matches You with the Best Vendors</h2>
-          <p>Our AI scans thousands of suppliers and picks the top 3 for your needs.</p>
-          <ul>
-            <li>✅ Best Pricing & Discounts</li>
-            <li>✅ Service Level Agreements (SLAs)</li>
-            <li>✅ Warranty & Maintenance Options</li>
-            <li>✅ Verified Vendor Ratings & Reviews</li>
-          </ul>
-          <p>AI-generated quotes are created instantly—so you can review them in seconds!</p>
-        </section>
-
-        <section className="step-section">
-          <h2>Step 4: Compare & Choose the Best Quote</h2>
-          <p>Get side-by-side comparisons of the best vendor quotes.</p>
-          <ul>
-            <li>🔹 Full cost breakdown (purchase, lease, maintenance).</li>
-            <li>🔹 Delivery times & service agreements.</li>
-            <li>🔹 Click on a vendor for detailed profiles and customer feedback.</li>
-            <li>🔹 Accept or negotiate the quote directly within the platform.</li>
-          </ul>
-        </section>
-
-        <section className="step-section">
-          <h2>Step 5: Securely Finalise & Sign Contracts</h2>
-          <p>Complete the procurement process **digitally and hassle-free**.</p>
-          <ul>
-            <li>🔹 AI-generated contracts with **built-in e-signatures**.</li>
-            <li>🔹 No paperwork—finalize everything online.</li>
-            <li>🔹 Track order status, estimated delivery, and vendor updates in real time.</li>
-          </ul>
-        </section>
-
-        <section className="step-section">
-          <h2>Step 6: Manage Everything in Your User Dashboard</h2>
-          <p>Track all orders, spending, and procurement activities from a single dashboard.</p>
-          <ul>
-            <li>✅ View & manage current, pending, and completed orders.</li>
-            <li>✅ AI-powered cost-saving insights & budget tracking.</li>
-            <li>✅ **Reorder with one click** – no need to go through the full process again.</li>
-          </ul>
-        </section>
+      {/* Steps Section */}
+      <div className="steps-section">
+        <div className="section-container">
+          {[
+            {
+              number: "1",
+              title: "Sign Up & Define Your Needs",
+              text: "Create a free account in seconds and specify your procurement needs with ease.",
+              items: [
+                "Create your free business account.",
+                "Specify product or service requirements.",
+                "Set vendor preferences or let AI recommend.",
+              ],
+            },
+            {
+              number: "2",
+              title: "Request Quotes Instantly",
+              text: "Submit your request and receive AI-generated quotes in seconds—no lengthy forms.",
+              items: [
+                "Enter details (e.g., “5 office printers”).",
+                "Upload documents if needed.",
+                "Click “Request Quote” to activate AI.",
+              ],
+            },
+            {
+              number: "3",
+              title: "AI Matches Top Vendors",
+              text: "Our AI identifies your best three vendors from thousands, ensuring optimal matches.",
+              items: [
+                "Competitive pricing and discounts.",
+                "Service level agreements (SLAs).",
+                "Warranty, maintenance, and vendor ratings.",
+              ],
+            },
+            {
+              number: "4",
+              title: "Compare & Select",
+              text: "Review tailored quotes side-by-side for confident decision-making.",
+              items: [
+                "Full cost breakdowns.",
+                "Delivery and service timelines.",
+                "Vendor profiles and reviews.",
+                "Accept or negotiate directly.",
+              ],
+            },
+            {
+              number: "5",
+              title: "Finalize Securely",
+              text: "Complete procurement digitally with secure, paperless processes.",
+              items: [
+                "AI-generated contracts with e-signatures.",
+                "Fully online, paperless workflow.",
+                "Real-time order tracking.",
+              ],
+            },
+            {
+              number: "6",
+              title: "Manage in Your Dashboard",
+              text: "Oversee all activities from a single, intuitive dashboard.",
+              items: [
+                "Track orders and spending.",
+                "Access AI-driven cost-saving insights.",
+                "Reorder with one click.",
+              ],
+            },
+          ].map((step, index) => (
+            <section
+              key={index}
+              className={`step-section ${index % 2 === 0 ? "light-bg" : "dark-bg"}`}
+              data-animation="fadeInUp"
+              data-delay={index * 200}
+              data-visible={isVisible} // Apply visibility dynamically
+            >
+              <div className="step-card">
+                <div className="step-number">{step.number}</div>
+                <h2 className="step-title">{step.title}</h2>
+                <p className="step-text">{step.text}</p>
+                <ul className="step-list">
+                  {step.items.map((item, i) => (
+                    <li key={i}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+            </section>
+          ))}
+        </div>
       </div>
 
       {/* Why Choose Us Section */}
       <section className="why-choose-us">
-        <h2>🔍 Why Use Our AI-Powered Procurement Platform?</h2>
-        <ul>
-          <li>✅ <strong>100% Free for Businesses</strong> – No subscriptions, no hidden fees!</li>
-          <li>✅ <strong>Instant, Fair Pricing</strong> – AI ensures **the best value deals.**</li>
-          <li>✅ <strong>Side-by-Side Comparisons</strong> – No manual research required.</li>
-          <li>✅ <strong>Smart Budgeting & Cost Optimization</strong> – AI helps you save money.</li>
-          <li>✅ <strong>Seamless, Paperless Procurement</strong> – Fully digital with secure e-signatures.</li>
-        </ul>
+        <div className="section-container">
+          <h2 className="why-title">Why Choose TENDORAI?</h2>
+          <div className="why-grid">
+            {[
+              { icon: "💰", title: "100% Free", text: "No fees or subscriptions—smart procurement for all." },
+              { icon: "⏱️", title: "Instant Quotes", text: "Best value in seconds with AI precision." },
+              { icon: "🔍", title: "Effortless Comparisons", text: "Compare vendors without manual research." },
+              { icon: "📉", title: "Cost Optimization", text: "AI-driven savings on every deal." },
+              { icon: "📱", title: "Fully Digital", text: "Secure, paperless processes for efficiency." },
+            ].map((item, index) => (
+              <div
+                key={index}
+                className="why-item"
+                data-animation="fadeInUp"
+                data-delay={index * 200}
+                data-visible={isVisible} // Apply visibility dynamically
+              >
+                <div className="why-icon">{item.icon}</div>
+                <h3 className="why-item-title">{item.title}</h3>
+                <p className="why-item-text">{item.text}</p>
+              </div>
+            ))}
+          </div>
+        </div>
       </section>
 
       {/* Call-to-Action Section */}
       <section className="cta-section">
-        <h2>🚀 Get Started Today – No Cost, No Obligation!</h2>
-        <p>Sign up now and **request your first quote in seconds**—100% free!</p>
-        <div className="cta-buttons">
-          <Link to="/signup" className="primary-button">
-            Start Now for Free
-          </Link>
-          <Link to="/contact" className="secondary-button">
-            Contact Support
-          </Link>
+        <div className="section-container">
+          <h2 className="cta-title">Transform Your Procurement Now—Free & Effortless</h2>
+          <p className="cta-subtitle">
+            Sign up today and experience AI-powered procurement with no cost or commitment.
+          </p>
+          <div className="cta-buttons">
+            <Link to="/signup" className="primary-button">Get Started Free</Link>
+            <Link to="/contact" className="secondary-button">Contact Us</Link>
+          </div>
         </div>
       </section>
     </div>

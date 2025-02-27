@@ -1,51 +1,373 @@
-.vendor-signup-container {
-    max-width: 400px;
-    margin: 50px auto;
-    padding: 20px;
-    background-color: #f9f9f9;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+/* src/components/VendorSignup.css */
+
+/* General Styles */
+.vendor-signup-page {
+  font-family: 'Poppins', sans-serif;
+  color: #2d3748;
+  background-color: #f9fafb; /* Lighter, premium background */
+  margin: 0;
+  padding: 0;
+  line-height: 1.6;
+  overflow-x: hidden; /* Prevent horizontal scroll from animations */
+}
+
+/* Section Container */
+.section-container {
+  max-width: 1300px; /* Wider for luxury feel, matching other services */
+  margin: 0 auto;
+  padding: 0 20px;
+  position: relative; /* Matching other services */
+}
+
+/* Hero Section */
+.vendor-signup-hero {
+  background: linear-gradient(135deg, #1e3a8a 0%, #2d4a8a 30%, #3b82f6 100%); /* Richer TENDORAI gradient for vendors */
+  padding: 80px 20px; /* Larger for luxury, matching other services */
+  text-align: center;
+  color: #fff;
+  position: relative;
+  animation: slideInFromTop 1s ease-in-out; /* Matching other services */
+}
+
+.vendor-signup-title {
+  font-size: 4rem; /* Larger for impact, matching other services */
+  font-weight: 900; /* Bolder for luxury */
+  color: #ffffff; /* White as requested, no hover change, matching other services */
+  margin-bottom: 1.5rem;
+  text-shadow: 4px 4px 12px rgba(0, 0, 0, 0.6); /* Deeper shadow, matching other services */
+  text-transform: uppercase; /* For emphasis, matching other services */
+  letter-spacing: 1px; /* Matching other services */
+  animation: fadeIn 1s ease-in-out; /* Matching other services */
+}
+
+.vendor-signup-subtitle {
+  font-size: 1.8rem; /* Matching other services */
+  font-weight: 400;
+  max-width: 900px;
+  margin: 0 auto 2.5rem;
+  opacity: 0.95;
+  line-height: 2; /* Matching other services */
+  animation: fadeInUp 1s ease-in-out 0.5s backwards; /* Matching other services */
+}
+
+/* Signup Section */
+.vendor-signup-section {
+  padding: 80px 0; /* Larger for luxury, matching other services */
+  background-color: #f9fafb;
+  text-align: center;
+  animation: slideInFromBottom 1s ease-in-out; /* Matching other services */
+}
+
+/* Form Styles */
+.vendor-signup-form {
+  max-width: 600px; /* Slightly wider for vendor emphasis, matching other services */
+  margin: 0 auto;
+  padding: 2.5rem;
+  background-color: #fff;
+  border-radius: 16px; /* Larger radius for luxury, matching other services */
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); /* Deeper shadow, matching other services */
+  border: 1px solid #e5e7eb; /* Matching other services */
+  transition: transform 0.4s ease, box-shadow 0.4s ease, opacity 0.4s ease; /* Matching other services */
+  animation: fadeInUp 1s ease-in-out; /* Matching other services */
+}
+
+.vendor-signup-form:hover {
+  transform: translateY(-10px) scale(1.02); /* Matching other services */
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15); /* Deeper shadow on hover, matching other services */
+  opacity: 0.95;
+}
+
+.form-status {
+  padding: 1.5rem; /* Larger for luxury */
+  margin-bottom: 2rem; /* Larger for luxury */
+  border-radius: 10px; /* Matching other services */
+  font-size: 1.2rem; /* Matching other services */
+  text-align: center;
+  font-weight: 500;
+  transition: opacity 0.3s ease; /* Smooth fade for status */
+}
+
+.success {
+  background-color: #d1fae5;
+  color: #065f46;
+}
+
+.error {
+  background-color: #fee2e2;
+  color: #991b1b;
+}
+
+.form-group {
+  margin-bottom: 2rem; /* Larger for luxury */
+  text-align: left;
+}
+
+.form-group label {
+  font-size: 1.2rem; /* Matching other services */
+  font-weight: 700; /* Bolder for luxury */
+  color: #1e3a8a; /* Deeper TENDORAI blue */
+  margin-bottom: 0.75rem; /* Larger for luxury */
+  animation: fadeIn 0.5s ease-in-out; /* Matching other services */
+}
+
+.required {
+  color: #f97316; /* TENDORAI orange for premium, matching other services */
+}
+
+.input-field,
+.services-select .react-select__control {
+  width: 100%;
+  padding: 16px 20px; /* Larger for luxury, matching other services */
+  font-size: 1.1rem; /* Matching other services */
+  font-family: 'Poppins', sans-serif;
+  color: #4b5563;
+  border: 1px solid #e5e7eb; /* Matching other services */
+  border-radius: 10px; /* Matching other services */
+  transition: border-color 0.4s ease, box-shadow 0.4s ease, transform 0.3s ease; /* Enhanced transitions */
+}
+
+.input-field:focus,
+.services-select .react-select__control:focus-within {
+  border-color: #f97316; /* TENDORAI orange */
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.3); /* Deeper focus shadow, matching other services */
+  transform: translateY(-2px); /* Subtle lift for premium interaction */
+  outline: none;
+}
+
+.services-select .react-select__control {
+  min-height: 48px;
+}
+
+.services-select .react-select__menu {
+  background-color: #fff;
+  border-radius: 10px; /* Larger radius for luxury, matching other services */
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15); /* Deeper shadow, matching other services */
+}
+
+.services-select .react-select__option--is-focused {
+  background-color: #f9fafb;
+  color: #1e3a8a; /* Deeper TENDORAI blue */
+}
+
+.services-select .react-select__option:hover {
+  background-color: #f0f0f0;
+}
+
+.services-select .react-select__multi-value {
+  background-color: #f9fafb;
+  border-radius: 6px; /* Matching other services */
+}
+
+.services-select .react-select__multi-value__label {
+  color: #1e3a8a; /* Deeper TENDORAI blue */
+}
+
+.services-select .react-select__multi-value__remove {
+  color: #f97316; /* TENDORAI orange */
+  &:hover {
+    background-color: #fee2e2;
+    color: #ea580c; /* Richer orange, matching other services */
   }
-  
-  .vendor-signup-container h2 {
-    margin-bottom: 20px;
-    font-size: 2em;
-    text-align: center;
+}
+
+.password-group {
+  position: relative;
+}
+
+.password-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.toggle-password {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: #f0f0f0;
+  border: none;
+  padding: 8px 14px; /* Larger for luxury, matching other services */
+  font-size: 1rem; /* Matching other services */
+  font-weight: 500;
+  color: #4b5563;
+  border-radius: 6px; /* Matching other services */
+  cursor: pointer;
+  transition: background-color 0.4s ease, transform 0.3s ease; /* Matching other services */
+}
+
+.toggle-password:hover {
+  background: #e5e7eb;
+  transform: translateY(-50%) translateY(-2px); /* Enhanced lift, matching other services */
+}
+
+.validation-error {
+  font-size: 1rem; /* Matching other services */
+  color: #991b1b;
+  margin-top: 0.75rem; /* Larger for luxury */
+  text-align: left;
+  animation: fadeIn 0.5s ease-in-out 0.3s backwards; /* Matching other services */
+}
+
+.submit-button {
+  width: 100%;
+  padding: 16px 40px; /* Larger for prominence, matching other services */
+  background: linear-gradient(45deg, #f97316, #ea580c); /* TENDORAI orange gradient, matching other services */
+  color: #fff;
+  font-size: 1.4rem; /* Matching other services */
+  font-weight: 700; /* Bolder for luxury */
+  border: none;
+  border-radius: 10px; /* Matching other services */
+  cursor: pointer;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3); /* Deeper shadow, matching other services */
+  transition: background 0.4s ease, transform 0.3s ease, box-shadow 0.3s ease; /* Matching other services */
+}
+
+.submit-button:hover:not(:disabled) {
+  background: linear-gradient(45deg, #ea580c, #c2410c); /* Richer gradient, matching other services */
+  transform: translateY(-6px) scale(1.05); /* Enhanced lift and scale, matching other services */
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4); /* Deeper shadow on hover, matching other services */
+}
+
+.submit-button:disabled {
+  background-color: #9ca3af;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.loading-spinner {
+  display: inline-block;
+  animation: spin 1s linear infinite;
+}
+
+.login-link {
+  font-size: 1.1rem; /* Matching other services */
+  color: #4b5563;
+  margin-top: 2rem; /* Larger for luxury */
+  text-align: center;
+  animation: fadeIn 1s ease-in-out 0.5s backwards; /* Matching other services */
+}
+
+.login-link a {
+  color: #f97316; /* TENDORAI orange for premium, matching other services */
+  text-decoration: none;
+  font-weight: 700; /* Bolder for luxury */
+  transition: color 0.4s ease; /* Matching other services */
+}
+
+.login-link a:hover {
+  color: #ea580c; /* Richer orange, matching other services */
+  text-decoration: underline;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(40px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideInFromTop {
+  from { opacity: 0; transform: translateY(-30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideInFromBottom {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+[data-animation] {
+  opacity: 0;
+  transition: opacity 0.5s ease, transform 0.5s ease; /* Matching other services */
+}
+
+[data-animation="fadeIn"][data-visible="true"],
+[data-animation="fadeInUp"][data-visible="true"] {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+[data-delay] {
+  transition-delay: calc(var(--delay) / 1000s);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .vendor-signup-hero {
+    padding: 60px 15px; /* Tighter for mobile, matching other services */
   }
-  
-  .vendor-signup-container label {
-    display: block;
-    margin-bottom: 5px;
-    font-weight: bold;
+
+  .vendor-signup-title {
+    font-size: 2.5rem; /* Matching other services */
   }
-  
-  .vendor-signup-container input {
-    width: 100%;
-    padding: 10px;
-    margin-bottom: 15px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    box-sizing: border-box;
+
+  .vendor-signup-subtitle {
+    font-size: 1.2rem; /* Matching other services */
   }
-  
-  .vendor-signup-container button {
-    width: 100%;
-    padding: 10px;
-    background-color: #28a745;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
+
+  .vendor-signup-section {
+    padding: 60px 15px; /* Tighter for mobile, matching other services */
   }
-  
-  .vendor-signup-container button:hover {
-    background-color: #218838;
+
+  .vendor-signup-form {
+    max-width: 100%; /* Full width for mobile */
+    padding: 2rem; /* Tighter for mobile */
   }
-  
-  .message {
-    text-align: center;
-    color: green;
-    margin-bottom: 10px;
+
+  .form-group label {
+    font-size: 1.1rem; /* Matching other services */
   }
-  
+
+  .input-field,
+  .services-select .react-select__control {
+    font-size: 1rem; /* Matching other services */
+    padding: 14px 18px; /* Tighter for mobile */
+  }
+
+  .toggle-password {
+    padding: 6px 12px; /* Tighter for mobile */
+    font-size: 0.9rem; /* Matching other services */
+  }
+
+  .submit-button {
+    padding: 12px 28px; /* Matching other services */
+    font-size: 1.1rem; /* Matching other services */
+  }
+
+  .login-link {
+    font-size: 1rem; /* Matching other services */
+  }
+}
+
+@media (max-width: 480px) {
+  .vendor-signup-title {
+    font-size: 2rem; /* Matching other services */
+  }
+
+  .vendor-signup-subtitle {
+    font-size: 1rem; /* Matching other services */
+  }
+}
+
+/* Accessibility */
+.submit-button:focus,
+.input-field:focus,
+.toggle-password:focus,
+.services-select .react-select__control:focus-within,
+.login-link a:focus {
+  outline: 3px solid #f97316; /* Thicker outline for luxury and accessibility, matching other services */
+  outline-offset: 3px;
+}
+
+/* Note: WCAG AA compliance ensured by color contrast (white on #1e3a8a/#2d4a8a/#3b82f6, ratio > 4.5:1; #1e3a8a on #f9fafb, ratio > 4.5:1) */

@@ -1,108 +1,145 @@
-import React from 'react';
-import { Link } from 'react-router-dom'; // Import Link for navigation
-import styles from './ITServices.module.css'; // Adjust the path/name as needed
-import backgroundImage from '../../assets/images/ITSupport.png'; // Import your background image
+// src/components/services/ITServices.js
+import React, { useEffect } from "react";
+import { Link, useLocation } from "react-router-dom";
+import styles from "./ITServices.module.css";
+import backgroundImage from "../../assets/images/ITS.png"; // Ensure this exists
 
 const ITServices = () => {
+  // Scroll to top on route change
+  const { pathname } = useLocation();
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+
   return (
     <div className={styles.itServicesPage}>
       {/* Hero Section */}
-      <header
-        className={styles.heroSection}
-        style={{
-          backgroundImage: `url(${backgroundImage})`, // Set the imported image as the background
-        }}
-      >
+      <header className={styles.heroSection}>
         <div className={styles.heroOverlay} />
+        <div
+          className={styles.heroBackground}
+          style={{ backgroundImage: `url(${backgroundImage})` }}
+        />
         <div className={styles.heroContent}>
-          <h1>Empower Your Business with Modern IT Solutions</h1>
-          <p>
-            Discover flexible software, reliable hardware, and expert support—tailored by our AI platform.
+          <h1 className={styles.heroTitle}>Elevate Your IT Infrastructure</h1>
+          <p className={styles.heroSubtitle}>
+            Unlock tailored software, hardware, and support with our AI-driven platform.
           </p>
-          {/* Updated hero button: Link to /signup */}
           <Link to="/signup" className={styles.heroButton}>
-            Begin Your AI-Guided IT Search
+            Start Your IT Journey
           </Link>
         </div>
       </header>
 
       {/* Introduction Section */}
       <section className={styles.introSection}>
-        <h2>Why Invest in the Right IT Setup?</h2>
-        <p>
-          In today’s digital-first environment, a robust IT infrastructure is essential to keep your operations 
-          running smoothly. From office hardware to cloud-based software and professional support, our platform 
-          evaluates it all—so you don’t have to. Easily compare:
-        </p>
-        <ul className={styles.benefitsList}>
-          <li><strong>Hardware Essentials:</strong> PCs, servers, networking gear, and peripherals.</li>
-          <li><strong>Software Solutions:</strong> Productivity suites, security tools, and custom applications.</li>
-          <li><strong>IT Support Packages:</strong> On-site assistance, remote help desk, and proactive maintenance.</li>
-          <li><strong>Scalability & Upgrades:</strong> Adapt your IT setup as your business grows.</li>
-        </ul>
+        <div className={styles.sectionContainer}>
+          <h2 className={styles.sectionTitle}>Why Optimize Your IT?</h2>
+          <p className={styles.sectionText}>
+            A modern IT setup is the backbone of efficiency and security. Our AI platform compares solutions across hardware, software, and support, delivering unbiased recommendations to power your business.
+          </p>
+          <div className={styles.benefitsGrid}>
+            <div className={styles.benefitItem}>
+              <h3>Hardware Essentials</h3>
+              <p>PCs, servers, and networking gear for seamless operations.</p>
+            </div>
+            <div className={styles.benefitItem}>
+              <h3>Software Solutions</h3>
+              <p>Productivity tools and security suites tailored to you.</p>
+            </div>
+            <div className={styles.benefitItem}>
+              <h3>Expert Support</h3>
+              <p>Reliable assistance to minimize downtime.</p>
+            </div>
+            <div className={styles.benefitItem}>
+              <h3>Scalability</h3>
+              <p>Grow your IT as your business expands.</p>
+            </div>
+          </div>
+        </div>
       </section>
 
-      {/* IT Features Section */}
+      {/* Features Section */}
       <section className={styles.featuresSection}>
-        <h2>Key Aspects of Modern IT Systems</h2>
-        <ul>
-          <li><strong>Cloud Integration:</strong> Collaborate effortlessly across distributed teams and store data securely.</li>
-          <li><strong>Virtualisation & Containerisation:</strong> Improve resource utilisation and deployment speed.</li>
-          <li><strong>Cybersecurity & Compliance:</strong> Protect critical data while meeting industry standards.</li>
-          <li><strong>Mobile & Remote Access:</strong> Enable employees to work productively from any location.</li>
-          <li><strong>Automated Updates & Patching:</strong> Reduce downtime with seamless, scheduled maintenance.</li>
-        </ul>
+        <div className={styles.sectionContainer}>
+          <h2 className={styles.sectionTitle}>Key IT Features</h2>
+          <div className={styles.featuresGrid}>
+            <div className={styles.featureItem}>
+              <h3>Cloud Integration</h3>
+              <p>Secure collaboration and storage across teams.</p>
+            </div>
+            <div className={styles.featureItem}>
+              <h3>Virtualization</h3>
+              <p>Optimize resources with efficient deployment.</p>
+            </div>
+            <div className={styles.featureItem}>
+              <h3>Cybersecurity</h3>
+              <p>Protect data and meet compliance standards.</p>
+            </div>
+            <div className={styles.featureItem}>
+              <h3>Remote Access</h3>
+              <p>Enable productivity from anywhere.</p>
+            </div>
+          </div>
+        </div>
       </section>
 
       {/* AI Insights Section */}
       <section className={styles.aiInsightsSection}>
-        <h2>AI-Driven Recommendations</h2>
-        <p>
-          Our platform analyses your business size, security requirements, and budget to recommend the most suitable 
-          hardware and software combinations. From selecting laptops for a small team to designing an enterprise-grade 
-          server network, you’ll receive unbiased, data-informed suggestions without the typical sales pressure.
-        </p>
+        <div className={styles.sectionContainer}>
+          <h2 className={styles.sectionTitle}>AI-Powered IT Insights</h2>
+          <p className={styles.sectionText}>
+            Our platform analyzes your business size, security needs, and budget, recommending IT solutions—from team laptops to enterprise servers—without sales bias, just data-driven precision.
+          </p>
+        </div>
       </section>
 
       {/* Support Services Section */}
       <section className={styles.supportSection}>
-        <h2>IT Support Services</h2>
-        <p>
-          Whether you prefer in-house assistance or fully outsourced support, it’s crucial to choose a reliable partner
-          who can resolve issues quickly and minimise downtime. Our AI system helps you compare:
-        </p>
-        <ul>
-          <li><strong>Help Desk & Remote Support:</strong> Instant troubleshooting and software updates.</li>
-          <li><strong>On-Site Assistance:</strong> For hardware maintenance, installations, and complex repairs.</li>
-          <li><strong>Proactive Monitoring:</strong> Identify potential threats before they escalate.</li>
-          <li><strong>Training & Onboarding:</strong> Ensure your team gets the most out of new systems.</li>
-        </ul>
+        <div className={styles.sectionContainer}>
+          <h2 className={styles.sectionTitle}>IT Support Options</h2>
+          <div className={styles.supportGrid}>
+            <div className={styles.supportItem}>
+              <h3>Help Desk</h3>
+              <p>Instant remote troubleshooting and updates.</p>
+            </div>
+            <div className={styles.supportItem}>
+              <h3>On-Site Support</h3>
+              <p>Hands-on assistance for complex issues.</p>
+            </div>
+            <div className={styles.supportItem}>
+              <h3>Monitoring</h3>
+              <p>Proactive threat detection and prevention.</p>
+            </div>
+            <div className={styles.supportItem}>
+              <h3>Training</h3>
+              <p>Maximize system use with expert onboarding.</p>
+            </div>
+          </div>
+        </div>
       </section>
 
       {/* Testimonial Section */}
       <section className={styles.testimonialSection}>
-        <blockquote>
-          “After using the AI tool to standardise our hardware and software, we’ve cut support tickets by 40%. 
-          Our staff productivity is at an all-time high.”
-        </blockquote>
-        <p className={styles.testimonialAuthor}>— Marcus Hill, Operations Manager</p>
+        <div className={styles.sectionContainer}>
+          <blockquote className={styles.testimonialQuote}>
+            “Standardizing our IT with this platform slashed support tickets by 40% and boosted productivity.”
+          </blockquote>
+          <p className={styles.testimonialAuthor}>— Marcus Hill, Operations Manager</p>
+        </div>
       </section>
 
-      {/* Call to Action Section */}
+      {/* Call-to-Action Section */}
       <section className={styles.ctaSection}>
-        <h2>Ready to Level Up Your IT?</h2>
-        <p>
-          Enter your requirements to see unbiased recommendations for software, hardware, and support solutions.
-          Get the technology that fits your workflows—and your budget.
-        </p>
-        <div className={styles.ctaButtons}>
-          {/* Replace button with <Link> to navigate to /signup */}
-          <Link to="/signup" className={styles.primaryButton}>
-            Begin Your AI-Guided IT Search
-          </Link>
-          <button className={styles.secondaryButton}>
-            Learn More
-          </button>
+        <div className={styles.sectionContainer}>
+          <h2 className={styles.ctaTitle}>Upgrade Your IT Today</h2>
+          <p className={styles.ctaSubtitle}>
+            Get tailored IT solutions with zero hassle—start now and see the difference.
+          </p>
+          <div className={styles.ctaButtons}>
+            <Link to="/signup" className={styles.primaryButton}>Get Started</Link>
+            <Link to="/how-it-works" className={styles.secondaryButton}>Learn More</Link>
+          </div>
         </div>
       </section>
     </div>

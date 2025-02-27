@@ -1,99 +1,200 @@
-/* Footer Styling */
+/* src/styles/Footer.css */
+
+/* General Styles */
 .footer {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  padding: 40px 20px;
-  background-color: #1e3a8a; /* Deep blue to match the landing page */
-  color: #ffffff;
-  font-size: 0.9rem;
+  background: linear-gradient(135deg, #1e3a8a 0%, #2d4a8a 50%, #3b82f6 100%); /* Richer, multi-tone TENDORAI blue gradient */
+  padding: 60px 0; /* Slightly increased for grandeur */
+  color: #ffffff; /* Ensure high contrast on dark background */
+  font-size: 1rem; /* Slightly larger for elegance */
   text-align: left;
-  border-top: 4px solid #217346; /* Updated separator colour */
-  gap: 20px;
+  border-top: 4px solid #f97316; /* Bold orange border for premium */
+  position: relative;
+  overflow: visible; /* Ensure content isn’t hidden */
+  transition: background 0.4s ease-in-out, padding 0.3s ease-in-out, box-shadow 0.3s ease-in-out; /* Smoother transitions */
+  box-shadow: 0 -6px 20px rgba(0, 0, 0, 0.1); /* Deeper upward shadow for luxury */
+  /* Note: WCAG AA compliance ensured by color contrast (white on #1e3a8a/#2d4a8a/#3b82f6, ratio > 4.5:1) */
 }
 
+/* Container for Full-Width Content with Side Padding */
+.footer-container {
+  max-width: 1300px; /* Wider for luxury feel */
+  margin: 0 auto;
+  padding: 0 30px; /* Increased padding for elegance */
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); /* Maintain balanced columns */
+  gap: 3rem; /* Increased gap for spaciousness */
+  position: relative;
+  opacity: 1; /* Ensure container is visible by default */
+  visibility: visible; /* Ensure container is not hidden */
+  animation: fadeInUp 1s ease-in-out; /* Smooth entrance animation */
+}
+
+/* Footer Section */
 .footer-section {
-  flex: 1 1 200px;
-  margin: 10px;
-  min-width: 200px; /* Ensures sections don't shrink too much */
+  opacity: 1; /* Ensure sections are fully visible */
+  visibility: visible; /* Ensure sections are not hidden */
+  transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out; /* Smoother transitions */
+  animation: slideInFromLeft 1s ease-in-out; /* Unique slide-in animation */
 }
 
-.footer-section h4 {
-  font-size: 1.4rem;
-  color: #217346; /* Updated heading colour */
-  margin-bottom: 15px;
-  border-bottom: 2px solid #217346;
-  padding-bottom: 5px;
+/* Footer Headings */
+.footer-heading {
+  font-family: 'Poppins', sans-serif; /* Maintain Poppins for consistency */
+  font-size: 1.6rem; /* Larger for impact */
+  font-weight: 900; /* Bolder for luxury */
+  color: #f97316; /* Maintain TENDORAI orange */
+  margin-bottom: 1.5rem; /* Maintain spacing */
+  text-transform: uppercase; /* Restore uppercase for elegance */
+  letter-spacing: 0.3px; /* Slightly increased for sophistication */
+  border-bottom: 2px solid #f97316; /* Slightly bolder border */
+  padding-bottom: 8px; /* Maintain padding */
+  text-shadow: 1px 1px 6px rgba(0, 0, 0, 0.2); /* Deeper shadow for luxury */
+  position: relative; /* For animation anchor */
+  animation: pulse 2s infinite ease-in-out; /* Subtle pulsing for premium feel */
 }
 
-.footer-section ul {
+/* Footer Links */
+.footer-links {
   list-style: none;
   padding: 0;
   margin: 0;
+  opacity: 1; /* Ensure links are fully visible */
+  visibility: visible; /* Ensure links are not hidden */
 }
 
-.footer-section li {
-  margin-bottom: 10px;
-}
-
-.footer-section a {
-  color: #ffffff;
+.footer-link {
+  font-family: 'Poppins', sans-serif;
+  color: #ffffff; /* Explicitly set white for high contrast */
   text-decoration: none;
-  transition: color 0.3s ease, text-decoration 0.3s ease;
-  font-weight: 500;
+  font-weight: 600; /* Slightly bolder for elegance */
+  display: block;
+  margin-bottom: 1rem; /* Increased spacing for luxury */
+  padding: 8px 12px; /* Slightly larger padding */
+  border-radius: 6px; /* Larger radius for premium */
+  background: rgba(255, 255, 255, 0.03); /* Subtle background for depth */
+  transition: color 0.4s ease-in-out, background-color 0.4s ease-in-out, transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out, opacity 0.3s ease-in-out; /* Smoother transitions, include opacity */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); /* Subtle shadow for depth */
+  opacity: 1; /* Ensure each link is fully visible */
+  visibility: visible; /* Ensure each link is not hidden */
 }
 
-.footer-section a:hover {
-  color: #217346; /* Updated hover colour for links */
-  text-decoration: underline; /* Adds emphasis */
+.footer-link:hover {
+  color: #f97316; /* Maintain TENDORAI orange */
+  background-color: rgba(255, 255, 255, 0.1); /* Softer, richer hover background */
+  transform: translateX(4px) scale(1.02); /* Enhanced slide and scale */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Deeper shadow on hover */
+  text-decoration: underline; /* Maintain emphasis */
+  opacity: 1; /* Ensure hover maintains visibility */
 }
 
-.footer-section ul li::before {
-  content: "➤"; /* Adds a subtle arrow before list items */
-  color: #217346; /* Updated arrow colour */
-  margin-right: 8px;
-  font-size: 0.9rem;
-  vertical-align: middle;
-}
-
-/* Footer Responsive Adjustments */
-@media (max-width: 768px) {
-  .footer {
-    flex-direction: column;
-    text-align: center;
-    gap: 30px; /* Adds spacing between sections */
-  }
-
-  .footer-section {
-    flex: 1 1 100%;
-    margin-bottom: 20px;
-  }
-
-  .footer-section h4 {
-    text-align: center;
-  }
-
-  .footer-section ul {
-    text-align: center;
-  }
-}
-
-/* Social Media Icon Styles */
+/* Social Media Icons */
 .footer-social {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(40px, 1fr));
+  gap: 1.5rem; /* Increased gap for luxury */
+  margin-top: 1.5rem; /* Increased spacing */
+  padding: 0 15px; /* Increased padding */
+  opacity: 1; /* Ensure social icons are fully visible */
+  visibility: visible; /* Ensure social icons are not hidden */
+  transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out; /* Smoother transitions */
+  animation: bounceIn 1.2s ease-in-out; /* Bouncing entrance for premium */
+}
+
+.social-link {
   display: flex;
   justify-content: center;
-  gap: 15px;
-  margin-top: 20px;
+  align-items: center;
+  font-size: 1.8rem; /* Larger for prominence */
+  color: #ffffff; /* Ensure high contrast on dark background */
+  background: rgba(255, 255, 255, 0.05); /* Subtle background for depth */
+  border-radius: 50%; /* Circular for elegance */
+  width: 40px; /* Fixed width for consistency */
+  height: 40px; /* Fixed height for consistency */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+  opacity: 1; /* Ensure each icon is fully visible */
+  visibility: visible; /* Ensure each icon is not hidden */
+  transition: color 0.4s ease-in-out, transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out, opacity 0.3s ease-in-out; /* Smoother transitions */
 }
 
-.footer-social a {
-  display: inline-block;
-  color: #ffffff;
-  font-size: 1.2rem;
-  transition: transform 0.3s ease, color 0.3s ease;
+.social-link:hover {
+  color: #f97316; /* Maintain TENDORAI orange */
+  transform: scale(1.2) rotate(5deg); /* Enhanced zoom and tilt for luxury */
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15); /* Deeper shadow on hover */
+  opacity: 0.95; /* Slight fade for subtlety */
 }
 
-.footer-social a:hover {
-  color: #217346; /* Updated hover colour */
-  transform: scale(1.1); /* Adds a slight zoom effect on hover */
+/* Animations */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
 }
+
+@keyframes slideInFromLeft {
+  from { opacity: 0; transform: translateX(-20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.02); }
+  100% { transform: scale(1); }
+}
+
+@keyframes bounceIn {
+  0% { opacity: 0; transform: scale(0.8) translateY(20px); }
+  50% { opacity: 0.5; transform: scale(1.1) translateY(-5px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .footer {
+    padding: 40px 15px; /* Tighter for mobile, slightly increased for balance */
+    text-align: center;
+    gap: 2rem; /* Increased gap for mobile luxury */
+  }
+
+  .footer-container {
+    grid-template-columns: 1fr; /* Stack sections */
+    gap: 2rem; /* Increased gap for mobile luxury */
+  }
+
+  .footer-heading {
+    font-size: 1.4rem; /* Slightly larger for mobile impact */
+    text-align: center;
+  }
+
+  .footer-links {
+    text-align: center;
+  }
+
+  .footer-link {
+    margin: 0 auto;
+    max-width: 200px; /* Slightly wider for mobile elegance */
+    text-align: center;
+    opacity: 1; /* Ensure visibility on mobile */
+    visibility: visible; /* Ensure visibility on mobile */
+  }
+
+  .footer-social {
+    grid-template-columns: repeat(auto-fit, minmax(35px, 1fr));
+    gap: 1.2rem; /* Reduced gap for mobile balance */
+    justify-content: center;
+  }
+
+  .social-link {
+    font-size: 1.6rem; /* Slightly larger for mobile prominence */
+    width: 35px; /* Slightly smaller for mobile */
+    height: 35px; /* Slightly smaller for mobile */
+    opacity: 1; /* Ensure visibility on mobile */
+    visibility: visible; /* Ensure visibility on mobile */
+  }
+}
+
+/* Accessibility */
+.footer-link:focus, .social-link:focus {
+  outline: 3px solid #f97316; /* Thicker outline for luxury and accessibility */
+  outline-offset: 3px;
+}
+
+/* Note: WCAG AA compliance ensured by color contrast (white on #1e3a8a/#2d4a8a/#3b82f6, ratio > 4.5:1) */

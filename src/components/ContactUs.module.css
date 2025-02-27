@@ -1,7 +1,7 @@
-/* src/styles/Signup.css */
+/* src/components/ContactUs.module.css */
 
 /* General Styles */
-.signup-page {
+.contactUsPage {
   font-family: 'Poppins', sans-serif;
   color: #2d3748;
   background-color: #f9fafb; /* Lighter, premium background */
@@ -11,37 +11,29 @@
   overflow-x: hidden; /* Prevent horizontal scroll from animations */
 }
 
-/* Section Container */
-.section-container {
-  max-width: 1300px; /* Wider for luxury feel, matching other services */
-  margin: 0 auto;
-  padding: 0 20px;
-  position: relative; /* Matching other services */
-}
-
-/* Hero Section */
-.signup-hero {
+/* Mini Hero Section */
+.contactHero {
   background: linear-gradient(135deg, #1e3a8a 0%, #2d4a8a 30%, #3b82f6 100%); /* Richer TENDORAI gradient */
-  padding: 80px 20px; /* Larger for luxury, matching other services */
+  padding: 80px 20px; /* Larger for luxury */
   text-align: center;
   color: #fff;
   position: relative;
   animation: slideInFromTop 1s ease-in-out; /* Matching other services */
 }
 
-.signup-title {
+.contactTitle {
   font-size: 4rem; /* Larger for impact, matching other services */
   font-weight: 900; /* Bolder for luxury */
   color: #ffffff; /* White as requested, no hover change, matching other services */
   margin-bottom: 1.5rem;
-  text-shadow: 4px 4px 12px rgba(0, 0, 0, 0.6); /* Deeper shadow, matching other services */
-  text-transform: uppercase; /* For emphasis, matching other services */
+  text-shadow: 4px 4px 12px rgba(0, 0, 0, 0.6); /* Deeper shadow */
+  text-transform: uppercase; /* For emphasis */
   letter-spacing: 1px; /* Matching other services */
   animation: fadeIn 1s ease-in-out; /* Matching other services */
 }
 
-.signup-subtitle {
-  font-size: 1.8rem; /* Matching other services */
+.contactSubtitle {
+  font-size: 1.8rem; /* Matching other services, larger than previous */
   font-weight: 400;
   max-width: 900px;
   margin: 0 auto 2.5rem;
@@ -50,20 +42,21 @@
   animation: fadeInUp 1s ease-in-out 0.5s backwards; /* Matching other services */
 }
 
-/* Signup Section */
-.signup-section {
-  padding: 80px 0; /* Larger for luxury, matching other services */
-  background-color: #f9fafb;
-  text-align: center;
-  animation: slideInFromBottom 1s ease-in-out; /* Matching other services */
+/* Main Content */
+.contactContent {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2.5rem; /* Larger for luxury */
+  max-width: 1300px; /* Wider for luxury, matching other services */
+  margin: 80px auto;
+  padding: 0 20px;
+  position: relative; /* Matching other services */
 }
 
-/* Form Styles */
-.signup-form {
-  max-width: 500px; /* Slightly wider for emphasis, matching other services */
-  margin: 0 auto;
-  padding: 2.5rem;
+/* Form Section */
+.contactFormSection {
   background-color: #fff;
+  padding: 2.5rem;
   border-radius: 16px; /* Larger radius for luxury, matching other services */
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); /* Deeper shadow, matching other services */
   border: 1px solid #e5e7eb; /* Matching other services */
@@ -71,19 +64,18 @@
   animation: fadeInUp 1s ease-in-out; /* Matching other services */
 }
 
-.signup-form:hover {
+.contactFormSection:hover {
   transform: translateY(-10px) scale(1.02); /* Matching other services */
   box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15); /* Deeper shadow on hover, matching other services */
   opacity: 0.95;
 }
 
-.form-status {
+.formStatus {
   padding: 1.5rem; /* Larger for luxury */
   margin-bottom: 2rem; /* Larger for luxury */
   border-radius: 10px; /* Matching other services */
   font-size: 1.2rem; /* Matching other services */
   text-align: center;
-  font-weight: 500;
   transition: opacity 0.3s ease; /* Smooth fade for status */
 }
 
@@ -97,12 +89,18 @@
   color: #991b1b;
 }
 
-.form-group {
-  margin-bottom: 2rem; /* Larger for luxury */
-  text-align: left;
+.contactForm {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem; /* Larger for luxury */
 }
 
-.form-group label {
+.formGroup {
+  display: flex;
+  flex-direction: column;
+}
+
+.formGroup label {
   font-size: 1.2rem; /* Matching other services */
   font-weight: 700; /* Bolder for luxury */
   color: #1e3a8a; /* Deeper TENDORAI blue */
@@ -114,9 +112,10 @@
   color: #f97316; /* TENDORAI orange for premium, matching other services */
 }
 
-.input-field {
+.inputField,
+.textareaField {
   width: 100%;
-  padding: 16px 20px; /* Larger for luxury, matching other services */
+  padding: 16px 20px; /* Larger for luxury */
   font-size: 1.1rem; /* Matching other services */
   font-family: 'Poppins', sans-serif;
   color: #4b5563;
@@ -125,65 +124,20 @@
   transition: border-color 0.4s ease, box-shadow 0.4s ease, transform 0.3s ease; /* Enhanced transitions */
 }
 
-.input-field:focus {
+.inputField:focus,
+.textareaField:focus {
   border-color: #f97316; /* TENDORAI orange */
-  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.3); /* Deeper focus shadow, matching other services */
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.3); /* Deeper focus shadow */
   transform: translateY(-2px); /* Subtle lift for premium interaction */
   outline: none;
 }
 
-.password-group {
-  position: relative;
+.textareaField {
+  min-height: 150px; /* Larger for luxury */
+  resize: vertical;
 }
 
-.password-input-wrapper {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.toggle-password {
-  position: absolute;
-  right: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  background: #f0f0f0;
-  border: none;
-  padding: 8px 14px; /* Larger for luxury, matching other services */
-  font-size: 1rem; /* Matching other services */
-  font-weight: 500;
-  color: #4b5563;
-  border-radius: 6px; /* Matching other services */
-  cursor: pointer;
-  transition: background-color 0.4s ease, transform 0.3s ease; /* Matching other services */
-}
-
-.toggle-password:hover {
-  background: #e5e7eb;
-  transform: translateY(-50%) translateY(-2px); /* Enhanced lift, matching other services */
-}
-
-.password-strength {
-  font-size: 1rem; /* Matching other services */
-  font-weight: 500;
-  margin-top: 0.75rem; /* Larger for luxury */
-  animation: fadeIn 0.5s ease-in-out 0.3s backwards; /* Matching other services */
-}
-
-.password-strength.weak {
-  color: #991b1b;
-}
-
-.password-strength.medium {
-  color: #d97706;
-}
-
-.password-strength.strong {
-  color: #065f46;
-}
-
-.submit-button {
-  width: 100%;
+.submitButton {
   padding: 16px 40px; /* Larger for prominence, matching other services */
   background: linear-gradient(45deg, #f97316, #ea580c); /* TENDORAI orange gradient, matching other services */
   color: #fff;
@@ -196,42 +150,83 @@
   transition: background 0.4s ease, transform 0.3s ease, box-shadow 0.3s ease; /* Matching other services */
 }
 
-.submit-button:hover:not(:disabled) {
+.submitButton:hover {
   background: linear-gradient(45deg, #ea580c, #c2410c); /* Richer gradient, matching other services */
   transform: translateY(-6px) scale(1.05); /* Enhanced lift and scale, matching other services */
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4); /* Deeper shadow on hover, matching other services */
 }
 
-.submit-button:disabled {
+.submitButton:disabled {
   background-color: #9ca3af;
   cursor: not-allowed;
   transform: none;
   box-shadow: none;
 }
 
-.loading-spinner {
-  display: inline-block;
-  animation: spin 1s linear infinite;
+/* Contact Info Section */
+.contactInfoSection {
+  display: flex;
+  align-items: center;
 }
 
-.login-link {
-  font-size: 1.1rem; /* Matching other services */
-  color: #4b5563;
-  margin-top: 2rem; /* Larger for luxury */
+.contactInfoCard {
+  background-color: #fff;
+  padding: 2.5rem;
+  border-radius: 16px; /* Larger radius for luxury, matching other services */
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); /* Deeper shadow, matching other services */
+  border: 1px solid #e5e7eb; /* Matching other services */
+  width: 100%;
+  transition: transform 0.4s ease, box-shadow 0.4s ease, opacity 0.4s ease; /* Matching other services */
+  animation: fadeInUp 1s ease-in-out; /* Matching other services */
+}
+
+.contactInfoCard:hover {
+  transform: translateY(-10px) scale(1.02); /* Matching other services */
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15); /* Deeper shadow on hover, matching other services */
+  opacity: 0.95;
+}
+
+.contactInfoTitle {
+  font-size: 2.5rem; /* Larger for impact, matching other services */
+  font-weight: 900; /* Bolder for luxury */
+  color: #1e3a8a; /* Deeper TENDORAI blue */
+  margin-bottom: 2rem; /* Larger for luxury */
   text-align: center;
-  animation: fadeIn 1s ease-in-out 0.5s backwards; /* Matching other services */
+  text-transform: uppercase; /* For emphasis, matching other services */
+  letter-spacing: 0.5px; /* Matching other services */
+  animation: slideIn 1s ease-in-out; /* Matching other services */
 }
 
-.login-link a {
+.contactInfoList {
+  list-style: none;
+  padding: 0;
+  animation: fadeInUp 1s ease-in-out 0.5s backwards; /* Matching other services */
+}
+
+.contactInfoList li {
+  font-size: 1.2rem; /* Matching other services */
+  color: #4b5563;
+  margin-bottom: 1.5rem; /* Larger for luxury */
+  display: flex;
+  align-items: center;
+  transition: transform 0.3s ease, opacity 0.3s ease; /* Smooth transitions */
+}
+
+.contactInfoList li:hover {
+  transform: translateX(5px); /* Subtle shift for premium interaction */
+  opacity: 0.9;
+}
+
+.infoIcon {
+  font-size: 1.8rem; /* Larger for luxury, matching other services */
   color: #f97316; /* TENDORAI orange for premium, matching other services */
-  text-decoration: none;
-  font-weight: 700; /* Bolder for luxury */
-  transition: color 0.4s ease; /* Matching other services */
+  margin-right: 1.25rem; /* Larger for luxury */
 }
 
-.login-link a:hover {
-  color: #ea580c; /* Richer orange, matching other services */
-  text-decoration: underline;
+.contactInfoList strong {
+  font-weight: 700; /* Bolder for luxury */
+  color: #1e3a8a; /* Deeper TENDORAI blue */
+  margin-right: 0.75rem; /* Larger for luxury */
 }
 
 /* Animations */
@@ -250,14 +245,9 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
-@keyframes slideInFromBottom {
+@keyframes slideIn {
   from { opacity: 0; transform: translateY(30px); }
   to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
 }
 
 [data-animation] {
@@ -277,66 +267,76 @@
 
 /* Responsive Design */
 @media (max-width: 768px) {
-  .signup-hero {
-    padding: 60px 15px; /* Tighter for mobile, matching other services */
+  .contactHero {
+    padding: 60px 15px; /* Tighter for mobile */
   }
 
-  .signup-title {
+  .contactTitle {
     font-size: 2.5rem; /* Matching other services */
   }
 
-  .signup-subtitle {
+  .contactSubtitle {
     font-size: 1.2rem; /* Matching other services */
   }
 
-  .signup-section {
-    padding: 60px 15px; /* Tighter for mobile, matching other services */
+  .contactContent {
+    grid-template-columns: 1fr; /* Stack for mobile */
+    margin: 60px auto;
+    padding: 0 15px;
   }
 
-  .signup-form {
-    max-width: 100%; /* Full width for mobile */
+  .contactFormSection,
+  .contactInfoCard {
     padding: 2rem; /* Tighter for mobile */
   }
 
-  .form-group label {
+  .contactInfoTitle {
+    font-size: 2rem; /* Matching other services */
+  }
+
+  .formGroup label {
     font-size: 1.1rem; /* Matching other services */
   }
 
-  .input-field {
+  .inputField,
+  .textareaField {
     font-size: 1rem; /* Matching other services */
     padding: 14px 18px; /* Tighter for mobile */
   }
 
-  .toggle-password {
-    padding: 6px 12px; /* Tighter for mobile */
-    font-size: 0.9rem; /* Matching other services */
-  }
-
-  .submit-button {
+  .submitButton {
     padding: 12px 28px; /* Matching other services */
     font-size: 1.1rem; /* Matching other services */
   }
 
-  .login-link {
-    font-size: 1rem; /* Matching other services */
+  .contactInfoList li {
+    font-size: 1.1rem; /* Matching other services */
+  }
+
+  .infoIcon {
+    font-size: 1.6rem; /* Smaller for mobile */
   }
 }
 
 @media (max-width: 480px) {
-  .signup-title {
+  .contactTitle {
     font-size: 2rem; /* Matching other services */
   }
 
-  .signup-subtitle {
+  .contactSubtitle {
     font-size: 1rem; /* Matching other services */
+  }
+
+  .contactInfoTitle {
+    font-size: 1.8rem; /* Matching other services */
   }
 }
 
 /* Accessibility */
-.submit-button:focus,
-.input-field:focus,
-.toggle-password:focus,
-.login-link a:focus {
+.submitButton:focus,
+.inputField:focus,
+.textareaField:focus,
+.contactInfoList li:focus {
   outline: 3px solid #f97316; /* Thicker outline for luxury and accessibility, matching other services */
   outline-offset: 3px;
 }

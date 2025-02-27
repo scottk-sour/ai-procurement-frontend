@@ -1,6 +1,6 @@
-// File: components/UserDashboard.js
-import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+// File: src/components/UserDashboard.js
+import React, { useState, useEffect, useCallback } from "react";
+import { useNavigate, useLocation } from "react-router-dom"; // Updated to remove unused Link import
 import {
   FaQuoteRight,
   FaBalanceScale,
@@ -13,10 +13,12 @@ import {
   FaCloudUploadAlt,
   FaArrowRight,
 } from "react-icons/fa";
-import "../styles/UserDashboard.css";
+import "../styles/UserDashboard.css"; // Use updated CSS below
 
 const UserDashboard = () => {
+  console.log("✅ UserDashboard rendering START"); // Debug
   const navigate = useNavigate();
+  const { pathname } = useLocation();
   const [userName, setUserName] = useState("User");
   const [userEmail, setUserEmail] = useState("");
   const [file, setFile] = useState(null);
@@ -27,62 +29,86 @@ const UserDashboard = () => {
   const [totalQuotes, setTotalQuotes] = useState(0);
   const [pendingResponses, setPendingResponses] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [isVisible, setIsVisible] = useState(false); // State for animation visibility
 
-  // Run once on mount (or if navigate changes, which is unlikely)
   useEffect(() => {
+    window.scrollTo(0, 0);
+    console.log("📍 UserDashboard mounted at:", pathname);
+    const timer = setTimeout(() => setIsVisible(true), 100); // Match other services' delay
+    return () => clearTimeout(timer);
+  }, [pathname]);
+
+  const fetchDashboardData = useCallback(async () => {
+    console.log("Fetching UserDashboard data");
+    setLoading(true);
+    setError(null);
     const token = localStorage.getItem("userToken");
-    if (!token) {
+    const userId = localStorage.getItem("userId");
+    console.log("Token:", token, "UserID:", userId);
+    if (!token || !userId) {
+      console.log("❌ No authentication token or user ID found, redirecting to login...");
+      setError("No authentication token or user ID found. Please log in.");
       navigate("/login");
       return;
     }
-    // Set user details from localStorage
-    setUserName(localStorage.getItem("userName") || "User");
-    setUserEmail(localStorage.getItem("userEmail") || "");
-    // Fetch dashboard data once on mount
-    fetchDashboardData();
-  }, [navigate]);
 
-  const fetchDashboardData = async () => {
-    setLoading(true);
     try {
-      const token = localStorage.getItem("userToken");
-      const userId = localStorage.getItem("userId");
-      // Fetch data concurrently
       const [activityRes, filesRes, quotesRes, pendingRes] = await Promise.all([
-        fetch(`http://localhost:5000/api/users/recent-activity`, {
+        fetch("http://localhost:5000/api/users/recent-activity", {
           headers: { Authorization: `Bearer ${token}` },
         }),
-        fetch(`http://localhost:5000/api/users/uploaded-files`, {
+        fetch("http://localhost:5000/api/users/uploaded-files", {
           headers: { Authorization: `Bearer ${token}` },
         }),
         fetch(`http://localhost:5000/api/quotes/user?userId=${userId}`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
-        fetch(`http://localhost:5000/api/quotes/pending`, {
+        fetch("http://localhost:5000/api/quotes/pending", {
           headers: { Authorization: `Bearer ${token}` },
         }),
       ]);
 
-      if (!activityRes.ok || !filesRes.ok || !quotesRes.ok || !pendingRes.ok) {
-        throw new Error("Failed to fetch dashboard data.");
-      }
+      if (!activityRes.ok) throw new Error("Failed to fetch recent activity.");
+      if (!filesRes.ok) throw new Error("Failed to fetch uploaded files.");
+      if (!quotesRes.ok) throw new Error("Failed to fetch quotes.");
+      if (!pendingRes.ok) throw new Error("Failed to fetch pending responses.");
 
       const activityData = await activityRes.json();
       const filesData = await filesRes.json();
       const quotesData = await quotesRes.json();
       const pendingData = await pendingRes.json();
 
+      console.log("Activity Data:", activityData);
+      console.log("Files Data:", filesData);
+      console.log("Quotes Data:", quotesData);
+      console.log("Pending Data:", pendingData);
+
       setRecentActivity(activityData.activities || []);
       setUploadedFiles(filesData.files || []);
       setTotalQuotes((quotesData.quotes && quotesData.quotes.length) || 0);
       setPendingResponses((pendingData.quotes && pendingData.quotes.length) || 0);
     } catch (error) {
-      console.error("Error fetching dashboard data:", error);
-      setMessage("⚠ Error loading data. Please try again.");
+      console.error("Error fetching dashboard data:", error.message);
+      setError(`Failed to load dashboard data: ${error.message}. Please try again.`);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
-  };
+  }, [navigate]);
+
+  useEffect(() => {
+    console.log("useEffect running");
+    const token = localStorage.getItem("userToken");
+    if (!token) {
+      console.log("❌ No token found, redirecting to login...");
+      navigate("/login");
+      return;
+    }
+    setUserName(localStorage.getItem("userName") || "User");
+    setUserEmail(localStorage.getItem("userEmail") || "");
+    fetchDashboardData();
+  }, [navigate, fetchDashboardData]);
 
   const handleFileChange = (event) => {
     const selectedFile = event.target.files[0];
@@ -124,24 +150,47 @@ const UserDashboard = () => {
     } catch (error) {
       console.error("Error uploading file:", error);
       setMessage("⚠ An error occurred during upload.");
+    } finally {
+      setLoading(false);
+      setTimeout(() => setUploadProgress(0), 2000);
     }
-    setLoading(false);
-    setTimeout(() => setUploadProgress(0), 2000);
   };
 
+  if (loading) {
+    console.log("Rendering loading state");
+    return (
+      <div className="dashboard-loading" data-animation="fadeIn" data-visible={isVisible}>
+        <span className="loading-spinner">Loading Dashboard...</span>
+      </div>
+    );
+  }
+
+  if (error) {
+    console.log("Rendering error state:", error);
+    return (
+      <div className="dashboard-page" data-animation="fadeIn" data-visible={isVisible}>
+        <p className="error">{error}</p>
+        <button className="dashboard-button secondary" onClick={fetchDashboardData}>
+          Retry
+        </button>
+      </div>
+    );
+  }
+
+  console.log("Rendering UserDashboard content");
   return (
-    <div className="dashboard-container">
-      <div className="dashboard-header">
+    <div className="dashboard-page" data-animation="fadeInUp" data-visible={isVisible}>
+      <div className="dashboard-header" data-animation="fadeIn" data-delay="200" data-visible={isVisible}>
         <div className="user-info">
           <FaUserCircle className="user-icon" />
           <div>
-            <h2>{userName}</h2>
-            <p>{userEmail}</p>
+            <h2 className="dashboard-title">{userName}</h2>
+            <p className="dashboard-subtitle">{userEmail}</p>
           </div>
         </div>
         <div className="header-actions">
           <button
-            className="logout-button"
+            className="dashboard-button logout"
             onClick={() => {
               localStorage.clear();
               navigate("/login");
@@ -152,8 +201,7 @@ const UserDashboard = () => {
         </div>
       </div>
 
-      {/* Quick Actions Section */}
-      <div className="quick-actions">
+      <div className="quick-actions" data-animation="fadeInUp" data-delay="400" data-visible={isVisible}>
         <button
           className="dashboard-button request-quote"
           onClick={() => navigate("/request-quote")}
@@ -174,16 +222,15 @@ const UserDashboard = () => {
         </button>
       </div>
 
-      {/* Dashboard Overview */}
-      <div className="dashboard-cards">
+      <div className="dashboard-cards" data-animation="fadeInUp" data-delay="600" data-visible={isVisible}>
         <div
           className="dashboard-card"
           onClick={() => navigate("/quotes-requested")}
           style={{ cursor: "pointer" }}
         >
           <FaChartBar className="dashboard-icon" />
-          <h3>Total Quotes Requested</h3>
-          <p>{totalQuotes}</p>
+          <h3 className="card-title">Total Quotes Requested</h3>
+          <p className="card-value">{totalQuotes}</p>
           <FaArrowRight className="arrow-icon" />
         </div>
         <div
@@ -192,43 +239,42 @@ const UserDashboard = () => {
           style={{ cursor: "pointer" }}
         >
           <FaFileAlt className="dashboard-icon" />
-          <h3>Uploaded Documents</h3>
-          <p>{uploadedFiles.length}</p>
+          <h3 className="card-title">Uploaded Documents</h3>
+          <p className="card-value">{uploadedFiles.length}</p>
           <FaArrowRight className="arrow-icon" />
         </div>
         <div className="dashboard-card">
           <FaBell className="dashboard-icon" />
-          <h3>Pending Vendor Responses</h3>
-          <p>{pendingResponses}</p>
+          <h3 className="card-title">Pending Vendor Responses</h3>
+          <p className="card-value">{pendingResponses}</p>
         </div>
       </div>
 
-      {/* Recent Activity Section */}
-      <div className="recent-activity-section">
-        <h2>Recent Activity</h2>
-        {recentActivity && recentActivity.length > 0 ? (
+      <div className="recent-activity-section" data-animation="fadeInUp" data-delay="800" data-visible={isVisible}>
+        <h2 className="section-title">Recent Activity</h2>
+        {recentActivity.length > 0 ? (
           <ul className="recent-activity-list">
             {recentActivity.map((activity, index) => (
-              <li key={index}>
+              <li key={index} data-animation="fadeInUp" data-delay={800 + index * 100} data-visible={isVisible}>
                 <strong>{activity.description}</strong>{" "}
                 <span>({new Date(activity.date).toLocaleString()})</span>
               </li>
             ))}
           </ul>
         ) : (
-          <p>No recent activity available.</p>
+          <p className="no-activity">No recent activity available.</p>
         )}
       </div>
 
-      {/* File Upload Section */}
-      <div className="file-upload-section">
-        <h2>
+      <div className="file-upload-section" data-animation="fadeInUp" data-delay="1000" data-visible={isVisible}>
+        <h2 className="section-title">
           <FaUpload /> Upload Documents
         </h2>
         <label>Select Document Type:</label>
         <select
           value={documentType}
           onChange={(e) => setDocumentType(e.target.value)}
+          className="document-type-select"
         >
           <option value="contract">Contract</option>
           <option value="bill">Bill</option>
@@ -242,13 +288,17 @@ const UserDashboard = () => {
             type="file"
             onChange={handleFileChange}
             accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
+            className="file-input"
           />
         </div>
-        <button className="upload-button" onClick={handleUpload} disabled={loading}>
+        <button className="dashboard-button upload" onClick={handleUpload} disabled={loading}>
           {loading ? `Uploading... ${uploadProgress}%` : "Upload Document"}
         </button>
         {message && <p className="upload-message">{message}</p>}
       </div>
+
+      {/* Footer Integration (assuming Footer.js exists, commented out for debugging) */}
+      {/* <Footer /> */}
     </div>
   );
 };

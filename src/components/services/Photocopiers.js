@@ -1,112 +1,164 @@
-import React from 'react';
-import { Link } from 'react-router-dom'; // Import Link from react-router-dom
-import styles from './Photocopiers.module.css'; // Import CSS module
-import heroImage from '../../assets/images/Best-photocopiers.png'; // Correct path to the image
+// src/components/services/Photocopiers.js
+import React, { useEffect, useState } from "react";
+import { Link, useLocation } from "react-router-dom";
+import styles from "./Photocopiers.module.css"; // Use your existing CSS module (updated below)
+import heroImage from "../../assets/images/Best-photocopiers.png"; // Ensure this exists
 
 const Photocopiers = () => {
+  const { pathname } = useLocation();
+  const [isVisible, setIsVisible] = useState(false); // State for animation visibility
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+    // Set visibility after a short delay for animation effect
+    const timer = setTimeout(() => setIsVisible(true), 100); // Match CCTV.js delay
+    return () => clearTimeout(timer);
+  }, [pathname]);
+
   return (
     <div className={styles.photocopiersPage}>
       {/* Hero Section */}
-      <header
-        className={styles.heroSection}
-        style={{
-          backgroundImage: `url(${heroImage})`, // Use the correct hero image
-        }}
-      >
+      <header className={styles.heroSection} data-animation="fadeIn" data-visible={isVisible}>
         <div className={styles.heroOverlay} />
+        <div
+          className={styles.heroBackground}
+          style={{ backgroundImage: `url(${heroImage})` }}
+          onError={(e) => {
+            e.target.style.backgroundImage = "none";
+            e.target.style.background = "linear-gradient(135deg, #1e3a8a, #2d4a8a)"; // TENDORAI fallback
+          }}
+          data-parallax-speed="0.3" // Optional: Add for parallax effect (handled in CSS)
+        />
         <div className={styles.heroContent}>
-          <h1>Optimise Your Printing & Discover Cost Savings</h1>
-          <p>Compare and learn about multifunctional devices—without bias.</p>
-          {/* Button linking to signup */}
+          <h1 className={styles.heroTitle}>Elevate Your Printing with Premium Photocopiers</h1>
+          <p className={styles.heroSubtitle}>
+            Discover cutting-edge, cost-effective photocopiers tailored to revolutionize your business efficiency—free and instant.
+          </p>
           <Link to="/signup" className={styles.heroButton}>
-            Start Your AI-Guided Search
+            Get Started Free
           </Link>
         </div>
       </header>
 
       {/* Introduction Section */}
-      <section className={styles.introSection}>
-        <h2>Why Use Our AI Platform?</h2>
-        <p>
-          Our artificial intelligence platform scours the market to find printers and multifunctional devices that match
-          your needs, saving you both time and money. Rather than pushing a single manufacturer, we aggregate data from
-          various sources to help you compare:
-        </p>
-        <ul className={styles.benefitsList}>
-          <li><strong>Cost Efficiency:</strong> Identify machines that fit your budget and print volume.</li>
-          <li><strong>Ease of Use:</strong> Narrow down options with user-friendly interfaces and automated settings.</li>
-          <li><strong>Advanced Features:</strong> Explore extras like hole punching, “follow-me” print, and more.</li>
-          <li><strong>Sustainability:</strong> Filter by energy-saving modes and eco-friendly consumables.</li>
-        </ul>
+      <section
+        className={styles.introSection}
+        data-animation="fadeInUp"
+        data-delay="200"
+        data-visible={isVisible}
+      >
+        <div className={styles.sectionContainer}>
+          <h2 className={styles.sectionTitle}>Why Elevate with Photocopiers?</h2>
+          <p className={styles.sectionText}>
+            Multifunction photocopiers provide robust efficiency by reducing costs, enabling high-quality printing, and delivering critical document management. Our AI-driven platform simplifies the process, connecting you with top-tier systems perfectly matched to your specific needs.
+          </p>
+          <ul className={styles.benefitsList}>
+            {[
+              { title: "Cost Efficiency", text: "Optimize budgets with AI-driven print volume analysis." },
+              { title: "Ease of Use", text: "Intuitive interfaces for seamless operation." },
+              { title: "Versatility", text: "All-in-one print, scan, and copy solutions." },
+              { title: "Sustainability", text: "Eco-conscious options with reduced energy consumption." },
+            ].map((benefit, index) => (
+              <li key={index} className={styles.benefitItem}>
+                <strong>{benefit.title}:</strong> {benefit.text}
+              </li>
+            ))}
+          </ul>
+        </div>
       </section>
 
-      {/* Manufacturers & Device Features Section */}
-      <section className={styles.manufacturersSection}>
-        <h2>Understanding Different Manufacturers & Models</h2>
-        <p>
-          Each manufacturer offers a variety of models suited to specific business needs. Some excel at high-speed duplex
-          printing, while others focus on superior colour accuracy or expanded finishing options (e.g. stapling, hole
-          punching). Our AI platform helps you assess:
-        </p>
-        <ul>
-          <li><strong>Print Speeds (PPM):</strong> How quickly documents are printed (pages per minute).</li>
-          <li><strong>Resolution (DPI):</strong> The level of detail in both monochrome and colour prints.</li>
-          <li><strong>Connectivity:</strong> Features like wireless printing, Ethernet, cloud connectivity, and mobile apps.</li>
-          <li><strong>Security Features:</strong> Follow-me printing, access control, and data encryption to protect sensitive information.</li>
-        </ul>
-        <p>
-          Rather than directing you to one brand over another, we provide a balanced overview of each manufacturer’s
-          strengths, letting you decide which device is the best fit for your office or organisation.
-        </p>
+      {/* Features Section */}
+      <section
+        className={styles.featuresSection}
+        data-animation="fadeInUp"
+        data-delay="400"
+        data-visible={isVisible}
+      >
+        <div className={styles.sectionContainer}>
+          <h2 className={styles.sectionTitle}>Key Features of Modern Photocopiers</h2>
+          <div className={styles.featuresGrid}>
+            {[
+              { title: "Blazing-Speed Printing", text: "High-performance output up to 100 PPM for elite offices." },
+              { title: "Crystal-Clear Resolution", text: "Ultra-sharp 1200 DPI prints in vibrant color and monochrome." },
+              { title: "Advanced Connectivity", text: "Seamless wireless, cloud, and mobile app integration." },
+              { title: "Fortified Security", text: "Follow-me printing, PIN access, and AES-256 encryption." },
+            ].map((feature, index) => (
+              <div
+                key={index}
+                className={styles.featureItem}
+                data-animation="fadeInUp"
+                data-delay={400 + index * 200}
+                data-visible={isVisible}
+              >
+                <h3 className={styles.featureTitle}>{feature.title}</h3>
+                <p className={styles.featureText}>{feature.text}</p>
+              </div>
+            ))}
+          </div>
+        </div>
       </section>
 
       {/* AI Insights Section */}
-      <section className={styles.aiInsightsSection}>
-        <h2>AI-Driven Insights</h2>
-        <p>
-          Our platform’s AI analyses your monthly volume, paper sizes, desired finishing options, and more. It then
-          compiles a shortlist of devices across multiple manufacturers, showing you the projected total cost of ownership,
-          energy consumption, and how each model aligns with your specific requirements. You gain the knowledge you need
-          to make an informed decision, without the sales pitch.
-        </p>
+      <section
+        className={styles.aiInsightsSection}
+        data-animation="fadeInUp"
+        data-delay="800"
+        data-visible={isVisible}
+      >
+        <div className={styles.sectionContainer}>
+          <h2 className={styles.sectionTitle}>AI-Powered Precision Insights</h2>
+          <p className={styles.sectionText}>
+            Our platform harnesses advanced AI to analyze your print volume, paper specifications, and finishing needs—delivering unbiased recommendations from leading photocopier systems. From small offices to enterprise solutions, we ensure you get the perfect fit, instantly and free.
+          </p>
+        </div>
       </section>
 
-      {/* Accessories & Finishing Section */}
-      <section className={styles.accessoriesSection}>
-        <h2>Available Accessories & Finishing Options</h2>
-        <ul>
-          <li><strong>Hole Punching:</strong> Create professionally bound documents with minimal hassle.</li>
-          <li><strong>Stapling & Booklet Making:</strong> Produce brochures, booklets, and collated reports automatically.</li>
-          <li><strong>Follow-Me Printing:</strong> Securely print documents by releasing them only when you’re at the machine.</li>
-          <li><strong>Large Capacity Paper Trays:</strong> Keep printing without frequent paper reloads.</li>
-        </ul>
-        <p>
-          Whether you require advanced finishing for marketing materials or simple convenience features, your AI-guided
-          results ensure you find a device with the exact functions you need.
-        </p>
+      {/* Finishing Section (Renamed from Manufacturers for consistency) */}
+      <section
+        className={styles.finishingSection}
+        data-animation="fadeInUp"
+        data-delay="1000"
+        data-visible={isVisible}
+      >
+        <div className={styles.sectionContainer}>
+          <h2 className={styles.sectionTitle}>Premium Finishing & Accessories</h2>
+          <p className={styles.sectionText}>
+            We evaluate top finishing options, highlighting strengths like precision binding or high-capacity trays, so you can choose accessories that align with your priorities—no guesswork required.
+          </p>
+        </div>
       </section>
 
       {/* Testimonial Section */}
-      <section className={styles.testimonialSection}>
-        <blockquote>
-          “We reduced our yearly printing expenses by 25% using the AI platform to compare different machines. It was
-          quick, unbiased, and gave us data we never even considered before.”
-        </blockquote>
-        <p className={styles.testimonialAuthor}>— Alex Roberts, IT Manager</p>
+      <section
+        className={styles.testimonialSection}
+        data-animation="fadeInUp"
+        data-delay="1200"
+        data-visible={isVisible}
+      >
+        <div className={styles.sectionContainer}>
+          <blockquote className={styles.testimonialQuote}>
+            “Our printing efficiency soared with TENDORAI’s AI-recommended photocopiers—cutting costs by 30% and enhancing quality beyond expectation.”
+          </blockquote>
+          <p className={styles.testimonialAuthor}>— Alex Roberts, IT Manager</p>
+        </div>
       </section>
 
-      {/* CTA Section */}
-      <section className={styles.ctaSection}>
-        <h2>Ready to Explore Your Options?</h2>
-        <p>Start comparing models from top manufacturers, all in one place. No hidden agendas—just actionable insights.</p>
-        <div className={styles.ctaButtons}>
-          {/* Button linking to signup */}
-          <Link to="/signup" className={styles.primaryButton}>
-            Let the AI Find My Ideal Device
-          </Link>
-          <button className={styles.secondaryButton}>
-            Learn More
-          </button>
+      {/* Call to Action Section */}
+      <section
+        className={styles.ctaSection}
+        data-animation="fadeInUp"
+        data-delay="1400"
+        data-visible={isVisible}
+      >
+        <div className={styles.sectionContainer}>
+          <h2 className={styles.ctaTitle}>Transform Your Printing Today</h2>
+          <p className={styles.ctaSubtitle}>
+            Input your needs and let our AI match you with the ideal photocopier solution—free and effortless.
+          </p>
+          <div className={styles.ctaButtons}>
+            <Link to="/signup" className={styles.primaryButton}>Start Now</Link>
+            <Link to="/how-it-works" className={styles.secondaryButton}>Learn More</Link>
+          </div>
         </div>
       </section>
     </div>

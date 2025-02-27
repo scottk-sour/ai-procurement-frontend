@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from "react";
+// File: src/components/VendorDashboard.js
+import React, { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   FaBox,
@@ -13,66 +14,76 @@ import axios from "axios";
 import "../styles/VendorDashboard.css";
 
 const VendorDashboard = () => {
+  console.log("✅ VendorDashboard component rendering"); // Debug log
   const navigate = useNavigate();
   const [vendorName, setVendorName] = useState("Vendor");
   const [uploadStatus, setUploadStatus] = useState(null);
   const [vendor, setVendor] = useState(null);
   const [theme, setTheme] = useState("light");
-
-  // KPIs
   const [totalRevenue, setTotalRevenue] = useState(0);
   const [activeListings, setActiveListings] = useState(0);
   const [totalOrders, setTotalOrders] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  useEffect(() => {
-    const initializeDashboard = async () => {
-      // Load theme from localStorage
-      const savedTheme = localStorage.getItem("theme") || "light";
-      setTheme(savedTheme);
-      document.documentElement.setAttribute("data-theme", savedTheme);
+  const fetchDashboardData = useCallback(async () => {
+    console.log("Fetching VendorDashboard data");
+    setLoading(true);
+    setError(null);
+    const token = localStorage.getItem("vendorToken");
+    console.log("Fetching dashboard with token:", token);
 
-      const token = localStorage.getItem("vendorToken");
-      if (!token) {
-        navigate("/vendor-login");
+    if (!token) {
+      setError("No vendor token found. Please log in.");
+      navigate("/vendor-login");
+      return;
+    }
+
+    try {
+      const response = await axios.get("http://localhost:5000/api/vendors/dashboard", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      console.log("Raw Dashboard Response:", response);
+      console.log("Dashboard Data:", response.data);
+
+      if (!response.data || Object.keys(response.data).length === 0) {
+        setError("No data returned from server.");
         return;
       }
 
-      try {
-        // Fetch vendor dashboard data
-        const response = await axios.get(
-          "http://localhost:5000/api/vendors/dashboard",
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
-
-        console.log("Dashboard Data:", response.data);
-        setVendor(response.data);
-        setVendorName(response.data.companyName || "Vendor");
-
-        // Set KPIs if available
-        setTotalRevenue(response.data.kpis?.totalRevenue || 0);
-        setActiveListings(response.data.kpis?.activeListings || 0);
-        setTotalOrders(response.data.kpis?.totalOrders || 0);
-      } catch (error) {
-        console.error("Error fetching dashboard data:", error.message);
-        if (error.response?.status === 401) {
-          localStorage.clear();
-          navigate("/vendor-login");
-        }
+      setVendor(response.data);
+      setVendorName(response.data.companyName || "Vendor");
+      setTotalRevenue(response.data.kpis?.totalRevenue || 0);
+      setActiveListings(response.data.kpis?.activeListings || 0);
+      setTotalOrders(response.data.kpis?.totalOrders || 0);
+    } catch (error) {
+      console.error("Fetch Error:", error.response?.data || error.message);
+      setError(
+        error.response?.data?.message || "Failed to load dashboard data. Check server."
+      );
+      if (error.response?.status === 401) {
+        localStorage.clear();
+        navigate("/vendor-login");
       }
-    };
-
-    initializeDashboard();
+    } finally {
+      setLoading(false);
+    }
   }, [navigate]);
 
-  // Logout
+  useEffect(() => {
+    const savedTheme = localStorage.getItem("theme") || "light";
+    setTheme(savedTheme);
+    document.documentElement.setAttribute("data-theme", savedTheme);
+
+    fetchDashboardData();
+  }, [navigate, fetchDashboardData]);
+
   const handleLogout = () => {
     localStorage.clear();
     navigate("/vendor-login");
   };
 
-  // Theme toggle
   const toggleTheme = () => {
     const newTheme = theme === "light" ? "dark" : "light";
     setTheme(newTheme);
@@ -80,56 +91,66 @@ const VendorDashboard = () => {
     localStorage.setItem("theme", newTheme);
   };
 
-  // File upload handler
   const handleFileUpload = async (event) => {
     const file = event.target.files[0];
-    if (!file) return;
+    if (!file) {
+      setUploadStatus({ message: "No file selected.", type: "error" });
+      return;
+    }
 
     const formData = new FormData();
     formData.append("file", file);
     const token = localStorage.getItem("vendorToken");
 
+    setLoading(true);
+    setUploadStatus(null);
+
     try {
-      // POST to your vendor upload route
-      // This route should parse CSV (if it's .csv)
-      // and store the data in vendor.machines or vendor.products
       const response = await axios.post(
         "http://localhost:5000/api/vendors/upload",
         formData,
         {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
+          },
         }
       );
 
-      // If upload is successful, update the UI
-      setUploadStatus({
-        message: "File uploaded successfully!",
-        type: "success",
-      });
-
-      // The backend might return the updated vendor doc
-      // so we update local state
-      if (response.data.vendor) {
-        setVendor(response.data.vendor);
+      console.log("Upload Response:", response.data);
+      setUploadStatus({ message: response.data.message, type: "success" });
+      if (response.data.machines) {
+        setVendor((prev) => ({
+          ...prev,
+          machines: response.data.machines,
+        }));
       }
+      await fetchDashboardData();
     } catch (error) {
-      console.error("Error uploading file:", error.message);
+      console.error("Upload Error:", error.response?.data || error.message);
       setUploadStatus({
-        message:
-          error.response?.data?.message || "File upload failed. Please try again.",
+        message: error.response?.data?.message || "File upload failed.",
         type: "error",
       });
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Navigate to quotes with given status
   const navigateToQuotes = (status) => {
     navigate(`/quotes?status=${status}`);
   };
 
+  if (loading) return <div className="vendor-dashboard-container">Loading...</div>;
+  if (error) return (
+    <div className="vendor-dashboard-container">
+      <p className="error">{error}</p>
+      <button onClick={fetchDashboardData}>Retry</button>
+    </div>
+  );
+
   return (
     <div className="vendor-dashboard-container">
-      {/* Header */}
       <header className="vendor-dashboard-header">
         <h1>Welcome, {vendorName}!</h1>
         <div className="header-controls">
@@ -142,19 +163,14 @@ const VendorDashboard = () => {
         </div>
       </header>
 
-      {/* Upload Status */}
       {uploadStatus && (
         <p className={`upload-status ${uploadStatus.type}`}>
           {uploadStatus.message}
         </p>
       )}
 
-      {/* Quick Actions */}
       <section className="vendor-quick-actions">
-        <button
-          className="dashboard-button"
-          onClick={() => navigate("/manage-listings")}
-        >
+        <button className="dashboard-button" onClick={() => navigate("/manage-listings")}>
           <FaBox /> Manage Listings
         </button>
         <button className="dashboard-button" onClick={() => navigate("/view-orders")}>
@@ -165,16 +181,20 @@ const VendorDashboard = () => {
         </button>
         <label className="upload-label">
           <FaUpload /> Upload Documents
-          <input type="file" className="file-input" onChange={handleFileUpload} />
+          <input
+            type="file"
+            className="file-input"
+            accept=".csv,.xlsx"
+            onChange={handleFileUpload}
+          />
         </label>
       </section>
 
-      {/* KPIs */}
       <section className="vendor-stats-widgets">
         <div className="stat-widget">
           <FaDollarSign className="stat-icon" />
           <h3>Total Revenue</h3>
-          <p>£{totalRevenue}</p>
+          <p>£{totalRevenue.toLocaleString()}</p>
         </div>
         <div className="stat-widget">
           <FaBox className="stat-icon" />
@@ -188,7 +208,6 @@ const VendorDashboard = () => {
         </div>
       </section>
 
-      {/* Uploaded Files */}
       <section className="uploaded-products">
         <h2>Uploaded Files</h2>
         {vendor?.uploads && vendor.uploads.length > 0 ? (
@@ -208,53 +227,58 @@ const VendorDashboard = () => {
         )}
       </section>
 
-      {/* Example of showing "machines" from CSV parsing */}
       <section className="uploaded-machines">
-        <h2>Uploaded Machines (From CSV)</h2>
+        <h2>Uploaded Machines</h2>
         {vendor?.machines && vendor.machines.length > 0 ? (
           <ul className="uploaded-machines-list">
             {vendor.machines.map((machine, idx) => (
               <li key={idx}>
-                <strong>Model:</strong> {machine.model} |{" "}
-                <strong>Price:</strong> £{machine.price}
-                {/* Add more fields if your CSV has them */}
+                <strong>Model:</strong> {machine.model || "N/A"} |{" "}
+                <strong>Type:</strong> {machine.type || "N/A"} |{" "}
+                <strong>Lease Cost:</strong> £{machine.lease_cost || "N/A"}
               </li>
             ))}
           </ul>
         ) : (
-          <p>No machines found. Upload a CSV to populate this list.</p>
+          <p>No machines uploaded. Use the upload button to add a CSV file.</p>
         )}
       </section>
 
-      {/* Quote Funnel */}
       <section className="quote-funnel">
         <h2>Quote Funnel</h2>
-        <ul>
-          <li onClick={() => navigateToQuotes("created")}>
-            Created: {vendor?.quoteFunnelData?.created || 0}
-          </li>
-          <li onClick={() => navigateToQuotes("pending")}>
-            Pending: {vendor?.quoteFunnelData?.pending || 0}
-          </li>
-          <li onClick={() => navigateToQuotes("won")}>
-            Won: {vendor?.quoteFunnelData?.won || 0}
-          </li>
-          <li onClick={() => navigateToQuotes("lost")}>
-            Lost: {vendor?.quoteFunnelData?.lost || 0}
-          </li>
-        </ul>
+        {vendor?.quoteFunnelData ? (
+          <ul>
+            <li onClick={() => navigateToQuotes("created")}>
+              Created: {vendor.quoteFunnelData.created || 0}
+            </li>
+            <li onClick={() => navigateToQuotes("pending")}>
+              Pending: {vendor.quoteFunnelData.pending || 0}
+            </li>
+            <li onClick={() => navigateToQuotes("won")}>
+              Won: {vendor.quoteFunnelData.won || 0}
+            </li>
+            <li onClick={() => navigateToQuotes("lost")}>
+              Lost: {vendor.quoteFunnelData.lost || 0}
+            </li>
+          </ul>
+        ) : (
+          <p>No quote data available.</p>
+        )}
       </section>
 
-      {/* Monthly Revenue Chart */}
       <section className="revenue-chart">
         <h2>Monthly Revenue</h2>
-        <LineChart width={600} height={300} data={vendor?.revenueData || []}>
-          <Line type="monotone" dataKey="revenue" stroke="#8884d8" />
-          <CartesianGrid stroke="#ccc" />
-          <XAxis dataKey="_id" />
-          <YAxis />
-          <Tooltip />
-        </LineChart>
+        {vendor?.revenueData && vendor.revenueData.length > 0 ? (
+          <LineChart width={600} height={300} data={vendor.revenueData}>
+            <Line type="monotone" dataKey="revenue" stroke="#8884d8" />
+            <CartesianGrid stroke="#ccc" />
+            <XAxis dataKey="_id" />
+            <YAxis />
+            <Tooltip />
+          </LineChart>
+        ) : (
+          <p>No revenue data available.</p>
+        )}
       </section>
     </div>
   );

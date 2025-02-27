@@ -1,89 +1,265 @@
-.experts-container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 2rem;
-    font-family: Arial, sans-serif;
-    color: #333;
-  }
-  
-  .experts-container h1 {
-    text-align: center;
-    margin-bottom: 1rem;
-  }
-  
-  .experts-intro {
-    text-align: center;
-    max-width: 800px;
-    margin: 0 auto 2rem auto;
-    line-height: 1.6;
-  }
-  
-  .experts-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    gap: 2rem;
-  }
-  
-  .expert-card {
-    background-color: #fafafa;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    padding: 1.5rem;
-    text-align: center;
-    transition: box-shadow 0.3s ease;
-  }
-  
-  .expert-card:hover {
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-  }
-  
-  .expert-image {
-    width: 120px;
-    height: 120px;
-    object-fit: cover;
-    border-radius: 50%;
-    margin-bottom: 1rem;
-  }
-  
-  .expert-title {
-    color: #007bff;
-    font-weight: bold;
-    margin-bottom: 0.5rem;
-  }
-  
-  .expert-bio {
-    font-size: 0.95rem;
-    line-height: 1.4;
-    margin-bottom: 1rem;
-  }
-  
-  .cta-button {
-    background-color: #007bff;
-    color: #fff;
-    border: none;
-    border-radius: 4px;
-    padding: 0.6rem 1.2rem;
-    cursor: pointer;
-    font-size: 1rem;
-    transition: background-color 0.3s ease;
-  }
-  
-  .cta-button:hover {
-    background-color: #0056b3;
-  }
-  
-  .experts-cta {
-    text-align: center;
-    margin-top: 3rem;
-  }
-  
-  .experts-cta h3 {
-    margin-bottom: 0.5rem;
-  }
-  
-  .experts-cta p {
-    max-width: 600px;
-    margin: 0 auto 1rem auto;
-    line-height: 1.6;
+/* src/styles/MeetTheExperts.css */
+
+/* General Styles */
+.experts-page {
+  font-family: 'Poppins', sans-serif;
+  color: #1e3a8a; /* Deep blue */
+  background-color: #f9fafb;
+  margin: 0;
+  padding: 0;
+  line-height: 1.6;
+}
+
+/* Section Container */
+.section-container {
+  max-width: 1200px; /* Wider for premium feel */
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+/* Mini Hero Section */
+.experts-hero {
+  background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+  padding: 60px 20px;
+  text-align: center;
+  color: #fff;
+}
+
+.experts-title {
+  font-size: 3.5rem;
+  font-weight: 800;
+  margin-bottom: 1rem;
+  text-shadow: 3px 3px 10px rgba(0, 0, 0, 0.5);
+  animation: fadeIn 1s ease-in;
+}
+
+.experts-subtitle {
+  font-size: 1.6rem;
+  font-weight: 400;
+  max-width: 800px;
+  margin: 0 auto 2rem;
+  opacity: 0.9;
+}
+
+/* Intro Section */
+.experts-intro-section {
+  padding: 80px 0;
+  background-color: #fff;
+  text-align: center;
+}
+
+.section-text {
+  font-size: 1.25rem;
+  color: #4b5563;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+/* Experts Grid Section */
+.experts-grid-section {
+  padding: 100px 0;
+  background-color: #f9fafb;
+}
+
+.experts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 2.5rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.expert-card {
+  background-color: #fff;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e5e7eb;
+  text-align: center;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.expert-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12);
+}
+
+.expert-image {
+  width: 150px;
+  height: 150px;
+  object-fit: cover;
+  border-radius: 50%;
+  margin-bottom: 1.5rem;
+  border: 3px solid #f97316; /* Vibrant orange */
+}
+
+.expert-name {
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: #1e3a8a;
+  margin-bottom: 0.5rem;
+}
+
+.expert-role {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #007bff;
+  margin-bottom: 1rem;
+}
+
+.expert-bio {
+  font-size: 1rem;
+  color: #4b5563;
+  margin-bottom: 1.5rem;
+}
+
+.expert-cta {
+  display: inline-block;
+  padding: 10px 24px;
+  background-color: #f97316;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 600;
+  text-decoration: none;
+  border-radius: 6px;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.expert-cta:hover {
+  background-color: #ea580c;
+  transform: translateY(-3px);
+}
+
+/* CTA Section */
+.experts-cta-section {
+  background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+  padding: 100px 0;
+  text-align: center;
+  color: #fff;
+}
+
+.cta-title {
+  font-size: 3rem;
+  font-weight: 800;
+  margin-bottom: 1.5rem;
+}
+
+.cta-subtitle {
+  font-size: 1.4rem;
+  max-width: 800px;
+  margin: 0 auto 2rem;
+  font-weight: 300;
+}
+
+.cta-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+.cta-button {
+  display: inline-block;
+  padding: 14px 32px;
+  font-size: 1.25rem;
+  font-weight: 600;
+  text-decoration: none;
+  border-radius: 8px;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.cta-button.primary {
+  background-color: #f97316;
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.cta-button.primary:hover {
+  background-color: #ea580c;
+  transform: translateY(-4px);
+}
+
+.cta-button.secondary {
+  background-color: transparent;
+  color: #fff;
+  border: 2px solid #fff;
+}
+
+.cta-button.secondary:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  transform: translateY(-4px);
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .experts-hero {
+    padding: 40px 15px;
   }
 
+  .experts-title {
+    font-size: 2.5rem;
+  }
+
+  .experts-subtitle {
+    font-size: 1.2rem;
+  }
+
+  .experts-intro-section,
+  .experts-grid-section,
+  .experts-cta-section {
+    padding: 80px 15px;
+  }
+
+  .section-text,
+  .expert-bio,
+  .cta-subtitle {
+    font-size: 1rem;
+  }
+
+  .experts-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .expert-name {
+    font-size: 1.5rem;
+  }
+
+  .expert-role {
+    font-size: 1rem;
+  }
+
+  .expert-cta {
+    padding: 8px 20px;
+    font-size: 0.95rem;
+  }
+
+  .cta-title {
+    font-size: 2.25rem;
+  }
+
+  .cta-buttons {
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .cta-button {
+    width: 100%;
+    text-align: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .experts-title {
+    font-size: 2rem;
+  }
+
+  .experts-subtitle {
+    font-size: 1rem;
+  }
+}

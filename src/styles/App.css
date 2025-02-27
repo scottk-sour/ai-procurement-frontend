@@ -1,0 +1,189 @@
+/* src/styles/App.css */
+
+/* General App Styles */
+.App {
+  font-family: 'Poppins', sans-serif; /* Maintain Poppins for TENDORAI consistency */
+  color: #2d4a8a; /* Slightly lighter TENDORAI blue for default text */
+  background-color: #f9fafb; /* Lighter, premium background */
+  margin: 0;
+  padding: 0;
+  max-width: 100%;
+  overflow-x: hidden; /* Prevent horizontal scroll */
+  line-height: 1.6;
+  transition: background 0.3s ease, color 0.3s ease;
+}
+
+/* Main Container for Centered Layout */
+.app-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+  background-color: #f9fafb;
+  padding: 20px;
+  max-width: 1200px; /* Slightly narrower for balance */
+  margin: 0 auto;
+  position: relative;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03); /* Softer shadow */
+}
+
+/* Headings */
+h1, h2 {
+  font-family: 'Poppins', sans-serif;
+  color: #2d4a8a;
+  margin-bottom: 1.2rem; /* Slightly reduced for spacing */
+  text-transform: none; /* Remove uppercase for readability */
+  letter-spacing: 0.2px; /* Reduce letter spacing for subtlety */
+  transition: color 0.3s ease, transform 0.2s ease;
+}
+
+h1 {
+  font-size: 2.5rem; /* Smaller for balance */
+  font-weight: 700; /* Slightly lighter for readability */
+}
+
+h2 {
+  font-size: 1.8rem; /* Smaller for balance */
+  font-weight: 600; /* Slightly lighter for readability */
+}
+
+h1:hover, h2:hover {
+  color: #f97316; /* Maintain TENDORAI orange */
+  transform: translateY(-1px); /* Softer hover effect */
+}
+
+/* Lists */
+ul {
+  list-style: none;
+  padding: 0;
+  max-width: 800px; /* Slightly narrower for balance */
+  margin: 0 auto 1.2rem; /* Reduced spacing */
+}
+
+li {
+  background-color: #fff;
+  margin: 0.5rem 0; /* Reduced spacing */
+  padding: 0.8rem 1.2rem; /* Reduced padding */
+  border-radius: 8px; /* Slightly smaller radius */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); /* Softer shadow */
+  text-align: center;
+  transition: transform 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
+}
+
+li:hover {
+  transform: translateY(-3px); /* Softer lift */
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08); /* Softer shadow */
+  background-color: #f9fafb;
+}
+
+/* Consistent Button Styling */
+button {
+  font-family: 'Poppins', sans-serif;
+  background: linear-gradient(45deg, #f97316, #ea580c); /* Maintain TENDORAI orange gradient */
+  color: #fff;
+  border: none;
+  padding: 12px 24px; /* Slightly smaller for balance */
+  font-size: 1.1rem; /* Slightly smaller for readability */
+  font-weight: 600; /* Slightly lighter for balance */
+  border-radius: 8px; /* Slightly smaller radius */
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Softer shadow */
+  transition: background 0.3s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+button:hover {
+  background: linear-gradient(45deg, #ea580c, #c2410c);
+  transform: translateY(-2px) scale(1.02); /* Softer hover effect */
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15); /* Softer shadow */
+}
+
+button:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Form-Specific Styles (for forms like Vendor Signup) */
+.signup-form, .vendor-signup-form {
+  max-width: 450px; /* Slightly narrower for balance */
+  margin: 50px auto; /* Reduced margin */
+  padding: 2rem; /* Slightly reduced padding */
+  background-color: #fff;
+  border-radius: 10px; /* Slightly smaller radius */
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1); /* Softer shadow */
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.signup-form:hover, .vendor-signup-form:hover {
+  transform: translateY(-3px); /* Softer lift */
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12); /* Softer shadow */
+}
+
+.signup-form h2, .vendor-signup-form h2 {
+  font-family: 'Poppins', sans-serif;
+  font-size: 2rem; /* Smaller for balance */
+  font-weight: 700; /* Slightly lighter for readability */
+  color: #2d4a8a;
+  text-align: center;
+  margin-bottom: 1.5rem; /* Reduced spacing */
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.05); /* Softer shadow */
+}
+
+.signup-form input, .vendor-signup-form input {
+  width: 100%;
+  padding: 10px 14px; /* Slightly smaller padding */
+  margin-bottom: 1.2rem; /* Reduced spacing */
+  border: 1px solid #d1d5db; /* Lighter border */
+  border-radius: 6px; /* Slightly smaller radius */
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.95rem; /* Slightly smaller for readability */
+  color: #4b5563;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.2s ease;
+}
+
+.signup-form input:focus, .vendor-signup-form input:focus {
+  border-color: #f97316; /* Maintain TENDORAI orange */
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1); /* Softer focus ring */
+  transform: translateY(-1px);
+  outline: none;
+}
+
+/* Loading Spinner */
+.loading-spinner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f9fafb, #e5e7eb);
+  padding: 20px;
+  animation: fadeIn 1s ease-in-out;
+}
+
+.spinner {
+  width: 60px;
+  height: 60px;
+  border: 8px solid #f97316; /* TENDORAI orange */
+  border-top: 8px solid #2d4a8a; /* TENDORAI blue */
+  border-radius: 50%;
+  animation: spin 1.5s linear infinite;
+}
+
+.loading-spinner p {
+  font-size: 1.2rem; /* Slightly smaller for balance */
+  font-weight: 600;
+  color: #2d4a8a;
+  margin-top: 1rem;
+  text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.1);
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}

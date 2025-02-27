@@ -1,7 +1,7 @@
 // src/components/Footer.js
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom'; // Import useLocation for scroll behavior
-import '../styles/Footer.css'; // Use your existing regular CSS (updated above)
+import '../styles/Footer.css'; // Use your existing regular CSS (updated below)
 import { FaFacebook, FaTwitter, FaYoutube, FaLinkedin, FaInstagram, FaTiktok } from 'react-icons/fa'; // Add social icons
 
 const Footer = () => {

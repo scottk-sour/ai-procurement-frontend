@@ -19,7 +19,7 @@ const UserDashboard = () => {
   console.log("✅ UserDashboard rendering START"); // Debug
   const navigate = useNavigate();
   const { pathname } = useLocation();
-  const [userName, setUserName] = useState("User");
+  const [userName, setUserName] = useState("");
   const [userEmail, setUserEmail] = useState("");
   const [file, setFile] = useState(null);
   const [documentType, setDocumentType] = useState("contract");
@@ -39,6 +39,32 @@ const UserDashboard = () => {
     const timer = setTimeout(() => setIsVisible(true), 100); // Match other services' delay
     return () => clearTimeout(timer);
   }, [pathname]);
+
+  const fetchUserProfile = useCallback(async () => {
+    const token = localStorage.getItem("userToken");
+    if (!token) {
+      console.log("❌ No token found, redirecting to login...");
+      navigate("/login");
+      return;
+    }
+
+    try {
+      const response = await fetch("http://localhost:5000/api/users/profile", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!response.ok) throw new Error("Failed to fetch user profile.");
+      const data = await response.json();
+      setUserName(data.user.name || "User"); // Use actual name from backend
+      setUserEmail(data.user.email || "");
+      localStorage.setItem("userName", data.user.name || "User"); // Store for persistence
+      localStorage.setItem("userEmail", data.user.email || "");
+    } catch (error) {
+      console.error("Error fetching user profile:", error.message);
+      setError(`Failed to load user profile: ${error.message}. Using default values.`);
+      setUserName(localStorage.getItem("userName") || "User");
+      setUserEmail(localStorage.getItem("userEmail") || "");
+    }
+  }, [navigate]);
 
   const fetchDashboardData = useCallback(async () => {
     console.log("Fetching UserDashboard data");
@@ -99,16 +125,9 @@ const UserDashboard = () => {
 
   useEffect(() => {
     console.log("useEffect running");
-    const token = localStorage.getItem("userToken");
-    if (!token) {
-      console.log("❌ No token found, redirecting to login...");
-      navigate("/login");
-      return;
-    }
-    setUserName(localStorage.getItem("userName") || "User");
-    setUserEmail(localStorage.getItem("userEmail") || "");
+    fetchUserProfile(); // Fetch user profile for name and email
     fetchDashboardData();
-  }, [navigate, fetchDashboardData]);
+  }, [navigate, fetchUserProfile, fetchDashboardData]);
 
   const handleFileChange = (event) => {
     const selectedFile = event.target.files[0];

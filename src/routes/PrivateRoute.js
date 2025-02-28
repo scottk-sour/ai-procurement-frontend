@@ -24,7 +24,7 @@ const PrivateRoute = () => {
       }
 
       try {
-        const res = await fetch('http://localhost:5000/api/auth/verify', {
+        const res = await fetch('http://localhost:5000/api/users/auth/verify', { // Ensure correct path
           headers: { Authorization: `Bearer ${token}` },
         });
         console.log("API Response Status (User):", res.status, "OK:", res.ok, "Response:", await res.text());

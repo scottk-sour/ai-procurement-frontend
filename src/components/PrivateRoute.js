@@ -1,47 +1,48 @@
-// File: src/routes/PrivateRoute.js
+// src/routes/PrivateRoute.js
 import React, { useState, useEffect } from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
 
-/**
- * PrivateRoute component
- * - Verifies an authentication token (userToken) from localStorage against the server.
- * - Displays a loading indicator during verification.
- * - If authenticated, renders child routes via <Outlet />.
- * - Otherwise, redirects to the login page.
- */
 const PrivateRoute = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(null);
 
   useEffect(() => {
     const checkAuth = async () => {
-      const token = localStorage.getItem('userToken'); // Updated to use userToken
+      let token = localStorage.getItem('userToken');
+      console.log("🔐 User Private Route Access: Stored Token from localStorage =", token, "Expected Token =", localStorage.getItem('userToken'));
       if (!token) {
+        console.log("❌ No userToken found, redirecting to login...");
         setIsAuthenticated(false);
         return;
+      }
+
+      // Clear any cached or outdated tokens in localStorage if mismatched
+      const expectedToken = localStorage.getItem('userToken');
+      if (token !== expectedToken) {
+        console.log("⚠ Token mismatch detected, updating to expected token...");
+        token = expectedToken;
+        localStorage.setItem('userToken', token); // Ensure consistency
       }
 
       try {
         const res = await fetch('http://localhost:5000/api/auth/verify', {
           headers: { Authorization: `Bearer ${token}` },
         });
+        console.log("API Response Status (User):", res.status, "OK:", res.ok, "Response:", await res.text());
         setIsAuthenticated(res.ok); // True if status is 200-299
       } catch (error) {
-        console.error('Token verification failed:', error.message);
-        setIsAuthenticated(false); // Fail safely on network/auth errors
+        console.error('User Token verification failed:', error.message, "Stack:", error.stack);
+        setIsAuthenticated(false);
       }
     };
 
     checkAuth();
+  }, []);
 
-    // No cleanup needed since this runs once on mount
-  }, []); // Empty dependency array ensures it runs only on mount
-
-  // Show loading state while checking authentication
   if (isAuthenticated === null) {
-    return <div>Loading...</div>;
+    console.log("Rendering loading state for User PrivateRoute...");
+    return <div className="loading-spinner">Loading User Dashboard...</div>;
   }
 
-  // Render child routes if authenticated, redirect to login if not
   return isAuthenticated ? <Outlet /> : <Navigate to="/login" replace />;
 };
 

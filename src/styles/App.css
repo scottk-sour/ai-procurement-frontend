@@ -178,12 +178,182 @@ button:disabled {
   text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.1);
 }
 
+/* Error State */
+.error {
+  font-size: 1.5rem;
+  color: #991b1b; /* Red for errors, TENDORAI contrast */
+  text-align: center;
+  padding: 20px;
+  background-color: #fef2f2;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(153, 27, 27, 0.1);
+  margin: 20px auto;
+  max-width: 600px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.error:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(153, 27, 27, 0.15);
+}
+
+/* Animation Styles for UserDashboard.js */
+[data-animation] {
+  opacity: 0;
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+[data-animation="fadeIn"][data-visible="true"],
+[data-animation="fadeInUp"][data-visible="true"] {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+[data-animation="fadeIn"] {
+  transform: translateY(20px);
+}
+
+[data-animation="fadeInUp"] {
+  transform: translateY(40px);
+}
+
+[data-delay] {
+  transition-delay: calc(var(--delay) / 1000s);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(40px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 @keyframes spin {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+/* Dark Mode (optional, ensure consistency with UserDashboard.css) */
+@media (prefers-color-scheme: dark) {
+  .App {
+    background-color: #1a1a1a;
+    color: #f8f9fa;
+  }
+
+  .app-container {
+    background-color: #252525;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  }
+
+  h1, h2, .loading-spinner p {
+    color: #80d4ff; /* Lighter TENDORAI blue for dark mode */
+  }
+
+  button {
+    background: linear-gradient(45deg, #0056b3, #007bff); /* Dark mode TENDORAI blue gradient */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  }
+
+  button:hover {
+    background: linear-gradient(45deg, #007bff, #0056b3);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+  }
+
+  ul, li {
+    background-color: #252525;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  }
+
+  li:hover {
+    background-color: #2d2d2d;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
+  }
+
+  .signup-form, .vendor-signup-form {
+    background-color: #2d2d2d;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+  }
+
+  .signup-form input, .vendor-signup-form input {
+    background-color: #1a1a1a;
+    border-color: #4a5568;
+    color: #f8f9fa;
+  }
+
+  .signup-form input:focus, .vendor-signup-form input:focus {
+    border-color: #80d4ff; /* Lighter TENDORAI blue for dark mode */
+    box-shadow: 0 0 0 3px rgba(128, 212, 255, 0.2);
+  }
+
+  .loading-spinner {
+    background: linear-gradient(135deg, #1a1a1a, #252525);
+  }
+
+  .spinner {
+    border-color: #80d4ff #1a1a1a #80d4ff #1a1a1a; /* Adjust for dark mode */
+  }
+
+  .error {
+    background-color: #2d2d2d;
+    color: #f87171; /* Lighter red for dark mode contrast */
+    box-shadow: 0 4px 12px rgba(248, 113, 113, 0.2);
+  }
+
+  .error:hover {
+    box-shadow: 0 6px 18px rgba(248, 113, 113, 0.3);
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .App {
+    padding: 10px;
+  }
+
+  .app-container {
+    max-width: 100%;
+    padding: 10px;
+  }
+
+  h1 {
+    font-size: 2rem;
+  }
+
+  h2 {
+    font-size: 1.5rem;
+  }
+
+  button {
+    padding: 10px 20px;
+    font-size: 1rem;
+  }
+
+  .signup-form, .vendor-signup-form {
+    margin: 30px auto;
+    padding: 1.5rem;
+    max-width: 90%;
+  }
+
+  .loading-spinner {
+    min-height: 70vh;
+  }
+
+  .spinner {
+    width: 40px;
+    height: 40px;
+    border-width: 6px;
+  }
+
+  .loading-spinner p {
+    font-size: 1rem;
+  }
+
+  .error {
+    font-size: 1.2rem;
+    padding: 15px;
+    max-width: 90%;
+  }
 }

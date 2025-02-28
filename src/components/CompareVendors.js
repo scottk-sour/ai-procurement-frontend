@@ -4,8 +4,8 @@ import { FaStar, FaStarHalfAlt, FaRegStar } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion"; // For animations
 import { debounce } from "lodash"; // For performance optimization
 import { ErrorBoundary } from "react-error-boundary"; // For error handling
-import { useAnalytics } from "../utils/analytics"; // Custom hook for analytics (to be created)
-import { useAIRecommendations } from "../utils/aiRecommendations"; // Custom hook for AI (to be created)
+import { useAnalytics } from "../utils/analytics"; // Custom hook for analytics
+import { useAIRecommendations } from "../utils/aiRecommendations"; // Custom hook for AI
 
 const CompareVendorsErrorFallback = ({ error, resetErrorBoundary }) => (
   <div className="error-fallback">
@@ -32,8 +32,8 @@ const CompareVendors = () => {
   const [isLoading, setIsLoading] = useState(true);
   const vendorsPerPage = 6;
 
-  const analytics = useAnalytics(); // Track user interactions
-  const { getAIRecommendations } = useAIRecommendations(); // AI-driven suggestions
+  const analytics = useAnalytics(); // Use imported analytics hook
+  const { getAIRecommendations } = useAIRecommendations(); // Use imported AI hook
 
   // ✅ Fetch Recommended Vendors from API with AI-driven suggestions
   useEffect(() => {
@@ -88,7 +88,7 @@ const CompareVendors = () => {
       setSearchQuery(query);
       analytics.trackEvent("SearchVendors", { query });
     }, 300),
-    [analytics]
+    [analytics] // Explicit dependency for ESLint compliance
   );
 
   // ✅ Handle Vendor Selection with animation feedback and analytics
@@ -376,31 +376,6 @@ const CompareVendors = () => {
       </div>
     </ErrorBoundary>
   );
-};
-
-// Custom Hooks (to be created in utils folder)
-const useAnalytics = () => {
-  // Implementation for tracking events (e.g., using a service like Google Analytics or custom logging)
-  const trackEvent = (event, data) => {
-    console.log(`📊 Analytics Event: ${event}`, data);
-    // Add actual analytics implementation here (e.g., fetch to backend or third-party service)
-  };
-  return { trackEvent };
-};
-
-const useAIRecommendations = () => {
-  const getAIRecommendations = async (quotes, userId) => {
-    // Simulate AI recommendations (replace with actual API call to TENDORAI's backend AI)
-    const enhancedVendors = quotes.map((vendor) => ({
-      ...vendor,
-      aiRecommendation:
-        Math.random() > 0.5
-          ? "Highly Recommended for Your Needs"
-          : "Good Match, Consider Reviewing",
-    }));
-    return enhancedVendors;
-  };
-  return { getAIRecommendations };
 };
 
 export default CompareVendors;

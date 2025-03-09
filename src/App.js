@@ -1,55 +1,181 @@
 /* eslint-disable import/first */
 import React, { lazy, Suspense, useEffect } from "react";
-import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  useLocation,
+  Navigate
+} from "react-router-dom";
+import { AuthProvider } from "./utils/AuthContext";
 import NavigationBar from "./components/NavigationBar";
 import Footer from "./components/Footer";
-import "./styles/App.css"; // Ensure this file exists in src/styles/
+import VendorDashboard from "./components/VendorDashboard"; // Direct import
+import PrivateRoute from "./routes/PrivateRoute";  // Import PrivateRoute
+import AdminPrivateRoute from "./routes/AdminPrivateRoute"; // Ensure this is defined similarly
+import "./styles/App.css";
 
-// Lazy-load components with preloading hints (except UserDashboard for debugging)
-const LandingPage = lazy(() => {
-  import("./components/LandingPage").then((module) => {
-    console.log("Preloaded LandingPage");
-    return module;
-  });
-  return import("./components/LandingPage");
-});
-const Login = lazy(() => import("./components/Login"));
-const Signup = lazy(() => import("./components/Signup"));
-const VendorDashboard = lazy(() => import("./components/VendorDashboard"));
-const RequestQuote = lazy(() => import("./components/RequestQuote"));
-const CompareVendors = lazy(() => import("./components/CompareVendors"));
-const AboutUs = lazy(() => import("./components/AboutUs"));
-const Photocopiers = lazy(() => import("./components/services/Photocopiers"));
-const Telecoms = lazy(() => import("./components/services/Telecoms"));
-const CCTV = lazy(() => import("./components/services/CCTV"));
-const ITSolutions = lazy(() => import("./components/services/ITSolutions"));
-const VendorSignup = lazy(() => import("./components/VendorSignup"));
-const VendorLogin = lazy(() => import("./components/VendorLogin"));
-const ContactUs = lazy(() => import("./components/ContactUs"));
-const ManageListings = lazy(() => import("./components/ManageListings"));
-const ViewOrders = lazy(() => import("./components/ViewOrders"));
-const AccountSettings = lazy(() => import("./components/AccountSettings"));
-const VendorProfile = lazy(() => import("./components/VendorProfile"));
-const AdminLogin = lazy(() => import("./components/AdminLogin"));
-const AdminDashboard = lazy(() => import("./components/AdminDashboard"));
-const AdminUserManagement = lazy(() => import("./components/AdminUserManagement"));
-const WhyChooseUs = lazy(() => import("./components/WhyChooseUs"));
-const HowItWorks = lazy(() => import("./components/HowItWorks"));
-const PrivacyPolicy = lazy(() => import("./components/PrivacyPolicy"));
-const MeetTheExperts = lazy(() => import("./components/MeetTheExperts"));
-const QuoteDetails = lazy(() => import("./components/QuoteDetails"));
-const QuotesRequested = lazy(() => import("./pages/QuotesRequested")); // Correct path
-const UploadedDocuments = lazy(() => import("./pages/UploadedDocuments")); // Correct path
-const NotFound = lazy(() => import("./components/NotFound"));
+// Lazy-loaded components with error fallback
+const loadWithFallback = (importFn, fallbackComponent) =>
+  lazy(() => importFn().catch(() => ({ default: fallbackComponent })));
 
-// Import UserDashboard directly (not lazy-loaded) for debugging
-import UserDashboard from "./components/UserDashboard"; // Direct import for debugging
+const LandingPage = loadWithFallback(
+  () => import("./components/LandingPage"),
+  () => <div>Failed to load Landing Page</div>
+);
+const Login = loadWithFallback(
+  () => import("./components/Login"),
+  () => <div>Failed to load Login</div>
+);
+const Signup = loadWithFallback(
+  () => import("./components/Signup"),
+  () => <div>Failed to load Signup</div>
+);
+const RequestQuote = loadWithFallback(
+  () => import("./components/RequestQuote"),
+  () => <div>Failed to load RequestQuote</div>
+);
+const CompareVendors = loadWithFallback(
+  () => import("./components/CompareVendors"),
+  () => <div>Failed to load CompareVendors</div>
+);
+const AboutUs = loadWithFallback(
+  () => import("./components/AboutUs"),
+  () => <div>Failed to load AboutUs</div>
+);
+const Photocopiers = loadWithFallback(
+  () => import("./components/services/Photocopiers"),
+  () => <div>Failed to load Photocopiers</div>
+);
+const Telecoms = loadWithFallback(
+  () => import("./components/services/Telecoms"),
+  () => <div>Failed to load Telecoms</div>
+);
+const CCTV = loadWithFallback(
+  () => import("./components/services/CCTV"),
+  () => <div>Failed to load CCTV</div>
+);
+const ITSolutions = loadWithFallback(
+  () => import("./components/services/ITSolutions"),
+  () => <div>Failed to load ITSolutions</div>
+);
+const VendorSignup = loadWithFallback(
+  () => import("./components/VendorSignup"),
+  () => <div>Failed to load VendorSignup</div>
+);
+const VendorLogin = loadWithFallback(
+  () => import("./components/VendorLogin"),
+  () => <div>Failed to load VendorLogin</div>
+);
+const ContactUs = loadWithFallback(
+  () => import("./components/ContactUs"),
+  () => <div>Failed to load ContactUs</div>
+);
+const ManageListings = loadWithFallback(
+  () => import("./components/ManageListings"),
+  () => <div>Failed to load ManageListings</div>
+);
+const ViewOrders = loadWithFallback(
+  () => import("./components/ViewOrders"),
+  () => <div>Failed to load ViewOrders</div>
+);
+const AccountSettings = loadWithFallback(
+  () => import("./components/AccountSettings"),
+  () => <div>Failed to load AccountSettings</div>
+);
+const VendorProfile = loadWithFallback(
+  () => import("./components/VendorProfile"),
+  () => <div>Failed to load VendorProfile</div>
+);
+const AdminLogin = loadWithFallback(
+  () => import("./components/AdminLogin"),
+  () => <div>Failed to load AdminLogin</div>
+);
+const AdminDashboard = loadWithFallback(
+  () => import("./components/AdminDashboard"),
+  () => <div>Failed to load AdminDashboard</div>
+);
+const AdminUserManagement = loadWithFallback(
+  () => import("./components/AdminUserManagement"),
+  () => <div>Failed to load AdminUserManagement</div>
+);
+const WhyChooseUs = loadWithFallback(
+  () => import("./components/WhyChooseUs"),
+  () => <div>Failed to load WhyChooseUs</div>
+);
+const HowItWorks = loadWithFallback(
+  () => import("./components/HowItWorks"),
+  () => <div>Failed to load HowItWorks</div>
+);
+const PrivacyPolicy = loadWithFallback(
+  () => import("./components/PrivacyPolicy"),
+  () => <div>Failed to load PrivacyPolicy</div>
+);
+const MeetTheExperts = loadWithFallback(
+  () => import("./components/MeetTheExperts"),
+  () => <div>Failed to load MeetTheExperts</div>
+);
+const QuoteDetails = loadWithFallback(
+  () => import("./components/QuoteDetails"),
+  () => <div>Failed to load QuoteDetails</div>
+);
+const QuotesRequested = loadWithFallback(
+  () => import("./pages/QuotesRequested"),
+  () => <div>Failed to load QuotesRequested</div>
+);
+const UploadedDocuments = loadWithFallback(
+  () => import("./pages/UploadedDocuments"),
+  () => <div>Failed to load UploadedDocuments</div>
+);
+const NotFound = loadWithFallback(
+  () => import("./components/NotFound"),
+  () => <div>Failed to load NotFound</div>
+);
 
-import PrivateRoute from "./routes/PrivateRoute";
-import VendorPrivateRoute from "./routes/VendorPrivateRoute";
-import AdminPrivateRoute from "./routes/AdminPrivateRoute";
+import UserDashboard from "./components/UserDashboard";
 
-// Loading Component for Suspense
+// Inline vendor protection for this route (as an example)
+function VendorPrivateRouteInline({ children }) {
+  const vendorToken = localStorage.getItem("vendorToken");
+  if (!vendorToken) {
+    return <Navigate to="/vendor-login" />;
+  }
+  return children;
+}
+
+// Fallback component for testing
+const DashboardFallback = () => {
+  console.log("✅ DashboardFallback rendering");
+  return <div>Fallback Dashboard Content</div>;
+};
+
+// Error Boundary Component
+class ErrorBoundary extends React.Component {
+  state = { hasError: false, error: null };
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error, info) {
+    console.error("❌ ErrorBoundary caught an error:", error, info);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="error-container">
+          <h1>Something went wrong</h1>
+          <p>{this.state.error?.message || "An unexpected error occurred."}</p>
+          <button onClick={() => window.location.reload()}>Reload</button>
+        </div>
+      );
+    }
+    console.log("✅ ErrorBoundary rendering children for route:", this.props.routePath);
+    return this.props.children;
+  }
+}
+
 const LoadingSpinner = () => (
   <div className="loading-spinner" role="alert" aria-live="polite">
     <div className="spinner"></div>
@@ -57,7 +183,6 @@ const LoadingSpinner = () => (
   </div>
 );
 
-// Navigation Tracker (debug component)
 const NavigationTracker = () => {
   const location = useLocation();
   useEffect(() => {
@@ -66,54 +191,80 @@ const NavigationTracker = () => {
   return null;
 };
 
+const Layout = ({ children }) => {
+  console.log("✅ Layout rendering with children:", children ? "Yes" : "No");
+  return (
+    <>
+      <NavigationBar />
+      <main>{children || <p>No content available for this route.</p>}</main>
+      <Footer />
+    </>
+  );
+};
+
 function AppRoutes() {
   console.log("✅ AppRoutes rendering");
   return (
     <Routes>
-      <Route path="/" element={<><NavigationBar /><LandingPage /><Footer /></>} />
-      <Route path="/login" element={<><NavigationBar /><Login /><Footer /></>} />
-      <Route path="/signup" element={<><NavigationBar /><Signup /><Footer /></>} />
-      <Route path="/vendor-login" element={<><NavigationBar /><VendorLogin /><Footer /></>} />
-      <Route path="/vendor-signup" element={<><NavigationBar /><VendorSignup /><Footer /></>} />
-      <Route path="/about-us" element={<><NavigationBar /><AboutUs /><Footer /></>} />
-      <Route path="/services/photocopiers" element={<><NavigationBar /><Photocopiers /><Footer /></>} />
-      <Route path="/services/telecoms" element={<><NavigationBar /><Telecoms /><Footer /></>} />
-      <Route path="/services/cctv" element={<><NavigationBar /><CCTV /><Footer /></>} />
-      <Route path="/services/it" element={<><NavigationBar /><ITSolutions /><Footer /></>} />
-      <Route path="/contact" element={<><NavigationBar /><ContactUs /><Footer /></>} />
-      <Route path="/admin-login" element={<><NavigationBar /><AdminLogin /><Footer /></>} />
-      <Route path="/why-choose-us" element={<><NavigationBar /><WhyChooseUs /><Footer /></>} />
-      <Route path="/how-it-works" element={<><NavigationBar /><HowItWorks /><Footer /></>} />
-      <Route path="/privacy-policy" element={<><NavigationBar /><PrivacyPolicy /><Footer /></>} />
-      <Route path="/experts" element={<><NavigationBar /><MeetTheExperts /><Footer /></>} />
+      {/* Public Routes */}
+      <Route path="/" element={<Layout><LandingPage /></Layout>} />
+      <Route path="/login" element={<Layout><Login /></Layout>} />
+      <Route path="/signup" element={<Layout><Signup /></Layout>} />
+      <Route path="/vendor-login" element={<Layout><VendorLogin /></Layout>} />
+      <Route path="/vendor-signup" element={<Layout><VendorSignup /></Layout>} />
+      <Route path="/about-us" element={<Layout><AboutUs /></Layout>} />
+      <Route path="/services/photocopiers" element={<Layout><Photocopiers /></Layout>} />
+      <Route path="/services/telecoms" element={<Layout><Telecoms /></Layout>} />
+      <Route path="/services/cctv" element={<Layout><CCTV /></Layout>} />
+      <Route path="/services/it" element={<Layout><ITSolutions /></Layout>} />
+      <Route path="/contact" element={<Layout><ContactUs /></Layout>} />
+      <Route path="/admin-login" element={<Layout><AdminLogin /></Layout>} />
+      <Route path="/why-choose-us" element={<Layout><WhyChooseUs /></Layout>} />
+      <Route path="/how-it-works" element={<Layout><HowItWorks /></Layout>} />
+      <Route path="/privacy-policy" element={<Layout><PrivacyPolicy /></Layout>} />
+      <Route path="/experts" element={<Layout><MeetTheExperts /></Layout>} />
+
+      {/* Private Routes for Users */}
       <Route element={<PrivateRoute />}>
-        <Route
-          path="/dashboard"
-          element={
-            <div>
-              <UserDashboard /> {/* Direct render for debugging */}
-            </div>
-          } // Explicitly exclude NavBar and Footer for debugging
-        />
-        <Route path="/request-quote" element={<><NavigationBar /><RequestQuote /><Footer /></>} />
-        <Route path="/compare-vendors" element={<><NavigationBar /><CompareVendors /><Footer /></>} />
-        <Route path="/manage-account" element={<><NavigationBar /><AccountSettings /><Footer /></>} />
-        <Route path="/quotes-requested" element={<><NavigationBar /><QuotesRequested /><Footer /></>} />
+        <Route path="/dashboard" element={<Layout><UserDashboard /></Layout>} />
+        <Route path="/request-quote" element={<Layout><RequestQuote /></Layout>} />
+        <Route path="/compare-vendors" element={<Layout><CompareVendors /></Layout>} />
+        <Route path="/manage-account" element={<Layout><AccountSettings /></Layout>} />
+        <Route path="/quotes-requested" element={<Layout><QuotesRequested /></Layout>} />
       </Route>
-      <Route element={<VendorPrivateRoute />}>
-        <Route path="/vendor-dashboard" element={<><NavigationBar /><VendorDashboard /><Footer /></>} />
-        <Route path="/manage-listings" element={<><NavigationBar /><ManageListings /><Footer /></>} />
-        <Route path="/view-orders" element={<><NavigationBar /><ViewOrders /><Footer /></>} />
-        <Route path="/account-settings" element={<><NavigationBar /><AccountSettings /><Footer /></>} />
-        <Route path="/vendor-profile" element={<><NavigationBar /><VendorProfile /><Footer /></>} />
-        <Route path="/uploaded-documents" element={<><NavigationBar /><UploadedDocuments /><Footer /></>} />
-        <Route path="/quotes" element={<><NavigationBar /><QuoteDetails /><Footer /></>} />
-      </Route>
+
+      {/* Vendor Protected Route (Inline) */}
+      <Route
+        path="/vendor-dashboard"
+        element={
+          <ErrorBoundary routePath="/vendor-dashboard">
+            <VendorPrivateRouteInline>
+              <Layout>
+                {typeof VendorDashboard === "function" ? (
+                  <VendorDashboard />
+                ) : (
+                  <DashboardFallback />
+                )}
+              </Layout>
+            </VendorPrivateRouteInline>
+          </ErrorBoundary>
+        }
+      />
+      <Route path="/manage-listings" element={<Layout><ManageListings /></Layout>} />
+      <Route path="/view-orders" element={<Layout><ViewOrders /></Layout>} />
+      <Route path="/account-settings" element={<Layout><AccountSettings /></Layout>} />
+      <Route path="/vendor-profile" element={<Layout><VendorProfile /></Layout>} />
+      <Route path="/uploaded-documents" element={<Layout><UploadedDocuments /></Layout>} />
+      <Route path="/quotes" element={<Layout><QuoteDetails /></Layout>} />
+
+      {/* Admin Protected Routes */}
       <Route element={<AdminPrivateRoute />}>
-        <Route path="/admin-dashboard" element={<><NavigationBar /><AdminDashboard /><Footer /></>} />
-        <Route path="/admin-users" element={<><NavigationBar /><AdminUserManagement /><Footer /></>} />
+        <Route path="/admin-dashboard" element={<Layout><AdminDashboard /></Layout>} />
+        <Route path="/admin-users" element={<Layout><AdminUserManagement /></Layout>} />
       </Route>
-      <Route path="*" element={<><NavigationBar /><NotFound /><Footer /></>} />
+
+      {/* Catch-all Route */}
+      <Route path="*" element={<Layout><NotFound /></Layout>} />
     </Routes>
   );
 }
@@ -121,14 +272,16 @@ function AppRoutes() {
 function App() {
   console.log("✅ App rendering");
   return (
-    <Router>
-      <div className="App">
-        <NavigationTracker /> {/* Debug navigation */}
-        <Suspense fallback={<LoadingSpinner />}>
-          <AppRoutes />
-        </Suspense>
-      </div>
-    </Router>
+    <AuthProvider>
+      <Router>
+        <div className="App">
+          <NavigationTracker />
+          <Suspense fallback={<LoadingSpinner />}>
+            <AppRoutes />
+          </Suspense>
+        </div>
+      </Router>
+    </AuthProvider>
   );
 }
 

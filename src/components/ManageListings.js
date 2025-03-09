@@ -8,9 +8,10 @@ const ManageListings = () => {
   // Use the vendor token from localStorage
   const token = localStorage.getItem("vendorToken");
 
+  // Initialize listings as an empty array
   const [listings, setListings] = useState([]);
   const [showForm, setShowForm] = useState(false);
-  // Using "title" and "description" as required by the Listing model
+  // Using "title", "description" and "price" as required by the Listing model
   const [newListing, setNewListing] = useState({
     title: "",
     description: "",
@@ -27,6 +28,11 @@ const ManageListings = () => {
         const response = await axios.get(API_BASE_URL, {
           headers: { Authorization: `Bearer ${token}` },
         });
+        // Log the API response to verify its format
+        console.log("API Response for listings:", response.data);
+        // If your API returns an object like { listings: [...] }, then use:
+        // setListings(response.data.listings);
+        // Otherwise, if it returns an array directly:
         setListings(response.data);
       } catch (error) {
         setError(
@@ -154,39 +160,49 @@ const ManageListings = () => {
                 </tr>
               </thead>
               <tbody>
-                {listings.map((listing) => (
-                  <tr key={listing._id}>
-                    <td>{listing.title}</td>
-                    <td>{listing.description}</td>
-                    <td>£{listing.price.toFixed(2)}</td>
-                    <td>{listing.isActive ? "Yes" : "No"}</td>
-                    <td>
-                      {listing.uploads && listing.uploads.length > 0 ? (
-                        listing.uploads.map((file, index) => (
-                          <div key={index}>
-                            <a
-                              href={`/${file.filePath}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                            >
-                              {file.fileName}
-                            </a>
-                          </div>
-                        ))
-                      ) : (
-                        "No files"
-                      )}
-                    </td>
-                    <td>
-                      <button onClick={() => handleEdit(listing._id)}>
-                        ✏️ Edit
-                      </button>
-                      <button onClick={() => handleDelete(listing._id)}>
-                        🗑 Delete
-                      </button>
-                    </td>
+                {Array.isArray(listings) ? (
+                  listings.map((listing) => (
+                    <tr key={listing._id}>
+                      <td>{listing.title}</td>
+                      <td>{listing.description}</td>
+                      <td>
+                        {typeof listing.price === "number"
+                          ? `£${listing.price.toFixed(2)}`
+                          : listing.price}
+                      </td>
+                      <td>{listing.isActive ? "Yes" : "No"}</td>
+                      <td>
+                        {listing.uploads && listing.uploads.length > 0 ? (
+                          listing.uploads.map((file, index) => (
+                            <div key={index}>
+                              <a
+                                href={`/${file.filePath}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                              >
+                                {file.fileName}
+                              </a>
+                            </div>
+                          ))
+                        ) : (
+                          "No files"
+                        )}
+                      </td>
+                      <td>
+                        <button onClick={() => handleEdit(listing._id)}>
+                          ✏️ Edit
+                        </button>
+                        <button onClick={() => handleDelete(listing._id)}>
+                          🗑 Delete
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="6">No valid listings available.</td>
                   </tr>
-                ))}
+                )}
               </tbody>
             </table>
           )}

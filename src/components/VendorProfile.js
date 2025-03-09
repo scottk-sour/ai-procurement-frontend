@@ -13,18 +13,19 @@ const VendorProfile = () => {
     serviceAreas: [],
     companyLogo: '',
   });
-
   const [logoPreview, setLogoPreview] = useState(null);
+  const [loadingLogo, setLoadingLogo] = useState(false);
+  const [error, setError] = useState('');
   const availableServiceAreas = ['London', 'Manchester', 'Birmingham', 'Liverpool', 'Edinburgh'];
   const token = localStorage.getItem('vendorToken');
 
+  // Fetch vendor profile on mount
   useEffect(() => {
     if (!token) {
       navigate('/vendor-login');
       return;
     }
 
-    // Fetch existing vendor profile
     axios
       .get('http://localhost:5000/api/vendors/profile', {
         headers: { Authorization: `Bearer ${token}` },
@@ -38,22 +39,24 @@ const VendorProfile = () => {
       .catch((error) => console.error('Error fetching vendor profile:', error));
   }, [navigate, token]);
 
-  // Handle form input changes
+  // Handle text input changes
   const handleChange = (e) => {
     setVendor({ ...vendor, [e.target.name]: e.target.value });
+    setError(''); // Clear error on change
   };
 
-  // Handle service area selection
+  // Handle multi-select service areas
   const handleServiceAreaChange = (e) => {
     const selectedAreas = Array.from(e.target.selectedOptions, (option) => option.value);
     setVendor({ ...vendor, serviceAreas: selectedAreas });
   };
 
-  // Handle logo upload
+  // Handle logo upload with preview and loading state
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
+    setLoadingLogo(true);
     const formData = new FormData();
     formData.append('companyLogo', file);
 
@@ -65,71 +68,96 @@ const VendorProfile = () => {
         setLogoPreview(response.data.logoUrl);
         setVendor({ ...vendor, companyLogo: response.data.logoUrl });
       })
-      .catch((error) => console.error('Error uploading logo:', error));
+      .catch((error) => {
+        console.error('Error uploading logo:', error);
+        setError('Failed to upload logo. Please try again.');
+      })
+      .finally(() => setLoadingLogo(false));
   };
 
-  // Handle form submission
+  // Validate and submit form
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (!vendor.companyName || !vendor.contactEmail) {
+      setError('Company name and contact email are required.');
+      return;
+    }
 
     axios
       .put('http://localhost:5000/api/vendors/profile', vendor, {
         headers: { Authorization: `Bearer ${token}` },
       })
-      .then(() => alert('Profile updated successfully!'))
-      .catch((error) => console.error('Error updating profile:', error));
+      .then(() => alert('Profile updated successfully!')) // Replace with toast in production
+      .catch((error) => {
+        console.error('Error updating profile:', error);
+        setError('Failed to update profile. Please try again.');
+      });
   };
 
   return (
     <div className="vendor-profile-container">
       <h2>Edit Vendor Profile</h2>
+      {error && <div className="error-message">{error}</div>}
       <form onSubmit={handleSubmit}>
-        <label>Company Name:</label>
-        <input
-          type="text"
-          name="companyName"
-          value={vendor.companyName}
-          onChange={handleChange}
-          required
-        />
+        <div className="form-group">
+          <label>Company Name:</label>
+          <input
+            type="text"
+            name="companyName"
+            value={vendor.companyName}
+            onChange={handleChange}
+            required
+          />
+        </div>
 
-        <label>Contact Email:</label>
-        <input
-          type="email"
-          name="contactEmail"
-          value={vendor.contactEmail}
-          onChange={handleChange}
-          required
-        />
+        <div className="form-group">
+          <label>Contact Email:</label>
+          <input
+            type="email"
+            name="contactEmail"
+            value={vendor.contactEmail}
+            onChange={handleChange}
+            required
+          />
+        </div>
 
-        <label>Phone Number:</label>
-        <input
-          type="text"
-          name="phoneNumber"
-          value={vendor.phoneNumber}
-          onChange={handleChange}
-        />
+        <div className="form-group">
+          <label>Phone Number:</label>
+          <input
+            type="text"
+            name="phoneNumber"
+            value={vendor.phoneNumber}
+            onChange={handleChange}
+          />
+        </div>
 
-        <label>Business Type:</label>
-        <input
-          type="text"
-          name="businessType"
-          value={vendor.businessType}
-          onChange={handleChange}
-        />
+        <div className="form-group">
+          <label>Business Type:</label>
+          <input
+            type="text"
+            name="businessType"
+            value={vendor.businessType}
+            onChange={handleChange}
+          />
+        </div>
 
-        <label>Service Areas:</label>
-        <select multiple value={vendor.serviceAreas} onChange={handleServiceAreaChange}>
-          {availableServiceAreas.map((area) => (
-            <option key={area} value={area}>
-              {area}
-            </option>
-          ))}
-        </select>
+        <div className="form-group">
+          <label>Service Areas:</label>
+          <select multiple value={vendor.serviceAreas} onChange={handleServiceAreaChange}>
+            {availableServiceAreas.map((area) => (
+              <option key={area} value={area}>
+                {area}
+              </option>
+            ))}
+          </select>
+        </div>
 
-        <label>Company Logo:</label>
-        <input type="file" accept="image/*" onChange={handleFileUpload} />
-        {logoPreview && <img src={logoPreview} alt="Company Logo" className="logo-preview" />}
+        <div className="form-group">
+          <label>Company Logo:</label>
+          <input type="file" accept="image/*" onChange={handleFileUpload} />
+          {loadingLogo && <div className="loading-spinner">Uploading...</div>}
+          {logoPreview && <img src={logoPreview} alt="Company Logo" className="logo-preview" />}
+        </div>
 
         <button type="submit">Save Changes</button>
       </form>

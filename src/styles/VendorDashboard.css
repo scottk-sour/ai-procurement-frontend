@@ -2,16 +2,16 @@
 
 /* Global Variables */
 :root {
-  --primary-color: #0056b3;
-  --secondary-color: #007bff;
-  --danger-color: #d9534f;
-  --danger-hover-color: #c9302c;
-  --bg-color: #f8f9fa;
-  --text-color: #333;
-  --widget-bg-color: #fff;
-  --border-radius: 8px;
-  --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  --transition-duration: 0.3s;
+  --primary-color: #0056b3;         /* Deep blue for primary elements */
+  --secondary-color: #007bff;       /* Lighter blue for accents */
+  --danger-color: #d9534f;         /* Red for warnings or logout */
+  --danger-hover-color: #c9302c;   /* Darker red on hover */
+  --bg-color: #f8f9fa;            /* Light gray background */
+  --text-color: #333;             /* Dark text for readability */
+  --widget-bg-color: #fff;        /* White for widgets */
+  --border-radius: 8px;           /* Rounded corners */
+  --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+  --transition-duration: 0.3s;    /* Smooth transitions */
 }
 
 /* General Container */
@@ -19,7 +19,7 @@
   max-width: 1200px;
   margin: 20px auto;
   padding: 40px;
-  font-family: 'Roboto', sans-serif;
+  font-family: 'Poppins', sans-serif; /* Modern font */
   background-color: var(--bg-color);
   color: var(--text-color);
   border-radius: var(--border-radius);
@@ -162,7 +162,6 @@
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   text-align: center;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
-  position: relative;
 }
 
 .stat-widget:hover {
@@ -240,7 +239,7 @@
   color: var(--primary-color);
 }
 
-/* Analytics Section (Optional) */
+/* Analytics Section */
 .analytics-section {
   margin-top: 40px;
   background-color: var(--widget-bg-color);
@@ -338,7 +337,7 @@
 }
 
 .recent-activity li:hover {
-  background-color: var(--hover-bg, #f1f4f9);
+  background-color: #f1f4f9;
 }
 
 .recent-activity li:last-child {

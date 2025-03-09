@@ -1,52 +1,126 @@
+/* src/styles/VendorProfile.css */
+
 .vendor-profile-container {
-    max-width: 600px;
-    margin: auto;
+  max-width: 800px; /* Wider for a spacious feel */
+  margin: 40px auto; /* Extra margin for breathing room */
+  padding: 40px;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); /* Deeper shadow for elevation */
+  background: linear-gradient(145deg, #ffffff, #f1f5f9); /* Subtle gradient */
+  position: relative;
+  overflow: hidden;
+}
+
+.vendor-profile-container h2 {
+  text-align: center;
+  color: #1e3a8a; /* TENDORAI blue */
+  font-size: 2.5rem;
+  font-weight: 900;
+  margin-bottom: 2rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.form-group {
+  margin-bottom: 1.5rem; /* More spacing between fields */
+}
+
+.vendor-profile-container label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 700;
+  color: #1e3a8a; /* Blue for consistency */
+  font-size: 1.2rem;
+}
+
+.vendor-profile-container input,
+.vendor-profile-container select {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.vendor-profile-container input:focus,
+.vendor-profile-container select:focus {
+  border-color: #f97316; /* TENDORAI orange */
+  box-shadow: 0 0 5px rgba(249, 115, 22, 0.5); /* Glow effect */
+  outline: none;
+}
+
+.vendor-profile-container select {
+  height: 120px; /* Taller for multi-select visibility */
+}
+
+.vendor-profile-container .logo-preview {
+  display: block;
+  margin-top: 1rem;
+  max-width: 150px;
+  border-radius: 50%; /* Circular for premium feel */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease;
+}
+
+.vendor-profile-container .logo-preview:hover {
+  transform: scale(1.05); /* Subtle hover effect */
+}
+
+.vendor-profile-container .loading-spinner {
+  margin-top: 1rem;
+  color: #1e3a8a;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.vendor-profile-container .error-message {
+  color: #dc2626; /* Red for errors */
+  text-align: center;
+  margin-bottom: 1.5rem;
+  font-size: 1rem;
+}
+
+.vendor-profile-container button {
+  display: block;
+  width: 100%;
+  padding: 14px;
+  margin-top: 2rem;
+  background: linear-gradient(45deg, #f97316, #ea580c); /* Orange gradient */
+  color: #fff;
+  font-size: 1.2rem;
+  font-weight: 700;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.4s ease, transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.vendor-profile-container button:hover {
+  background: linear-gradient(45deg, #ea580c, #c2410c); /* Darker on hover */
+  transform: translateY(-3px); /* Lift effect */
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .vendor-profile-container {
+    max-width: 100%;
+    margin: 20px;
     padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    background: #fff;
   }
-  
+
   .vendor-profile-container h2 {
-    text-align: center;
-    color: #333;
+    font-size: 2rem;
   }
-  
-  .vendor-profile-container label {
-    display: block;
-    margin-top: 10px;
-    font-weight: bold;
-  }
-  
+
   .vendor-profile-container input,
   .vendor-profile-container select {
-    width: 100%;
-    padding: 8px;
-    margin-top: 5px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
+    font-size: 0.9rem;
   }
-  
-  .vendor-profile-container .logo-preview {
-    display: block;
-    margin-top: 10px;
-    max-width: 150px;
-    border-radius: 10px;
-  }
-  
+
   .vendor-profile-container button {
-    display: block;
-    width: 100%;
-    padding: 10px;
-    margin-top: 15px;
-    background-color: #007bff;
-    color: #fff;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
+    font-size: 1rem;
+    padding: 12px;
   }
-  
-  .vendor-profile-container button:hover {
-    background-color: #0056b3;
-  }
-  
+}

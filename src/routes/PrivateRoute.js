@@ -1,49 +1,63 @@
-// src/routes/PrivateRoute.js
 import React, { useState, useEffect } from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
+import { getAuthToken } from '../utils/auth'; // Ensure this function returns your user token
 
 const PrivateRoute = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(null);
+  // isLoggedIn starts as null to indicate "loading"
+  const [isLoggedIn, setLoggedIn] = useState(null);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const checkAuth = async () => {
-      let token = localStorage.getItem('userToken');
-      console.log("🔐 User Private Route Access: Stored Token from localStorage =", token, "Expected Token =", localStorage.getItem('userToken'));
+      const token = getAuthToken();
+      console.log("🔐 Stored Token from localStorage =", token);
       if (!token) {
-        console.log("❌ No userToken found, redirecting to login...");
-        setIsAuthenticated(false);
+        console.log("❌ No token found, redirecting to login...");
+        setLoggedIn(false);
         return;
       }
 
-      // Clear any cached or outdated tokens in localStorage if mismatched
-      const expectedToken = localStorage.getItem('userToken');
-      if (token !== expectedToken) {
-        console.log("⚠ Token mismatch detected, updating to expected token...");
-        token = expectedToken;
-        localStorage.setItem('userToken', token); // Ensure consistency
-      }
-
       try {
-        const res = await fetch('http://localhost:5000/api/users/auth/verify', { // Ensure correct path
+        const res = await fetch('http://localhost:5000/api/auth/verify', {
           headers: { Authorization: `Bearer ${token}` },
         });
-        console.log("API Response Status (User):", res.status, "OK:", res.ok, "Response:", await res.text());
-        setIsAuthenticated(res.ok); // True if status is 200-299
+        const responseText = await res.text();
+        console.log("API Response Status (User):", res.status, "OK:", res.ok, "Response:", responseText);
+        if (res.ok) {
+          setLoggedIn(true);
+        } else {
+          throw new Error(`Token verification failed with status: ${res.status}`);
+        }
       } catch (error) {
         console.error('User Token verification failed:', error.message, "Stack:", error.stack);
-        setIsAuthenticated(false);
+        setError('Authentication failed. Please log in again.');
+        setLoggedIn(false);
       }
     };
 
     checkAuth();
   }, []);
 
-  if (isAuthenticated === null) {
-    console.log("Rendering loading state for User PrivateRoute...");
+  // While checking authentication, render a loading state.
+  if (isLoggedIn === null) {
+    console.log("Rendering loading state for PrivateRoute...");
     return <div className="loading-spinner">Loading User Dashboard...</div>;
   }
 
-  return isAuthenticated ? <Outlet /> : <Navigate to="/login" replace />;
+  // If an error occurred, render an error message.
+  if (error) {
+    console.log("Rendering error state:", error);
+    return (
+      <div className="error-message">
+        <p>{error}</p>
+        <button onClick={() => window.location.reload()}>Retry</button>
+      </div>
+    );
+  }
+
+  // If authenticated, render the nested routes via Outlet.
+  // Otherwise, redirect to the login page.
+  return isLoggedIn ? <Outlet /> : <Navigate to="/login" replace />;
 };
 
 export default PrivateRoute;

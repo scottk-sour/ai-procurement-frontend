@@ -1,4 +1,5 @@
 import React from 'react';
+import './LeadsTable.css';
 
 const LeadsTable = ({ leads }) => {
   return (
@@ -17,12 +18,12 @@ const LeadsTable = ({ leads }) => {
           </thead>
           <tbody>
             {leads.map((lead) => (
-              <tr key={lead._id}>
+              <tr key={lead._id} className="lead-row">
                 <td>{lead.name}</td>
                 <td>{lead.industry}</td>
                 <td>{lead.status}</td>
                 <td>{lead.value}</td>
-                <td>{lead.lastContactDate}</td>
+                <td>{new Date(lead.lastContactDate).toLocaleDateString("en-GB")}</td>
               </tr>
             ))}
           </tbody>

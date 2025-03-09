@@ -1,18 +1,101 @@
 // src/components/HowItWorks.js
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { Link, useLocation } from "react-router-dom";
-import "../styles/HowItWorks.css"; // Use your existing regular CSS (updated below)
+import "../styles/HowItWorks.css";
 
 const HowItWorks = () => {
   const { pathname } = useLocation();
-  const [isVisible, setIsVisible] = useState(false); // State for animation visibility
+  const [isVisible, setIsVisible] = useState(false); // Hero visibility
+  const [stepVisibility, setStepVisibility] = useState({}); // Per-step visibility
+  const stepRefs = useRef([]); // Refs for IntersectionObserver
 
+  // Scroll to top on route change
   useEffect(() => {
-    window.scrollTo(0, 0);
-    // Set visibility after a short delay for animation effect
-    const timer = setTimeout(() => setIsVisible(true), 100);
-    return () => clearTimeout(timer);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    setTimeout(() => setIsVisible(true), 100); // Hero animation trigger
   }, [pathname]);
+
+  // IntersectionObserver for step animations
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const index = entry.target.dataset.index;
+            setStepVisibility((prev) => ({ ...prev, [index]: true }));
+          }
+        });
+      },
+      { threshold: 0.3 } // Trigger when 30% of element is visible
+    );
+
+    stepRefs.current.forEach((ref) => ref && observer.observe(ref));
+    return () => observer.disconnect();
+  }, []);
+
+  const steps = [
+    {
+      number: "1",
+      title: "Sign Up & Define Your Needs",
+      text: "Create a free account in seconds and specify your procurement needs with ease.",
+      items: [
+        "Create your free business account.",
+        "Specify product or service requirements.",
+        "Set vendor preferences or let AI recommend.",
+      ],
+    },
+    {
+      number: "2",
+      title: "Request Quotes Instantly",
+      text: "Submit your request and receive AI-generated quotes in seconds—no lengthy forms.",
+      items: [
+        "Enter details (e.g., “5 office printers”).",
+        "Upload documents if needed.",
+        "Click “Request Quote” to activate AI.",
+      ],
+    },
+    {
+      number: "3",
+      title: "AI Matches Top Vendors",
+      text: "Our AI identifies your best three vendors from thousands, ensuring optimal matches.",
+      items: [
+        "Competitive pricing and discounts.",
+        "Service level agreements (SLAs).",
+        "Warranty, maintenance, and vendor ratings.",
+      ],
+    },
+    {
+      number: "4",
+      title: "Compare & Select",
+      text: "Review tailored quotes side-by-side for confident decision-making.",
+      items: [
+        "Full cost breakdowns.",
+        "Delivery and service timelines.",
+        "Vendor profiles and reviews.",
+        "Accept or negotiate directly.",
+      ],
+    },
+    {
+      number: "5",
+      title: "Finalize Securely",
+      text: "Complete procurement digitally with secure, paperless processes.",
+      items: [
+        "AI-generated contracts with e-signatures.",
+        "Fully online, paperless workflow.",
+        "Real-time order tracking.",
+      ],
+    },
+    {
+      number: "6",
+      title: "Manage in Your Dashboard",
+      text: "Oversee all activities from a single, intuitive dashboard.",
+      items: [
+        "Track orders and spending.",
+        "Access AI-driven cost-saving insights.",
+        "Reorder with one click.",
+      ],
+    },
+  ];
 
   return (
     <div className="how-it-works-page">
@@ -26,93 +109,29 @@ const HowItWorks = () => {
             e.target.style.backgroundImage = "none";
             e.target.style.background = "linear-gradient(135deg, #1e3a8a, #2d4a8a)";
           }}
-          data-parallax-speed="0.3"
         />
-        <div className="hero-content">
+        <div className={`hero-content ${isVisible ? "visible" : ""}`}>
           <h1 className="hero-title">Revolutionize Procurement with AI—Free for Users</h1>
           <p className="hero-subtitle">
             Unleash the power of AI to save time, reduce costs, and streamline procurement—at no cost.
           </p>
-          <Link to="/signup" className="hero-button">
+          <Link to="/signup" className="hero-button" aria-label="Start Free Today">
             Start Free Today
           </Link>
         </div>
       </header>
 
       {/* Steps Section */}
-      <div className="steps-section">
+      <section className="steps-section">
         <div className="section-container">
-          {[
-            {
-              number: "1",
-              title: "Sign Up & Define Your Needs",
-              text: "Create a free account in seconds and specify your procurement needs with ease.",
-              items: [
-                "Create your free business account.",
-                "Specify product or service requirements.",
-                "Set vendor preferences or let AI recommend.",
-              ],
-            },
-            {
-              number: "2",
-              title: "Request Quotes Instantly",
-              text: "Submit your request and receive AI-generated quotes in seconds—no lengthy forms.",
-              items: [
-                "Enter details (e.g., “5 office printers”).",
-                "Upload documents if needed.",
-                "Click “Request Quote” to activate AI.",
-              ],
-            },
-            {
-              number: "3",
-              title: "AI Matches Top Vendors",
-              text: "Our AI identifies your best three vendors from thousands, ensuring optimal matches.",
-              items: [
-                "Competitive pricing and discounts.",
-                "Service level agreements (SLAs).",
-                "Warranty, maintenance, and vendor ratings.",
-              ],
-            },
-            {
-              number: "4",
-              title: "Compare & Select",
-              text: "Review tailored quotes side-by-side for confident decision-making.",
-              items: [
-                "Full cost breakdowns.",
-                "Delivery and service timelines.",
-                "Vendor profiles and reviews.",
-                "Accept or negotiate directly.",
-              ],
-            },
-            {
-              number: "5",
-              title: "Finalize Securely",
-              text: "Complete procurement digitally with secure, paperless processes.",
-              items: [
-                "AI-generated contracts with e-signatures.",
-                "Fully online, paperless workflow.",
-                "Real-time order tracking.",
-              ],
-            },
-            {
-              number: "6",
-              title: "Manage in Your Dashboard",
-              text: "Oversee all activities from a single, intuitive dashboard.",
-              items: [
-                "Track orders and spending.",
-                "Access AI-driven cost-saving insights.",
-                "Reorder with one click.",
-              ],
-            },
-          ].map((step, index) => (
-            <section
-              key={index}
-              className={`step-section ${index % 2 === 0 ? "light-bg" : "dark-bg"}`}
-              data-animation="fadeInUp"
-              data-delay={index * 200}
-              data-visible={isVisible} // Apply visibility dynamically
-            >
-              <div className="step-card">
+          <div className="steps-timeline">
+            {steps.map((step, index) => (
+              <div
+                key={index}
+                ref={(el) => (stepRefs.current[index] = el)}
+                className={`step-card ${stepVisibility[index] ? "visible" : ""}`}
+                data-index={index}
+              >
                 <div className="step-number">{step.number}</div>
                 <h2 className="step-title">{step.title}</h2>
                 <p className="step-text">{step.text}</p>
@@ -122,10 +141,10 @@ const HowItWorks = () => {
                   ))}
                 </ul>
               </div>
-            </section>
-          ))}
+            ))}
+          </div>
         </div>
-      </div>
+      </section>
 
       {/* Why Choose Us Section */}
       <section className="why-choose-us">
@@ -141,12 +160,10 @@ const HowItWorks = () => {
             ].map((item, index) => (
               <div
                 key={index}
-                className="why-item"
-                data-animation="fadeInUp"
-                data-delay={index * 200}
-                data-visible={isVisible} // Apply visibility dynamically
+                className={`why-item ${stepVisibility[index] ? "visible" : ""}`}
+                data-index={index}
               >
-                <div className="why-icon">{item.icon}</div>
+                <span className="why-icon">{item.icon}</span>
                 <h3 className="why-item-title">{item.title}</h3>
                 <p className="why-item-text">{item.text}</p>
               </div>
@@ -163,8 +180,8 @@ const HowItWorks = () => {
             Sign up today and experience AI-powered procurement with no cost or commitment.
           </p>
           <div className="cta-buttons">
-            <Link to="/signup" className="primary-button">Get Started Free</Link>
-            <Link to="/contact" className="secondary-button">Contact Us</Link>
+            <Link to="/signup" className="primary-button" aria-label="Get Started Free">Get Started Free</Link>
+            <Link to="/contact" className="secondary-button" aria-label="Contact Us">Contact Us</Link>
           </div>
         </div>
       </section>

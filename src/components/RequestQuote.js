@@ -2,9 +2,12 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDropzone } from "react-dropzone";
 import "./RequestQuote.css";
+import { getAuthToken, getUserId } from "../utils/auth";
+import { useAuth } from "../utils/AuthContext";
 
 const RequestQuote = () => {
   const navigate = useNavigate();
+  const { isLoggedIn } = useAuth();
   const [formData, setFormData] = useState({
     companyName: "",
     industryType: "",
@@ -24,13 +27,13 @@ const RequestQuote = () => {
     min_speed: "",
     max_lease_price: "",
     required_functions: [],
+    serviceType: "Photocopiers", // Added with default value
   });
 
   const [uploadedFiles, setUploadedFiles] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
-  // Handle input changes
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     if (type === "checkbox") {
@@ -45,7 +48,6 @@ const RequestQuote = () => {
     }
   };
 
-  // Handle file upload using react-dropzone
   const { getRootProps, getInputProps } = useDropzone({
     accept: {
       "application/pdf": [".pdf"],
@@ -57,7 +59,6 @@ const RequestQuote = () => {
     },
   });
 
-  // Helper to format form data before sending
   const formatFormData = (data) => {
     return {
       ...data,
@@ -70,68 +71,69 @@ const RequestQuote = () => {
     };
   };
 
-  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
     setErrorMessage("");
 
+    if (!isLoggedIn) {
+      alert("You must be logged in to submit a quote request.");
+      navigate("/login");
+      return;
+    }
+
+    const token = getAuthToken();
+    const userId = getUserId();
+
+    if (!token || !userId) {
+      alert("Authentication failed. Please log in again.");
+      navigate("/login");
+      return;
+    }
+
+    const formattedData = formatFormData(formData);
+    console.log("🚀 Formatted Data:", formattedData);
+
     try {
-      const token = localStorage.getItem("token");
-      const userId = localStorage.getItem("userId");
-
-      if (!token || !userId) {
-        alert("You must be logged in to submit a quote request.");
-        navigate("/login");
-        return;
-      }
-
-      // Format the form data to convert types appropriately
-      const formattedData = formatFormData(formData);
-      console.log("🚀 Formatted Data:", formattedData);
-
       let response, data;
 
       if (uploadedFiles.length > 0) {
-        // When there are files, send multipart/form-data
         const requestData = new FormData();
         requestData.append("userRequirements", JSON.stringify(formattedData));
         requestData.append("userId", userId);
         uploadedFiles.forEach((file) => requestData.append("documents", file));
 
         console.log("📤 Sending API Request with files...");
-
         response = await fetch("http://localhost:5000/api/quotes/request", {
           method: "POST",
-          headers: { Authorization: `Bearer ${token}` }, // FormData handles Content-Type automatically
+          headers: { Authorization: `Bearer ${token}` },
           body: requestData,
         });
       } else {
-        // When there are no files, send application/json
         console.log("📤 Sending API Request without files...");
-
         response = await fetch("http://localhost:5000/api/quotes/request", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-          // Note: We now stringify the formattedData so userRequirements is a valid JSON string.
-          body: JSON.stringify({ userRequirements: JSON.stringify(formattedData), userId }),
+          body: JSON.stringify({ ...formattedData, userId }),
         });
       }
 
       data = await response.json();
       console.log("📩 Response data:", data);
 
-      if (!response.ok)
+      if (!response.ok) {
         throw new Error(data.message || "Failed to submit the request.");
+      }
 
       console.log("✅ Quote request submitted successfully!");
+      alert("Quote request submitted successfully!");
       navigate("/compare-vendors");
     } catch (error) {
-      console.error("❌ Error submitting quote:", error);
-      setErrorMessage(error.message || "Failed to fetch recommendations.");
+      console.error("Error submitting quote request:", error.message);
+      setErrorMessage(error.message || "An error occurred while submitting the request.");
     } finally {
       setIsSubmitting(false);
     }
@@ -142,6 +144,20 @@ const RequestQuote = () => {
       <h2>Request a Quote</h2>
       {errorMessage && <p style={{ color: "red" }}>{errorMessage}</p>}
       <form onSubmit={handleSubmit}>
+        <label>
+          Service Type:{" "}
+          <select
+            name="serviceType"
+            value={formData.serviceType}
+            onChange={handleChange}
+            required
+          >
+            <option value="Photocopiers">Photocopiers</option>
+            <option value="Printers">Printers</option>
+            <option value="Scanners">Scanners</option>
+            {/* Add more options as needed */}
+          </select>
+        </label>
         <label>
           Company Name:{" "}
           <input
@@ -259,7 +275,6 @@ const RequestQuote = () => {
             Duplex Printing
           </label>
         </fieldset>
-        {/* Upload Documents */}
         <div {...getRootProps()} className="dropzone">
           <input {...getInputProps()} />
           <p>

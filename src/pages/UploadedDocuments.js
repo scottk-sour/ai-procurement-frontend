@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FaFileAlt, FaDownload, FaTrash, FaArrowLeft } from "react-icons/fa";
-import "../styles/UploadedDocuments.css"; // Create this CSS file
+import "../styles/UploadedDocuments.css";
+import { getAuthToken } from '../utils/auth'; // Import for consistent token retrieval
 
 const UploadedDocuments = () => {
   const navigate = useNavigate();
@@ -12,7 +13,13 @@ const UploadedDocuments = () => {
   useEffect(() => {
     const fetchUploadedFiles = async () => {
       try {
-        const token = localStorage.getItem("userToken");
+        const token = getAuthToken(); // Use consistent token key "token"
+        if (!token) {
+          setMessage("⚠ Please log in to view uploaded documents.");
+          setLoading(false);
+          return;
+        }
+
         const response = await fetch("http://localhost:5000/api/users/uploaded-files", {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -26,8 +33,9 @@ const UploadedDocuments = () => {
       } catch (error) {
         console.error("Error fetching uploaded files:", error);
         setMessage("⚠ Error loading documents.");
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
 
     fetchUploadedFiles();
@@ -37,7 +45,12 @@ const UploadedDocuments = () => {
     if (!window.confirm("Are you sure you want to delete this file?")) return;
 
     try {
-      const token = localStorage.getItem("userToken");
+      const token = getAuthToken(); // Use consistent token key "token"
+      if (!token) {
+        setMessage("⚠ Please log in to delete files.");
+        return;
+      }
+
       const response = await fetch(`http://localhost:5000/api/users/delete-file/${fileId}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
@@ -47,7 +60,7 @@ const UploadedDocuments = () => {
         throw new Error("Failed to delete file.");
       }
 
-      setUploadedFiles(uploadedFiles.filter(file => file._id !== fileId));
+      setUploadedFiles(uploadedFiles.filter((file) => file._id !== fileId));
       setMessage("✅ File deleted successfully.");
     } catch (error) {
       console.error("Error deleting file:", error);
@@ -62,6 +75,12 @@ const UploadedDocuments = () => {
       </button>
 
       <h2><FaFileAlt /> Uploaded Documents</h2>
+
+      {message && (
+        <p className={message.startsWith("✅") ? "success-message" : "error-message"}>
+          {message}
+        </p>
+      )}
 
       {loading ? (
         <p>Loading...</p>

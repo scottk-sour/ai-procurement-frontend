@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import Select from "react-select";
 import { useNavigate, useLocation, Link } from "react-router-dom";
-import "./VendorSignup.css"; // Use the existing VendorSignup.css for consistency
+import "./VendorSignup.css";
 
 const servicesOptions = [
   { value: "CCTV", label: "CCTV" },
@@ -14,49 +14,52 @@ const servicesOptions = [
 
 const VendorSignup = () => {
   const [formData, setFormData] = useState({
-    name: "", // Vendor Name
-    company: "", // Company Name
+    name: "",
+    company: "",
     email: "",
     password: "",
-    services: [], // Array of selected services
+    services: [],
     phone: "",
     address: "",
     location: "",
-    price: "", // Average price for service
-    serviceLevel: "", // e.g., "Premium", "Standard"
-    responseTime: "", // in hours
-    yearsInBusiness: "", // Number of years
-    support: "", // e.g., "24/7", "Business Hours"
+    price: "",
+    serviceLevel: "",
+    responseTime: "",
+    yearsInBusiness: "",
+    support: "",
   });
-  const [passwordVisible, setPasswordVisible] = useState(false); // Password visibility state
+  const [passwordVisible, setPasswordVisible] = useState(false);
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [isVisible, setIsVisible] = useState(false); // State for animation visibility
+  const [isVisible, setIsVisible] = useState(false);
 
   const navigate = useNavigate();
   const { pathname } = useLocation();
 
-  // Scroll to top on page load, debug mount, and set visibility
   useEffect(() => {
     window.scrollTo(0, 0);
-    const timer = setTimeout(() => setIsVisible(true), 100); // Match other services' delay
+    const timer = setTimeout(() => setIsVisible(true), 100);
     return () => clearTimeout(timer);
   }, [pathname]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
-    if (error || message) setError(""); setMessage(""); // Clear feedback on change
+    if (error || message) {
+      setError("");
+      setMessage("");
+    }
   };
 
   const handleServicesChange = (selectedOptions) => {
     setFormData((prev) => ({
       ...prev,
-      services: selectedOptions.map((option) => option.value),
+      services: selectedOptions ? selectedOptions.map((option) => option.value) : [],
     }));
   };
 
   const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  const validatePhone = (phone) => /^\+?\d{10,15}$/.test(phone) || !phone;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -64,10 +67,10 @@ const VendorSignup = () => {
     setError("");
     setMessage("");
 
-    const { name, company, email, password, services, phone, address, location, price, serviceLevel, responseTime, yearsInBusiness, support } = formData;
+    const { name, company, email, password, services, phone } = formData;
 
     if (!name || !company || !email || !password || !services.length) {
-      setError("Please complete all required fields.");
+      setError("Please complete all required fields: Name, Company, Email, Password, and Services.");
       setLoading(false);
       return;
     }
@@ -78,29 +81,37 @@ const VendorSignup = () => {
       return;
     }
 
+    if (phone && !validatePhone(phone)) {
+      setError("Please enter a valid phone number (10-15 digits) or leave it blank.");
+      setLoading(false);
+      return;
+    }
+
     try {
-      await axios.post(
-        "http://localhost:5000/api/auth/vendor/signup",
+      const response = await axios.post(
+        "http://localhost:5000/api/vendors/signup", // Correct endpoint
         {
           name,
           company,
           email,
           password,
           services,
-          phone: phone || null, // Use null or empty string if optional
-          address: address || null,
-          location: location || null,
-          price: price ? parseFloat(price) : null, // Convert to number if provided
-          serviceLevel: serviceLevel || null,
-          responseTime: responseTime ? parseInt(responseTime, 10) : null, // Convert to integer if provided
-          yearsInBusiness: yearsInBusiness ? parseInt(yearsInBusiness, 10) : null, // Convert to integer if provided
-          support: support || null,
+          phone: formData.phone || "",
+          address: formData.address || "",
+          location: formData.location || "",
+          price: formData.price ? parseFloat(formData.price) : 0,
+          serviceLevel: formData.serviceLevel || "",
+          responseTime: formData.responseTime ? parseInt(formData.responseTime, 10) : 0,
+          yearsInBusiness: formData.yearsInBusiness ? parseInt(formData.yearsInBusiness, 10) : 0,
+          support: formData.support || "",
         }
       );
+
+      console.log("Signup response:", response.data);
       setMessage("Vendor registration successful! Redirecting to login...");
       setTimeout(() => navigate("/vendor-login"), 2000);
     } catch (error) {
-      console.error("Error signing up vendor:", error);
+      console.error("Signup error:", error.response?.data || error.message);
       setError(error.response?.data?.message || "Error signing up vendor. Please try again.");
     } finally {
       setLoading(false);
@@ -109,7 +120,6 @@ const VendorSignup = () => {
 
   return (
     <div className="vendor-signup-page" data-animation="fadeInUp" data-visible={isVisible}>
-      {/* Hero Section */}
       <header className="vendor-signup-hero" data-animation="fadeIn" data-delay="200" data-visible={isVisible}>
         <h1 className="vendor-signup-title">Become a TENDORAI Vendor</h1>
         <p className="vendor-signup-subtitle">
@@ -117,12 +127,11 @@ const VendorSignup = () => {
         </p>
       </header>
 
-      {/* Signup Form */}
       <section className="vendor-signup-section" data-animation="fadeInUp" data-delay="400" data-visible={isVisible}>
         <div className="section-container">
           <form onSubmit={handleSubmit} className="vendor-signup-form">
-            {error && <div className={`form-status error`}>{error}</div>}
-            {message && <div className={`form-status success`}>{message}</div>}
+            {error && <div className="form-status error">{error}</div>}
+            {message && <div className="form-status success">{message}</div>}
 
             <div className="form-group" data-animation="fadeInUp" data-delay="500" data-visible={isVisible}>
               <label htmlFor="name">Vendor Name <span className="required">*</span></label>
@@ -173,7 +182,7 @@ const VendorSignup = () => {
               <label htmlFor="password">Password <span className="required">*</span></label>
               <div className="password-input-wrapper">
                 <input
-                  type={passwordVisible ? "text" : "password"} // Use passwordVisible
+                  type={passwordVisible ? "text" : "password"}
                   id="password"
                   name="password"
                   placeholder="Create a password"
@@ -184,10 +193,11 @@ const VendorSignup = () => {
                 />
                 <button
                   type="button"
-                  onClick={() => setPasswordVisible(!passwordVisible)} // Use setPasswordVisible
+                  onClick={() => setPasswordVisible(!passwordVisible)}
                   className="toggle-password"
+                  aria-label={passwordVisible ? "Hide password" : "Show password"}
                 >
-                  {passwordVisible ? "Hide" : "Show"} {/* Use passwordVisible */}
+                  {passwordVisible ? "Hide" : "Show"}
                 </button>
               </div>
             </div>
@@ -204,15 +214,15 @@ const VendorSignup = () => {
                 styles={{
                   control: (base) => ({
                     ...base,
-                    borderColor: "#e5e7eb", /* Matching other services */
-                    borderRadius: "10px", /* Larger radius for luxury */
+                    borderColor: "#e5e7eb",
+                    borderRadius: "10px",
                     boxShadow: "none",
-                    "&:hover": { borderColor: "#f97316" }, /* TENDORAI orange */
+                    "&:hover": { borderColor: "#f97316" },
                   }),
                   option: (base, state) => ({
                     ...base,
                     backgroundColor: state.isFocused ? "#f9fafb" : "white",
-                    color: "#1e3a8a", /* Deeper TENDORAI blue */
+                    color: "#1e3a8a",
                   }),
                   multiValue: (base) => ({
                     ...base,
@@ -339,7 +349,14 @@ const VendorSignup = () => {
               />
             </div>
 
-            <button type="submit" className="submit-button" disabled={loading} data-animation="fadeInUp" data-delay="1800" data-visible={isVisible}>
+            <button
+              type="submit"
+              className="submit-button"
+              disabled={loading}
+              data-animation="fadeInUp"
+              data-delay="1800"
+              data-visible={isVisible}
+            >
               {loading ? (
                 <span className="loading-spinner">Registering...</span>
               ) : (
@@ -347,7 +364,12 @@ const VendorSignup = () => {
               )}
             </button>
 
-            <p className="login-link" data-animation="fadeInUp" data-delay="1900" data-visible={isVisible}>
+            <p
+              className="login-link"
+              data-animation="fadeInUp"
+              data-delay="1900"
+              data-visible={isVisible}
+            >
               Already have a vendor account? <Link to="/vendor-login">Log in here</Link>
             </p>
           </form>

@@ -1,12 +1,12 @@
 import React from 'react';
-import './KPIs.css'; // Import CSS for KPIs
+import './KPIs.css';
 
 const KPIs = ({ data }) => {
   return (
     <div className="kpi-container">
       {Object.entries(data).map(([key, value]) => (
         <div className="kpi-card" key={key}>
-          <h3>{key}</h3>
+          <h3>{key.replace(/([A-Z])/g, ' $1').toUpperCase()}</h3>
           <p>{value}</p>
         </div>
       ))}

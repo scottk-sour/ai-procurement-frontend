@@ -1,25 +1,26 @@
 /* 📌 General Container */
 .compare-vendors-container {
   text-align: center;
-  padding: 20px;
-  background: linear-gradient(135deg, #f3f4f6, #e5e7eb);
-  border-radius: 12px;
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
-  max-width: 1200px;
-  margin: 0 auto;
+  padding: 24px;
+  background: linear-gradient(135deg, rgba(243, 244, 246, 0.9), rgba(229, 231, 235, 0.9));
+  border-radius: 16px;
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
+  max-width: 1280px;
+  margin: 20px auto;
   font-family: "Poppins", sans-serif;
-  role: main;
-  aria-label: "Vendor comparison tool";
+  backdrop-filter: blur(10px); /* Glassmorphism effect */
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 /* 📌 Title Styling */
 .compare-vendors-title {
-  font-size: 32px;
+  font-size: 36px;
   font-weight: 700;
-  margin-bottom: 24px;
-  color: #1e3a8a; /* TENDORAI deep blue */
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+  margin-bottom: 28px;
+  color: #1e3a8a;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.15);
   animation: fadeIn 1s ease-in-out;
+  letter-spacing: 0.5px;
 }
 
 @keyframes fadeIn {
@@ -37,15 +38,15 @@
 .filters-section {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: 16px;
   justify-content: center;
-  margin-bottom: 20px;
-  padding: 16px;
-  background-color: #fff;
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
-  role: search;
-  aria-label: "Vendor filters and search";
+  margin-bottom: 24px;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 12px;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.05);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 .search-input,
@@ -54,13 +55,14 @@
 .rating-filter,
 .location-filter,
 .service-filter {
-  padding: 10px;
-  border: 2px solid #ddd;
-  border-radius: 6px;
-  font-size: 14px;
+  padding: 12px;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 15px;
   font-family: "Poppins", sans-serif;
-  transition: border-color 0.3s ease-in-out;
-  outline: none;
+  transition: all 0.3s ease-in-out;
+  background: rgba(255, 255, 255, 0.8);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .search-input:focus,
@@ -69,163 +71,178 @@
 .rating-filter:focus,
 .location-filter:focus,
 .service-filter:focus {
-  border-color: #f97316; /* TENDORAI orange */
-  outline: none;
-  box-shadow: 0 0 8px rgba(249, 115, 22, 0.3);
+  border-color: #f97316;
+  box-shadow: 0 0 10px rgba(249, 115, 22, 0.4), inset 0 2px 4px rgba(0, 0, 0, 0.05);
+  transform: scale(1.02);
 }
 
 /* 📌 Vendor Cards Layout */
 .vendor-cards {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 24px;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 28px;
   justify-content: center;
-  margin-top: 24px;
-  padding: 16px;
-  role: list;
+  margin-top: 28px;
+  padding: 20px;
 }
 
 /* 📌 Vendor Card Styling */
 .vendor-card {
-  border: 2px solid #ddd;
-  padding: 24px;
-  border-radius: 12px;
+  border: none; /* Neumorphism: remove border */
+  padding: 28px;
+  border-radius: 16px;
   cursor: pointer;
-  transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out, border-color 0.3s ease-in-out;
-  background-color: #ffffff;
+  transition: all 0.3s ease-in-out;
+  background: #ffffff;
   text-align: left;
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: 8px 8px 16px rgba(0, 0, 0, 0.1), -8px -8px 16px rgba(255, 255, 255, 0.9); /* Neumorphism */
+  position: relative;
   overflow: hidden;
   outline: none;
-  role: button;
-  tab-index: 0;
 }
 
 .vendor-card:hover {
-  border-color: #1e3a8a; /* TENDORAI deep blue */
-  transform: translateY(-5px);
-  box-shadow: 0 10px 20px rgba(30, 58, 138, 0.2);
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 12px 12px 24px rgba(30, 58, 138, 0.15), -12px -12px 24px rgba(255, 255, 255, 0.9);
 }
 
 .vendor-card.selected {
-  border-color: #f97316; /* TENDORAI orange */
-  background-color: #fffbf8;
-  box-shadow: 0 8px 16px rgba(249, 115, 22, 0.2);
+  background: linear-gradient(135deg, #fffbf8, #fff5e6);
+  box-shadow: 10px 10px 20px rgba(249, 115, 22, 0.2), -10px -10px 20px rgba(255, 255, 255, 0.9);
 }
 
-/* 📌 Vendor Name Styling */
-.vendor-card h3 {
-  font-size: 22px;
-  color: #1e3a8a; /* TENDORAI deep blue */
-  margin-bottom: 16px;
+/* 📌 Vendor Card Header */
+.vendor-card h2 {
+  font-size: 24px;
+  color: #1e3a8a;
+  margin-bottom: 18px;
   font-weight: 600;
   text-transform: uppercase;
+  letter-spacing: 0.3px;
 }
 
 /* 📌 Vendor Details Styling */
-.vendor-card p {
+.vendor-card span {
+  display: block;
   font-size: 16px;
-  margin: 8px 0;
+  margin: 10px 0;
   color: #4a5568;
-  line-height: 1.5;
+  line-height: 1.6;
 }
 
 /* 📌 Profile Button */
 .profile-button {
   display: inline-block;
-  margin-top: 16px;
-  padding: 12px 24px;
-  background-color: #f97316; /* TENDORAI orange */
+  margin-top: 20px;
+  padding: 14px 28px;
+  background: linear-gradient(135deg, #f97316, #e66100);
   color: white;
   border: none;
-  border-radius: 8px;
+  border-radius: 10px;
   cursor: pointer;
   font-size: 16px;
   font-family: "Poppins", sans-serif;
-  transition: background-color 0.3s ease-in-out, transform 0.2s ease-in-out, box-shadow 0.3s ease-in-out;
-  outline: none;
+  transition: all 0.3s ease-in-out;
+  position: relative;
+  overflow: hidden;
 }
 
 .profile-button:hover {
-  background-color: #e66100;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(230, 97, 0, 0.4);
+  background: linear-gradient(135deg, #e66100, #d45200);
+  transform: translateY(-3px);
+  box-shadow: 0 6px 16px rgba(230, 97, 0, 0.5);
 }
 
 .profile-button:focus {
-  outline: 2px solid #f97316;
-  outline-offset: 2px;
+  outline: 3px solid #f97316;
+  outline-offset: 3px;
+}
+
+/* 📌 Micro-Interaction for Button */
+.profile-button::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.4s ease, height 0.4s ease;
+}
+
+.profile-button:active::after {
+  width: 200px;
+  height: 200px;
 }
 
 /* 📌 Pagination */
 .pagination {
-  margin-top: 24px;
+  margin-top: 28px;
   display: flex;
-  gap: 12px;
+  gap: 16px;
   justify-content: center;
   align-items: center;
-  role: navigation;
-  aria-label: "Pagination";
 }
 
+/* 📌 Pagination Buttons */
 .pagination-button {
-  padding: 10px 20px;
-  background-color: #1e3a8a; /* TENDORAI deep blue */
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #1e3a8a, #152e6f);
   color: white;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 15px;
   font-family: "Poppins", sans-serif;
-  transition: background-color 0.3s ease-in-out, transform 0.2s ease-in-out, box-shadow 0.3s ease-in-out;
-  outline: none;
+  transition: all 0.3s ease-in-out;
 }
 
 .pagination-button:hover:not(:disabled) {
-  background-color: #152e6f;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(21, 46, 111, 0.3);
+  background: linear-gradient(135deg, #152e6f, #0f2356);
+  transform: translateY(-3px);
+  box-shadow: 0 6px 12px rgba(21, 46, 111, 0.3);
 }
 
 .pagination-button:focus:not(:disabled) {
-  outline: 2px solid #1e3a8a;
-  outline-offset: 2px;
+  outline: 3px solid #1e3a8a;
+  outline-offset: 3px;
 }
 
 .pagination-button:disabled {
-  background-color: #ccc;
+  background: #d1d5db;
   cursor: not-allowed;
   box-shadow: none;
 }
 
 /* 📌 Request Quote Button */
 .request-quote-button {
-  padding: 16px 32px;
-  margin-top: 24px;
-  background-color: #f97316; /* TENDORAI orange */
+  padding: 18px 36px;
+  margin-top: 28px;
+  background: linear-gradient(135deg, #f97316, #e66100);
   color: white;
   border: none;
   cursor: pointer;
   font-size: 18px;
-  border-radius: 10px;
+  border-radius: 12px;
   font-family: "Poppins", sans-serif;
-  transition: background-color 0.3s ease-in-out, transform 0.2s ease-in-out, box-shadow 0.3s ease-in-out;
-  outline: none;
+  transition: all 0.3s ease-in-out;
 }
 
 .request-quote-button:hover:not(:disabled) {
-  background-color: #e66100;
-  transform: translateY(-3px);
-  box-shadow: 0 6px 16px rgba(230, 97, 0, 0.5);
+  background: linear-gradient(135deg, #e66100, #d45200);
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(230, 97, 0, 0.5);
 }
 
 .request-quote-button:focus:not(:disabled) {
-  outline: 2px solid #f97316;
-  outline-offset: 2px;
+  outline: 3px solid #f97316;
+  outline-offset: 3px;
 }
 
 .request-quote-button:disabled {
-  background-color: #ccc;
+  background: #d1d5db;
   cursor: not-allowed;
   box-shadow: none;
 }
@@ -234,23 +251,25 @@
 .star-rating {
   display: flex;
   align-items: center;
-  margin: 8px 0;
-  role: img;
-  aria-label: "Star rating";
+  margin: 10px 0;
 }
 
 .star {
-  font-size: 20px;
-  margin-right: 4px;
-  transition: color 0.3s ease-in-out;
+  font-size: 22px;
+  margin-right: 5px;
+  transition: transform 0.3s ease-in-out;
+}
+
+.star:hover {
+  transform: scale(1.2); /* Subtle micro-interaction */
 }
 
 .full-star {
-  color: #f97316; /* TENDORAI orange */
+  color: #f97316;
 }
 
 .half-star {
-  color: #f97316; /* TENDORAI orange */
+  color: #f97316;
 }
 
 .empty-star {
@@ -259,46 +278,47 @@
 
 /* 📌 No Vendors Message */
 .no-vendors-message {
-  font-size: 18px;
+  font-size: 20px;
   color: #4a5568;
-  padding: 20px;
-  background-color: #fff;
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
-  role: alert;
+  padding: 24px;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 12px;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.05);
+  backdrop-filter: blur(8px);
 }
 
 /* 📌 Mobile Responsive */
 @media (max-width: 768px) {
   .compare-vendors-container {
-    padding: 12px;
+    padding: 16px;
+    margin: 10px;
   }
 
   .compare-vendors-title {
-    font-size: 24px;
+    font-size: 28px;
   }
 
   .filters-section {
     flex-direction: column;
-    padding: 12px;
+    padding: 16px;
+    gap: 12px;
   }
 
   .vendor-cards {
     grid-template-columns: 1fr;
-    gap: 16px;
-    padding: 12px;
+    gap: 20px;
+    padding: 16px;
   }
 
   .vendor-card {
-    width: 100%;
-    padding: 16px;
+    padding: 20px;
   }
 
   .profile-button,
   .request-quote-button,
   .pagination-button {
-    padding: 8px 16px;
-    font-size: 14px;
+    padding: 10px 20px;
+    font-size: 15px;
   }
 }
 
@@ -306,7 +326,7 @@
 @keyframes slideIn {
   from {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(30px);
   }
   to {
     opacity: 1;
@@ -315,47 +335,49 @@
 }
 
 .vendor-card {
-  animation: slideIn 0.5s ease-out;
+  animation: slideIn 0.6s ease-out;
 }
 
 /* 📌 Error Fallback Styling */
 .error-fallback {
   text-align: center;
-  padding: 40px;
-  background-color: #fff;
-  border-radius: 12px;
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
-  max-width: 600px;
-  margin: 20px auto;
+  padding: 48px;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 16px;
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+  max-width: 640px;
+  margin: 24px auto;
+  backdrop-filter: blur(10px);
 }
 
 .error-fallback h2 {
-  font-size: 24px;
+  font-size: 28px;
   color: #1e3a8a;
-  margin-bottom: 16px;
-}
-
-.error-fallback p {
-  font-size: 16px;
-  color: #4a5568;
   margin-bottom: 20px;
 }
 
+.error-fallback p {
+  font-size: 18px;
+  color: #4a5568;
+  margin-bottom: 24px;
+}
+
 .retry-button {
-  padding: 12px 24px;
-  background-color: #f97316; /* TENDORAI orange */
+  padding: 14px 28px;
+  background: linear-gradient(135deg, #f97316, #e66100);
   color: white;
   border: none;
-  border-radius: 8px;
+  border-radius: 10px;
   cursor: pointer;
   font-size: 16px;
   font-family: "Poppins", sans-serif;
-  transition: background-color 0.3s ease-in-out, transform 0.2s ease-in-out;
+  transition: all 0.3s ease-in-out;
 }
 
 .retry-button:hover {
-  background-color: #e66100;
-  transform: translateY(-2px);
+  background: linear-gradient(135deg, #e66100, #d45200);
+  transform: translateY(-3px);
+  box-shadow: 0 6px 16px rgba(230, 97, 0, 0.5);
 }
 
 /* 📌 Loading Spinner */
@@ -363,10 +385,11 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 200px;
+  height: 240px;
 }
 
 .loading-spinner {
-  font-size: 24px;
+  font-size: 28px;
   color: #1e3a8a;
+  font-weight: 600;
 }

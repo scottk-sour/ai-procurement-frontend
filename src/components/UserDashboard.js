@@ -1,6 +1,6 @@
 // File: src/components/UserDashboard.js
 import React, { useState, useEffect, useCallback } from "react";
-import { useNavigate, useLocation } from "react-router-dom"; // Updated to remove unused Link import
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   FaQuoteRight,
   FaBalanceScale,
@@ -13,7 +13,7 @@ import {
   FaCloudUploadAlt,
   FaArrowRight,
 } from "react-icons/fa";
-import "../styles/UserDashboard.css"; // Use updated CSS below
+import "../styles/UserDashboard.css";
 
 const UserDashboard = () => {
   console.log("✅ UserDashboard rendering START"); // Debug
@@ -41,7 +41,7 @@ const UserDashboard = () => {
   }, [pathname]);
 
   const fetchUserProfile = useCallback(async () => {
-    const token = localStorage.getItem("userToken");
+    const token = localStorage.getItem("token");
     if (!token) {
       console.log("❌ No token found, redirecting to login...");
       navigate("/login");
@@ -54,9 +54,9 @@ const UserDashboard = () => {
       });
       if (!response.ok) throw new Error("Failed to fetch user profile.");
       const data = await response.json();
-      setUserName(data.user.name || "User"); // Use actual name from backend
+      setUserName(data.user.name || "User");
       setUserEmail(data.user.email || "");
-      localStorage.setItem("userName", data.user.name || "User"); // Store for persistence
+      localStorage.setItem("userName", data.user.name || "User");
       localStorage.setItem("userEmail", data.user.email || "");
     } catch (error) {
       console.error("Error fetching user profile:", error.message);
@@ -70,7 +70,7 @@ const UserDashboard = () => {
     console.log("Fetching UserDashboard data");
     setLoading(true);
     setError(null);
-    const token = localStorage.getItem("userToken");
+    const token = localStorage.getItem("token");
     const userId = localStorage.getItem("userId");
     console.log("Token:", token, "UserID:", userId);
     if (!token || !userId) {
@@ -81,7 +81,7 @@ const UserDashboard = () => {
     }
 
     try {
-      const [activityRes, filesRes, quotesRes, pendingRes] = await Promise.all([
+      const [activityRes, filesRes, quotesRes] = await Promise.all([
         fetch("http://localhost:5000/api/users/recent-activity", {
           headers: { Authorization: `Bearer ${token}` },
         }),
@@ -91,30 +91,29 @@ const UserDashboard = () => {
         fetch(`http://localhost:5000/api/quotes/user?userId=${userId}`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
-        fetch("http://localhost:5000/api/quotes/pending", {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
       ]);
 
       if (!activityRes.ok) throw new Error("Failed to fetch recent activity.");
       if (!filesRes.ok) throw new Error("Failed to fetch uploaded files.");
       if (!quotesRes.ok) throw new Error("Failed to fetch quotes.");
-      if (!pendingRes.ok) throw new Error("Failed to fetch pending responses.");
 
       const activityData = await activityRes.json();
       const filesData = await filesRes.json();
       const quotesData = await quotesRes.json();
-      const pendingData = await pendingRes.json();
 
       console.log("Activity Data:", activityData);
       console.log("Files Data:", filesData);
       console.log("Quotes Data:", quotesData);
-      console.log("Pending Data:", pendingData);
+
+      // Calculate pending responses from quotes with status "In Progress"
+      const pendingQuotes = quotesData.quotes
+        ? quotesData.quotes.filter((quote) => quote.status === "In Progress").length
+        : 0;
 
       setRecentActivity(activityData.activities || []);
       setUploadedFiles(filesData.files || []);
       setTotalQuotes((quotesData.quotes && quotesData.quotes.length) || 0);
-      setPendingResponses((pendingData.quotes && pendingData.quotes.length) || 0);
+      setPendingResponses(pendingQuotes);
     } catch (error) {
       console.error("Error fetching dashboard data:", error.message);
       setError(`Failed to load dashboard data: ${error.message}. Please try again.`);
@@ -125,7 +124,7 @@ const UserDashboard = () => {
 
   useEffect(() => {
     console.log("useEffect running");
-    fetchUserProfile(); // Fetch user profile for name and email
+    fetchUserProfile();
     fetchDashboardData();
   }, [navigate, fetchUserProfile, fetchDashboardData]);
 
@@ -151,9 +150,10 @@ const UserDashboard = () => {
     setUploadProgress(0);
 
     try {
+      const token = localStorage.getItem("token");
       const response = await fetch("http://localhost:5000/api/users/upload", {
         method: "POST",
-        headers: { Authorization: `Bearer ${localStorage.getItem("userToken")}` },
+        headers: { Authorization: `Bearer ${token}` },
         body: formData,
       });
 
@@ -315,9 +315,6 @@ const UserDashboard = () => {
         </button>
         {message && <p className="upload-message">{message}</p>}
       </div>
-
-      {/* Footer Integration (assuming Footer.js exists, commented out for debugging) */}
-      {/* <Footer /> */}
     </div>
   );
 };

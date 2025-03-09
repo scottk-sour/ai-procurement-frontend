@@ -1,0 +1,14 @@
+.revenue-chart {
+    margin-bottom: 2rem;
+    padding: 1rem;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+  }
+  
+  .revenue-chart h3 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1e3a8a; /* TENDORAI blue */
+    margin-bottom: 1rem;
+  }

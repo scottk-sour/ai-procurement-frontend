@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import "./CompareVendors.css";
 import { FaStar, FaStarHalfAlt, FaRegStar } from "react-icons/fa";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { debounce } from "lodash";
 import { ErrorBoundary } from "react-error-boundary";
 import { useAnalytics } from "../utils/analytics";
@@ -23,20 +23,18 @@ const CompareVendors = () => {
   const [filters, setFilters] = useState({
     priceRange: [0, 10000],
     rating: 0,
-    location: "",
-    serviceLevel: "",
+    type: "",
+    minSpeed: "",
   });
   const [sortBy, setSortBy] = useState("price");
-  const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [quoteCompanyName, setQuoteCompanyName] = useState("");
   const [hasFetched, setHasFetched] = useState(false);
-  const vendorsPerPage = 6;
 
   const analytics = useAnalytics();
 
-  const fetchVendors = async () => {
+  const fetchVendors = useCallback(async () => {
     if (hasFetched) {
       console.log("🔍 Skipping redundant fetch");
       setIsLoading(false);
@@ -64,55 +62,62 @@ const CompareVendors = () => {
         throw new Error(`Server responded with status: ${quotesResponse.status}`);
       }
 
-      const data = await quotesResponse.json();
-      console.log("🔍 API Response for Quotes:", JSON.stringify(data, null, 2));
+      const quotes = await quotesResponse.json();
+      console.log("🔍 API Response for Quotes:", JSON.stringify(quotes, null, 2));
 
-      if (!Array.isArray(data)) {
-        console.error("❌ Invalid API response format:", data);
+      if (!Array.isArray(quotes) || quotes.length === 0) {
+        console.error("❌ No valid quotes found for user");
         setVendors([]);
         setIsLoading(false);
         return;
       }
 
-      if (data.length === 0) {
-        console.log("🔍 No quotes found for user");
-        setVendors([]);
-        setIsLoading(false);
-        return;
-      }
-
-      const validQuotes = data.filter(
-        (quote) => quote.preferredVendor && typeof quote.preferredVendor === "string"
-      );
-      if (validQuotes.length === 0) {
-        console.error("❌ No quotes with preferred vendors found");
-        setVendors([]);
-        setIsLoading(false);
-        return;
-      }
-
-      const latestQuote = validQuotes.sort(
+      const latestQuote = quotes.sort(
         (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
       )[0];
       setQuoteCompanyName(latestQuote.companyName);
       console.log("🔍 Latest Quote:", JSON.stringify(latestQuote, null, 2));
 
-      // Fetch AI recommendations from backend API
-      const aiResponse = await fetch("http://localhost:5000/api/quotes/ai/recommendations", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ quotes: validQuotes, userId }),
-      });
-      if (!aiResponse.ok) {
-        throw new Error(`AI API responded with status: ${aiResponse.status}`);
+      const searchParams = new URLSearchParams({
+        maxLeaseCost: latestQuote.max_lease_price,
+        minMonoCpc: 0,
+        minColorCpc: latestQuote.colour === "Color" ? 0 : undefined,
+        ...(latestQuote.type && { type: latestQuote.type }),
+        ...(latestQuote.min_speed && { minSpeed: latestQuote.min_speed }),
+      }).toString();
+
+      const vendorsResponse = await fetch(
+        `http://localhost:5000/api/vendors/search-quotes?${searchParams}`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      if (!vendorsResponse.ok) {
+        throw new Error(`Search API responded with status: ${vendorsResponse.status}`);
       }
-      const enhancedVendors = await aiResponse.json();
-      console.log("🔍 Enhanced Vendors:", JSON.stringify(enhancedVendors, null, 2));
+
+      const vendorQuotes = await vendorsResponse.json();
+      console.log("🔍 Vendor Quotes:", JSON.stringify(vendorQuotes.quotes, null, 2));
+
+      const enhancedVendors = vendorQuotes.quotes.map((quote) => ({
+        vendor: quote.company,
+        price: quote.leaseCost,
+        rating: 0,
+        aiRecommendation: "Recommended by AI",
+        speed: quote.speed || null,
+        model: quote.model,
+        type: quote.type || "N/A",
+        monoCpc: quote.monoCpc !== undefined ? quote.monoCpc : "N/A",
+        colorCpc: quote.colorCpc !== undefined ? quote.colorCpc : "N/A",
+        provider: quote.provider || "Unknown",
+        vendorId: quote.vendorId,
+      }));
+
       console.log("🔍 Setting vendors state with:", enhancedVendors.length, "vendors");
-      setVendors(enhancedVendors || []);
+      setVendors(enhancedVendors);
       setHasFetched(true);
     } catch (error) {
       console.error("❌ Error fetching vendors:", error.message);
@@ -120,17 +125,18 @@ const CompareVendors = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [analytics, hasFetched]);
 
   useEffect(() => {
     fetchVendors();
-  }, []);
+  }, [fetchVendors]);
 
   const debouncedSearch = useMemo(
-    () => debounce((query) => {
-      setSearchQuery(query);
-      analytics.trackEvent("SearchVendors", { query });
-    }, 300),
+    () =>
+      debounce((query) => {
+        setSearchQuery(query);
+        analytics.trackEvent("SearchVendors", { query });
+      }, 300),
     [analytics]
   );
 
@@ -148,19 +154,6 @@ const CompareVendors = () => {
     [analytics]
   );
 
-  const handleVisitWebsite = useCallback(
-    (website) => {
-      if (!website) {
-        console.error("❌ No website URL provided for vendor");
-        return;
-      }
-      console.log(`🔍 Visiting website: ${website}`);
-      analytics.trackEvent("VisitVendorWebsite", { website });
-      window.open(website, "_blank", "noopener,noreferrer");
-    },
-    [analytics]
-  );
-
   const handleRequestQuotes = useCallback(async () => {
     if (selectedVendors.length === 0) return;
 
@@ -172,14 +165,11 @@ const CompareVendors = () => {
       const token = getAuthToken();
       const response = await fetch("http://localhost:5000/api/quotes/request-selected", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          userId,
-          selectedVendors,
-          quoteCompanyName,
+          userId: userId,
+          selectedVendors: selectedVendors,
+          quoteCompanyName: quoteCompanyName,
         }),
       });
 
@@ -197,13 +187,13 @@ const CompareVendors = () => {
     }
   }, [selectedVendors, quoteCompanyName, analytics]);
 
-  const filteredAndSortedVendors = useMemo(() => {
+  const filteredVendors = useMemo(() => {
     let filtered = [...vendors];
     console.log("🔍 Filtering vendors, initial count:", filtered.length);
 
     if (searchQuery) {
       filtered = filtered.filter((vendor) =>
-        (vendor.name || vendor.vendor || "").toLowerCase().includes(searchQuery.toLowerCase())
+        (vendor.vendor || "").toLowerCase().includes(searchQuery.toLowerCase())
       );
       console.log("🔍 After searchQuery filter:", filtered.length);
     }
@@ -220,43 +210,30 @@ const CompareVendors = () => {
       console.log("🔍 After rating filter:", filtered.length);
     }
 
-    if (filters.location) {
+    if (filters.type) {
       filtered = filtered.filter((vendor) =>
-        (vendor.location || "").toLowerCase().includes(filters.location.toLowerCase())
+        (vendor.type || "").toLowerCase() === filters.type.toLowerCase()
       );
-      console.log("🔍 After location filter:", filtered.length);
+      console.log("🔍 After type filter:", filtered.length);
     }
 
-    if (filters.serviceLevel) {
+    if (filters.minSpeed) {
       filtered = filtered.filter((vendor) =>
-        (vendor.serviceLevel || "").toLowerCase().includes(filters.serviceLevel.toLowerCase())
+        vendor.speed ? vendor.speed >= parseInt(filters.minSpeed) : false
       );
-      console.log("🔍 After serviceLevel filter:", filtered.length);
+      console.log("🔍 After minSpeed filter:", filtered.length);
     }
 
     return filtered.sort((a, b) => {
       if (sortBy === "price") return (Number(a.price) || 0) - (Number(b.price) || 0);
-      if (sortBy === "rating") return (b.rating || 0) - (a.rating || 0);
-      if (sortBy === "responseTime")
-        return (a.responseTime || Infinity) - (b.responseTime || Infinity);
+      if (sortBy === "speed") return (b.speed || 0) - (a.speed || 0);
       return 0;
     });
   }, [vendors, searchQuery, filters, sortBy]);
 
-  const indexOfLastVendor = currentPage * vendorsPerPage;
-  const indexOfFirstVendor = indexOfLastVendor - vendorsPerPage;
-  const currentVendors = filteredAndSortedVendors.slice(indexOfFirstVendor, indexOfLastVendor);
-  const totalPages = Math.ceil(filteredAndSortedVendors.length / vendorsPerPage);
-
-  useEffect(() => {
-    if (currentPage > totalPages && totalPages > 0) {
-      setCurrentPage(totalPages);
-    }
-  }, [totalPages, currentPage]);
-
   const renderStars = (rating) => {
     if (typeof rating !== "number" || isNaN(rating) || rating < 0) {
-      return <span style={{ color: "gray" }}>Not Available</span>;
+      return <span style={{ color: "gray" }}>N/A</span>;
     }
 
     const fullStars = Math.floor(rating);
@@ -264,11 +241,7 @@ const CompareVendors = () => {
     const emptyStars = 5 - fullStars - (halfStar ? 1 : 0);
 
     return (
-      <span
-        className="star-rating"
-        role="img"
-        aria-label={`Rating: ${rating} out of 5 stars`}
-      >
+      <span className="star-rating" role="img" aria-label={`Rating: ${rating} out of 5 stars`}>
         {[...Array(fullStars)].map((_, i) => (
           <FaStar key={`full-${i}`} className="star full-star" />
         ))}
@@ -294,15 +267,20 @@ const CompareVendors = () => {
     );
   }
 
-  console.log("🔍 Render: vendors:", JSON.stringify(vendors, null, 2));
-  console.log("🔍 Render: filteredAndSortedVendors:", JSON.stringify(filteredAndSortedVendors, null, 2));
-  console.log("🔍 Render: currentVendors:", JSON.stringify(currentVendors, null, 2));
-  console.log("🔍 Render: Entering render phase with vendors length:", vendors.length);
+  console.log("🔍 Render: vendors:", JSON.stringify(filteredVendors, null, 2));
+  console.log("🔍 Render: Entering render phase with vendors length:", filteredVendors.length);
 
   return (
     <ErrorBoundary FallbackComponent={CompareVendorsErrorFallback}>
       <div className="compare-vendors-container" role="main" aria-label="Vendor comparison tool">
-        <h1 className="compare-vendors-title">Compare Top Vendors</h1>
+        <h1 className="compare-vendors-title">Compare Top Vendors for {quoteCompanyName}</h1>
+
+        {/* New info message */}
+        <div className="vendors-info">
+          <p>
+            We cross-referenced {vendors.length} companies and found {filteredVendors.length} that match your criteria.
+          </p>
+        </div>
 
         <div className="filters-section" role="search" aria-label="Vendor filters and search">
           <input
@@ -317,8 +295,7 @@ const CompareVendors = () => {
             className="sort-select"
           >
             <option value="price">Sort by Price</option>
-            <option value="rating">Sort by Rating</option>
-            <option value="responseTime">Sort by Response Time</option>
+            <option value="speed">Sort by Speed</option>
           </select>
           <input
             type="range"
@@ -340,103 +317,121 @@ const CompareVendors = () => {
             <option value="4">4 Stars & Up</option>
             <option value="5">5 Stars</option>
           </select>
+          <select
+            value={filters.type}
+            onChange={(e) => setFilters({ ...filters, type: e.target.value })}
+            className="type-filter"
+          >
+            <option value="">All Types</option>
+            <option value="A4">A4</option>
+            <option value="A3">A3</option>
+          </select>
           <input
-            type="text"
-            placeholder="Filter by location..."
-            value={filters.location}
-            onChange={(e) => setFilters({ ...filters, location: e.target.value })}
-            className="location-filter"
-          />
-          <input
-            type="text"
-            placeholder="Filter by service level..."
-            value={filters.serviceLevel}
-            onChange={(e) => setFilters({ ...filters, serviceLevel: e.target.value })}
-            className="service-filter"
+            type="number"
+            placeholder="Min Speed (PPM)"
+            value={filters.minSpeed}
+            onChange={(e) => setFilters({ ...filters, minSpeed: e.target.value })}
+            className="speed-filter"
           />
         </div>
 
-        {currentVendors.length === 0 ? (
+        {filteredVendors.length === 0 ? (
           <div className="no-vendors-message" role="alert" aria-label="No vendors available">
             No vendors found for this quote. Try submitting a new quote request or adjusting filters.
           </div>
         ) : (
           <>
-            <motion.div
-              className="vendor-cards"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.5, ease: "easeInOut" }}
-              role="list"
-              aria-label="Vendor list"
-            >
-              <AnimatePresence>
-                {currentVendors.map((vendor, index) => (
-                  <motion.div
-                    key={vendor.vendor || index}
-                    className={`vendor-card ${
-                      selectedVendors.includes(vendor.vendor) ? "selected" : ""
-                    }`}
-                    onClick={() => handleVendorSelect(vendor.vendor)}
-                    onKeyPress={(e) =>
-                      e.key === "Enter" && handleVendorSelect(vendor.vendor)
-                    }
-                    tabIndex={0}
-                    role="button"
-                    aria-label={`Select vendor ${vendor.vendor}`}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -20 }}
-                    transition={{ duration: 0.3, ease: "easeOut" }}
-                  >
-                    <h2>{quoteCompanyName || "Vendor Recommendations"}</h2>
-                    <span><strong>Vendor Name:</strong> {vendor.vendor || "Not Available"}</span>
-                    <span><strong>Price:</strong> £{vendor.price || "Not Available"}</span>
-                    <span><strong>Speed:</strong> {vendor.speed || "N/A"} ppm</span>
-                    <span><strong>Rating:</strong> {renderStars(vendor.rating)}</span>
-                    <span><strong>AI Recommendation:</strong> {vendor.aiRecommendation || "Not Available"}</span>
-                    <motion.button
-                      className="profile-button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleVisitWebsite(vendor.website);
-                      }}
-                      whileHover={{ scale: 1.05, boxShadow: "0 4px 12px rgba(249, 115, 22, 0.4)" }}
-                      whileTap={{ scale: 0.95 }}
-                      aria-label={`Visit website for ${vendor.vendor}`}
-                    >
-                      Visit Website
-                    </motion.button>
-                  </motion.div>
-                ))}
-              </AnimatePresence>
-            </motion.div>
-
-            <div className="pagination" role="navigation" aria-label="Pagination">
-              <button
-                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                disabled={currentPage === 1}
-                className="pagination-button"
-              >
-                Previous
-              </button>
-              <span>
-                Page {currentPage} of {totalPages}
-              </span>
-              <button
-                onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-                disabled={currentPage === totalPages}
-                className="pagination-button"
-              >
-                Next
-              </button>
+            <div className="comparison-table">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Specification</th>
+                    {filteredVendors.map((vendor) => (
+                      <th key={`${vendor.vendorId}-${vendor.model}`}>
+                        <input
+                          type="checkbox"
+                          checked={selectedVendors.includes(vendor.vendorId)}
+                          onChange={() => handleVendorSelect(vendor.vendorId)}
+                        />
+                        {vendor.vendor}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Model</td>
+                    {filteredVendors.map((vendor) => (
+                      <td key={`${vendor.vendorId}-${vendor.model}`}>{vendor.model || "N/A"}</td>
+                    ))}
+                  </tr>
+                  <tr>
+                    <td>Type</td>
+                    {filteredVendors.map((vendor) => (
+                      <td key={`${vendor.vendorId}-${vendor.model}`}>{vendor.type || "N/A"}</td>
+                    ))}
+                  </tr>
+                  <tr>
+                    <td>Speed (PPM)</td>
+                    {filteredVendors.map((vendor) => (
+                      <td key={`${vendor.vendorId}-${vendor.model}`}>
+                        {vendor.speed ? `${vendor.speed} PPM` : "N/A"}
+                      </td>
+                    ))}
+                  </tr>
+                  <tr>
+                    <td>Price (£)</td>
+                    {filteredVendors.map((vendor) => (
+                      <td key={`${vendor.vendorId}-${vendor.model}`}>
+                        £{vendor.price || "N/A"}
+                      </td>
+                    ))}
+                  </tr>
+                  <tr>
+                    <td title="Cost per black-and-white copy in pence">Mono CPC (p)</td>
+                    {filteredVendors.map((vendor) => (
+                      <td key={`${vendor.vendorId}-${vendor.model}`} title="Cost per black-and-white copy in pence">
+                        {vendor.monoCpc !== "N/A" ? `${vendor.monoCpc} p` : "N/A"}
+                      </td>
+                    ))}
+                  </tr>
+                  <tr>
+                    <td title="Cost per color copy in pence">Color CPC (p)</td>
+                    {filteredVendors.map((vendor) => (
+                      <td key={`${vendor.vendorId}-${vendor.model}`} title="Cost per color copy in pence">
+                        {vendor.colorCpc !== "N/A" ? `${vendor.colorCpc} p` : "N/A"}
+                      </td>
+                    ))}
+                  </tr>
+                  <tr>
+                    <td>Provider</td>
+                    {filteredVendors.map((vendor) => (
+                      <td key={`${vendor.vendorId}-${vendor.model}`}>{vendor.provider || "N/A"}</td>
+                    ))}
+                  </tr>
+                  <tr>
+                    <td>Rating</td>
+                    {filteredVendors.map((vendor) => (
+                      <td key={`${vendor.vendorId}-${vendor.model}`}>{renderStars(vendor.rating)}</td>
+                    ))}
+                  </tr>
+                  <tr>
+                    <td>AI Recommendation</td>
+                    {filteredVendors.map((vendor) => (
+                      <td key={`${vendor.vendorId}-${vendor.model}`}>
+                        {vendor.aiRecommendation || "N/A"}
+                      </td>
+                    ))}
+                  </tr>
+                </tbody>
+              </table>
             </div>
 
             <motion.button
               className="request-quote-button"
               onClick={handleRequestQuotes}
               disabled={selectedVendors.length === 0}
-              whileHover={{ scale: 1.05, boxShadow: "0 6px 16px rgba(230, 97, 0, 0.5)" }}
+              whileHover={{ scale: 1.05, boxShadow: "0 6px 16px rgba(37, 99, 235, 0.5)" }}
               whileTap={{ scale: 0.95 }}
             >
               Request Quotes from Selected ({selectedVendors.length})

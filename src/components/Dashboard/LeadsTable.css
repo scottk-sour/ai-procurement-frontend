@@ -1,0 +1,67 @@
+src/components/Dashboard/LeadsTable.css
+.lead-table {
+  margin-bottom: 2rem;
+}
+
+.lead-table h3 {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #0056b3;
+  margin-bottom: 1.5rem;
+  text-transform: uppercase;
+}
+
+.table-wrapper {
+  overflow-x: auto;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.lead-table table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  border-radius: 8px;
+}
+
+.lead-table th,
+.lead-table td {
+  padding: 1.25rem;
+  text-align: left;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.lead-table th {
+  background: linear-gradient(45deg, #0056b3, #007bff);
+  color: #fff;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.lead-table tr:nth-child(even) {
+  background: #f9fafb;
+}
+
+.lead-row:hover {
+  background: #e5e7eb;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.lead-row.skeleton {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s infinite;
+}
+
+.no-data {
+  text-align: center;
+  color: #6b7280;
+  font-style: italic;
+  margin-top: 1rem;
+}
+
+@keyframes skeleton-loading {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}

@@ -1,41 +1,40 @@
+// src/components/VendorDashboard.js
 import React, { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  FaBox,
-  FaChartLine,
-  FaCog,
-  FaDollarSign,
-  FaSignOutAlt,
-  FaUpload,
-} from "react-icons/fa";
+import { FaBox, FaChartLine, FaCog, FaSignOutAlt, FaUpload } from "react-icons/fa";
 import axios from "axios";
+import KPIs from "./Dashboard/KPIs";
+import LeadsTable from "./Dashboard/LeadsTable";
+import QuoteFunnel from "./Dashboard/QuoteFunnel";
+import RevenueChart from "./Dashboard/RevenueChart";
 import "../styles/VendorDashboard.css";
 
 const VendorDashboard = () => {
-  console.log("✅ VendorDashboard component rendering START");
   const navigate = useNavigate();
-  const [vendorName, setVendorName] = useState(
-    localStorage.getItem("vendorName") || "Vendor"
-  );
-  const [uploadStatus, setUploadStatus] = useState(null);
+
+  // State declarations
+  const [vendorName, setVendorName] = useState(localStorage.getItem("vendorName") || "Vendor");
   const [vendor, setVendor] = useState(null);
   const [listings, setListings] = useState([]);
-  const [theme, setTheme] = useState("light");
-  const [totalRevenue, setTotalRevenue] = useState(0);
-  const [activeListings, setActiveListings] = useState(0);
-  const [totalOrders, setTotalOrders] = useState(0);
+  const [uploads, setUploads] = useState([]);
+  const [theme, setTheme] = useState(localStorage.getItem("theme") || "light");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [uploadStatus, setUploadStatus] = useState(null);
 
+  // Placeholder data for components
+  const kpiData = { totalRevenue: 0, activeListings: listings.length, totalOrders: 0 };
+  const leadsData = [];
+  const quoteData = { created: 0, pending: 0, won: 0, lost: 0 };
+  const revenueData = [];
+
+  // Fetch dashboard data
   const fetchDashboardData = useCallback(async () => {
-    console.log("🔍 Fetching VendorDashboard data");
     setLoading(true);
     setError(null);
     const token = localStorage.getItem("vendorToken");
-    console.log("🔑 Fetching data with token:", token);
 
     if (!token) {
-      console.log("❌ No vendorToken found");
       setError("No vendor token found. Please log in.");
       navigate("/vendor-login");
       setLoading(false);
@@ -43,105 +42,85 @@ const VendorDashboard = () => {
     }
 
     try {
-      console.log("📡 Sending request to /api/vendors/profile");
-      const profileResponse = await axios.get(
-        "http://localhost:5000/api/vendors/profile",
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      console.log("✅ Profile Response:", profileResponse.data);
-
-      console.log("📡 Sending request to /api/vendors/listings");
-      const listingsResponse = await axios.get(
-        "http://localhost:5000/api/vendors/listings",
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      console.log("✅ Listings Response:", listingsResponse.data);
+      const [profileResponse, listingsResponse, uploadsResponse] = await Promise.all([
+        axios.get("http://localhost:5000/api/vendors/profile", {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+        axios.get("http://localhost:5000/api/vendors/listings", {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+        axios.get("http://localhost:5000/api/vendors/uploaded-files", {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+      ]);
 
       const profileData = profileResponse.data.vendor;
       const listingsData = listingsResponse.data.listings || [];
+      const uploadsData = uploadsResponse.data.files || [];
 
       setVendor(profileData);
       setVendorName(profileData.company || profileData.name || "Vendor");
       setListings(listingsData);
-      setTotalRevenue(0); // Replace with real data when available
-      setActiveListings(listingsData.length);
-      setTotalOrders(0); // Replace with real data when available
+      setUploads(uploadsData);
     } catch (error) {
-      console.error("❌ Fetch Error:", error.response?.data || error.message);
-      setError(
-        error.response?.data?.message ||
-          "Failed to load dashboard data. Check server."
-      );
+      setError(error.response?.data?.message || "Failed to load dashboard data.");
       if (error.response?.status === 401) {
-        console.log("❌ Unauthorized, clearing storage and redirecting");
         localStorage.clear();
         navigate("/vendor-login");
       }
     } finally {
-      console.log("🏁 Fetch completed, loading set to false");
       setLoading(false);
     }
   }, [navigate]);
 
+  // Initial setup
   useEffect(() => {
-    console.log("🚀 VendorDashboard useEffect triggered");
-    const savedTheme = localStorage.getItem("theme") || "light";
-    setTheme(savedTheme);
-    document.documentElement.setAttribute("data-theme", savedTheme);
-
     fetchDashboardData();
-  }, [fetchDashboardData]);
+    document.documentElement.setAttribute("data-theme", theme);
+  }, [fetchDashboardData, theme]);
 
+  // Event handlers
   const handleLogout = () => {
-    console.log("👋 Logging out vendor");
     localStorage.clear();
     navigate("/vendor-login");
   };
 
   const toggleTheme = () => {
     const newTheme = theme === "light" ? "dark" : "light";
-    console.log("🌗 Toggling theme to:", newTheme);
     setTheme(newTheme);
-    document.documentElement.setAttribute("data-theme", newTheme);
     localStorage.setItem("theme", newTheme);
   };
 
   const handleFileUpload = async (event) => {
-    console.log("📤 Handling file upload");
     const file = event.target.files[0];
     if (!file) {
       setUploadStatus({ message: "No file selected.", type: "error" });
       return;
     }
 
+    const token = localStorage.getItem("vendorToken");
+    if (!token) {
+      setUploadStatus({ message: "Please log in to upload.", type: "error" });
+      navigate("/vendor-login");
+      return;
+    }
+
     const formData = new FormData();
     formData.append("file", file);
-    const token = localStorage.getItem("vendorToken");
 
     setLoading(true);
     setUploadStatus(null);
 
     try {
-      console.log("📡 Sending upload request");
-      const response = await axios.post(
-        "http://localhost:5000/api/vendors/upload",
-        formData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
-
-      console.log("✅ Upload Response:", response.data);
+      const response = await axios.post("http://localhost:5000/api/vendors/upload", formData, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       setUploadStatus({ message: response.data.message, type: "success" });
-      await fetchDashboardData(); // Refresh data after upload
+      await fetchDashboardData();
+      setTimeout(() => setUploadStatus(null), 5000);
     } catch (error) {
-      console.error("❌ Upload Error:", error.response?.data || error.message);
       setUploadStatus({
-        message:
-          error.response?.data?.message || "File upload failed.",
+        message: error.response?.data?.message || "File upload failed.",
         type: "error",
       });
     } finally {
@@ -149,132 +128,96 @@ const VendorDashboard = () => {
     }
   };
 
-  console.log("🎨 Rendering with state:", { loading, error, vendor, listings });
-
   return (
-    <div className="vendor-dashboard-container">
-      <header className="vendor-dashboard-header">
+    <div className={`vendor-dashboard ${theme}`}>
+      {/* Welcome Header */}
+      <header className="welcome-header">
         <h1>Welcome, {vendorName}!</h1>
-        <div className="header-controls">
-          <button className="logout-button" onClick={handleLogout}>
-            <FaSignOutAlt /> Logout
-          </button>
-          <button className="theme-toggle-button" onClick={toggleTheme}>
-            {theme === "light" ? "🌙 Dark Mode" : "☀️ Light Mode"}
-          </button>
-        </div>
       </header>
 
-      {loading && (
-        <p className="loading-message">Loading dashboard data...</p>
-      )}
-      {error && (
-        <div className="error-container">
-          <p className="error">{error}</p>
-          <button onClick={fetchDashboardData}>Retry</button>
-        </div>
-      )}
+      {/* Navigation Bar */}
+      <nav className="nav-bar">
+        <button className="nav-button" onClick={() => navigate("/manage-listings")}>
+          <FaBox /> Manage Listings
+        </button>
+        <button className="nav-button" onClick={() => navigate("/view-orders")}>
+          <FaChartLine /> View Orders
+        </button>
+        <button className="nav-button" onClick={() => navigate("/vendor-profile")}>
+          <FaCog /> Vendor Profile
+        </button>
+        <label className="nav-button upload-label">
+          <FaUpload /> Upload Documents
+          <input type="file" className="file-input" accept=".csv,.xlsx" onChange={handleFileUpload} />
+        </label>
+        <button className="nav-button theme-toggle-button" onClick={toggleTheme}>
+          {theme === "light" ? "🌙 Dark Mode" : "☀️ Light Mode"}
+        </button>
+        <button className="nav-button logout-button" onClick={handleLogout}>
+          <FaSignOutAlt /> Logout
+        </button>
+      </nav>
 
-      {uploadStatus && (
-        <p className={`upload-status ${uploadStatus.type}`}>
-          {uploadStatus.message}
-        </p>
-      )}
+      {/* Main Content */}
+      <main className="dashboard-content">
+        {loading && (
+          <div className="loading-overlay">
+            <div className="spinner"></div>
+            <p>Loading dashboard data...</p>
+          </div>
+        )}
+        {error && (
+          <div className="error-container">
+            <p className="error">{error}</p>
+            <button onClick={fetchDashboardData}>Retry</button>
+          </div>
+        )}
+        {uploadStatus && (
+          <div className={`upload-status ${uploadStatus.type}`}>
+            {uploadStatus.message}
+          </div>
+        )}
 
-      {!loading && !error && (
-        <>
-          <section className="vendor-quick-actions">
-            <button
-              className="dashboard-button"
-              onClick={() => navigate("/manage-listings")}
-            >
-              <FaBox /> Manage Listings
-            </button>
-            <button
-              className="dashboard-button"
-              onClick={() => navigate("/view-orders")}
-            >
-              <FaChartLine /> View Orders
-            </button>
-            <button
-              className="dashboard-button"
-              onClick={() => navigate("/vendor-profile")}
-            >
-              <FaCog /> Edit Profile
-            </button>
-            <label className="upload-label">
-              <FaUpload /> Upload Documents
-              <input
-                type="file"
-                className="file-input"
-                accept=".csv,.xlsx"
-                onChange={handleFileUpload}
-              />
-            </label>
-          </section>
+        {!loading && !error && (
+          <>
+            {/* KPIs */}
+            <section className="kpi-section">
+              <KPIs data={kpiData} />
+            </section>
 
-          <section className="vendor-stats-widgets">
-            <div className="stat-widget">
-              <FaDollarSign className="stat-icon" />
-              <h3>Total Revenue</h3>
-              <p>£{totalRevenue.toLocaleString()}</p>
-            </div>
-            <div className="stat-widget">
-              <FaBox className="stat-icon" />
-              <h3>Active Listings</h3>
-              <p>{activeListings}</p>
-            </div>
-            <div className="stat-widget">
-              <FaChartLine className="stat-icon" />
-              <h3>Total Orders</h3>
-              <p>{totalOrders}</p>
-            </div>
-          </section>
+            {/* Leads */}
+            <section className="leads-section">
+              <LeadsTable leads={leadsData} />
+            </section>
 
-          <section className="uploaded-products">
-            <h2>Uploaded Files</h2>
-            {vendor?.uploads?.length > 0 ? (
-              <ul className="uploaded-files-list">
-                {vendor.uploads.map((file, index) => (
-                  <li key={index}>
-                    📄 {file.fileName} —{" "}
-                    <span>
-                      {new Date(file.uploadDate).toLocaleDateString()}
-                    </span>{" "}
-                    <a
-                      href={`http://localhost:5000/${file.filePath}`}
-                      download
-                    >
-                      📥 Download
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p>No uploaded files yet.</p>
-            )}
-          </section>
+            {/* Quote Funnel and Revenue Trend */}
+            <section className="funnel-revenue-section">
+              <QuoteFunnel data={quoteData} />
+              <RevenueChart data={revenueData} />
+            </section>
 
-          <section className="uploaded-machines">
-            <h2>Uploaded Machines</h2>
-            {listings.length > 0 ? (
-              <ul className="uploaded-machines-list">
-                {listings.map((machine, idx) => (
-                  <li key={idx}>
-                    <strong>Model:</strong> {machine.model || "N/A"} |{" "}
-                    <strong>Type:</strong> {machine.type || "N/A"} |{" "}
-                    <strong>Lease Cost:</strong> £{machine.lease_cost || "N/A"}
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p>
-                No machines uploaded. Use the upload button to add a CSV file.
-              </p>
-            )}
-          </section>
-        </>
-      )}
+            {/* Uploaded Files */}
+            <section className="uploaded-files">
+              <h2>Uploaded Files</h2>
+              {uploads.length > 0 ? (
+                <ul className="file-list">
+                  {uploads.map((file, index) => (
+                    <li key={index} className="file-item">
+                      <span>📄 {file.fileName}</span>
+                      <span>{new Date(file.uploadDate).toLocaleDateString()}</span>
+                      <a href={`http://localhost:5000${file.filePath}`} download>
+                        📥 Download
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="no-data">No uploaded files yet.</p>
+              )}
+            </section>
+          </>
+        )}
+      </main>
     </div>
   );
 };

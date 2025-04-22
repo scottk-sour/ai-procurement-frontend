@@ -4,87 +4,93 @@
 .vendor-signup-page {
   font-family: 'Poppins', sans-serif;
   color: #2d3748;
-  background-color: #f9fafb; /* Lighter, premium background */
+  background-color: #f9fafb;
   margin: 0;
   padding: 0;
   line-height: 1.6;
-  overflow-x: hidden; /* Prevent horizontal scroll from animations */
+  overflow-x: hidden;
 }
 
 /* Section Container */
 .section-container {
-  max-width: 1300px; /* Wider for luxury feel, matching other services */
+  max-width: 1300px;
   margin: 0 auto;
   padding: 0 20px;
-  position: relative; /* Matching other services */
+  position: relative;
 }
 
 /* Hero Section */
 .vendor-signup-hero {
-  background: linear-gradient(135deg, #1e3a8a 0%, #2d4a8a 30%, #3b82f6 100%); /* Richer TENDORAI gradient for vendors */
-  padding: 80px 20px; /* Larger for luxury, matching other services */
+  background: linear-gradient(135deg, #1e3a8a 0%, #2d4a8a 30%, #3b82f6 100%);
+  padding: 80px 20px;
   text-align: center;
   color: #fff;
   position: relative;
-  animation: slideInFromTop 1s ease-in-out; /* Matching other services */
+  animation: slideInFromTop 1s ease-in-out;
 }
 
 .vendor-signup-title {
-  font-size: 4rem; /* Larger for impact, matching other services */
-  font-weight: 900; /* Bolder for luxury */
-  color: #ffffff; /* White as requested, no hover change, matching other services */
+  font-size: 4rem;
+  font-weight: 900;
+  color: #ffffff;
   margin-bottom: 1.5rem;
-  text-shadow: 4px 4px 12px rgba(0, 0, 0, 0.6); /* Deeper shadow, matching other services */
-  text-transform: uppercase; /* For emphasis, matching other services */
-  letter-spacing: 1px; /* Matching other services */
-  animation: fadeIn 1s ease-in-out; /* Matching other services */
+  text-shadow: 4px 4px 12px rgba(0, 0, 0, 0.6);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  animation: fadeIn 1s ease-in-out;
 }
 
 .vendor-signup-subtitle {
-  font-size: 1.8rem; /* Matching other services */
+  font-size: 1.8rem;
   font-weight: 400;
   max-width: 900px;
   margin: 0 auto 2.5rem;
   opacity: 0.95;
-  line-height: 2; /* Matching other services */
-  animation: fadeInUp 1s ease-in-out 0.5s backwards; /* Matching other services */
+  line-height: 2;
+  animation: fadeInUp 1s ease-in-out 0.5s backwards;
 }
 
 /* Signup Section */
 .vendor-signup-section {
-  padding: 80px 0; /* Larger for luxury, matching other services */
+  padding: 80px 0;
   background-color: #f9fafb;
   text-align: center;
-  animation: slideInFromBottom 1s ease-in-out; /* Matching other services */
+  animation: slideInFromBottom 1s ease-in-out;
 }
 
 /* Form Styles */
 .vendor-signup-form {
-  max-width: 600px; /* Slightly wider for vendor emphasis, matching other services */
+  max-width: 600px;
   margin: 0 auto;
   padding: 2.5rem;
   background-color: #fff;
-  border-radius: 16px; /* Larger radius for luxury, matching other services */
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); /* Deeper shadow, matching other services */
-  border: 1px solid #e5e7eb; /* Matching other services */
-  transition: transform 0.4s ease, box-shadow 0.4s ease, opacity 0.4s ease; /* Matching other services */
-  animation: fadeInUp 1s ease-in-out; /* Matching other services */
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e7eb;
+  transition: transform 0.4s ease, box-shadow 0.4s ease, opacity 0.4s ease;
+  animation: fadeInUp 1s ease-in-out;
+  overflow: visible;
 }
 
 .vendor-signup-form:hover {
-  transform: translateY(-10px) scale(1.02); /* Matching other services */
-  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15); /* Deeper shadow on hover, matching other services */
+  transform: translateY(-10px) scale(1.02);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
   opacity: 0.95;
 }
 
+.vendor-signup-form:hover .services-select .react-select__control,
+.vendor-signup-form:hover .services-select .react-select__menu {
+  opacity: 1; /* Ensure dropdown stays opaque on form hover */
+}
+
 .form-status {
-  padding: 1.5rem; /* Larger for luxury */
-  margin-bottom: 2rem; /* Larger for luxury */
-  border-radius: 10px; /* Matching other services */
-  font-size: 1.2rem; /* Matching other services */
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  border-radius: 10px;
+  font-size: 1.2rem;
   text-align: center;
   font-weight: 500;
-  transition: opacity 0.3s ease; /* Smooth fade for status */
+  transition: opacity 0.3s ease;
 }
 
 .success {
@@ -98,55 +104,69 @@
 }
 
 .form-group {
-  margin-bottom: 2rem; /* Larger for luxury */
+  margin-bottom: 2rem;
   text-align: left;
+  position: relative;
+  overflow: visible;
 }
 
 .form-group label {
-  font-size: 1.2rem; /* Matching other services */
-  font-weight: 700; /* Bolder for luxury */
-  color: #1e3a8a; /* Deeper TENDORAI blue */
-  margin-bottom: 0.75rem; /* Larger for luxury */
-  animation: fadeIn 0.5s ease-in-out; /* Matching other services */
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #1e3a8a;
+  margin-bottom: 0.75rem;
+  animation: fadeIn 0.5s ease-in-out;
 }
 
 .required {
-  color: #f97316; /* TENDORAI orange for premium, matching other services */
+  color: #f97316;
 }
 
 .input-field,
 .services-select .react-select__control {
   width: 100%;
-  padding: 16px 20px; /* Larger for luxury, matching other services */
-  font-size: 1.1rem; /* Matching other services */
+  padding: 16px 20px;
+  font-size: 1.1rem;
   font-family: 'Poppins', sans-serif;
   color: #4b5563;
-  border: 1px solid #e5e7eb; /* Matching other services */
-  border-radius: 10px; /* Matching other services */
-  transition: border-color 0.4s ease, box-shadow 0.4s ease, transform 0.3s ease; /* Enhanced transitions */
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  min-height: 56px;
+  background-color: #ffffff; /* Solid white background */
+  transition: border-color 0.4s ease, box-shadow 0.4s ease, transform 0.3s ease;
 }
 
 .input-field:focus,
 .services-select .react-select__control:focus-within {
-  border-color: #f97316; /* TENDORAI orange */
-  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.3); /* Deeper focus shadow, matching other services */
-  transform: translateY(-2px); /* Subtle lift for premium interaction */
+  border-color: #f97316;
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.3);
+  transform: translateY(-2px);
   outline: none;
 }
 
-.services-select .react-select__control {
-  min-height: 48px;
+.services-select .react-select__menu {
+  background-color: #ffffff; /* Solid white background */
+  border-radius: 10px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  position: absolute;
+  width: 100%;
+  display: block;
+  min-width: 200px;
+  border: 1px solid #e5e7eb;
+  opacity: 1; /* Full opacity */
 }
 
-.services-select .react-select__menu {
-  background-color: #fff;
-  border-radius: 10px; /* Larger radius for luxury, matching other services */
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15); /* Deeper shadow, matching other services */
+.services-select .react-select__option {
+  padding: 10px 15px;
+  font-size: 1rem;
+  color: #2d3748;
+  background-color: #ffffff; /* Solid background for options */
 }
 
 .services-select .react-select__option--is-focused {
   background-color: #f9fafb;
-  color: #1e3a8a; /* Deeper TENDORAI blue */
+  color: #1e3a8a;
 }
 
 .services-select .react-select__option:hover {
@@ -155,18 +175,18 @@
 
 .services-select .react-select__multi-value {
   background-color: #f9fafb;
-  border-radius: 6px; /* Matching other services */
+  border-radius: 6px;
 }
 
 .services-select .react-select__multi-value__label {
-  color: #1e3a8a; /* Deeper TENDORAI blue */
+  color: #1e3a8a;
 }
 
 .services-select .react-select__multi-value__remove {
-  color: #f97316; /* TENDORAI orange */
+  color: #f97316;
   &:hover {
     background-color: #fee2e2;
-    color: #ea580c; /* Richer orange, matching other services */
+    color: #ea580c;
   }
 }
 
@@ -187,46 +207,46 @@
   transform: translateY(-50%);
   background: #f0f0f0;
   border: none;
-  padding: 8px 14px; /* Larger for luxury, matching other services */
-  font-size: 1rem; /* Matching other services */
+  padding: 8px 14px;
+  font-size: 1rem;
   font-weight: 500;
   color: #4b5563;
-  border-radius: 6px; /* Matching other services */
+  border-radius: 6px;
   cursor: pointer;
-  transition: background-color 0.4s ease, transform 0.3s ease; /* Matching other services */
+  transition: background-color 0.4s ease, transform 0.3s ease;
 }
 
 .toggle-password:hover {
   background: #e5e7eb;
-  transform: translateY(-50%) translateY(-2px); /* Enhanced lift, matching other services */
+  transform: translateY(-50%) translateY(-2px);
 }
 
 .validation-error {
-  font-size: 1rem; /* Matching other services */
+  font-size: 1rem;
   color: #991b1b;
-  margin-top: 0.75rem; /* Larger for luxury */
+  margin-top: 0.75rem;
   text-align: left;
-  animation: fadeIn 0.5s ease-in-out 0.3s backwards; /* Matching other services */
+  animation: fadeIn 0.5s ease-in-out 0.3s backwards;
 }
 
 .submit-button {
   width: 100%;
-  padding: 16px 40px; /* Larger for prominence, matching other services */
-  background: linear-gradient(45deg, #f97316, #ea580c); /* TENDORAI orange gradient, matching other services */
+  padding: 16px 40px;
+  background: linear-gradient(45deg, #f97316, #ea580c);
   color: #fff;
-  font-size: 1.4rem; /* Matching other services */
-  font-weight: 700; /* Bolder for luxury */
+  font-size: 1.4rem;
+  font-weight: 700;
   border: none;
-  border-radius: 10px; /* Matching other services */
+  border-radius: 10px;
   cursor: pointer;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3); /* Deeper shadow, matching other services */
-  transition: background 0.4s ease, transform 0.3s ease, box-shadow 0.3s ease; /* Matching other services */
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+  transition: background 0.4s ease, transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .submit-button:hover:not(:disabled) {
-  background: linear-gradient(45deg, #ea580c, #c2410c); /* Richer gradient, matching other services */
-  transform: translateY(-6px) scale(1.05); /* Enhanced lift and scale, matching other services */
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4); /* Deeper shadow on hover, matching other services */
+  background: linear-gradient(45deg, #ea580c, #c2410c);
+  transform: translateY(-6px) scale(1.05);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
 }
 
 .submit-button:disabled {
@@ -242,22 +262,22 @@
 }
 
 .login-link {
-  font-size: 1.1rem; /* Matching other services */
+  font-size: 1.1rem;
   color: #4b5563;
-  margin-top: 2rem; /* Larger for luxury */
+  margin-top: 2rem;
   text-align: center;
-  animation: fadeIn 1s ease-in-out 0.5s backwards; /* Matching other services */
+  animation: fadeIn 1s ease-in-out 0.5s backwards;
 }
 
 .login-link a {
-  color: #f97316; /* TENDORAI orange for premium, matching other services */
+  color: #f97316;
   text-decoration: none;
-  font-weight: 700; /* Bolder for luxury */
-  transition: color 0.4s ease; /* Matching other services */
+  font-weight: 700;
+  transition: color 0.4s ease;
 }
 
 .login-link a:hover {
-  color: #ea580c; /* Richer orange, matching other services */
+  color: #ea580c;
   text-decoration: underline;
 }
 
@@ -289,7 +309,7 @@
 
 [data-animation] {
   opacity: 0;
-  transition: opacity 0.5s ease, transform 0.5s ease; /* Matching other services */
+  transition: opacity 0.5s ease, transform 0.5s ease;
 }
 
 [data-animation="fadeIn"][data-visible="true"],
@@ -305,58 +325,58 @@
 /* Responsive Design */
 @media (max-width: 768px) {
   .vendor-signup-hero {
-    padding: 60px 15px; /* Tighter for mobile, matching other services */
+    padding: 60px 15px;
   }
 
   .vendor-signup-title {
-    font-size: 2.5rem; /* Matching other services */
+    font-size: 2.5rem;
   }
 
   .vendor-signup-subtitle {
-    font-size: 1.2rem; /* Matching other services */
+    font-size: 1.2rem;
   }
 
   .vendor-signup-section {
-    padding: 60px 15px; /* Tighter for mobile, matching other services */
+    padding: 60px 15px;
   }
 
   .vendor-signup-form {
-    max-width: 100%; /* Full width for mobile */
-    padding: 2rem; /* Tighter for mobile */
+    max-width: 100%;
+    padding: 2rem;
   }
 
   .form-group label {
-    font-size: 1.1rem; /* Matching other services */
+    font-size: 1.1rem;
   }
 
   .input-field,
   .services-select .react-select__control {
-    font-size: 1rem; /* Matching other services */
-    padding: 14px 18px; /* Tighter for mobile */
+    font-size: 1rem;
+    padding: 14px 18px;
   }
 
   .toggle-password {
-    padding: 6px 12px; /* Tighter for mobile */
-    font-size: 0.9rem; /* Matching other services */
+    padding: 6px 12px;
+    font-size: 0.9rem;
   }
 
   .submit-button {
-    padding: 12px 28px; /* Matching other services */
-    font-size: 1.1rem; /* Matching other services */
+    padding: 12px 28px;
+    font-size: 1.1rem;
   }
 
   .login-link {
-    font-size: 1rem; /* Matching other services */
+    font-size: 1rem;
   }
 }
 
 @media (max-width: 480px) {
   .vendor-signup-title {
-    font-size: 2rem; /* Matching other services */
+    font-size: 2rem;
   }
 
   .vendor-signup-subtitle {
-    font-size: 1rem; /* Matching other services */
+    font-size: 1rem;
   }
 }
 
@@ -366,8 +386,6 @@
 .toggle-password:focus,
 .services-select .react-select__control:focus-within,
 .login-link a:focus {
-  outline: 3px solid #f97316; /* Thicker outline for luxury and accessibility, matching other services */
+  outline: 3px solid #f97316;
   outline-offset: 3px;
 }
-
-/* Note: WCAG AA compliance ensured by color contrast (white on #1e3a8a/#2d4a8a/#3b82f6, ratio > 4.5:1; #1e3a8a on #f9fafb, ratio > 4.5:1) */

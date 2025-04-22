@@ -28,8 +28,24 @@ const Login = () => {
     const token = localStorage.getItem("token");
     const role = localStorage.getItem("role");
     if (token && role === "user") {
-      console.log("✅ User token and role found, redirecting to dashboard");
-      navigate("/dashboard", { replace: false });
+      try {
+        // Decode token to check expiration
+        const decoded = JSON.parse(atob(token.split('.')[1]));
+        const isExpired = decoded.exp * 1000 < Date.now(); // Convert to milliseconds
+        if (isExpired) {
+          console.log("⚠ Expired token found, clearing localStorage");
+          localStorage.removeItem("token");
+          localStorage.removeItem("role");
+          localStorage.removeItem("userId");
+          localStorage.removeItem("userName");
+        } else {
+          console.log("✅ User token and role found, redirecting to dashboard");
+          navigate("/dashboard", { replace: false });
+        }
+      } catch (err) {
+        console.error("❌ Error decoding token:", err.message);
+        localStorage.clear(); // Clear invalid token
+      }
     } else if (token && role !== "user") {
       console.log("❌ Token found but role is not 'user', staying on login");
     }

@@ -1,11 +1,14 @@
-import React from 'react';
-import './LeadsTable.css';
+// src/components/LeadsTable.js
+import React from "react";
+import "./LeadsTable.css";
 
 const LeadsTable = ({ leads }) => {
+  const skeletonRows = Array(5).fill({ name: "Loading...", industry: "N/A", status: "N/A", value: "N/A", lastContactDate: new Date() });
+
   return (
     <div className="lead-table">
       <h3>Leads</h3>
-      {leads.length > 0 ? (
+      <div className="table-wrapper">
         <table>
           <thead>
             <tr>
@@ -17,8 +20,8 @@ const LeadsTable = ({ leads }) => {
             </tr>
           </thead>
           <tbody>
-            {leads.map((lead) => (
-              <tr key={lead._id} className="lead-row">
+            {(leads.length > 0 ? leads : skeletonRows).map((lead, index) => (
+              <tr key={lead._id || index} className={`lead-row ${leads.length === 0 ? "skeleton" : ""}`}>
                 <td>{lead.name}</td>
                 <td>{lead.industry}</td>
                 <td>{lead.status}</td>
@@ -28,9 +31,8 @@ const LeadsTable = ({ leads }) => {
             ))}
           </tbody>
         </table>
-      ) : (
-        <p>No leads available.</p>
-      )}
+      </div>
+      {leads.length === 0 && <p className="no-data">No leads available yet.</p>}
     </div>
   );
 };

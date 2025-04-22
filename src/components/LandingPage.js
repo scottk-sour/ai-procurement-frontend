@@ -1,47 +1,95 @@
 // src/components/LandingPage.js
 import React, { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import "../styles/LandingPage.css";
+import "../styles/LandingPage.css"; // Use the existing regular CSS
+
+const DevelopmentBanner = () => {
+  const [submitted, setSubmitted] = useState(false);
+
+  const handleSubmit = (e) => {
+    // Formspree will handle the submission via the action attribute
+    // We just need to update the UI state after submission
+    e.preventDefault();
+    setSubmitted(true);
+  };
+
+  return (
+    <div className="development-banner">
+      <p>
+        🚧 This site is still in development. You can still browse, 
+        <a href="/signup">sign up</a>, 
+        and stay updated by subscribing below!
+      </p>
+      {!submitted ? (
+        <form
+          action="https://formspree.io/f/xblgkvnk"
+          method="POST"
+          className="mt-2 flex justify-center flex-wrap gap-2"
+          onSubmit={handleSubmit}
+        >
+          <input
+            type="email"
+            name="email" // Required for Formspree to process the email
+            required
+            placeholder="Enter your email"
+            className="px-3 py-2 border rounded-md w-64 max-w-full"
+          />
+          <button
+            type="submit"
+            className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+          >
+            Subscribe
+          </button>
+        </form>
+      ) : (
+        <p className="success-message">Thank you for subscribing!</p>
+      )}
+    </div>
+  );
+};
 
 const LandingPage = () => {
   const { pathname } = useLocation();
   const [isVisible, setIsVisible] = useState(false);
-  const [imageLoaded, setImageLoaded] = useState(true); // Track image load status
 
   useEffect(() => {
-    console.log("✅ LandingPage useEffect triggered");
     window.scrollTo(0, 0);
-    setTimeout(() => setIsVisible(true), 100); // Animation trigger
+    const timer = setTimeout(() => setIsVisible(true), 100);
+    return () => clearTimeout(timer);
   }, [pathname]);
-
-  console.log("✅ LandingPage rendering START");
 
   return (
     <div className="landing-page">
+      {/* Development Banner */}
+      <DevelopmentBanner />
+
       {/* Hero Section */}
-      <header className={`hero-section ${!imageLoaded ? "no-image" : ""}`}>
+      <header
+        className="hero-section"
+        data-animation="fadeIn"
+        data-visible={isVisible}
+      >
         <div className="hero-overlay" />
         <div
           className="hero-background"
-          style={{
-            backgroundImage: imageLoaded
-              ? `url(${process.env.PUBLIC_URL}/assets/images/landingpagepic.png)`
-              : "none",
+          style={{ backgroundImage: `url(${process.env.PUBLIC_URL}/assets/images/landingpagepic.png)` }}
+          onError={(e) => {
+            e.target.style.backgroundImage = "none";
+            e.target.style.background = "linear-gradient(135deg, #1e3a8a, #2d4a8a)";
           }}
-          onLoad={() => setImageLoaded(true)}
-          onError={() => setImageLoaded(false)}
+          data-parallax-speed="0.3"
         />
-        <div className={`hero-content ${isVisible ? "visible" : ""}`}>
+        <div className="hero-content">
           <h1 className="hero-title">Revolutionize Your Procurement with AI</h1>
           <p className="hero-subtitle">Free & Instant Access</p>
           <p className="hero-description">
             Connect with top vendors, get tailored quotes in minutes, and transform your business.
           </p>
           <div className="hero-buttons">
-            <Link to="/login" className="hero-button primary">
+            <Link to="/login" className="hero-button primary" data-animation="fadeInUp" data-delay="200" data-visible={isVisible}>
               Login Now
             </Link>
-            <Link to="/signup" className="hero-button secondary">
+            <Link to="/signup" className="hero-button secondary" data-animation="fadeInUp" data-delay="400" data-visible={isVisible}>
               Sign Up Free
             </Link>
           </div>
@@ -49,7 +97,12 @@ const LandingPage = () => {
       </header>
 
       {/* Features Section */}
-      <section className="features-section">
+      <section
+        className="features-section"
+        data-animation="fadeInUp"
+        data-delay="600"
+        data-visible={isVisible}
+      >
         <div className="section-container">
           <h2 className="section-title">Why Choose TENDORAI?</h2>
           <div className="features-grid">
@@ -60,7 +113,10 @@ const LandingPage = () => {
             ].map((feature, index) => (
               <div
                 key={index}
-                className={`feature-card ${isVisible ? "visible" : ""}`}
+                className="feature-card"
+                data-animation="fadeInUp"
+                data-delay={600 + index * 200}
+                data-visible={isVisible}
               >
                 <h3 className="feature-title">{feature.title}</h3>
                 <p className="feature-text">{feature.text}</p>
@@ -71,13 +127,21 @@ const LandingPage = () => {
       </section>
 
       {/* Services Section */}
-      <section className="services-section">
+      <section
+        className="services-section"
+        data-animation="fadeInUp"
+        data-delay="1200"
+        data-visible={isVisible}
+      >
         <div className="section-container">
           <h2 className="section-title">Explore Our Services</h2>
           <div className="services-grid single-row">
             <Link
               to="/services/photocopiers"
-              className={`service-card ${isVisible ? "visible" : ""}`}
+              className="service-card"
+              data-animation="fadeInUp"
+              data-delay="1200"
+              data-visible={isVisible}
             >
               <img
                 src={`${process.env.PUBLIC_URL}/assets/images/photocopier.PNG`}
@@ -91,7 +155,10 @@ const LandingPage = () => {
             </Link>
             <Link
               to="/services/telecoms"
-              className={`service-card ${isVisible ? "visible" : ""}`}
+              className="service-card"
+              data-animation="fadeInUp"
+              data-delay="1400"
+              data-visible={isVisible}
             >
               <img
                 src={`${process.env.PUBLIC_URL}/assets/images/phone.PNG`}
@@ -105,7 +172,10 @@ const LandingPage = () => {
             </Link>
             <Link
               to="/services/cctv"
-              className={`service-card ${isVisible ? "visible" : ""}`}
+              className="service-card"
+              data-animation="fadeInUp"
+              data-delay="1600"
+              data-visible={isVisible}
             >
               <img
                 src={`${process.env.PUBLIC_URL}/assets/images/cctv.PNG`}
@@ -119,7 +189,10 @@ const LandingPage = () => {
             </Link>
             <Link
               to="/services/it"
-              className={`service-card ${isVisible ? "visible" : ""}`}
+              className="service-card"
+              data-animation="fadeInUp"
+              data-delay="1800"
+              data-visible={isVisible}
             >
               <img
                 src={`${process.env.PUBLIC_URL}/assets/images/wifi.PNG`}
@@ -136,19 +209,27 @@ const LandingPage = () => {
       </section>
 
       {/* Trusted by Leading Companies Section */}
-      <section className="trust-section">
+      <section
+        className="trust-section"
+        data-animation="fadeInUp"
+        data-delay="2200"
+        data-visible={isVisible}
+      >
         <div className="section-container">
           <h2 className="section-title">Trusted by Leading Companies</h2>
           <div className="trusted-companies">
             {[
               { name: "WalesWest", role: "Trusted Partner", quote: "An essential platform that connects us to reliable vendors and optimizes our procurement process.", logo: "waleswest.png" },
-              { name: "Mon Motors", role: "Procurement Specialist", quote: "A great tool for finding trusted vendors quickly. Highly recommend!", logo: "monmotors.png" },
+              { name: "MonhingeMotors", role: "Procurement Specialist", quote: "A great tool for finding trusted vendors quickly. Highly recommend!", logo: "monmotors.png" },
               { name: "Ascari", role: "Chief Financial Officer", quote: "The best solution for comparing vendor quotes and making cost-effective decisions.", logo: "Ascari.png" },
               { name: "GoCompare", role: "CEO", quote: "Our go-to platform for finding the right vendors with ease.", logo: "GoCompare.png" },
             ].map((company, index) => (
               <div
                 key={index}
-                className={`company-card ${isVisible ? "visible" : ""}`}
+                className="company-card"
+                data-animation="fadeInUp"
+                data-delay={2200 + index * 200}
+                data-visible={isVisible}
               >
                 <img
                   src={`${process.env.PUBLIC_URL}/assets/images/${company.logo}`}
@@ -169,10 +250,15 @@ const LandingPage = () => {
       </section>
 
       {/* Call to Action Footer */}
-      <footer className="cta-footer">
+      <footer
+        className="cta-footer"
+        data-animation="fadeInUp"
+        data-delay="3000"
+        data-visible={isVisible}
+      >
         <div className="section-container">
           <h2 className="cta-title">Ready to Transform Your Procurement?</h2>
-          <Link to="/signup" className="cta-button footer-cta primary">
+          <Link to="/signup" className="cta-button footer-cta primary" data-animation="fadeInUp" data-delay="3200" data-visible={isVisible}>
             Sign Up Now—It’s Free
           </Link>
         </div>
@@ -181,5 +267,4 @@ const LandingPage = () => {
   );
 };
 
-console.log("✅ LandingPage module loaded");
 export default LandingPage;

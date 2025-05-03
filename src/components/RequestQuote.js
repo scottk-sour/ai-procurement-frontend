@@ -1,11 +1,11 @@
 // src/components/RequestQuote.js
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { useDropzone } from "react-dropzone";
-import "./RequestQuote.css";
-import { getAuthToken, getUserId } from "../utils/auth";
-import { useAuth } from "../utils/AuthContext";
-import { motion } from "framer-motion";
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useDropzone } from 'react-dropzone';
+import './RequestQuote.css';
+import { getAuthToken, getUserId } from '../utils/auth';
+import { useAuth } from '../utils/AuthContext';
+import { motion } from 'framer-motion';
 
 // AI-driven copier suggestion function using an external API
 const suggestCopiers = async (data) => {
@@ -13,28 +13,28 @@ const suggestCopiers = async (data) => {
   const API_KEY = process.env.REACT_APP_AI_API_KEY;
 
   if (!API_URL || !API_KEY) {
-    console.error("AI API URL or API KEY is missing in .env");
+    console.error('AI API URL or API KEY is missing in .env');
     return [];
   }
 
   try {
     const response = await fetch(`${API_URL}/suggest-copiers`, {
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
         Authorization: `Bearer ${API_KEY}`,
       },
       body: JSON.stringify(data),
     });
 
     if (!response.ok) {
-      throw new Error("Failed to fetch copier suggestions");
+      throw new Error('Failed to fetch copier suggestions');
     }
 
     const result = await response.json();
     return result.suggestions || [];
   } catch (error) {
-    console.error("Error fetching copier suggestions:", error);
+    console.error('Error fetching copier suggestions:', error);
     return [];
   }
 };
@@ -44,59 +44,70 @@ const RequestQuote = () => {
   const { isLoggedIn } = useAuth();
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
-    companyName: "",
-    industryType: "",
-    numEmployees: "",
-    numLocations: "",
-    multiFloor: "No",
-    monthlyPrintVolume: "",
-    annualPrintVolume: "",
-    monthlyVolume: { colour: "", mono: "" },
-    currentColorCPC: "",
-    currentMonoCPC: "",
-    quarterlyLeaseCost: "",
-    leasingCompany: "",
-    serviceProvider: "",
-    contractStartDate: "",
-    contractEndDate: "",
+    companyName: '',
+    industryType: '',
+    numEmployees: '',
+    numLocations: '',
+    multiFloor: 'No',
+    monthlyPrintVolume: '',
+    annualPrintVolume: '',
+    monthlyVolume: { colour: '', mono: '' },
+    currentColorCPC: '',
+    currentMonoCPC: '',
+    quarterlyLeaseCost: '',
+    leasingCompany: '',
+    serviceProvider: '',
+    contractStartDate: '',
+    contractEndDate: '',
     additionalServices: [],
-    paysForScanning: "No",
-    serviceType: "Photocopiers",
-    colour: "",
-    type: "",
-    min_speed: "",
-    max_lease_price: "",
+    paysForScanning: 'No',
+    serviceType: 'Photocopiers',
+    colour: '',
+    type: '',
+    min_speed: '',
+    max_lease_price: '',
     required_functions: [],
-    preference: "",
+    preference: '',
   });
   const [uploadedFiles, setUploadedFiles] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
   const [suggestedMachines, setSuggestedMachines] = useState([]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     let updatedData;
-    if (type === "checkbox") {
+    if (type === 'checkbox' && name === 'additionalServices') {
       updatedData = {
         ...formData,
-        [name]: checked
-          ? [...formData[name], value]
-          : formData[name].filter((item) => item !== value),
+        additionalServices: checked
+          ? [...formData.additionalServices, value]
+          : formData.additionalServices.filter((item) => item !== value),
       };
-    } else if (name.startsWith("monthlyVolume.")) {
-      const field = name.split(".")[1];
+    } else if (type === 'checkbox' && name === 'required_functions') {
+      updatedData = {
+        ...formData,
+        required_functions: checked
+          ? [...formData.required_functions, value]
+          : formData.required_functions.filter((item) => item !== value),
+      };
+    } else if (name.startsWith('monthlyVolume.')) {
+      const field = name.split('.')[1];
       updatedData = {
         ...formData,
         monthlyVolume: { ...formData.monthlyVolume, [field]: value },
       };
     } else {
-      updatedData = { ...formData, [name]: value };
+      updatedData = {
+        ...formData,
+        [name]: type === 'number' ? (value === '' ? '' : parseFloat(value)) : value,
+      };
     }
     setFormData(updatedData);
 
     // Fetch AI suggestions when key fields are updated
-    if (["monthlyPrintVolume", "min_speed", "type", "colour", "required_functions"].includes(name)) {
+    if (['monthlyPrintVolume', 'min_speed', 'type', 'colour', 'required_functions'].includes(name)) {
       suggestCopiers(updatedData).then((suggestions) => {
         setSuggestedMachines(suggestions);
       });
@@ -105,9 +116,9 @@ const RequestQuote = () => {
 
   const { getRootProps, getInputProps } = useDropzone({
     accept: {
-      "application/pdf": [".pdf"],
-      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [".xlsx"],
-      "text/csv": [".csv"],
+      'application/pdf': ['.pdf'],
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'],
+      'text/csv': ['.csv'],
     },
     onDrop: (acceptedFiles) => {
       setUploadedFiles((prev) => [...prev, ...acceptedFiles]);
@@ -116,11 +127,11 @@ const RequestQuote = () => {
 
   const calculateBuyout = () => {
     const { quarterlyLeaseCost, contractEndDate } = formData;
-    if (!quarterlyLeaseCost || !contractEndDate) return "N/A";
+    if (!quarterlyLeaseCost || !contractEndDate) return 'N/A';
 
     const end = new Date(contractEndDate);
     const today = new Date();
-    if (today > end) return "Contract Ended";
+    if (today > end) return 'Contract Ended';
 
     const monthsRemaining = (end - today) / (1000 * 60 * 60 * 24 * 30);
     const quarterlyCost = parseFloat(quarterlyLeaseCost) || 0;
@@ -131,48 +142,36 @@ const RequestQuote = () => {
   const formatFormData = (data) => {
     return {
       ...data,
-      numEmployees: data.numEmployees ? parseInt(data.numEmployees, 10) : 0,
-      numLocations: data.numLocations ? parseInt(data.numLocations, 10) : 0,
-      monthlyPrintVolume: data.monthlyPrintVolume ? parseInt(data.monthlyPrintVolume, 10) : 0,
-      annualPrintVolume: data.annualPrintVolume ? parseInt(data.annualPrintVolume, 10) : 0,
+      numEmployees: data.numEmployees ? parseInt(data.numEmployees, 10) : undefined,
+      numLocations: data.numLocations ? parseInt(data.numLocations, 10) : undefined,
+      monthlyPrintVolume: data.monthlyPrintVolume ? parseInt(data.monthlyPrintVolume, 10) : undefined,
+      annualPrintVolume: data.annualPrintVolume ? parseInt(data.annualPrintVolume, 10) : undefined,
       monthlyVolume: {
         colour: data.monthlyVolume.colour ? parseInt(data.monthlyVolume.colour, 10) : 0,
         mono: data.monthlyVolume.mono ? parseInt(data.monthlyVolume.mono, 10) : 0,
       },
-      currentColorCPC: data.currentColorCPC ? parseFloat(data.currentColorCPC) : 0,
-      currentMonoCPC: data.currentMonoCPC ? parseFloat(data.currentMonoCPC) : 0,
-      quarterlyLeaseCost: data.quarterlyLeaseCost ? parseFloat(data.quarterlyLeaseCost) : 0,
-      min_speed: data.min_speed ? parseInt(data.min_speed, 10) : 0,
-      max_lease_price: data.max_lease_price ? parseInt(data.max_lease_price, 10) : 0,
-      multiFloor: data.multiFloor.toLowerCase() === "yes",
-      paysForScanning: data.paysForScanning.toLowerCase() === "yes",
+      currentColorCPC: data.currentColorCPC ? parseFloat(data.currentColorCPC) : undefined,
+      currentMonoCPC: data.currentMonoCPC ? parseFloat(data.currentMonoCPC) : undefined,
+      quarterlyLeaseCost: data.quarterlyLeaseCost ? parseFloat(data.quarterlyLeaseCost) : undefined,
+      min_speed: data.min_speed ? parseInt(data.min_speed, 10) : undefined,
+      max_lease_price: data.max_lease_price ? parseInt(data.max_lease_price, 10) : undefined,
+      multiFloor: data.multiFloor.toLowerCase() === 'yes',
+      paysForScanning: data.paysForScanning.toLowerCase() === 'yes',
     };
   };
 
   const validateStep = (currentStep) => {
     switch (currentStep) {
       case 1:
-        return (
-          formData.companyName &&
-          formData.industryType &&
-          formData.numEmployees &&
-          formData.numLocations
-        );
+        return formData.companyName && formData.industryType && formData.numEmployees && formData.numLocations;
       case 2:
-        return (
-          formData.monthlyVolume.colour !== "" &&
-          formData.monthlyVolume.mono !== ""
-        );
+        return formData.monthlyVolume.colour !== '' && formData.monthlyVolume.mono !== '';
       case 3:
         return true; // Optional fields
       case 4:
-        return (
-          formData.serviceType &&
-          formData.colour &&
-          formData.type
-        );
+        return formData.serviceType && formData.colour && formData.type;
       case 5:
-        return formData.preference && formData.preference !== "";
+        return formData.preference && formData.preference !== '';
       case 6:
         return formData.max_lease_price;
       default:
@@ -183,9 +182,9 @@ const RequestQuote = () => {
   const handleNext = () => {
     if (validateStep(step)) {
       setStep((prev) => prev + 1);
-      setErrorMessage("");
+      setErrorMessage('');
     } else {
-      setErrorMessage("Please fill out all required fields before proceeding.");
+      setErrorMessage('Please fill out all required fields before proceeding.');
     }
   };
 
@@ -194,16 +193,18 @@ const RequestQuote = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateStep(6)) {
-      setErrorMessage("Please fill out all required fields before submitting.");
+      setErrorMessage('Please fill out all required fields before submitting.');
       return;
     }
 
     setIsSubmitting(true);
-    setErrorMessage("");
+    setErrorMessage('');
+    setSuccessMessage('');
 
     if (!isLoggedIn) {
-      alert("You must be logged in to submit a quote request.");
-      navigate("/login");
+      alert('You must be logged in to submit a quote request.');
+      navigate('/login');
+      setIsSubmitting(false);
       return;
     }
 
@@ -211,35 +212,35 @@ const RequestQuote = () => {
     const userId = getUserId();
 
     if (!token || !userId) {
-      alert("Authentication failed. Please log in again.");
-      navigate("/login");
+      alert('Authentication failed. Please log in again.');
+      navigate('/login');
+      setIsSubmitting(false);
       return;
     }
 
     const formattedData = formatFormData(formData);
-    console.log("🚀 Full Formatted Data:", JSON.stringify(formattedData, null, 2));
+    console.log('🚀 Full Formatted Data:', JSON.stringify(formattedData, null, 2));
 
     try {
       let response, data;
 
       if (uploadedFiles.length > 0) {
         const requestData = new FormData();
-        requestData.append("userRequirements", JSON.stringify(formattedData));
-        requestData.append("userId", userId);
-        uploadedFiles.forEach((file) => requestData.append("documents", file));
-
-        console.log("📤 Sending API Request with files...");
-        response = await fetch("http://localhost:5000/api/quotes/request", {
-          method: "POST",
+        requestData.append('userRequirements', JSON.stringify(formattedData));
+        requestData.append('userId', userId);
+        uploadedFiles.forEach((file) => requestData.append('documents', file));
+        console.log('📤 Sending API Request with files...', Array.from(requestData.entries()));
+        response = await fetch('http://localhost:5000/api/quotes/request', {
+          method: 'POST',
           headers: { Authorization: `Bearer ${token}` },
           body: requestData,
         });
       } else {
-        console.log("📤 Sending API Request without files...");
-        response = await fetch("http://localhost:5000/api/quotes/request", {
-          method: "POST",
+        console.log('📤 Sending API Request without files...');
+        response = await fetch('http://localhost:5000/api/quotes/request', {
+          method: 'POST',
           headers: {
-            "Content-Type": "application/json",
+            'Content-Type': 'application/json',
             Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({ ...formattedData, userId }),
@@ -247,32 +248,63 @@ const RequestQuote = () => {
       }
 
       data = await response.json();
-      console.log("📩 Response data:", data);
+      console.log('📩 Response data:', data);
 
       if (!response.ok) {
-        throw new Error(data.message || "Failed to submit the request.");
+        const errorMessage = data.details?.join('; ') || data.message || 'Failed to submit the request.';
+        throw new Error(errorMessage);
       }
 
-      console.log("✅ Quote request submitted successfully!");
-      alert("Quote request submitted successfully!");
-      navigate("/compare-vendors");
+      console.log('✅ Quote request submitted successfully!');
+      setSuccessMessage('Quote request submitted successfully!');
+      setErrorMessage('');
+      setFormData({
+        companyName: '',
+        industryType: '',
+        numEmployees: '',
+        numLocations: '',
+        multiFloor: 'No',
+        monthlyPrintVolume: '',
+        annualPrintVolume: '',
+        monthlyVolume: { colour: '', mono: '' },
+        currentColorCPC: '',
+        currentMonoCPC: '',
+        quarterlyLeaseCost: '',
+        leasingCompany: '',
+        serviceProvider: '',
+        contractStartDate: '',
+        contractEndDate: '',
+        additionalServices: [],
+        paysForScanning: 'No',
+        serviceType: 'Photocopiers',
+        colour: '',
+        type: '',
+        min_speed: '',
+        max_lease_price: '',
+        required_functions: [],
+        preference: '',
+      });
+      setUploadedFiles([]);
+      setStep(1);
+      setTimeout(() => navigate('/compare-vendors', { state: { quote: data.quote } }), 2000);
     } catch (error) {
-      console.error("Error submitting quote request:", error.message);
-      setErrorMessage(error.message || "An error occurred while submitting the request.");
+      console.error('Error submitting quote request:', error.message);
+      setErrorMessage(error.message);
+      setSuccessMessage('');
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const additionalServicesOptions = [
-    "Automatic toner replenishment",
-    "On-site service & repairs",
-    "Cost per copy fees",
-    "Bulk paper delivery",
-    "Print tracking & reporting",
-    "Monthly lease payments",
-    "Printer setup & network configuration",
-    "Toner cartridge recycling",
+    'Automatic toner replenishment',
+    'On-site service & repairs',
+    'Cost per copy fees',
+    'Bulk paper delivery',
+    'Print tracking & reporting',
+    'Monthly lease payments',
+    'Printer setup & network configuration',
+    'Toner cartridge recycling',
   ];
 
   const renderStep = () => {
@@ -523,7 +555,7 @@ const RequestQuote = () => {
             </label>
             <fieldset>
               <legend>Required Functions:</legend>
-              {["Scanning", "Fax", "Wireless Printing", "Duplex Printing"].map((func) => (
+              {['Scanning', 'Fax', 'Wireless Printing', 'Duplex Printing'].map((func) => (
                 <label key={func}>
                   <input
                     type="checkbox"
@@ -579,7 +611,9 @@ const RequestQuote = () => {
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
             <h3>Review Your Request</h3>
             <div className="review-section">
-              <p><strong>Estimated Buyout:</strong> £{calculateBuyout()}</p>
+              <p>
+                <strong>Estimated Buyout:</strong> £{calculateBuyout()}
+              </p>
               <pre>{JSON.stringify(formatFormData(formData), null, 2)}</pre>
             </div>
             <label>
@@ -594,7 +628,7 @@ const RequestQuote = () => {
             </label>
             <button onClick={handleBack}>Back</button>
             <button type="submit" onClick={handleSubmit} disabled={isSubmitting}>
-              {isSubmitting ? "Submitting..." : "Submit Request"}
+              {isSubmitting ? 'Submitting...' : 'Submit Request'}
             </button>
           </motion.div>
         );
@@ -607,6 +641,7 @@ const RequestQuote = () => {
     <div className="request-quote-container">
       <h2>Request a Quote</h2>
       {errorMessage && <p className="error-message">{errorMessage}</p>}
+      {successMessage && <p className="success-message">{successMessage}</p>}
       <div className="progress-bar">
         <span>Step {step} of 6</span>
         <div style={{ width: `${(step / 6) * 100}%` }} className="progress" />

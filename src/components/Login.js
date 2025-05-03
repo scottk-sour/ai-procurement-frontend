@@ -1,18 +1,19 @@
+// src/components/Login.js
 import React, { useState, useEffect } from "react";
-import { useNavigate, useLocation, Link, useSearchParams } from "react-router-dom";
+import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import "./Login.css";
-import { setToken, setUserId } from "../utils/auth";
+import { setToken, setUserId, logout } from "../utils/auth";
 import { useAuth } from "../utils/AuthContext";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [role, setRole] = useState("user");
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [isVisible, setIsVisible] = useState(false);
   const { setLoggedIn } = useAuth();
-
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const [searchParams] = useSearchParams();
@@ -26,30 +27,24 @@ const Login = () => {
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    const role = localStorage.getItem("role");
-    if (token && role === "user") {
+    const storedRole = localStorage.getItem("role");
+    if (token && storedRole && pathname === "/login") {
       try {
-        // Decode token to check expiration
         const decoded = JSON.parse(atob(token.split('.')[1]));
-        const isExpired = decoded.exp * 1000 < Date.now(); // Convert to milliseconds
+        const isExpired = decoded.exp * 1000 < Date.now();
         if (isExpired) {
           console.log("⚠ Expired token found, clearing localStorage");
-          localStorage.removeItem("token");
-          localStorage.removeItem("role");
-          localStorage.removeItem("userId");
-          localStorage.removeItem("userName");
+          logout();
         } else {
-          console.log("✅ User token and role found, redirecting to dashboard");
-          navigate("/dashboard", { replace: false });
+          console.log(`✅ ${storedRole} token found, redirecting to ${storedRole === "user" ? "dashboard" : "vendor-dashboard"}`);
+          navigate(storedRole === "user" ? "/dashboard" : "/vendor-dashboard", { replace: true });
         }
       } catch (err) {
         console.error("❌ Error decoding token:", err.message);
-        localStorage.clear(); // Clear invalid token
+        logout();
       }
-    } else if (token && role !== "user") {
-      console.log("❌ Token found but role is not 'user', staying on login");
     }
-  }, [navigate]);
+  }, [navigate, pathname]);
 
   const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
@@ -71,7 +66,8 @@ const Login = () => {
     }
 
     try {
-      const response = await fetch("http://localhost:5000/api/users/login", {
+      const endpoint = role === "user" ? "/api/users/login" : "/api/vendors/login";
+      const response = await fetch(`http://localhost:5000${endpoint}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
@@ -80,22 +76,23 @@ const Login = () => {
       const data = await response.json();
 
       if (response.ok) {
-        console.log("✅ User login successful, storing token and role...");
+        console.log(`✅ ${role} login successful, storing token and role...`);
         setToken(data.token);
-        setUserId(data.userId);
-        localStorage.setItem("userName", data.name || "User");
-        localStorage.setItem("role", "user");
+        setUserId(data[role === "user" ? "userId" : "vendorId"]);
+        localStorage.setItem("userName", data[role === "user" ? "name" : "vendorName"] || role.charAt(0).toUpperCase() + role.slice(1));
+        localStorage.setItem("role", role);
         setLoggedIn(true);
-        console.log("🔍 Stored User Token:", localStorage.getItem("token"));
-        console.log("🔍 Stored Role:", localStorage.getItem("role"));
-        console.log("🛠️ Navigating to dashboard...");
-        navigate("/dashboard", { replace: false });
+        console.log(`Tracking ${role} login success for ${email}`);
+        navigate(role === "user" ? "/dashboard" : "/vendor-dashboard", { replace: true });
       } else {
-        console.error("❌ User login failed:", data.message);
-        setError(data.message || "Invalid email or password.");
+        console.error(`❌ ${role} login failed:`, data.message);
+        const errorMsg = response.status === 429
+          ? "Too many login attempts. Please try again later."
+          : data.message || "Invalid email or password.";
+        setError(errorMsg);
       }
     } catch (error) {
-      console.error("❌ Error during user login:", error);
+      console.error(`❌ Error during ${role} login:`, error);
       setError("A network error occurred. Please try again.");
     } finally {
       setLoading(false);
@@ -103,16 +100,37 @@ const Login = () => {
   };
 
   return (
-    <div className="login-page" data-animation="fadeInUp" data-visible={isVisible}>
-      <header className="login-hero" data-animation="fadeIn" data-delay="200" data-visible={isVisible}>
-        <h1 className="login-title">User Login for TENDORAI</h1>
-        <p className="login-subtitle">
+    <div className={`login-page ${role === "vendor" ? "vendor-login-page" : ""}`} data-animation="fadeInUp" data-visible={isVisible}>
+      <header className={`login-hero ${role === "vendor" ? "vendor-login-hero" : ""}`} data-animation="fadeIn" data-delay="200" data-visible={isVisible}>
+        <h1 className={`login-title ${role === "vendor" ? "vendor-login-title" : ""}`}>
+          {role === "user" ? "User Login" : "Vendor Login"} for TENDORAI
+        </h1>
+        <p className={`login-subtitle ${role === "vendor" ? "vendor-login-subtitle" : ""}`}>
           Securely access your TENDORAI account to explore AI-powered procurement.
         </p>
+        {role === "vendor" && (
+          <span className="vendor-badge">Vendor Portal</span>
+        )}
       </header>
-      <section className="login-section" data-animation="fadeInUp" data-delay="400" data-visible={isVisible}>
+      <section className={`login-section ${role === "vendor" ? "vendor-login-section" : ""}`} data-animation="fadeInUp" data-delay="400" data-visible={isVisible}>
         <div className="section-container">
-          <form onSubmit={handleLogin} className="login-form">
+          <div className="role-toggle">
+            <button
+              className={`role-button ${role === "user" ? "active" : ""}`}
+              onClick={() => setRole("user")}
+              aria-label="Switch to user login"
+            >
+              User
+            </button>
+            <button
+              className={`role-button ${role === "vendor" ? "active" : ""}`}
+              onClick={() => setRole("vendor")}
+              aria-label="Switch to vendor login"
+            >
+              Vendor
+            </button>
+          </div>
+          <form onSubmit={handleLogin} className={`login-form ${role === "vendor" ? "vendor-login-form" : ""}`}>
             {error && <div className="form-status error">{error}</div>}
             <div className="form-group">
               <label htmlFor="email">
@@ -148,6 +166,7 @@ const Login = () => {
                   type="button"
                   onClick={() => setPasswordVisible(!passwordVisible)}
                   className="toggle-password"
+                  aria-label={passwordVisible ? "Hide password" : "Show password"}
                 >
                   {passwordVisible ? "Hide" : "Show"}
                 </button>
@@ -158,9 +177,9 @@ const Login = () => {
             </button>
             <p className="signup-link">
               Don’t have an account?{" "}
-              <Link to="/signup" onClick={() => navigate("/signup", { replace: false })}>
+              <a href={`/${role}/signup`} onClick={(e) => { e.preventDefault(); navigate(`/${role}/signup`, { replace: false }); }}>
                 Sign up here
-              </Link>
+              </a>
             </p>
           </form>
         </div>

@@ -1,57 +1,245 @@
-src/components/Dashboard/QuoteFunnel.css
+/* src/components/QuoteFunnel.css */
+
+/* Reference global CSS variables */
+:root {
+  --primary-color: #1e3a8a;
+  --secondary-color: #f97316;
+  --text-color: #2d3748;
+  --border-color: #e5e7eb;
+  --focus-glow: rgba(249, 115, 22, 0.3);
+  --widget-bg-color: #fff;
+  --dark-widget-bg: #1f2937;
+  --dark-border-color: #4b5563;
+  --danger-color: #991b1b;
+  --transition-duration: 0.3s;
+  --border-radius: 8px;
+  --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Quote Funnel Container */
 .quote-funnel {
-  background: linear-gradient(145deg, #ffffff, #f1f5f9);
-  padding: 1.5rem;
-  border-radius: 12px;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-  transition: box-shadow 0.3s ease;
+  background: var(--widget-bg-color);
+  padding: 2rem;
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+  transition: box-shadow var(--transition-duration) ease, transform 0.2s ease;
+  font-family: "Inter", "Poppins", sans-serif;
+  animation: fadeIn 0.5s ease-in-out;
+  contain: layout;
 }
 
 .quote-funnel:hover {
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
 }
 
+[data-theme="dark"] .quote-funnel {
+  background: var(--dark-widget-bg);
+}
+
+/* Title */
 .quote-funnel h3 {
-  font-size: 1.8rem;
-  color: #1e3a8a; /* TENDORAI blue */
+  font-size: 1.75rem;
+  color: var(--primary-color);
   margin-bottom: 1.5rem;
   font-weight: 700;
-  text-transform: uppercase;
+  text-align: left;
 }
 
+/* Funnel Container */
 .funnel-container {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.75rem;
 }
 
+/* Funnel Step */
 .quote-step {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1rem;
+  padding: 1rem 1.5rem;
   border-radius: 8px;
-  color: #fff;
+  border: 1px solid var(--border-color);
+  color: #ffffff;
   font-weight: 600;
   cursor: pointer;
-  transition: transform 0.2s ease, opacity 0.2s ease;
+  transition: transform 0.2s ease, opacity 0.2s ease, box-shadow 0.2s ease;
+  animation: slideIn 0.5s ease-in-out;
+  animation-delay: calc(0.1s * var(--index));
+  animation-fill-mode: backwards;
 }
 
 .quote-step:hover {
-  transform: translateX(5px);
-  opacity: 0.9;
+  transform: translateX(8px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  opacity: 0.95;
 }
 
-.quote-created { background: linear-gradient(45deg, #f97316, #ea580c); }
-.quote-pending { background: linear-gradient(45deg, #f59e0b, #d97706); }
-.quote-won { background: linear-gradient(45deg, #10b981, #059669); }
-.quote-lost { background: linear-gradient(45deg, #ef4444, #dc2626); }
-
-.quote-step span:first-child {
-  font-size: 1.2rem;
+.quote-step:focus {
+  outline: 3px solid var(--focus-glow);
+  outline-offset: 2px;
 }
 
-.quote-step span:last-child {
-  font-size: 1.5rem;
-  font-weight: 900;
+/* Funnel Step Variants */
+.quote-created {
+  background: linear-gradient(45deg, var(--secondary-color), #ea580c);
+}
+
+.quote-pending {
+  background: linear-gradient(45deg, #f59e0b, #d97706);
+}
+
+.quote-matched {
+  background: linear-gradient(45deg, #3b82f6, #2563eb);
+}
+
+.quote-completed {
+  background: linear-gradient(45deg, #10b981, #059669);
+}
+
+[data-theme="dark"] .quote-step {
+  border-color: var(--dark-border-color);
+}
+
+/* Step Labels and Counts */
+.quote-step .step-label {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.quote-step .step-count {
+  font-size: 1.4rem;
+  font-weight: 800;
+}
+
+/* Empty State */
+.funnel-empty {
+  text-align: center;
+  padding: 1.5rem;
+}
+
+.funnel-empty .no-data {
+  font-size: 1.1rem;
+  color: #6b7280;
+  margin-bottom: 1rem;
+}
+
+.funnel-empty .request-quote-button {
+  background: var(--secondary-color);
+  color: #ffffff;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--transition-duration) ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.funnel-empty .request-quote-button:hover {
+  background: var(--primary-color);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.funnel-empty .request-quote-button:focus {
+  outline: 3px solid var(--focus-glow);
+  outline-offset: 2px;
+}
+
+/* Loading State */
+.funnel-loading {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.skeleton-bar {
+  height: 40px;
+  background: linear-gradient(90deg, #e5e7eb 25%, #f3f4f6 50%, #e5e7eb 75%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s infinite;
+  border-radius: 8px;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideIn {
+  from { transform: translateX(-20px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes skeleton-loading {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+  .quote-funnel,
+  .quote-step,
+  .request-quote-button,
+  .skeleton-bar {
+    animation: none;
+    transition: none;
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .quote-funnel {
+    padding: 1.5rem;
+  }
+
+  .quote-funnel h3 {
+    font-size: 1.5rem;
+  }
+
+  .quote-step {
+    padding: 0.75rem 1rem;
+  }
+
+  .quote-step .step-label {
+    font-size: 1rem;
+  }
+
+  .quote-step .step-count {
+    font-size: 1.2rem;
+  }
+
+  .funnel-empty .no-data {
+    font-size: 1rem;
+  }
+
+  .funnel-empty .request-quote-button {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .quote-funnel {
+    padding: 1rem;
+  }
+
+  .quote-funnel h3 {
+    font-size: 1.3rem;
+  }
+
+  .quote-step {
+    padding: 0.5rem 0.75rem;
+  }
+
+  .quote-step .step-label {
+    font-size: 0.9rem;
+  }
+
+  .quote-step .step-count {
+    font-size: 1.1rem;
+  }
 }

@@ -1,124 +1,150 @@
-/* src/components/Login.css */
-
 /* General Styles */
 .login-page,
 .vendor-login-page {
   font-family: 'Poppins', sans-serif;
   color: #2d3748;
-  background-color: #f9fafb; /* Lighter, premium background */
+  background-color: #f9fafb;
   margin: 0;
   padding: 0;
   line-height: 1.6;
-  overflow-x: hidden; /* Prevent horizontal scroll from animations */
+  overflow-x: hidden;
 }
 
 /* Section Container */
 .section-container {
-  max-width: 1300px; /* Wider for luxury feel, matching other services */
+  max-width: 1300px;
   margin: 0 auto;
   padding: 0 20px;
-  position: relative; /* Matching other services */
+  position: relative;
 }
 
 /* Hero Section */
 .login-hero,
 .vendor-login-hero {
-  background: linear-gradient(135deg, #1e3a8a 0%, #2d4a8a 30%, #3b82f6 100%); /* Richer TENDORAI gradient */
-  padding: 80px 20px; /* Larger for luxury, matching other services */
+  background: linear-gradient(
+    135deg,
+    #1e3a8a 0%,
+    #2d4a8a 30%,
+    #3b82f6 100%
+  );
+  padding: 80px 20px;
   text-align: center;
   color: #fff;
   position: relative;
-  animation: slideInFromTop 1s ease-in-out; /* Matching other services */
+  animation: slideInFromTop 1s ease-in-out;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 300px;
 }
 
+.vendor-login-hero {
+  background: linear-gradient(
+    135deg,
+    #1e3a8a 0%,
+    #2d4a8a 100%
+  );
+}
+
+/* Hero Content (Centered) */
+.hero-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  width: 100%;
+  max-width: 900px;
+}
+
+/* Titles & Subtitles */
 .login-title,
 .vendor-login-title {
-  font-size: 4rem; /* Larger for impact, matching other services */
-  font-weight: 900; /* Bolder for luxury */
-  color: #ffffff; /* White as per user request, no hover change, matching other services */
+  font-size: 4rem;
+  font-weight: 900;
+  color: #ffffff;
   margin-bottom: 1.5rem;
-  text-shadow: 4px 4px 12px rgba(0, 0, 0, 0.6); /* Deeper shadow, matching other services */
-  text-transform: uppercase; /* For emphasis, matching other services */
-  letter-spacing: 1px; /* Matching other services */
-  animation: fadeIn 1s ease-in-out; /* Matching other services */
+  text-shadow: 4px 4px 12px rgba(0, 0, 0, 0.6);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  animation: fadeIn 1s ease-in-out;
 }
 
 .login-subtitle,
 .vendor-login-subtitle {
-  font-size: 1.8rem; /* Matching other services */
+  font-size: 1.8rem;
   font-weight: 400;
   max-width: 900px;
   margin: 0 auto 2.5rem;
   opacity: 0.95;
-  line-height: 2; /* Matching other services */
-  animation: fadeInUp 1s ease-in-out 0.5s backwards; /* Matching other services */
+  line-height: 2;
+  animation: fadeInUp 1s ease-in-out 0.5s backwards;
 }
 
-/* Vendor-Specific Hero Enhancement */
-.vendor-login-hero {
-  background: linear-gradient(135deg, #1e3a8a 0%, #2d4a8a 100%); /* Slightly darker blue for vendors, matching other services */
-}
-
+/* Vendor Badge */
 .vendor-badge {
   position: absolute;
   top: 20px;
   right: 20px;
-  padding: 10px 18px; /* Larger for luxury, matching other services */
-  background-color: #f97316; /* TENDORAI orange for premium */
+  padding: 10px 18px;
+  background-color: #f97316;
   color: #fff;
-  font-size: 1rem; /* Matching other services */
+  font-size: 1rem;
   font-weight: 600;
-  border-radius: 6px; /* Matching other services */
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); /* Deeper shadow, matching other services */
-  transition: transform 0.3s ease, box-shadow 0.3s ease; /* Matching other services */
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .vendor-badge:hover {
-  transform: translateY(-2px); /* Subtle lift, matching other services */
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25); /* Deeper shadow on hover, matching other services */
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
 }
 
 /* Login Section */
 .login-section,
 .vendor-login-section {
-  padding: 80px 0; /* Larger for luxury, matching other services */
+  padding: 80px 0;
   background-color: #f9fafb;
   text-align: center;
-  min-height: 60vh; /* Ensure section has space */
-  display: block; /* Ensure visibility */
-  visibility: visible; /* Override any hiding */
-  animation: slideInFromBottom 1s ease-in-out; /* Matching other services */
+  min-height: 60vh;
+  display: block;
+  visibility: visible;
+  animation: slideInFromBottom 1s ease-in-out;
 }
 
 /* Form Styles */
 .login-form,
 .vendor-login-form {
-  max-width: 500px; /* Slightly wider for vendor emphasis */
+  max-width: 500px;
   margin: 0 auto;
   padding: 2.5rem;
   background-color: #fff;
-  border-radius: 16px; /* Larger radius for luxury, matching other services */
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); /* Deeper shadow, matching other services */
-  border: 1px solid #e5e7eb; /* Matching other services */
-  transition: transform 0.4s ease, box-shadow 0.4s ease, opacity 0.4s ease; /* Matching other services */
-  animation: fadeInUp 1s ease-in-out; /* Matching other services */
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e7eb;
+  transition:
+    transform 0.4s ease,
+    box-shadow 0.4s ease,
+    opacity 0.4s ease;
+  animation: fadeInUp 1s ease-in-out;
 }
 
 .login-form:hover,
 .vendor-login-form:hover {
-  transform: translateY(-10px) scale(1.02); /* Matching other services */
-  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15); /* Deeper shadow on hover, matching other services */
+  transform: translateY(-10px) scale(1.02);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
   opacity: 0.95;
 }
 
 .form-status {
-  padding: 1.5rem; /* Larger for luxury */
-  margin-bottom: 2rem; /* Larger for luxury */
-  border-radius: 10px; /* Matching other services */
-  font-size: 1.2rem; /* Matching other services */
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  border-radius: 10px;
+  font-size: 1.2rem;
   text-align: center;
   font-weight: 500;
-  transition: opacity 0.3s ease; /* Smooth fade for status */
+  transition: opacity 0.3s ease;
 }
 
 .error {
@@ -127,37 +153,40 @@
 }
 
 .form-group {
-  margin-bottom: 2rem; /* Larger for luxury */
+  margin-bottom: 2rem;
   text-align: left;
 }
 
 .form-group label {
-  font-size: 1.2rem; /* Matching other services */
-  font-weight: 700; /* Bolder for luxury */
-  color: #1e3a8a; /* Deeper TENDORAI blue */
-  margin-bottom: 0.75rem; /* Larger for luxury */
-  animation: fadeIn 0.5s ease-in-out; /* Matching other services */
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #1e3a8a;
+  margin-bottom: 0.75rem;
+  animation: fadeIn 0.5s ease-in-out;
 }
 
 .required {
-  color: #f97316; /* TENDORAI orange for premium, matching other services */
+  color: #f97316;
 }
 
 .input-field {
   width: 100%;
-  padding: 16px 20px; /* Larger for luxury, matching other services */
-  font-size: 1.1rem; /* Matching other services */
+  padding: 16px 20px;
+  font-size: 1.1rem;
   font-family: 'Poppins', sans-serif;
   color: #4b5563;
-  border: 1px solid #e5e7eb; /* Matching other services */
-  border-radius: 10px; /* Matching other services */
-  transition: border-color 0.4s ease, box-shadow 0.4s ease, transform 0.3s ease; /* Enhanced transitions */
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  transition:
+    border-color 0.4s ease,
+    box-shadow 0.4s ease,
+    transform 0.3s ease;
 }
 
 .input-field:focus {
-  border-color: #f97316; /* TENDORAI orange */
-  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.3); /* Deeper focus shadow, matching other services */
-  transform: translateY(-2px); /* Subtle lift for premium interaction */
+  border-color: #f97316;
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.3);
+  transform: translateY(-2px);
   outline: none;
 }
 
@@ -178,38 +207,44 @@
   transform: translateY(-50%);
   background: #f0f0f0;
   border: none;
-  padding: 8px 14px; /* Larger for luxury, matching other services */
-  font-size: 1rem; /* Matching other services */
+  padding: 8px 14px;
+  font-size: 1rem;
   font-weight: 500;
   color: #4b5563;
-  border-radius: 6px; /* Matching other services */
+  border-radius: 6px;
   cursor: pointer;
-  transition: background-color 0.4s ease, transform 0.3s ease; /* Matching other services */
+  transition:
+    background-color 0.4s ease,
+    transform 0.3s ease;
 }
 
 .toggle-password:hover {
   background: #e5e7eb;
-  transform: translateY(-50%) translateY(-2px); /* Enhanced lift, matching other services */
+  transform: translateY(-50%) translateY(-2px);
 }
 
+/* Submit Button */
 .submit-button {
   width: 100%;
-  padding: 16px 40px; /* Larger for prominence, matching other services */
-  background: linear-gradient(45deg, #f97316, #ea580c); /* TENDORAI orange gradient, matching other services */
+  padding: 16px 40px;
+  background: linear-gradient(45deg, #f97316, #ea580c);
   color: #fff;
-  font-size: 1.4rem; /* Matching other services */
-  font-weight: 700; /* Bolder for luxury */
+  font-size: 1.4rem;
+  font-weight: 700;
   border: none;
-  border-radius: 10px; /* Matching other services */
+  border-radius: 10px;
   cursor: pointer;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3); /* Deeper shadow, matching other services */
-  transition: background 0.4s ease, transform 0.3s ease, box-shadow 0.3s ease; /* Matching other services */
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+  transition:
+    background 0.4s ease,
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
 }
 
 .submit-button:hover:not(:disabled) {
-  background: linear-gradient(45deg, #ea580c, #c2410c); /* Richer gradient, matching other services */
-  transform: translateY(-6px) scale(1.05); /* Enhanced lift and scale, matching other services */
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4); /* Deeper shadow on hover, matching other services */
+  background: linear-gradient(45deg, #ea580c, #c2410c);
+  transform: translateY(-6px) scale(1.05);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
 }
 
 .submit-button:disabled {
@@ -225,62 +260,87 @@
 }
 
 .signup-link {
-  font-size: 1.1rem; /* Matching other services */
+  font-size: 1.1rem;
   color: #4b5563;
-  margin-top: 2rem; /* Larger for luxury */
+  margin-top: 2rem;
   text-align: center;
-  animation: fadeIn 1s ease-in-out 0.5s backwards; /* Matching other services */
+  animation: fadeIn 1s ease-in-out 0.5s backwards;
 }
 
 .signup-link a {
-  color: #f97316; /* TENDORAI orange for premium, matching other services */
+  color: #f97316;
   text-decoration: none;
-  font-weight: 700; /* Bolder for luxury */
-  transition: color 0.4s ease; /* Matching other services */
+  font-weight: 700;
+  transition: color 0.4s ease;
 }
 
 .signup-link a:hover {
-  color: #ea580c; /* Richer orange, matching other services */
+  color: #ea580c;
   text-decoration: underline;
 }
 
 /* Animations */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
-
 @keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(40px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
-
 @keyframes slideInFromTop {
-  from { opacity: 0; transform: translateY(-30px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
-
 @keyframes slideInFromBottom {
-  from { opacity: 0; transform: translateY(30px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
-
 @keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
+/* Data-driven animation helper */
 [data-animation] {
   opacity: 0;
-  transition: opacity 0.5s ease, transform 0.5s ease; /* Matching other services */
+  transition:
+    opacity 0.5s ease,
+    transform 0.5s ease;
 }
-
 [data-animation="fadeIn"][data-visible="true"],
 [data-animation="fadeInUp"][data-visible="true"] {
   opacity: 1;
   transform: translateY(0);
 }
-
 [data-delay] {
   transition-delay: calc(var(--delay) / 1000s);
 }
@@ -289,70 +349,59 @@
 @media (max-width: 768px) {
   .vendor-login-hero,
   .login-hero {
-    padding: 60px 15px; /* Tighter for mobile, matching other services */
+    padding: 60px 15px;
+    min-height: 250px;
   }
-
   .vendor-login-title,
   .login-title {
-    font-size: 2.5rem; /* Matching other services */
+    font-size: 2.5rem;
   }
-
   .vendor-login-subtitle,
   .login-subtitle {
-    font-size: 1.2rem; /* Matching other services */
+    font-size: 1.2rem;
   }
-
   .vendor-login-section,
   .login-section {
-    padding: 60px 15px; /* Tighter for mobile, matching other services */
+    padding: 60px 15px;
   }
-
   .vendor-login-form,
   .login-form {
-    max-width: 100%; /* Full width for mobile */
-    padding: 2rem; /* Tighter for mobile */
+    max-width: 100%;
+    padding: 2rem; /* fixed syntax here */
   }
-
   .form-group label {
-    font-size: 1.1rem; /* Matching other services */
+    font-size: 1.1rem;
   }
-
   .input-field {
-    font-size: 1rem; /* Matching other services */
-    padding: 14px 18px; /* Tighter for mobile */
+    font-size: 1rem;
+    padding: 14px 18px;
   }
-
   .toggle-password {
-    padding: 6px 12px; /* Tighter for mobile */
-    font-size: 0.9rem; /* Matching other services */
+    padding: 6px 12px;
+    font-size: 0.9rem;
   }
-
   .submit-button {
-    padding: 12px 28px; /* Matching other services */
-    font-size: 1.1rem; /* Matching other services */
+    padding: 12px 28px;
+    font-size: 1.1rem;
   }
-
   .signup-link {
-    font-size: 1rem; /* Matching other services */
+    font-size: 1rem;
   }
-
   .vendor-badge {
     top: 15px;
     right: 15px;
-    padding: 8px 14px; /* Tighter for mobile */
-    font-size: 0.9rem; /* Matching other services */
+    padding: 8px 14px;
+    font-size: 0.9rem;
   }
 }
-
 @media (max-width: 480px) {
   .vendor-login-title,
   .login-title {
-    font-size: 2rem; /* Matching other services */
+    font-size: 2rem;
   }
-
   .vendor-login-subtitle,
   .login-subtitle {
-    font-size: 1rem; /* Matching other services */
+    font-size: 1rem;
   }
 }
 
@@ -361,8 +410,6 @@
 .input-field:focus,
 .toggle-password:focus,
 .signup-link a:focus {
-  outline: 3px solid #f97316; /* Thicker outline for luxury and accessibility, matching other services */
+  outline: 3px solid #f97316;
   outline-offset: 3px;
 }
-
-/* Note: WCAG AA compliance ensured by color contrast (white on #1e3a8a/#2d4a8a/#3b82f6, ratio > 4.5:1; #1e3a8a on #f9fafb, ratio > 4.5:1) */

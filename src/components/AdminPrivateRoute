@@ -1,15 +1,20 @@
-import React from 'react';
+import React, { ReactNode } from 'react';
 import { Navigate } from 'react-router-dom';
 
-const AdminPrivateRoute = ({ children }) => {
-  const token = localStorage.getItem('adminToken'); // Retrieve the token from localStorage
+interface AdminPrivateRouteProps {
+  children: ReactNode;
+}
 
-  if (!token) {
-    // Redirect to admin login page if no token is found
+const AdminPrivateRoute = ({ children }: AdminPrivateRouteProps) => {
+  const isAuthenticated = !!localStorage.getItem('adminToken');
+
+  if (!isAuthenticated) {
+    // ✅ JSX usage inside a return statement
     return <Navigate to="/admin-login" replace />;
   }
 
-  return children; // Render the child components if token exists
+  // ✅ Return children if authenticated
+  return <>{children}</>;
 };
 
 export default AdminPrivateRoute;

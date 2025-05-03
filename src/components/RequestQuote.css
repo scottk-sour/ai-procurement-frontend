@@ -10,13 +10,20 @@
   backdrop-filter: blur(12px);
   border: 1px solid rgba(255, 255, 255, 0.25);
   overflow: hidden;
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition: background 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* 📌 Dark Mode Layout */
+[data-theme="dark"] .request-quote-container {
+  background: linear-gradient(135deg, rgba(30, 30, 30, 0.95), rgba(55, 65, 81, 0.95));
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.3);
 }
 
 /* 📌 Title */
 .request-quote-container h2 {
   text-align: center;
-  color: #1e3a8a;
+  color: var(--primary-color);
   font-size: 2.5rem;
   font-weight: 700;
   margin-bottom: 30px;
@@ -26,7 +33,7 @@
 
 /* 📌 Step Subheading */
 .request-quote-container h3 {
-  color: #1e3a8a;
+  color: var(--primary-color);
   font-size: 1.75rem;
   font-weight: 600;
   margin-bottom: 25px;
@@ -35,7 +42,7 @@
 
 /* 📌 Suggested Machines */
 .request-quote-container h4 {
-  color: #2563eb;
+  color: var(--focus-color);
   font-size: 1.25rem;
   font-weight: 600;
   margin: 20px 0 10px;
@@ -48,15 +55,15 @@
 }
 
 .request-quote-container ul li {
-  color: #4b5563;
+  color: var(--text-color);
   font-size: 1rem;
-  padding: 10px 0;
-  border-bottom: 1px solid #e5e7eb;
-  transition: background-color 0.3s ease;
+  padding: 10px 15px;
+  border-bottom: 1px solid var(--border-color);
+  transition: background 0.3s ease;
 }
 
 .request-quote-container ul li:hover {
-  background-color: #f1f5f9;
+  background: var(--hover-bg);
 }
 
 /* 📌 Form Fields */
@@ -68,7 +75,7 @@
 
 /* 📌 Labels */
 .request-quote-container label {
-  color: #4b5563;
+  color: var(--text-color);
   font-size: 1.1rem;
   font-weight: 600;
   margin-bottom: 8px;
@@ -88,41 +95,53 @@
 .request-quote-container select {
   width: 100%;
   padding: 14px;
-  border: 2px solid #e5e7eb;
+  border: 2px solid var(--border-color);
   border-radius: 10px;
   font-size: 1rem;
-  color: #4b5563;
-  background: rgba(255, 255, 255, 0.85);
+  color: var(--text-color);
+  background: var(--input-bg);
   transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.2s ease;
   box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.04);
 }
 
 .request-quote-container input:focus,
 .request-quote-container select:focus {
-  border-color: #2563eb;
-  box-shadow: 0 0 10px rgba(37, 99, 235, 0.4), inset 0 2px 4px rgba(0, 0, 0, 0.04);
+  border-color: var(--focus-color);
+  box-shadow: 0 0 10px var(--focus-glow), inset 0 2px 4px rgba(0, 0, 0, 0.04);
   transform: scale(1.02);
   outline: none;
+}
+
+/* 📌 Invalid Input Fields */
+.request-quote-container input:invalid[required]:focus,
+.request-quote-container select:invalid[required]:focus {
+  border-color: #dc2626;
+  box-shadow: 0 0 10px rgba(220, 38, 38, 0.4), inset 0 2px 4px rgba(0, 0, 0, 0.04);
 }
 
 /* 📌 Dropdown Styling */
 .request-quote-container select {
   appearance: none;
   cursor: pointer;
-  background: rgba(255, 255, 255, 0.85) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%234b5563' viewBox='0 0 16 16'%3E%3Cpath d='M8 12l-6-6h12z'/%3E%3C/svg%3E") no-repeat right 14px center;
+  background: var(--input-bg) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%234b5563' viewBox='0 0 16 16'%3E%3Cpath d='M8 12l-6-6h12z'/%3E%3C/svg%3E") no-repeat right 14px center;
+}
+
+[data-theme="dark"] .request-quote-container select {
+  background: var(--input-bg) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23d1d5db' viewBox='0 0 16 16'%3E%3Cpath d='M8 12l-6-6h12z'/%3E%3C/svg%3E") no-repeat right 14px center;
 }
 
 /* 📌 Checkbox Fieldset */
 .request-quote-container fieldset {
-  border: 2px solid #e5e7eb;
+  border: 2px solid var(--border-color);
   border-radius: 10px;
   padding: 20px;
   margin: 0;
-  background: rgba(255, 255, 255, 0.9);
+  background: var(--light-bg);
+  transition: background 0.3s ease, border-color 0.3s ease;
 }
 
 .request-quote-container fieldset legend {
-  color: #1e3a8a;
+  color: var(--primary-color);
   font-weight: 600;
   font-size: 1.2rem;
   padding: 0 10px;
@@ -142,6 +161,7 @@
   height: 20px;
   margin: 0;
   cursor: pointer;
+  accent-color: var(--focus-color);
   transition: transform 0.2s ease;
 }
 
@@ -151,7 +171,7 @@
 
 /* 📌 Buttons */
 .request-quote-container button {
-  background: linear-gradient(135deg, #2563eb, #1e40af);
+  background: linear-gradient(135deg, var(--button-color), var(--button-hover));
   color: white;
   font-size: 1.1rem;
   font-weight: 600;
@@ -159,23 +179,25 @@
   border: none;
   border-radius: 10px;
   cursor: pointer;
-  transition: all 0.3s ease-in-out;
-  box-shadow: 0 6px 14px rgba(37, 99, 235, 0.3);
+  transition: background 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.2);
   margin: 10px 5px;
 }
 
 .request-quote-container button:hover:not(:disabled) {
-  background: linear-gradient(135deg, #1e40af, #1e3a8a);
+  background: linear-gradient(135deg, var(--button-hover), var(--primary-color));
   transform: translateY(-3px);
-  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.5);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
 }
 
 .request-quote-container button:active:not(:disabled) {
   transform: translateY(0);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
 }
 
 .request-quote-container button:disabled {
   background: #d1d5db;
+  color: #6b7280;
   cursor: not-allowed;
   box-shadow: none;
   transform: none;
@@ -185,29 +207,29 @@
 .dropzone {
   padding: 25px;
   text-align: center;
-  background: rgba(255, 255, 255, 0.9);
-  border: 2px dashed #e5e7eb;
+  background: var(--light-bg);
+  border: 2px dashed var(--border-color);
   border-radius: 10px;
   cursor: pointer;
-  transition: border-color 0.3s ease, background-color 0.3s ease, box-shadow 0.3s ease;
+  transition: border-color 0.3s ease, background 0.3s ease, box-shadow 0.3s ease;
 }
 
 .dropzone:hover {
-  border-color: #2563eb;
-  background: rgba(255, 255, 255, 1);
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+  border-color: var(--focus-color);
+  background: var(--input-bg);
+  box-shadow: 0 4px 12px var(--focus-glow);
 }
 
 .dropzone p {
   margin: 0;
-  color: #4b5563;
+  color: var(--text-color);
   font-size: 1rem;
 }
 
 /* 📌 Uploaded Files Count */
 .request-quote-container > p {
   margin: 15px 0 0;
-  color: #4b5563;
+  color: var(--text-color);
   font-size: 0.95rem;
   text-align: center;
 }
@@ -215,19 +237,20 @@
 /* 📌 Progress Bar */
 .progress-bar {
   width: 100%;
-  background: #e5e7eb;
+  background: var(--border-color);
   height: 12px;
   border-radius: 6px;
-  margin-bottom: 30px;
+  margin: 20px 0 30px;
   position: relative;
   overflow: hidden;
 }
 
 .progress {
   height: 100%;
-  background: linear-gradient(135deg, #2563eb, #1e40af);
+  background: linear-gradient(135deg, var(--focus-color), var(--primary-color));
   border-radius: 6px;
   transition: width 0.5s ease-in-out;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .progress-bar span {
@@ -236,34 +259,54 @@
   left: 50%;
   transform: translateX(-50%);
   font-size: 1.1rem;
-  color: #1e3a8a;
+  color: var(--primary-color);
   font-weight: 600;
 }
 
 /* 📌 Review Section */
 .review-section {
-  background: #f9fafb;
+  background: var(--light-bg);
   padding: 20px;
   border-radius: 10px;
   text-align: left;
   font-size: 1rem;
-  color: #4b5563;
+  color: var(--text-color);
   margin-bottom: 20px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--border-color);
+  transition: background 0.3s ease, border-color 0.3s ease;
 }
 
-.request-quote-container pre {
+.review-section pre {
   font-size: 0.9rem;
   max-height: 300px;
   overflow-y: auto;
+  background: var(--input-bg);
+  padding: 15px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
 }
 
-/* 📌 Error Message */
-.error-message {
-  color: #dc2626;
+/* 📌 Error and Success Messages */
+.error-message,
+.success-message {
   font-size: 1rem;
   text-align: center;
   margin: 15px 0;
+  padding: 12px;
+  border-radius: 8px;
+  transition: opacity 0.3s ease;
+}
+
+.error-message {
+  color: #dc2626;
+  background: rgba(220, 38, 38, 0.1);
+  border: 1px solid #dc2626;
+}
+
+.success-message {
+  color: #15803d;
+  background: rgba(21, 128, 61, 0.1);
+  border: 1px solid #15803d;
 }
 
 /* 📌 Dark Mode Support */
@@ -274,7 +317,7 @@
   --border-color: #e5e7eb;
   --focus-color: #2563eb;
   --focus-glow: rgba(37, 99, 235, 0.5);
-  --input-bg: #f9f9f9;
+  --input-bg: rgba(255, 255, 255, 0.85);
   --hover-bg: #f1f5f9;
   --button-color: #2563eb;
   --button-hover: #1e40af;
@@ -298,8 +341,9 @@
 /* 📌 Responsive Design */
 @media (max-width: 768px) {
   .request-quote-container {
+    max-width: 95%;
     padding: 25px;
-    margin: 40px auto;
+    margin: 40px 10px;
   }
 
   .request-quote-container h2 {
@@ -312,7 +356,7 @@
 
   .request-quote-container input,
   .request-quote-container select {
-    padding: 10px;
+    padding: 12px;
     font-size: 0.95rem;
   }
 
@@ -328,6 +372,10 @@
 
   .progress-bar span {
     font-size: 1rem;
+  }
+
+  .review-section pre {
+    font-size: 0.85rem;
   }
 }
 
@@ -345,7 +393,16 @@
     font-size: 1.3rem;
   }
 
+  .request-quote-container label {
+    font-size: 1rem;
+  }
+
   .request-quote-container fieldset label {
     font-size: 0.9rem;
+  }
+
+  .request-quote-container button {
+    padding: 10px 15px;
+    font-size: 0.95rem;
   }
 }

@@ -1,7 +1,7 @@
 // src/components/Signup.js
 import React, { useState, useEffect } from "react";
-import { useNavigate, useLocation, Link } from "react-router-dom"; // Added Link import
-import "../styles/Signup.css"; // Use the existing Signup.css for consistency
+import { useNavigate, useLocation, Link } from "react-router-dom";
+import "../styles/Signup.css";
 
 const Signup = () => {
   const [formData, setFormData] = useState({
@@ -16,21 +16,23 @@ const Signup = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
-  const [isVisible, setIsVisible] = useState(false); // State for animation visibility
+  const [isVisible, setIsVisible] = useState(false);
 
   const navigate = useNavigate();
   const { pathname } = useLocation();
 
-  // Scroll to top on page load, debug mount, and set visibility
   useEffect(() => {
     window.scrollTo(0, 0);
-    const timer = setTimeout(() => setIsVisible(true), 100); // Match other services' delay
+    const timer = setTimeout(() => setIsVisible(true), 100);
     return () => clearTimeout(timer);
   }, [pathname]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
-    if (error || message) setError(""); setMessage(""); // Clear feedback on change
+    if (error || message) {
+      setError("");
+      setMessage("");
+    }
   };
 
   const checkPasswordStrength = (password) => {
@@ -71,7 +73,7 @@ const Signup = () => {
 
     try {
       setLoading(true);
-      const response = await fetch("http://localhost:5000/api/users/signup", {
+      const response = await fetch(`${process.env.REACT_APP_API_URL || "http://localhost:5000"}/api/users/signup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, email, password, company }),
@@ -95,20 +97,16 @@ const Signup = () => {
 
   return (
     <div className="signup-page" data-animation="fadeInUp" data-visible={isVisible}>
-      {/* Hero Section */}
       <header className="signup-hero" data-animation="fadeIn" data-delay="200" data-visible={isVisible}>
         <h1 className="signup-title">Join TENDORAI</h1>
-        <p className="signup-subtitle">
-          Create your account to start simplifying procurement with AI precision.
-        </p>
+        <p className="signup-subtitle">Create your account to start simplifying procurement with AI precision.</p>
       </header>
 
-      {/* Signup Form */}
       <section className="signup-section" data-animation="fadeInUp" data-delay="400" data-visible={isVisible}>
         <div className="section-container">
           <form onSubmit={handleSignup} className="signup-form">
-            {error && <div className={`form-status error`}>{error}</div>}
-            {message && <div className={`form-status success`}>{message}</div>}
+            {error && <div className="form-status error">{error}</div>}
+            {message && <div className="form-status success">{message}</div>}
 
             <div className="form-group">
               <label htmlFor="name">Full Name <span className="required">*</span></label>
@@ -194,11 +192,7 @@ const Signup = () => {
             </div>
 
             <button type="submit" className="submit-button" disabled={loading}>
-              {loading ? (
-                <span className="loading-spinner">Loading...</span>
-              ) : (
-                "Sign Up"
-              )}
+              {loading ? "Signing Up..." : "Sign Up"}
             </button>
 
             <p className="login-link">

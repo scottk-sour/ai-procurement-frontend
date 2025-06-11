@@ -1,4 +1,3 @@
-// src/components/VendorDashboard.js
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -11,16 +10,18 @@ import {
   FaCloudUploadAlt,
 } from "react-icons/fa";
 import QuoteFunnel from "./Dashboard/QuoteFunnel";
-import { useAuth } from "../utils/AuthContext";
-import { logout } from "../utils/auth"; // Updated import
+import { useAuth } from "../context/AuthContext";
+import { logout } from "../utils/auth";
 import "../styles/VendorDashboard.css";
 
 const VendorDashboard = () => {
+  console.log("✅ VendorDashboard loaded"); // Debug: Confirm component mounts
+
   const navigate = useNavigate();
-  const { setLoggedIn } = useAuth();
+  const { auth } = useAuth();
 
   // State declarations
-  const [vendorName, setVendorName] = useState(localStorage.getItem("vendorName") || "Vendor");
+  const [vendorName, setVendorName] = useState(auth?.user?.name || "Vendor");
   const [file, setFile] = useState(null);
   const [documentType, setDocumentType] = useState("contract");
   const [message, setMessage] = useState("");
@@ -34,10 +35,10 @@ const VendorDashboard = () => {
   const [error, setError] = useState(null);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [activeTab, setActiveTab] = useState("overview");
-  const [isAuthenticated, setIsAuthenticated] = useState(true);
   const [quotePage, setQuotePage] = useState(1);
   const [filePage, setFilePage] = useState(1);
   const itemsPerPage = 10;
+  const [feedbackForm, setFeedbackForm] = useState({ quoteId: null, comment: "", rating: 0 });
 
   // Quote funnel data
   const [quoteFunnelData, setQuoteFunnelData] = useState({
@@ -47,52 +48,33 @@ const VendorDashboard = () => {
     completed: 0,
   });
 
-  // Validate token
-  const validateToken = useCallback(() => {
-    const token = localStorage.getItem("token");
-    const vendorId = localStorage.getItem("userId");
-    const role = localStorage.getItem("role");
-    if (!token || !vendorId || role !== "vendor") {
-      console.log("❌ Missing vendor token, ID, or role, redirecting to login...");
-      setError("Authentication failed: Please log in as a vendor.");
-      setIsAuthenticated(false);
-      navigate("/login", { replace: true });
-      return null;
-    }
-    console.log("Validated vendorId:", vendorId);
-    return { token, vendorId };
-  }, [navigate]);
-
   // Fetch vendor profile
   const fetchVendorProfile = useCallback(async () => {
-    const auth = validateToken();
-    if (!auth) return;
-
+    if (!auth?.token) return;
     try {
+      console.log("Fetching vendor profile...");
       const response = await fetch("http://localhost:5000/api/vendors/profile", {
         headers: { Authorization: `Bearer ${auth.token}` },
       });
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || `Failed to fetch vendor profile (Status: ${response.status}).`);
+        throw new Error(errorData.message || `Failed to fetch vendor profile (Status: ${response.status})`);
       }
       const data = await response.json();
-      setVendorName(data.vendor.name || "Vendor");
-      localStorage.setItem("vendorName", data.vendor.name || "Vendor");
+      setVendorName(data.vendor?.name || "Vendor");
+      console.log("Vendor profile fetched:", data.vendor?.name);
     } catch (error) {
       console.error("Error fetching vendor profile:", error.message);
       setError(`Failed to load vendor profile: ${error.message}. Please try logging in again.`);
-      setIsAuthenticated(false);
     }
-  }, [validateToken]);
+  }, [auth?.token]);
 
   // Fetch dashboard data
   const fetchDashboardData = useCallback(async () => {
+    if (!auth?.token || !auth?.user?.userId) return;
     console.log("Fetching VendorDashboard data");
     setLoading(true);
     setError(null);
-    const auth = validateToken();
-    if (!auth) return;
 
     try {
       const [activityRes, filesRes, quotesRes] = await Promise.all([
@@ -101,7 +83,7 @@ const VendorDashboard = () => {
         }).then((res) => {
           if (!res.ok) {
             return res.json().then((errorData) => {
-              throw new Error(errorData.message || `Failed to fetch recent activity (Status: ${res.status}).`);
+              throw new Error(errorData.message || `Failed to fetch recent activity (Status: ${res.status})`);
             });
           }
           return res.json();
@@ -111,31 +93,40 @@ const VendorDashboard = () => {
         }).then((res) => {
           if (!res.ok) {
             return res.json().then((errorData) => {
-              throw new Error(errorData.message || `Failed to fetch uploaded files (Status: ${res.status}).`);
+              throw new Error(errorData.message || `Failed to fetch uploaded files (Status: ${res.status})`);
             });
           }
           return res.json();
         }),
-        fetch(`http://localhost:5000/api/copier-quotes/supplier-quotes?vendorId=${auth.vendorId}&page=${quotePage}&limit=${itemsPerPage}`, {
+        fetch(`http://localhost:5000/api/copier-quotes/supplier-quotes?vendorId=${auth.user?.userId}&page=${quotePage}&limit=${itemsPerPage}`, {
           headers: { Authorization: `Bearer ${auth.token}` },
         }).then((res) => {
           if (!res.ok) {
             return res.json().then((errorData) => {
-              throw new Error(errorData.message || `Failed to fetch quotes (Status: ${res.status}).`);
+              throw new Error(errorData.message || `Failed to fetch quotes (Status: ${res.status})`);
             });
           }
           return res.json();
         }),
       ]);
 
+      console.log("API responses:", {
+        activities: (activityRes.activities || []).length,
+        files: (filesRes.files || []).length,
+        quotes: (quotesRes.quotes || []).length,
+      });
+
+      // Set state with default empty arrays
       setRecentActivity(activityRes.activities || []);
       setUploadedFiles(filesRes.files || []);
       setQuotes(quotesRes.quotes || []);
 
-      const created = quotesRes.quotes.length;
-      const pending = quotesRes.quotes.filter((q) => q.status === "Pending").length;
-      const matched = quotesRes.quotes.filter((q) => q.status === "Matched").length;
-      const completed = quotesRes.quotes.filter((q) => q.status === "Completed").length;
+      // Safely handle quotes data
+      const quotesArray = quotesRes.quotes || [];
+      const created = quotesArray.length;
+      const pending = quotesArray.filter((q) => q.status === "Pending").length;
+      const matched = quotesArray.filter((q) => q.status === "Matched").length;
+      const completed = quotesArray.filter((q) => q.status === "Completed").length;
 
       setQuoteFunnelData({
         created,
@@ -148,29 +139,36 @@ const VendorDashboard = () => {
       setPendingQuotes(pending);
       setAcceptedQuotes(completed);
 
-      // Track dashboard load
-      console.log("Tracking dashboard load for vendor:", auth.vendorId);
+      console.log("Tracking dashboard load for vendor:", auth.user?.userId);
     } catch (error) {
       console.error("Error fetching dashboard data:", error.message);
       setError(`Failed to load dashboard data: ${error.message}. Please try logging in again or contact support.`);
-      setIsAuthenticated(false);
+      // Set default empty arrays on error
+      setRecentActivity([]);
+      setUploadedFiles([]);
+      setQuotes([]);
+      setQuoteFunnelData({
+        created: 0,
+        pending: 0,
+        matched: 0,
+        completed: 0,
+      });
+      setTotalQuotes(0);
+      setPendingQuotes(0);
+      setAcceptedQuotes(0);
     } finally {
       setLoading(false);
     }
-  }, [validateToken, quotePage, filePage]);
+  }, [auth?.token, auth?.user?.userId, quotePage, filePage]);
 
+  // Fetch data on mount and periodically
   useEffect(() => {
     console.log("useEffect running");
-    if (!isAuthenticated) return;
-
     fetchVendorProfile();
     fetchDashboardData();
-
-    const intervalId = setInterval(() => {
-      if (isAuthenticated) fetchDashboardData();
-    }, 300000);
+    const intervalId = setInterval(fetchDashboardData, 300000); // Refresh every 5 minutes
     return () => clearInterval(intervalId);
-  }, [fetchVendorProfile, fetchDashboardData, isAuthenticated]);
+  }, [auth, fetchVendorProfile, fetchDashboardData]);
 
   const handleFileChange = useCallback((event) => {
     const selectedFile = event.target.files[0];
@@ -183,13 +181,10 @@ const VendorDashboard = () => {
   }, []);
 
   const handleUpload = useCallback(async () => {
-    if (!file) {
+    if (!file || !auth?.token) {
       setMessage("⚠ Please select a file to upload.");
       return;
     }
-
-    const auth = validateToken();
-    if (!auth) return;
 
     const formData = new FormData();
     formData.append("file", file);
@@ -211,8 +206,7 @@ const VendorDashboard = () => {
         setUploadProgress(100);
         fetchDashboardData();
         setFile(null);
-        // Track file upload
-        console.log(`Tracking file upload by vendor: ${auth.vendorId}`);
+        console.log(`Tracking file upload by vendor: ${auth.user?.userId}`);
       } else {
         setMessage(data.message || "⚠ Upload failed.");
       }
@@ -221,16 +215,13 @@ const VendorDashboard = () => {
       setMessage("⚠ An error occurred during upload.");
     } finally {
       setLoading(false);
-      setTimeout(() => setUploadProgress(0), 2000);
     }
-  }, [file, documentType, fetchDashboardData, validateToken]);
+  }, [file, documentType, fetchDashboardData, auth?.token, auth?.user?.userId]);
 
   const handleQuoteResponse = useCallback(async (quoteId, response) => {
-    const auth = validateToken();
-    if (!auth) return;
-
+    if (!auth?.token) return;
     try {
-      const res = await fetch(`http://localhost:5000/api/copier-quotes/respond`, {
+      const res = await fetch("http://localhost:5000/api/copier-quotes/respond", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -245,22 +236,52 @@ const VendorDashboard = () => {
       }
       setMessage(`✅ Quote ${response} successfully!`);
       fetchDashboardData();
-      // Track quote response
-      console.log(`Tracking quote ${response} by vendor: ${auth.vendorId}`);
+      console.log(`Tracking quote ${response} by vendor: ${auth.user?.userId}`);
     } catch (error) {
       console.error("Error responding to quote:", error);
       setMessage(`⚠ Failed to respond to quote: ${error.message}`);
     }
-  }, [fetchDashboardData, validateToken]);
+  }, [fetchDashboardData, auth?.token, auth?.user?.userId]);
+
+  const handleFeedbackSubmit = useCallback(async (quoteId, vendorName, accepted) => {
+    if (!auth?.token) return;
+    try {
+      const response = await fetch("http://localhost:5000/api/feedback", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${auth.token}`,
+        },
+        body: JSON.stringify({
+          userId: auth.user?.userId,
+          quoteId,
+          vendorName,
+          accepted,
+          comment: feedbackForm.comment,
+          rating: feedbackForm.rating || undefined,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to submit feedback.");
+      }
+
+      setMessage(`✅ Feedback submitted successfully for ${vendorName}!`);
+      setFeedbackForm({ quoteId: null, comment: "", rating: 0 });
+      fetchDashboardData();
+      console.log(`Tracking feedback submission by vendor: ${auth.user?.userId}`);
+    } catch (error) {
+      console.error("Error submitting feedback:", error);
+      setMessage(`⚠ Failed to submit feedback: ${error.message}`);
+    }
+  }, [feedbackForm, fetchDashboardData, auth?.token, auth?.user?.userId]);
 
   const handleLogout = useCallback(() => {
-    logout(); // Updated to use logout
-    setLoggedIn(false);
-    setIsAuthenticated(false);
-    navigate("/login", { replace: true });
-    // Track logout
+    logout();
+    navigate("/vendor-login", { replace: true });
     console.log("Tracking vendor logout");
-  }, [navigate, setLoggedIn]);
+  }, [navigate]);
 
   const formatDate = useCallback((dateString) => {
     const date = new Date(dateString);
@@ -273,7 +294,22 @@ const VendorDashboard = () => {
     });
   }, []);
 
-  if (loading && quotes.length === 0 && uploadedFiles.length === 0) {
+  // Fallback if auth is undefined or invalid
+  if (!auth) {
+    console.log("❌ Auth is undefined, redirecting to /vendor-login");
+    navigate("/vendor-login", { replace: true });
+    return null;
+  }
+
+  // Debug: Log rendering conditions
+  console.log("VendorDashboard render check:", {
+    loading,
+    error,
+    quotesLength: (quotes || []).length,
+    uploadedFilesLength: (uploadedFiles || []).length,
+  });
+
+  if (loading && (quotes || []).length === 0 && (uploadedFiles || []).length === 0) {
     return (
       <div className="loading-overlay" role="status" aria-live="polite">
         <div className="spinner"></div>
@@ -282,7 +318,7 @@ const VendorDashboard = () => {
     );
   }
 
-  if (error && quotes.length === 0 && uploadedFiles.length === 0) {
+  if (error && (quotes || []).length === 0 && (uploadedFiles || []).length === 0) {
     return (
       <div className="vendor-dashboard">
         <div className="error-container">
@@ -307,13 +343,11 @@ const VendorDashboard = () => {
   }
 
   return (
-    <div className="vendor-dashboard">
-      {/* Welcome Header */}
+    <div className="vendor-dashboard" style={{ backgroundColor: "lightblue", minHeight: "100vh", color: "black" }}>
       <header className="welcome-header">
         <h1>Welcome, {vendorName}!</h1>
       </header>
 
-      {/* Navigation Bar */}
       <nav className="nav-bar">
         <button
           className="nav-button"
@@ -334,7 +368,7 @@ const VendorDashboard = () => {
         </label>
         <button
           className="nav-button theme-toggle-button"
-          onClick={() => navigate("/settings")}
+          onClick={() => navigate("/account-settings")}
           aria-label="Go to settings"
         >
           <FaChartBar /> Settings
@@ -348,7 +382,6 @@ const VendorDashboard = () => {
         </button>
       </nav>
 
-      {/* Tab Navigation */}
       <div className="dashboard-tabs" role="tablist" aria-label="Vendor dashboard navigation tabs">
         <button
           className={`tab-button ${activeTab === "overview" ? "active" : ""}`}
@@ -388,11 +421,9 @@ const VendorDashboard = () => {
         </button>
       </div>
 
-      {/* Main Content */}
       <main className="dashboard-content">
         {activeTab === "overview" && (
           <div id="overview-panel" role="tabpanel">
-            {/* KPIs */}
             <section className="kpi-section">
               <div className="kpi-container">
                 <div className="kpi-box">
@@ -413,21 +444,19 @@ const VendorDashboard = () => {
                 <div className="kpi-box">
                   <FaCloudUploadAlt className="kpi-icon" />
                   <h3>Uploaded Files</h3>
-                  <p>{uploadedFiles.length}</p>
+                  <p>{(uploadedFiles || []).length}</p>
                 </div>
               </div>
             </section>
 
-            {/* Quote Funnel */}
             <section className="quote-funnel-section">
               <h2>Quote Funnel</h2>
               <QuoteFunnel data={quoteFunnelData} isLoading={loading} />
             </section>
 
-            {/* Recent Activity */}
             <section className="recent-activity-section">
               <h2>Recent Activity</h2>
-              {recentActivity.length > 0 ? (
+              {(recentActivity || []).length > 0 ? (
                 <>
                   <ul className="activity-list">
                     {recentActivity.map((activity, index) => (
@@ -456,7 +485,7 @@ const VendorDashboard = () => {
                     <span>Page {filePage}</span>
                     <button
                       onClick={() => setFilePage((prev) => prev + 1)}
-                      disabled={recentActivity.length < itemsPerPage}
+                      disabled={(recentActivity || []).length < itemsPerPage}
                       aria-label="Next page of activities"
                     >
                       Next
@@ -474,24 +503,33 @@ const VendorDashboard = () => {
           <div id="quotes-panel" role="tabpanel">
             <section className="quotes-section">
               <h2>Quote Requests</h2>
-              {quotes.length > 0 ? (
+              {(quotes || []).length > 0 ? (
                 <>
                   <div className="quotes-list">
                     {quotes.map((quote, index) => (
                       <div key={index} className="quote-card">
                         <div className="quote-header">
                           <h3>{quote.companyName || "Quote Request"}</h3>
-                          <span className={`quote-status status-${quote.status?.toLowerCase().replace(/\s+/g, "-")}`}>
-                            {quote.status}
+                          <span className={`quote-status status-${(quote.status || "").toLowerCase().replace(/\s+/g, "-")}`}>
+                            {quote.status || "Unknown"}
                           </span>
                         </div>
                         <div className="quote-details">
                           <p><strong>Date:</strong> {formatDate(quote.createdAt)}</p>
                           <p><strong>Industry:</strong> {quote.industryType || "Not specified"}</p>
                           <div className="volume-details">
-                            <p><strong>Mono:</strong> {quote.monthlyVolume?.mono || 0} pages</p>
-                            <p><strong>Colour:</strong> {quote.monthlyVolume?.colour || 0} pages</p>
+                            <p><strong>Mono:</strong> {(quote.monthlyVolume?.mono || 0)} pages</p>
+                            <p><strong>Colour:</strong> {(quote.monthlyVolume?.colour || 0)} pages</p>
                           </div>
+                          {(quote.recommendations || [])[0] && (
+                            <div className="recommendation-details">
+                              <p><strong>Top Recommendation:</strong> {(quote.recommendations[0]?.vendorName || "N/A")}</p>
+                              <p><strong>Price:</strong> £{(quote.recommendations[0]?.price || "N/A")}</p>
+                              <p><strong>Speed:</strong> {(quote.recommendations[0]?.speed || "N/A")} ppm</p>
+                              <p><strong>Savings:</strong> £{(quote.recommendations[0]?.savingsInfo?.monthlySavings || 0).toFixed(2)}/month</p>
+                              <p><strong>Reasons:</strong> {(quote.recommendations[0]?.reasons || []).join(", ") || "N/A"}</p>
+                            </div>
+                          )}
                         </div>
                         <div className="quote-actions">
                           <div className="quote-response-buttons">
@@ -499,25 +537,73 @@ const VendorDashboard = () => {
                               <>
                                 <button
                                   className="accept-button"
-                                  onClick={() => handleQuoteResponse(quote._id, "accept")}
-                                  aria-label={`Accept quote for ${quote.companyName}`}
+                                  onClick={() => {
+                                    handleQuoteResponse(quote._id, "accept");
+                                    handleFeedbackSubmit(quote._id, (quote.recommendations || [])[0]?.vendorName || "Unknown", true);
+                                  }}
+                                  aria-label={`Accept quote for ${quote.companyName || "Quote Request"}`}
                                 >
                                   Accept
                                 </button>
                                 <button
                                   className="decline-button"
-                                  onClick={() => handleQuoteResponse(quote._id, "decline")}
-                                  aria-label={`Decline quote for ${quote.companyName}`}
+                                  onClick={() => {
+                                    handleQuoteResponse(quote._id, "decline");
+                                    handleFeedbackSubmit(quote._id, (quote.recommendations || [])[0]?.vendorName || "Unknown", false);
+                                  }}
+                                  aria-label={`Decline quote for ${quote.companyName || "Quote Request"}`}
                                 >
                                   Decline
                                 </button>
                               </>
                             )}
                           </div>
+                          {feedbackForm.quoteId === quote._id ? (
+                            <div className="feedback-form">
+                              <textarea
+                                value={feedbackForm.comment}
+                                onChange={(e) => setFeedbackForm({ ...feedbackForm, comment: e.target.value })}
+                                placeholder="Add feedback (e.g., liked the price, too slow)"
+                                maxLength={500}
+                                aria-label="Feedback comment"
+                              />
+                              <select
+                                value={feedbackForm.rating}
+                                onChange={(e) => setFeedbackForm({ ...feedbackForm, rating: Number(e.target.value) })}
+                                aria-label="Rate this vendor"
+                              >
+                                <option value="0">Rate (1-5)</option>
+                                {[1, 2, 3, 4, 5].map((r) => (
+                                  <option key={r} value={r}>{r}</option>
+                                ))}
+                              </select>
+                              <button
+                                onClick={() => handleFeedbackSubmit(quote._id, (quote.recommendations || [])[0]?.vendorName || "Unknown", feedbackForm.accepted)}
+                                disabled={!feedbackForm.comment}
+                                aria-label="Submit feedback"
+                              >
+                                Submit Feedback
+                              </button>
+                              <button
+                                onClick={() => setFeedbackForm({ quoteId: null, comment: "", rating: 0 })}
+                                aria-label="Cancel feedback"
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          ) : (
+                            <button
+                              className="feedback-button"
+                              onClick={() => setFeedbackForm({ quoteId: quote._id, comment: "", rating: 0, accepted: true })}
+                              aria-label={`Provide feedback for ${quote.companyName || "Quote Request"} quote`}
+                            >
+                              Add Feedback
+                            </button>
+                          )}
                           <button
                             className="view-quote-button"
                             onClick={() => navigate(`/quotes/${quote._id}`)}
-                            aria-label={`View details for ${quote.companyName} quote`}
+                            aria-label={`View details for ${quote.companyName || "Quote Request"} quote`}
                           >
                             View Details
                           </button>
@@ -536,7 +622,7 @@ const VendorDashboard = () => {
                     <span>Page {quotePage}</span>
                     <button
                       onClick={() => setQuotePage((prev) => prev + 1)}
-                      disabled={quotes.length < itemsPerPage}
+                      disabled={(quotes || []).length < itemsPerPage}
                       aria-label="Next page of quotes"
                     >
                       Next
@@ -552,7 +638,6 @@ const VendorDashboard = () => {
 
         {activeTab === "files" && (
           <div id="files-panel" role="tabpanel">
-            {/* File Upload */}
             <section className="file-upload-section">
               <h2>File Upload</h2>
               <select
@@ -596,10 +681,9 @@ const VendorDashboard = () => {
               )}
             </section>
 
-            {/* Uploaded Files History */}
             <section className="uploaded-files">
               <h2>Uploaded Files History</h2>
-              {uploadedFiles.length > 0 ? (
+              {(uploadedFiles || []).length > 0 ? (
                 <>
                   <div className="files-list">
                     {uploadedFiles.map((file, index) => (
@@ -637,7 +721,7 @@ const VendorDashboard = () => {
                     <span>Page {filePage}</span>
                     <button
                       onClick={() => setFilePage((prev) => prev + 1)}
-                      disabled={uploadedFiles.length < itemsPerPage}
+                      disabled={(uploadedFiles || []).length < itemsPerPage}
                       aria-label="Next page of files"
                     >
                       Next
@@ -655,7 +739,7 @@ const VendorDashboard = () => {
           <div id="notifications-panel" role="tabpanel">
             <section className="notifications-section">
               <h2>Notifications</h2>
-              {recentActivity.length > 0 ? (
+              {(recentActivity || []).length > 0 ? (
                 <>
                   <ul className="notifications-list">
                     {recentActivity.map((activity, index) => (
@@ -684,7 +768,7 @@ const VendorDashboard = () => {
                     <span>Page {filePage}</span>
                     <button
                       onClick={() => setFilePage((prev) => prev + 1)}
-                      disabled={recentActivity.length < itemsPerPage}
+                      disabled={(recentActivity || []).length < itemsPerPage}
                       aria-label="Next page of notifications"
                     >
                       Next

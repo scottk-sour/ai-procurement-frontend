@@ -1,12 +1,15 @@
 // src/components/AccountSettings.js
 import React, { useState } from 'react';
+import { useAuth } from "../context/AuthContext"; // ✅ ADDED LINE
 
 const AccountSettings = () => {
+  const { auth } = useAuth(); // ✅ USE THE AUTH CONTEXT
+
   const [vendorDetails, setVendorDetails] = useState({
-    companyName: 'Company Name', // placeholder, replace with actual data
-    email: 'vendor@example.com',
-    phone: '123-456-7890',
-    address: '1234 Vendor St, Business City, BC',
+    companyName: auth?.user?.name || 'Company Name', // Now uses context if available
+    email: auth?.user?.email || 'vendor@example.com',
+    phone: auth?.user?.phone || '123-456-7890',
+    address: auth?.user?.address || '1234 Vendor St, Business City, BC',
     password: '',
   });
 

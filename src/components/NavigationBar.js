@@ -4,6 +4,7 @@ import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import './NavigationBar.css';
 import { FaUser, FaStore } from 'react-icons/fa';
 import { gsap } from 'gsap';
+import { useAuth } from "../context/AuthContext"; // ✅ CORRECT CONTEXT
 
 const NavigationBar = () => {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -13,9 +14,10 @@ const NavigationBar = () => {
   const navbarRef = useRef(null);
   const { pathname } = useLocation();
   const navigate = useNavigate();
+  const { auth, logout } = useAuth(); // ✅ GET AUTH FROM CONTEXT
 
-  const isUserLoggedIn = !!localStorage.getItem('userToken');
-  const isVendorLoggedIn = !!localStorage.getItem('vendorToken');
+  const isUserLoggedIn = auth.isAuthenticated && auth.user?.role === "user";
+  const isVendorLoggedIn = auth.isAuthenticated && auth.user?.role === "vendor";
 
   const toggleMenu = () => {
     setMenuOpen((prev) => !prev);
@@ -23,7 +25,6 @@ const NavigationBar = () => {
 
   useEffect(() => {
     window.scrollTo(0, 0);
-
     gsap.fromTo(
       navbarRef.current,
       { opacity: 0, y: -20 },
@@ -97,6 +98,14 @@ const NavigationBar = () => {
             className={({ isActive }) => (isActive ? 'active-link' : '')}
           >
             Home
+          </NavLink>
+
+          <NavLink
+            to="/how-it-works"
+            onClick={() => setMenuOpen(false)}
+            className={({ isActive }) => (isActive ? 'active-link' : '')}
+          >
+            How It Works
           </NavLink>
 
           <div
@@ -201,17 +210,17 @@ const NavigationBar = () => {
               >
                 <FaUser /> Dashboard
               </NavLink>
-              <NavLink
-                to="/login"
+              <button
                 className="user-login"
                 onClick={() => {
-                  localStorage.removeItem('userToken');
+                  logout();
                   setMenuOpen(false);
                   navigate("/login", { replace: false });
                 }}
+                style={{ background: "none", border: "none", cursor: "pointer", padding: 0, color: "inherit" }}
               >
                 <FaUser /> Logout
-              </NavLink>
+              </button>
             </>
           )}
 
@@ -232,17 +241,17 @@ const NavigationBar = () => {
               >
                 <FaStore /> Vendor Dashboard
               </NavLink>
-              <NavLink
-                to="/vendor-login"
+              <button
                 className="vendor-login"
                 onClick={() => {
-                  localStorage.removeItem('vendorToken');
+                  logout();
                   setMenuOpen(false);
                   navigate("/vendor-login", { replace: false });
                 }}
+                style={{ background: "none", border: "none", cursor: "pointer", padding: 0, color: "inherit" }}
               >
                 <FaStore /> Logout
-              </NavLink>
+              </button>
             </>
           )}
         </div>

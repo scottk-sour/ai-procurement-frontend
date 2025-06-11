@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
-import { getAuthToken } from '../utils/auth'; // Ensure this function returns your user token
+import { getAuthToken } from '../utils/auth'; // Must return user token
+
+const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:5000";
 
 const PrivateRoute = () => {
-  // isLoggedIn starts as null to indicate "loading"
-  const [isLoggedIn, setLoggedIn] = useState(null);
+  const [isLoggedIn, setLoggedIn] = useState(null); // null = loading, false = not logged in, true = logged in
   const [error, setError] = useState(null);
 
   useEffect(() => {
@@ -12,51 +13,48 @@ const PrivateRoute = () => {
       const token = getAuthToken();
       console.log("🔐 Stored Token from localStorage =", token);
       if (!token) {
-        console.log("❌ No token found, redirecting to login...");
         setLoggedIn(false);
         return;
       }
-
       try {
-        const res = await fetch('http://localhost:5000/api/auth/verify', {
+        const res = await fetch(`${API_BASE}/api/auth/verify`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        const responseText = await res.text();
-        console.log("API Response Status (User):", res.status, "OK:", res.ok, "Response:", responseText);
+        // Optionally check for role here if you want
         if (res.ok) {
           setLoggedIn(true);
         } else {
-          throw new Error(`Token verification failed with status: ${res.status}`);
+          setLoggedIn(false);
         }
       } catch (error) {
-        console.error('User Token verification failed:', error.message, "Stack:", error.stack);
         setError('Authentication failed. Please log in again.');
         setLoggedIn(false);
       }
     };
-
     checkAuth();
   }, []);
 
-  // While checking authentication, render a loading state.
   if (isLoggedIn === null) {
-    console.log("Rendering loading state for PrivateRoute...");
-    return <div className="loading-spinner">Loading User Dashboard...</div>;
+    // Loading state
+    return (
+      <div className="loading-spinner" style={{ textAlign: "center", marginTop: "3rem" }}>
+        Loading User Dashboard...
+      </div>
+    );
   }
 
-  // If an error occurred, render an error message.
   if (error) {
-    console.log("Rendering error state:", error);
+    // Error state
     return (
-      <div className="error-message">
+      <div className="error-message" style={{ color: "red", textAlign: "center", marginTop: "2rem" }}>
         <p>{error}</p>
         <button onClick={() => window.location.reload()}>Retry</button>
       </div>
     );
   }
 
-  // If authenticated, render the nested routes via Outlet.
-  // Otherwise, redirect to the login page.
+  // Authenticated: render child route
+  // Not authenticated: redirect to /login
   return isLoggedIn ? <Outlet /> : <Navigate to="/login" replace />;
 };
 

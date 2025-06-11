@@ -2,35 +2,26 @@
 import React, { useState, useEffect } from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
 
+const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:5000";
+
 const AdminPrivateRoute = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(null);
 
   useEffect(() => {
     const checkAuth = async () => {
-      let token = localStorage.getItem('adminToken');
-      console.log("🔐 Admin Private Route Access: Stored Token from localStorage =", token, "Expected Token =", localStorage.getItem('adminToken'));
+      // Get admin token from localStorage
+      const token = localStorage.getItem('adminToken');
       if (!token) {
-        console.log("❌ No adminToken found, redirecting to admin-login...");
         setIsAuthenticated(false);
         return;
       }
 
-      // Clear any cached or outdated tokens in localStorage if mismatched
-      const expectedToken = localStorage.getItem('adminToken');
-      if (token !== expectedToken) {
-        console.log("⚠ Token mismatch detected, updating to expected token...");
-        token = expectedToken;
-        localStorage.setItem('adminToken', token); // Ensure consistency
-      }
-
       try {
-        const res = await fetch('http://localhost:5000/api/auth/admin-verify', { // Adjust endpoint as needed
+        const res = await fetch(`${API_BASE}/api/auth/admin-verify`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        console.log("API Response Status (Admin):", res.status, "OK:", res.ok, "Response:", await res.text());
-        setIsAuthenticated(res.ok); // True if status is 200-299
+        setIsAuthenticated(res.ok); // True if 2xx
       } catch (error) {
-        console.error('Admin Token verification failed:', error.message, "Stack:", error.stack);
         setIsAuthenticated(false);
       }
     };
@@ -39,10 +30,11 @@ const AdminPrivateRoute = () => {
   }, []);
 
   if (isAuthenticated === null) {
-    console.log("Rendering loading state for Admin PrivateRoute...");
+    // Loading state
     return <div className="loading-spinner">Loading Admin Dashboard...</div>;
   }
 
+  // Authenticated: render nested routes. Not: redirect to /admin-login.
   return isAuthenticated ? <Outlet /> : <Navigate to="/admin-login" replace />;
 };
 

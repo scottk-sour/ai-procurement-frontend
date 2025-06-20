@@ -15,14 +15,15 @@ const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Scroll and fade-in animation
+  // ✅ Get API URL from environment or default to localhost:5000
+  const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000";
+
   useEffect(() => {
     window.scrollTo(0, 0);
     const timer = setTimeout(() => setIsVisible(true), 100);
     return () => clearTimeout(timer);
   }, [location]);
 
-  // Redirect if already logged in
   useEffect(() => {
     if (!auth || auth.isLoading) return;
     if (auth.isAuthenticated && auth.user?.role === "user") {
@@ -38,7 +39,6 @@ const Login = () => {
     setLoading(true);
     setError("");
 
-    // Basic validation
     if (!email.trim() || !password.trim()) {
       setError("Please enter both email and password.");
       setLoading(false);
@@ -52,45 +52,55 @@ const Login = () => {
     }
 
     try {
-      const response = await fetch(
-        `${process.env.REACT_APP_API_URL || "http://localhost:5000"}/api/users/login`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ email, password }),
-        }
-      );
+      // ✅ Use full API URL with proper endpoint
+      const loginUrl = `${API_URL}/api/users/login`;
+      console.log("🔍 Making login request to:", loginUrl);
+
+      const response = await fetch(loginUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include", // ✅ Important for CORS with credentials
+        body: JSON.stringify({ email, password }),
+      });
+
+      console.log("📡 Response status:", response.status);
+      console.log("📡 Response headers:", Object.fromEntries(response.headers.entries()));
 
       const data = await response.json();
       console.log("Login response:", response.status, data);
 
       if (response.ok) {
-        // Call context login
         login(data.token, {
           userId: data.userId,
           role: data.role || "user",
           name: data.name || "User",
         });
 
-        // Store in localStorage
         localStorage.setItem("role", "user");
         localStorage.setItem("userName", data.name || "User");
         localStorage.setItem("userId", data.userId);
 
-        // Redirect
         navigate(location.state?.from || "/dashboard", { replace: true });
       } else {
         const errorMsg =
           response.status === 429
             ? "Too many login attempts. Please try again later."
+            : response.status === 500
+            ? "Server error. Please try again later."
             : data.message || "Invalid email or password.";
         setError(errorMsg);
       }
     } catch (err) {
       console.error("Login network error:", err);
-      setError("A network error occurred. Please try again.");
+      
+      // ✅ Better error handling for network issues
+      if (err.name === 'TypeError' && err.message.includes('fetch')) {
+        setError("Cannot connect to server. Please check if the backend is running.");
+      } else {
+        setError("A network error occurred. Please try again.");
+      }
     } finally {
       setLoading(false);
     }
@@ -160,7 +170,7 @@ const Login = () => {
             </button>
 
             <p className="signup-link">
-              Don’t have an account?{" "}
+              Don't have an account?{" "}
               <a
                 href="/signup"
                 onClick={(e) => {
@@ -172,6 +182,21 @@ const Login = () => {
               </a>
             </p>
           </form>
+
+          {/* ✅ Debug info in development */}
+          {process.env.NODE_ENV === 'development' && (
+            <div style={{ 
+              marginTop: '20px', 
+              padding: '10px', 
+              backgroundColor: '#f0f0f0', 
+              fontSize: '12px',
+              borderRadius: '4px'
+            }}>
+              <strong>Debug Info:</strong><br />
+              API URL: {API_URL}<br />
+              Login Endpoint: {API_URL}/api/users/login
+            </div>
+          )}
         </div>
       </section>
     </div>

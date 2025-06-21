@@ -39,6 +39,13 @@ const Login = () => {
     setLoading(true);
     setError("");
 
+    // 🔍 Debug logging
+    console.log("🔍 Environment check:");
+    console.log("NODE_ENV:", process.env.NODE_ENV);
+    console.log("REACT_APP_API_URL from env:", process.env.REACT_APP_API_URL);
+    console.log("API_URL being used:", API_URL);
+    console.log("Current origin:", window.location.origin);
+
     if (!email.trim() || !password.trim()) {
       setError("Please enter both email and password.");
       setLoading(false);
@@ -52,21 +59,31 @@ const Login = () => {
     }
 
     try {
-      // ✅ Use full API URL with proper endpoint
       const loginUrl = `${API_URL}/api/users/login`;
       console.log("🔍 Making login request to:", loginUrl);
+
+      // 🏥 Health check
+      try {
+        const healthCheck = await fetch(`${API_URL}/`, { method: "GET" });
+        console.log("🏥 Health check response:", healthCheck.status);
+      } catch (healthError) {
+        console.error("🏥 Health check failed:", healthError);
+      }
 
       const response = await fetch(loginUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        credentials: "include", // ✅ Important for CORS with credentials
+        credentials: "include",
         body: JSON.stringify({ email, password }),
       });
 
       console.log("📡 Response status:", response.status);
-      console.log("📡 Response headers:", Object.fromEntries(response.headers.entries()));
+      console.log(
+        "📡 Response headers:",
+        Object.fromEntries(response.headers.entries())
+      );
 
       const data = await response.json();
       console.log("Login response:", response.status, data);
@@ -94,10 +111,16 @@ const Login = () => {
       }
     } catch (err) {
       console.error("Login network error:", err);
-      
-      // ✅ Better error handling for network issues
-      if (err.name === 'TypeError' && err.message.includes('fetch')) {
-        setError("Cannot connect to server. Please check if the backend is running.");
+      console.error("Error details:", {
+        name: err.name,
+        message: err.message,
+        stack: err.stack,
+      });
+
+      if (err.name === "TypeError" && err.message.includes("fetch")) {
+        setError(
+          `Cannot connect to server at ${API_URL}. Please check if the backend is running.`
+        );
       } else {
         setError("A network error occurred. Please try again.");
       }
@@ -107,15 +130,30 @@ const Login = () => {
   };
 
   return (
-    <div className="login-page" data-animation="fadeInUp" data-visible={isVisible}>
-      <header className="login-hero" data-animation="fadeIn" data-delay="200" data-visible={isVisible}>
+    <div
+      className="login-page"
+      data-animation="fadeInUp"
+      data-visible={isVisible}
+    >
+      <header
+        className="login-hero"
+        data-animation="fadeIn"
+        data-delay="200"
+        data-visible={isVisible}
+      >
         <h1 className="login-title">User Login for TENDORAI</h1>
         <p className="login-subtitle">
-          Securely access your TENDORAI account to explore AI-powered procurement.
+          Securely access your TENDORAI account to explore AI-powered
+          procurement.
         </p>
       </header>
 
-      <section className="login-section" data-animation="fadeInUp" data-delay="400" data-visible={isVisible}>
+      <section
+        className="login-section"
+        data-animation="fadeInUp"
+        data-delay="400"
+        data-visible={isVisible}
+      >
         <div className="section-container">
           <form onSubmit={handleLogin} className="login-form">
             {error && <div className="form-status error">{error}</div>}
@@ -157,7 +195,9 @@ const Login = () => {
                   type="button"
                   onClick={() => setPasswordVisible(!passwordVisible)}
                   className="toggle-password"
-                  aria-label={passwordVisible ? "Hide password" : "Show password"}
+                  aria-label={
+                    passwordVisible ? "Hide password" : "Show password"
+                  }
                   disabled={loading}
                 >
                   {passwordVisible ? "Hide" : "Show"}
@@ -165,8 +205,16 @@ const Login = () => {
               </div>
             </div>
 
-            <button type="submit" className="submit-button" disabled={loading}>
-              {loading ? <span className="loading-spinner">Logging In...</span> : "Log In"}
+            <button
+              type="submit"
+              className="submit-button"
+              disabled={loading}
+            >
+              {loading ? (
+                <span className="loading-spinner">Logging In...</span>
+              ) : (
+                "Log In"
+              )}
             </button>
 
             <p className="signup-link">
@@ -184,16 +232,20 @@ const Login = () => {
           </form>
 
           {/* ✅ Debug info in development */}
-          {process.env.NODE_ENV === 'development' && (
-            <div style={{ 
-              marginTop: '20px', 
-              padding: '10px', 
-              backgroundColor: '#f0f0f0', 
-              fontSize: '12px',
-              borderRadius: '4px'
-            }}>
-              <strong>Debug Info:</strong><br />
-              API URL: {API_URL}<br />
+          {process.env.NODE_ENV === "development" && (
+            <div
+              style={{
+                marginTop: "20px",
+                padding: "10px",
+                backgroundColor: "#f0f0f0",
+                fontSize: "12px",
+                borderRadius: "4px",
+              }}
+            >
+              <strong>Debug Info:</strong>
+              <br />
+              API URL: {API_URL}
+              <br />
               Login Endpoint: {API_URL}/api/users/login
             </div>
           )}

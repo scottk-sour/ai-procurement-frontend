@@ -733,7 +733,7 @@ const UserDashboard = () => {
                     </button>
                     <span>Page {filePage}</span>
                     <button
- onClick={() => setFilePage((prev) => prev + 1)}
+                      onClick={() => setFilePage((prev) => prev + 1)}
                       disabled={((recentActivity || []).length) < itemsPerPage}
                       aria-label="Next page of notifications"
                     >

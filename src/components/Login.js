@@ -15,8 +15,7 @@ const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // ✅ Get API URL from environment or default to localhost:5000
-  const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000";
+  // ❌ Removed API_URL constant; we'll call /api/... directly
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -32,7 +31,8 @@ const Login = () => {
     }
   }, [auth, navigate, location]);
 
-  const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  const validateEmail = (email) =>
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -42,8 +42,6 @@ const Login = () => {
     // 🔍 Debug logging
     console.log("🔍 Environment check:");
     console.log("NODE_ENV:", process.env.NODE_ENV);
-    console.log("REACT_APP_API_URL from env:", process.env.REACT_APP_API_URL);
-    console.log("API_URL being used:", API_URL);
     console.log("Current origin:", window.location.origin);
 
     if (!email.trim() || !password.trim()) {
@@ -51,7 +49,6 @@ const Login = () => {
       setLoading(false);
       return;
     }
-
     if (!validateEmail(email)) {
       setError("Please enter a valid email address.");
       setLoading(false);
@@ -59,22 +56,13 @@ const Login = () => {
     }
 
     try {
-      const loginUrl = `${API_URL}/api/users/login`;
+      // 🛣️ Use relative path—Vercel will proxy /api to your backend
+      const loginUrl = "/api/users/login";
       console.log("🔍 Making login request to:", loginUrl);
-
-      // 🏥 Health check
-      try {
-        const healthCheck = await fetch(`${API_URL}/`, { method: "GET" });
-        console.log("🏥 Health check response:", healthCheck.status);
-      } catch (healthError) {
-        console.error("🏥 Health check failed:", healthError);
-      }
 
       const response = await fetch(loginUrl, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({ email, password }),
       });
@@ -111,15 +99,9 @@ const Login = () => {
       }
     } catch (err) {
       console.error("Login network error:", err);
-      console.error("Error details:", {
-        name: err.name,
-        message: err.message,
-        stack: err.stack,
-      });
-
       if (err.name === "TypeError" && err.message.includes("fetch")) {
         setError(
-          `Cannot connect to server at ${API_URL}. Please check if the backend is running.`
+          "Cannot connect to server. Please check your connection or try again later."
         );
       } else {
         setError("A network error occurred. Please try again.");
@@ -143,8 +125,7 @@ const Login = () => {
       >
         <h1 className="login-title">User Login for TENDORAI</h1>
         <p className="login-subtitle">
-          Securely access your TENDORAI account to explore AI-powered
-          procurement.
+          Securely access your TENDORAI account to explore AI-powered procurement.
         </p>
       </header>
 
@@ -205,11 +186,7 @@ const Login = () => {
               </div>
             </div>
 
-            <button
-              type="submit"
-              className="submit-button"
-              disabled={loading}
-            >
+            <button type="submit" className="submit-button" disabled={loading}>
               {loading ? (
                 <span className="loading-spinner">Logging In...</span>
               ) : (
@@ -218,7 +195,7 @@ const Login = () => {
             </button>
 
             <p className="signup-link">
-              Don't have an account?{" "}
+              Don’t have an account?{" "}
               <a
                 href="/signup"
                 onClick={(e) => {
@@ -244,9 +221,7 @@ const Login = () => {
             >
               <strong>Debug Info:</strong>
               <br />
-              API URL: {API_URL}
-              <br />
-              Login Endpoint: {API_URL}/api/users/login
+              Login Endpoint: /api/users/login
             </div>
           )}
         </div>

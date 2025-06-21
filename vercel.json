@@ -1,8 +1,8 @@
-{
+﻿{
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "https://tendorai-backend.onrender.com/api/$1"
+      "destination": "https://ai-procurement-backend.onrender.com/api/$1"
     }
   ]
 }

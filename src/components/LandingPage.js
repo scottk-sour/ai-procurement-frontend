@@ -79,11 +79,6 @@ const LandingPage = () => {
           style={{
             backgroundImage: `url(${process.env.PUBLIC_URL}/assets/images/landingpagepic.png)`,
           }}
-          onError={(e) => {
-            e.target.style.backgroundImage = "none";
-            e.target.style.background =
-              "linear-gradient(135deg, #1e3a8a, #2d4a8a)";
-          }}
           data-parallax-speed="0.3"
         />
         <div className="hero-content">

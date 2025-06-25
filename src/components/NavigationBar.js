@@ -4,7 +4,7 @@ import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import './NavigationBar.css';
 import { FaUser, FaStore } from 'react-icons/fa';
 import { gsap } from 'gsap';
-import { useAuth } from "../context/AuthContext"; // ✅ CORRECT CONTEXT
+import { useAuth } from "../context/AuthContext";
 
 const NavigationBar = () => {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -14,23 +14,26 @@ const NavigationBar = () => {
   const navbarRef = useRef(null);
   const { pathname } = useLocation();
   const navigate = useNavigate();
-  const { auth, logout } = useAuth(); // ✅ GET AUTH FROM CONTEXT
+  const { auth, logout } = useAuth();
 
   const isUserLoggedIn = auth.isAuthenticated && auth.user?.role === "user";
   const isVendorLoggedIn = auth.isAuthenticated && auth.user?.role === "vendor";
 
-  const toggleMenu = () => {
-    setMenuOpen((prev) => !prev);
-  };
+  const toggleMenu = () => setMenuOpen(prev => !prev);
 
   useEffect(() => {
     window.scrollTo(0, 0);
-    gsap.fromTo(
-      navbarRef.current,
-      { opacity: 0, y: -20 },
-      { opacity: 1, y: 0, duration: 0.8, ease: 'power2.out' }
-    );
 
+    // Animate navbar in
+    if (navbarRef.current) {
+      gsap.fromTo(
+        navbarRef.current,
+        { opacity: 0, y: -20 },
+        { opacity: 1, y: 0, duration: 0.8, ease: 'power2.out' }
+      );
+    }
+
+    // Animate dropdown open
     if (isDropdownOpen && dropdownRef.current) {
       gsap.fromTo(
         dropdownRef.current,
@@ -39,34 +42,35 @@ const NavigationBar = () => {
       );
     }
 
-    if (menuOpen && navbarRef.current) {
-      gsap.fromTo(
-        '.navbar-links.active',
-        { opacity: 0, height: 0 },
-        { opacity: 1, height: 'auto', duration: 0.5, ease: 'power2.out' }
-      );
+    // Animate mobile menu open
+    if (menuOpen) {
+      const linksEl = document.querySelector('.navbar-links.active');
+      if (linksEl) {
+        gsap.fromTo(
+          linksEl,
+          { opacity: 0, height: 0 },
+          { opacity: 1, height: 'auto', duration: 0.5, ease: 'power2.out' }
+        );
+      }
     }
   }, [isDropdownOpen, menuOpen, pathname]);
 
+  // Close dropdown when clicking outside
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (
-        dropdownContainerRef.current &&
-        !dropdownContainerRef.current.contains(event.target)
-      ) {
+    const onClickOutside = e => {
+      if (dropdownContainerRef.current && !dropdownContainerRef.current.contains(e.target)) {
         setIsDropdownOpen(false);
       }
     };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
+    document.addEventListener('mousedown', onClickOutside);
+    return () => document.removeEventListener('mousedown', onClickOutside);
   }, []);
 
-  const handleKeyDown = (event) => {
-    if (event.key === 'Enter' || event.key === ' ') {
-      setIsDropdownOpen((prev) => !prev);
-    } else if (event.key === 'Escape') {
+  // Keyboard accessibility for dropdown
+  const handleKeyDown = e => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      setIsDropdownOpen(prev => !prev);
+    } else if (e.key === 'Escape') {
       setIsDropdownOpen(false);
     }
   };
@@ -83,7 +87,7 @@ const NavigationBar = () => {
         <button
           className="hamburger"
           onClick={toggleMenu}
-          aria-label="Toggle navigation menu"
+          aria-label="Toggle navigation"
           aria-expanded={menuOpen}
         >
           <span className="bar"></span>
@@ -92,19 +96,10 @@ const NavigationBar = () => {
         </button>
 
         <div className={`navbar-links ${menuOpen ? 'active' : ''}`}>
-          <NavLink
-            to="/"
-            onClick={() => setMenuOpen(false)}
-            className={({ isActive }) => (isActive ? 'active-link' : '')}
-          >
+          <NavLink to="/" onClick={() => setMenuOpen(false)} className={({ isActive }) => isActive ? 'active-link' : ''}>
             Home
           </NavLink>
-
-          <NavLink
-            to="/how-it-works"
-            onClick={() => setMenuOpen(false)}
-            className={({ isActive }) => (isActive ? 'active-link' : '')}
-          >
+          <NavLink to="/how-it-works" onClick={() => setMenuOpen(false)} className={({ isActive }) => isActive ? 'active-link' : ''}>
             How It Works
           </NavLink>
 
@@ -116,108 +111,54 @@ const NavigationBar = () => {
             onKeyDown={handleKeyDown}
             tabIndex={0}
           >
-            <span className="dropdown-title">Services ▼</span>
+            <span className="dropdown-title" role="button" aria-haspopup="true" aria-expanded={isDropdownOpen}>
+              Services ▼
+            </span>
             {isDropdownOpen && (
               <ul ref={dropdownRef} className="dropdown-menu">
-                <li>
-                  <NavLink
-                    to="/services/cctv"
-                    onClick={() => {
-                      setMenuOpen(false);
-                      setIsDropdownOpen(false);
-                    }}
-                    className={({ isActive }) => (isActive ? 'active-link' : '')}
-                  >
-                    CCTV
-                  </NavLink>
-                </li>
-                <li>
-                  <NavLink
-                    to="/services/photocopiers"
-                    onClick={() => {
-                      setMenuOpen(false);
-                      setIsDropdownOpen(false);
-                    }}
-                    className={({ isActive }) => (isActive ? 'active-link' : '')}
-                  >
-                    Photocopiers
-                  </NavLink>
-                </li>
-                <li>
-                  <NavLink
-                    to="/services/telecoms"
-                    onClick={() => {
-                      setMenuOpen(false);
-                      setIsDropdownOpen(false);
-                    }}
-                    className={({ isActive }) => (isActive ? 'active-link' : '')}
-                  >
-                    Telecoms
-                  </NavLink>
-                </li>
-                <li>
-                  <NavLink
-                    to="/services/it"
-                    onClick={() => {
-                      setMenuOpen(false);
-                      setIsDropdownOpen(false);
-                    }}
-                    className={({ isActive }) => (isActive ? 'active-link' : '')}
-                  >
-                    IT Solutions
-                  </NavLink>
-                </li>
+                {[
+                  { to: '/services/cctv', label: 'CCTV' },
+                  { to: '/services/photocopiers', label: 'Photocopiers' },
+                  { to: '/services/telecoms', label: 'Telecoms' },
+                  { to: '/services/it', label: 'IT Solutions' },
+                ].map(({ to, label }) => (
+                  <li key={to}>
+                    <NavLink
+                      to={to}
+                      onClick={() => { setMenuOpen(false); setIsDropdownOpen(false); }}
+                      className={({ isActive }) => isActive ? 'active-link' : ''}
+                    >
+                      {label}
+                    </NavLink>
+                  </li>
+                ))}
               </ul>
             )}
           </div>
 
-          <NavLink
-            to="/about-us"
-            onClick={() => setMenuOpen(false)}
-            className={({ isActive }) => (isActive ? 'active-link' : '')}
-          >
+          <NavLink to="/about-us" onClick={() => setMenuOpen(false)} className={({ isActive }) => isActive ? 'active-link' : ''}>
             About Us
           </NavLink>
-          <NavLink
-            to="/contact"
-            onClick={() => setMenuOpen(false)}
-            className={({ isActive }) => (isActive ? 'active-link' : '')}
-          >
+          <NavLink to="/contact" onClick={() => setMenuOpen(false)} className={({ isActive }) => isActive ? 'active-link' : ''}>
             Contact
           </NavLink>
-          <NavLink
-            to="/faq"
-            onClick={() => setMenuOpen(false)}
-            className={({ isActive }) => (isActive ? 'active-link' : '')}
-          >
+          <NavLink to="/faq" onClick={() => setMenuOpen(false)} className={({ isActive }) => isActive ? 'active-link' : ''}>
             FAQ
           </NavLink>
 
           {!isUserLoggedIn ? (
-            <NavLink
-              to="/login"
-              className="user-login"
-              onClick={() => setMenuOpen(false)}
-            >
+            <NavLink to="/login" className="user-login" onClick={() => setMenuOpen(false)}>
               <FaUser /> User Login
             </NavLink>
           ) : (
             <>
-              <NavLink
-                to="/dashboard"
-                onClick={() => setMenuOpen(false)}
-                className="user-login active"
-              >
+              <NavLink to="/dashboard" onClick={() => setMenuOpen(false)} className="user-login active">
                 <FaUser /> Dashboard
               </NavLink>
               <button
                 className="user-login"
-                onClick={() => {
-                  logout();
-                  setMenuOpen(false);
-                  navigate("/login", { replace: false });
-                }}
-                style={{ background: "none", border: "none", cursor: "pointer", padding: 0, color: "inherit" }}
+                onClick={() => { logout(); setMenuOpen(false); navigate('/login'); }}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: 'inherit' }}
               >
                 <FaUser /> Logout
               </button>
@@ -225,30 +166,18 @@ const NavigationBar = () => {
           )}
 
           {!isVendorLoggedIn ? (
-            <NavLink
-              to="/vendor-login"
-              className="vendor-login"
-              onClick={() => setMenuOpen(false)}
-            >
+            <NavLink to="/vendor-login" className="vendor-login" onClick={() => setMenuOpen(false)}>
               <FaStore /> Vendor Login
             </NavLink>
           ) : (
             <>
-              <NavLink
-                to="/vendor-dashboard"
-                onClick={() => setMenuOpen(false)}
-                className="vendor-login active"
-              >
+              <NavLink to="/vendor-dashboard" onClick={() => setMenuOpen(false)} className="vendor-login active">
                 <FaStore /> Vendor Dashboard
               </NavLink>
               <button
                 className="vendor-login"
-                onClick={() => {
-                  logout();
-                  setMenuOpen(false);
-                  navigate("/vendor-login", { replace: false });
-                }}
-                style={{ background: "none", border: "none", cursor: "pointer", padding: 0, color: "inherit" }}
+                onClick={() => { logout(); setMenuOpen(false); navigate('/vendor-login'); }}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: 'inherit' }}
               >
                 <FaStore /> Logout
               </button>

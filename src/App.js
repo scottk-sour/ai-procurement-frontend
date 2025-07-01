@@ -1,3 +1,4 @@
+// src/App.js
 import React, { lazy, Suspense, useEffect } from "react";
 import {
   BrowserRouter as Router,
@@ -27,59 +28,130 @@ const errorStyle = {
 const loadWithFallback = (importFn, fallbackComponent) =>
   lazy(() =>
     importFn()
-      .then((module) => {
-        console.log(`✅ Lazy load successful for ${importFn.name || importFn.toString()}`);
-        return module;
-      })
-      .catch((error) => {
-        console.error(`❌ Lazy load failed for ${importFn.name || importFn.toString()}:`, error);
-        return { default: fallbackComponent };
-      })
+      .then((module) => module)
+      .catch(() => ({ default: fallbackComponent }))
   );
 
 // ================= Public pages =================
-const LandingPage = loadWithFallback(() => import("./components/LandingPage"), () => <div style={errorStyle}>Failed to load Landing Page</div>);
-const Login = loadWithFallback(() => import("./components/Login"), () => <div style={errorStyle}>Failed to load Login</div>);
-const Signup = loadWithFallback(() => import("./components/Signup"), () => <div style={errorStyle}>Failed to load Signup</div>);
-const VendorLogin = loadWithFallback(() => import("./components/VendorLogin"), () => <div style={errorStyle}>Failed to load VendorLogin</div>);
-const VendorSignup = loadWithFallback(() => import("./components/VendorSignup"), () => <div style={errorStyle}>Failed to load VendorSignup</div>);
-const AboutUs = loadWithFallback(() => import("./components/AboutUs"), () => <div style={errorStyle}>Failed to load AboutUs</div>);
-const ContactUs = loadWithFallback(() => import("./components/ContactUs"), () => <div style={errorStyle}>Failed to load ContactUs</div>);
-const WhyChooseUs = loadWithFallback(() => import("./components/WhyChooseUs"), () => <div style={errorStyle}>Failed to load WhyChooseUs</div>);
-const HowItWorks = loadWithFallback(() => import("./components/HowItWorks"), () => <div style={errorStyle}>Failed to load HowItWorks</div>);
-const PrivacyPolicy = loadWithFallback(() => import("./components/PrivacyPolicy"), () => <div style={errorStyle}>Failed to load PrivacyPolicy</div>);
-const MeetTheExperts = loadWithFallback(() => import("./components/MeetTheExperts"), () => <div style={errorStyle}>Failed to load MeetTheExperts</div>);
-const FAQ = loadWithFallback(() => import("./components/FAQ"), () => <div style={errorStyle}>Failed to load FAQ</div>);
+const LandingPage = loadWithFallback(
+  () => import("./components/LandingPage"),
+  () => <div style={errorStyle}>Failed to load Landing Page</div>
+);
+const Login = loadWithFallback(
+  () => import("./components/Login"),
+  () => <div style={errorStyle}>Failed to load Login</div>
+);
+const Signup = loadWithFallback(
+  () => import("./components/Signup"),
+  () => <div style={errorStyle}>Failed to load Signup</div>
+);
+const VendorLogin = loadWithFallback(
+  () => import("./components/VendorLogin"),
+  () => <div style={errorStyle}>Failed to load VendorLogin</div>
+);
+const VendorSignup = loadWithFallback(
+  () => import("./components/VendorSignup"),
+  () => <div style={errorStyle}>Failed to load VendorSignup</div>
+);
+const AboutUs = loadWithFallback(
+  () => import("./components/AboutUs"),
+  () => <div style={errorStyle}>Failed to load AboutUs</div>
+);
+const ContactUs = loadWithFallback(
+  () => import("./components/ContactUs"),
+  () => <div style={errorStyle}>Failed to load ContactUs</div>
+);
+const WhyChooseUs = loadWithFallback(
+  () => import("./components/WhyChooseUs"),
+  () => <div style={errorStyle}>Failed to load WhyChooseUs</div>
+);
+const HowItWorks = loadWithFallback(
+  () => import("./components/HowItWorks"),
+  () => <div style={errorStyle}>Failed to load HowItWorks</div>
+);
+const PrivacyPolicy = loadWithFallback(
+  () => import("./components/PrivacyPolicy"),
+  () => <div style={errorStyle}>Failed to load PrivacyPolicy</div>
+);
+const MeetTheExperts = loadWithFallback(
+  () => import("./components/MeetTheExperts"),
+  () => <div style={errorStyle}>Failed to load MeetTheExperts</div>
+);
+const FAQ = loadWithFallback(
+  () => import("./components/FAQ"),
+  () => <div style={errorStyle}>Failed to load FAQ</div>
+);
 
 // ================= Services =================
-const Photocopiers = loadWithFallback(() => import("./components/services/Photocopiers"), () => <div style={errorStyle}>Failed to load Photocopiers</div>);
-const Telecoms = loadWithFallback(() => import("./components/services/Telecoms"), () => <div style={errorStyle}>Failed to load Telecoms</div>);
-const CCTV = loadWithFallback(() => import("./components/services/CCTV"), () => <div style={errorStyle}>Failed to load CCTV</div>);
+const Photocopiers = loadWithFallback(
+  () => import("./components/services/Photocopiers"),
+  () => <div style={errorStyle}>Failed to load Photocopiers</div>
+);
+const Telecoms = loadWithFallback(
+  () => import("./components/services/Telecoms"),
+  () => <div style={errorStyle}>Failed to load Telecoms</div>
+);
+const CCTV = loadWithFallback(
+  () => import("./components/services/CCTV"),
+  () => <div style={errorStyle}>Failed to load CCTV</div>
+);
 
 // ================= User Dashboard =================
-const UserDashboard = loadWithFallback(() => import("./components/UserDashboard"), () => <div style={errorStyle}>Failed to load UserDashboard</div>);
-const RequestQuote = loadWithFallback(() => import("./components/RequestQuote"), () => <div style={errorStyle}>Failed to load RequestQuote</div>);
-const CompareVendors = loadWithFallback(() => import("./components/CompareVendors"), () => <div style={errorStyle}>Failed to load CompareVendors</div>);
-const AccountSettings = loadWithFallback(() => import("./components/AccountSettings"), () => <div style={errorStyle}>Failed to load AccountSettings</div>);
-const QuotesRequested = loadWithFallback(() => import("./pages/QuotesRequested"), () => <div style={errorStyle}>Failed to load QuotesRequested</div>);
-const QuoteDetails = loadWithFallback(() => import("./components/QuoteDetails"), () => <div style={errorStyle}>Failed to load QuoteDetails</div>);
+const UserDashboard = loadWithFallback(
+  () => import("./components/UserDashboard"),
+  () => <div style={errorStyle}>Failed to load UserDashboard</div>
+);
+const RequestQuote = loadWithFallback(
+  () => import("./components/RequestQuote"),
+  () => <div style={errorStyle}>Failed to load RequestQuote</div>
+);
+const CompareVendors = loadWithFallback(
+  () => import("./components/CompareVendors"),
+  () => <div style={errorStyle}>Failed to load CompareVendors</div>
+);
+const AccountSettings = loadWithFallback(
+  () => import("./components/AccountSettings"),
+  () => <div style={errorStyle}>Failed to load AccountSettings</div>
+);
+const QuotesRequested = loadWithFallback(
+  () => import("./pages/QuotesRequested"),
+  () => <div style={errorStyle}>Failed to load QuotesRequested</div>
+);
+const QuoteDetails = loadWithFallback(
+  () => import("./components/QuoteDetails"),
+  () => <div style={errorStyle}>Failed to load QuoteDetails</div>
+);
 
 // ================= Vendor Dashboard =================
-const VendorDashboard = loadWithFallback(() => import("./components/VendorDashboard"), () => <div style={errorStyle}>Failed to load VendorDashboard</div>);
+const VendorDashboard = loadWithFallback(
+  () => import("./components/VendorDashboard"),
+  () => <div style={errorStyle}>Failed to load VendorDashboard</div>
+);
 
 // ================= Admin Pages =================
-const AdminLogin = loadWithFallback(() => import("./components/AdminLogin"), () => <div style={errorStyle}>Failed to load AdminLogin</div>);
-const AdminDashboard = loadWithFallback(() => import("./components/AdminDashboard"), () => <div style={errorStyle}>Failed to load AdminDashboard</div>);
-const AdminUserManagement = loadWithFallback(() => import("./components/AdminUserManagement"), () => <div style={errorStyle}>Failed to load AdminUserManagement</div>);
+const AdminLogin = loadWithFallback(
+  () => import("./components/AdminLogin"),
+  () => <div style={errorStyle}>Failed to load AdminLogin</div>
+);
+const AdminDashboard = loadWithFallback(
+  () => import("./components/AdminDashboard"),
+  () => <div style={errorStyle}>Failed to load AdminDashboard</div>
+);
+const AdminUserManagement = loadWithFallback(
+  () => import("./components/AdminUserManagement"),
+  () => <div style={errorStyle}>Failed to load AdminUserManagement</div>
+);
 
 // ================= Fallback Not Found =================
-const NotFound = loadWithFallback(() => import("./components/NotFound"), () => <div style={errorStyle}>Failed to load NotFound</div>);
+const NotFound = loadWithFallback(
+  () => import("./components/NotFound"),
+  () => <div style={errorStyle}>Failed to load NotFound</div>
+);
 
-// ================= Error Boundary =================
+// ================= Error Boundary with Stack Trace =================
 class ErrorBoundary extends React.Component {
   state = { hasError: false, error: null };
   static getDerivedStateFromError(error) {
-    console.log("❌ ErrorBoundary caught error:", error.message);
     return { hasError: true, error };
   }
   componentDidCatch(error, info) {
@@ -90,7 +162,20 @@ class ErrorBoundary extends React.Component {
       return (
         <div style={errorStyle}>
           <h1>Something went wrong</h1>
-          <p>{this.state.error?.message || "An unexpected error occurred."}</p>
+          <p>{this.state.error?.message}</p>
+          <pre
+            style={{
+              whiteSpace: 'pre-wrap',
+              textAlign: 'left',
+              margin: '10px',
+              padding: '10px',
+              backgroundColor: '#eee',
+              maxHeight: '60vh',
+              overflowY: 'auto',
+            }}
+          >
+            {this.state.error?.stack}
+          </pre>
           <button onClick={() => window.location.reload()}>Reload</button>
         </div>
       );
@@ -123,9 +208,7 @@ const LoadingSpinner = () => (
 // ================= Navigation Tracker =================
 const NavigationTracker = () => {
   const location = useLocation();
-  useEffect(() => {
-    console.log(`📍 Navigated to: ${location.pathname} (Search: ${location.search})`);
-  }, [location]);
+  useEffect(() => { console.log(`📍 Navigated to: ${location.pathname}`); }, [location]);
   return null;
 };
 
@@ -133,9 +216,7 @@ const NavigationTracker = () => {
 const Layout = () => (
   <>
     <NavigationBar />
-    <main>
-      <Outlet />
-    </main>
+    <main><Outlet /></main>
     <Footer />
   </>
 );
@@ -163,10 +244,8 @@ function AppRoutes() {
         <Route path="/faq" element={<FAQ />} />
         <Route path="/experts" element={<MeetTheExperts />} />
 
-        {/* Vendor Dashboard */}
+        {/* Dashboard & Auth */}
         <Route path="/vendor-dashboard" element={<VendorDashboard />} />
-
-        {/* Authenticated Users */}
         <Route element={<PrivateRoute />}>
           <Route path="/dashboard" element={<UserDashboard />} />
           <Route path="/request-quote" element={<RequestQuote />} />
@@ -175,30 +254,26 @@ function AppRoutes() {
           <Route path="/quotes-requested" element={<QuotesRequested />} />
           <Route path="/quotes/:id" element={<QuoteDetails />} />
         </Route>
-
-        {/* Admin Pages */}
         <Route element={<AdminPrivateRoute />}>
           <Route path="/admin-dashboard" element={<AdminDashboard />} />
           <Route path="/admin-users" element={<AdminUserManagement />} />
         </Route>
-
-        {/* 404 */}
         <Route path="*" element={<NotFound />} />
       </Route>
     </Routes>
   );
 }
 
-// ================= App Wrapper =================
+// ================= App =================
 function App() {
   return (
     <Router>
       <AuthProvider>
         <div className="App">
           <NavigationTracker />
-          <Suspense fallback={<LoadingSpinner />}>
+          <Suspense fallback={<LoadingSpinner />}>  
             <ErrorBoundary>
-              <AppRoutes />
+              <AppRoutes />  
             </ErrorBoundary>
           </Suspense>
         </div>

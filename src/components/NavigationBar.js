@@ -1,10 +1,9 @@
-// src/components/NavigationBar.js
 import React, { useState, useRef, useEffect } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import './NavigationBar.css';
 import { FaUser, FaStore } from 'react-icons/fa';
 import { gsap } from 'gsap';
-import { useAuth } from "../context/AuthContext"; // ✅ CORRECT CONTEXT
+import { useAuth } from "../context/AuthContext";
 
 const NavigationBar = () => {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -14,7 +13,7 @@ const NavigationBar = () => {
   const navbarRef = useRef(null);
   const { pathname } = useLocation();
   const navigate = useNavigate();
-  const { auth, logout } = useAuth(); // ✅ GET AUTH FROM CONTEXT
+  const { auth, logout } = useAuth();
 
   const isUserLoggedIn = auth.isAuthenticated && auth.user?.role === "user";
   const isVendorLoggedIn = auth.isAuthenticated && auth.user?.role === "vendor";
@@ -25,26 +24,55 @@ const NavigationBar = () => {
 
   useEffect(() => {
     window.scrollTo(0, 0);
-    gsap.fromTo(
-      navbarRef.current,
-      { opacity: 0, y: -20 },
-      { opacity: 1, y: 0, duration: 0.8, ease: 'power2.out' }
-    );
 
-    if (isDropdownOpen && dropdownRef.current) {
-      gsap.fromTo(
-        dropdownRef.current,
-        { opacity: 0, y: -10, scale: 0.95 },
-        { opacity: 1, y: 0, scale: 1, duration: 0.3, ease: 'power2.out' }
-      );
+    // Navbar animation
+    if (!navbarRef.current) {
+      console.log('Oops, navbarRef is missing!');
+    } else {
+      try {
+        gsap.fromTo(
+          navbarRef.current,
+          { opacity: 0, y: -20 },
+          { opacity: 1, y: 0, duration: 0.8, ease: 'power2.out' }
+        );
+      } catch (error) {
+        console.error('GSAP navbar animation error:', error);
+      }
     }
 
-    if (menuOpen && navbarRef.current) {
-      gsap.fromTo(
-        '.navbar-links.active',
-        { opacity: 0, height: 0 },
-        { opacity: 1, height: 'auto', duration: 0.5, ease: 'power2.out' }
-      );
+    // Dropdown animation
+    if (isDropdownOpen && !dropdownRef.current) {
+      console.log('Oops, dropdownRef is missing!');
+    } else if (isDropdownOpen && dropdownRef.current) {
+      try {
+        gsap.fromTo(
+          dropdownRef.current,
+          { opacity: 0, y: -10, scale: 0.95 },
+          { opacity: 1, y: 0, scale: 1, duration: 0.3, ease: 'power2.out' }
+        );
+      } catch (error) {
+        console.error('GSAP dropdown animation error:', error);
+      }
+    }
+
+    // Mobile menu animation
+    if (menuOpen && !navbarRef.current) {
+      console.log('Oops, navbarRef is missing for mobile menu!');
+    } else if (menuOpen && navbarRef.current) {
+      const linksEl = navbarRef.current.querySelector('.navbar-links.active');
+      if (!linksEl) {
+        console.log('Oops, mobile menu links element is missing!');
+      } else {
+        try {
+          gsap.fromTo(
+            linksEl,
+            { opacity: 0, height: 0 },
+            { opacity: 1, height: 'auto', duration: 0.5, ease: 'power2.out' }
+          );
+        } catch (error) {
+          console.error('GSAP mobile menu animation error:', error);
+        }
+      }
     }
   }, [isDropdownOpen, menuOpen, pathname]);
 

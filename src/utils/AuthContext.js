@@ -1,7 +1,17 @@
 // src/context/AuthContext.js
 
-import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
-import { getAuthToken, setToken, logout as clearLocalAuth } from "../utils/auth"; // adjust path as needed
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useCallback,
+} from "react";
+import {
+  getAuthToken,
+  setToken,
+  logout as clearLocalAuth,
+} from "../utils/auth";
 
 const AuthContext = createContext();
 
@@ -15,11 +25,10 @@ export const AuthProvider = ({ children }) => {
   const [auth, setAuth] = useState({
     isAuthenticated: false,
     isLoading: true,
-    user: null,    // { userId, vendorId, email, name, role }
+    user: null, // { userId, vendorId, email, name, role }
     token: null,
   });
 
-  // Validate token with backend on mount
   useEffect(() => {
     const checkToken = async () => {
       const token = getAuthToken();
@@ -32,8 +41,9 @@ export const AuthProvider = ({ children }) => {
         });
         return;
       }
+
       try {
-        // Check both endpoints in case of user/vendor
+        // Try user endpoint
         let resp = await fetch("/api/auth/verify", {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -44,19 +54,24 @@ export const AuthProvider = ({ children }) => {
             isAuthenticated: true,
             isLoading: false,
             user: {
-              ...data.user,    // userId/vendorId/email/role
-              name: data.user.name || data.user.vendorName || data.user.email || "User",
+              ...data.user,
+              name:
+                data.user.name ||
+                data.user.vendorName ||
+                data.user.email ||
+                "User",
             },
             token,
           });
           return;
         }
 
-        // Try vendor endpoint if not found on user
+        // Try vendor endpoint
         resp = await fetch("/api/vendors/verify", {
           headers: { Authorization: `Bearer ${token}` },
         });
         data = await resp.json();
+
         if (resp.ok && data?.vendor) {
           setAuth({
             isAuthenticated: true,
@@ -64,7 +79,10 @@ export const AuthProvider = ({ children }) => {
             user: {
               vendorId: data.vendor.vendorId,
               email: data.vendor.email,
-              name: data.vendor.vendorName || data.vendor.name || data.vendor.email,
+              name:
+                data.vendor.vendorName ||
+                data.vendor.name ||
+                data.vendor.email,
               role: "vendor",
             },
             token,
@@ -72,7 +90,7 @@ export const AuthProvider = ({ children }) => {
           return;
         }
 
-        // Token invalid or unrecognized
+        // Token invalid
         setAuth({
           isAuthenticated: false,
           isLoading: false,
@@ -81,6 +99,7 @@ export const AuthProvider = ({ children }) => {
         });
         clearLocalAuth();
       } catch (error) {
+        console.error("Token verification failed:", error);
         setAuth({
           isAuthenticated: false,
           isLoading: false,
@@ -90,12 +109,12 @@ export const AuthProvider = ({ children }) => {
         clearLocalAuth();
       }
     };
+
     checkToken();
   }, []);
 
-  // Centralized login handler (call this after successful login)
   const login = useCallback((token, user) => {
-    setToken(token); // Save to localStorage
+    setToken(token);
     setAuth({
       isAuthenticated: true,
       isLoading: false,
@@ -104,7 +123,6 @@ export const AuthProvider = ({ children }) => {
     });
   }, []);
 
-  // Centralized logout
   const logout = useCallback(() => {
     clearLocalAuth();
     setAuth({

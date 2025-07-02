@@ -3,12 +3,13 @@
 /* General Styles */
 .navbar {
   width: 100%;
-  background: linear-gradient(135deg, #1e3a8a 0%, #2d4a8a 50%); /* Richer TENDORAI blue gradient */
+  background: linear-gradient(135deg, #1e3a8a 0%, #2d4a8a 50%);
   padding: 15px 0;
-  position: sticky;
+  position: fixed; /* Changed to fixed to match NavigationBar.js */
   top: 0;
   z-index: 1000;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); /* Deeper shadow */
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  -webkit-transition: background 0.4s ease, box-shadow 0.3s ease;
   transition: background 0.4s ease, box-shadow 0.3s ease;
 }
 
@@ -17,10 +18,9 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  max-width: 1300px; /* Wider for luxury feel */
+  max-width: 1300px;
   margin: 0 auto;
   padding: 0 20px;
-  position: relative;
 }
 
 /* Logo Styling */
@@ -29,26 +29,29 @@
 }
 
 .navbar-brand .logo {
-  font-family: 'Poppins', sans-serif; /* Switch to Poppins for consistency */
-  font-size: 2.2em; /* Larger for impact */
-  font-weight: 900; /* Bolder for luxury */
+  font-family: 'Poppins', sans-serif;
+  font-size: 2.2em;
+  font-weight: 900;
   color: #fff;
   letter-spacing: 2px;
   text-transform: uppercase;
   text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.3);
+  -webkit-transition: color 0.4s ease, -webkit-transform 0.3s ease;
   transition: color 0.4s ease, transform 0.3s ease;
 }
 
 .navbar-brand .logo:hover {
-  color: #f97316; /* TENDORAI orange for premium */
+  color: #f97316;
+  -webkit-transform: scale(1.05);
   transform: scale(1.05);
 }
 
 /* Navigation Links Styling */
 .navbar-links {
-  display: flex;
+  display: flex; /* Visible on desktop */
   gap: 30px;
   align-items: center;
+  -webkit-transition: opacity 0.5s ease, -webkit-transform 0.5s ease;
   transition: opacity 0.5s ease, transform 0.5s ease;
 }
 
@@ -61,13 +64,15 @@
   padding: 12px 18px;
   font-size: 1.2em;
   border-radius: 8px;
+  -webkit-transition: background-color 0.4s ease, color 0.4s ease, -webkit-transform 0.3s ease;
   transition: background-color 0.4s ease, color 0.4s ease, transform 0.3s ease;
 }
 
 .navbar-links a:hover,
 .navbar-links a.active-link {
-  background: linear-gradient(45deg, #f97316, #ea580c); /* TENDORAI orange gradient */
+  background: linear-gradient(45deg, #f97316, #ea580c);
   color: #fff;
+  -webkit-transform: translateY(-2px);
   transform: translateY(-2px);
 }
 
@@ -83,14 +88,17 @@
   cursor: pointer;
   padding: 12px 18px;
   color: #fff;
+  font-family: 'Poppins', sans-serif;
   font-weight: 700;
   font-size: 1.2em;
   border-radius: 8px;
+  -webkit-transition: background-color 0.4s ease, -webkit-transform 0.3s ease;
   transition: background-color 0.4s ease, transform 0.3s ease;
 }
 
 .dropdown-container:hover {
   background: linear-gradient(45deg, #f97316, #ea580c);
+  -webkit-transform: translateY(-2px);
   transform: translateY(-2px);
 }
 
@@ -100,23 +108,26 @@
   top: 100%;
   left: 0;
   background: #fff;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3); /* Deeper shadow */
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
   border-radius: 10px;
   list-style: none;
   padding: 10px;
   min-width: 180px;
-  display: none;
   opacity: 0;
+  visibility: hidden;
+  -webkit-transform: translateY(-10px) scale(0.95);
   transform: translateY(-10px) scale(0.95);
+  -webkit-transition: opacity 0.4s ease, -webkit-transform 0.4s ease, visibility 0s 0.4s;
   transition: opacity 0.4s ease, transform 0.4s ease, visibility 0s 0.4s;
 }
 
 .dropdown-container:hover .dropdown-menu {
-  display: block;
   opacity: 1;
-  transform: translateY(0) scale(1);
-  transition: opacity 0.4s ease, transform 0.4s ease;
   visibility: visible;
+  -webkit-transform: translateY(0) scale(1);
+  transform: translateY(0) scale(1);
+  -webkit-transition: opacity 0.4s ease, -webkit-transform 0.4s ease;
+  transition: opacity 0.4s ease, transform 0.4s ease;
 }
 
 /* Dropdown Items */
@@ -131,6 +142,7 @@
   font-weight: 600;
   display: block;
   border-radius: 5px;
+  -webkit-transition: background-color 0.4s ease, color 0.4s ease, -webkit-transform 0.3s ease;
   transition: background-color 0.4s ease, color 0.4s ease, transform 0.3s ease;
 }
 
@@ -138,6 +150,7 @@
 .dropdown-menu li a.active-link {
   background: #f97316;
   color: #fff;
+  -webkit-transform: translateX(5px);
   transform: translateX(5px);
 }
 
@@ -148,19 +161,22 @@
   align-items: center;
   gap: 8px;
   padding: 12px 18px;
+  font-family: 'Poppins', sans-serif;
   font-weight: 700;
   border-radius: 8px;
   color: #fff;
   text-decoration: none;
+  -webkit-transition: background-color 0.4s ease, -webkit-transform 0.3s ease;
   transition: background-color 0.4s ease, transform 0.3s ease;
 }
 
 .user-login {
-  background: linear-gradient(45deg, #007bff, #0056b3); /* Blue gradient for users */
+  background: linear-gradient(45deg, #007bff, #0056b3);
 }
 
 .user-login:hover {
   background: linear-gradient(45deg, #0056b3, #003d7a);
+  -webkit-transform: translateY(-2px);
   transform: translateY(-2px);
 }
 
@@ -170,11 +186,12 @@
 }
 
 .vendor-login {
-  background: linear-gradient(45deg, #28a745, #218838); /* Green gradient for vendors */
+  background: linear-gradient(45deg, #28a745, #218838);
 }
 
 .vendor-login:hover {
   background: linear-gradient(45deg, #218838, #1e5d2e);
+  -webkit-transform: translateY(-2px);
   transform: translateY(-2px);
 }
 
@@ -185,17 +202,19 @@
 
 /* Hamburger Button Styling (for mobile menu) */
 .hamburger {
-  display: none;
+  display: none; /* Hidden on desktop */
   flex-direction: column;
   gap: 6px;
   background: none;
   border: none;
   cursor: pointer;
   padding: 12px;
+  -webkit-transition: -webkit-transform 0.3s ease;
   transition: transform 0.3s ease;
 }
 
 .hamburger:hover {
+  -webkit-transform: scale(1.1);
   transform: scale(1.1);
 }
 
@@ -204,6 +223,7 @@
   height: 3px;
   background-color: #fff;
   border-radius: 2px;
+  -webkit-transition: all 0.3s ease;
   transition: all 0.3s ease;
 }
 
@@ -212,21 +232,23 @@
 }
 
 .hamburger.active .bar:nth-child(1) {
+  -webkit-transform: translateY(9px) rotate(45deg);
   transform: translateY(9px) rotate(45deg);
 }
 
 .hamburger.active .bar:nth-child(3) {
+  -webkit-transform: translateY(-9px) rotate(-45deg);
   transform: translateY(-9px) rotate(-45deg);
 }
 
 /* Mobile Styles */
 @media (max-width: 768px) {
   .hamburger {
-    display: flex;
+    display: flex; /* Visible on mobile */
   }
 
   .navbar-links {
-    display: none;
+    display: none; /* Hidden by default on mobile */
     flex-direction: column;
     gap: 15px;
     position: absolute;
@@ -237,13 +259,16 @@
     padding: 20px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
     opacity: 0;
+    -webkit-transform: translateY(-20px);
     transform: translateY(-20px);
+    -webkit-transition: opacity 0.5s ease, -webkit-transform 0.5s ease;
     transition: opacity 0.5s ease, transform 0.5s ease;
   }
 
   .navbar-links.active {
-    display: flex;
+    display: flex; /* Visible when toggled */
     opacity: 1;
+    -webkit-transform: translateY(0);
     transform: translateY(0);
   }
 
@@ -267,6 +292,7 @@
     box-shadow: none;
     background: linear-gradient(135deg, #1e3a8a, #2d4a8a);
     padding: 0;
+    -webkit-transform: none;
     transform: none;
     opacity: 1;
     visibility: visible;
@@ -276,7 +302,8 @@
     border-radius: 0;
   }
 
-  .dropdown-container:hover .dropdown-menu {
+  .dropdown-container:hover .dropdown-menu,
+  .dropdown-container:focus .dropdown-menu {
     display: flex;
   }
 
@@ -297,6 +324,7 @@
   .dropdown-menu li a:hover {
     background: #f97316;
     color: #fff;
+    -webkit-transform: translateX(0);
     transform: translateX(0);
   }
 }

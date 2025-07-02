@@ -1,9 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
-import './NavigationBar.css';
 import { FaUser, FaStore } from 'react-icons/fa';
 import { gsap } from 'gsap';
 import { useAuth } from "../context/AuthContext";
+import './NavigationBar.css';
 
 const NavigationBar = () => {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -144,7 +144,7 @@ const NavigationBar = () => {
             onKeyDown={handleKeyDown}
             tabIndex={0}
           >
-            <span className="dropdown-title">Services ▼</span>
+            <span>Services ▼</span>
             {isDropdownOpen && (
               <ul ref={dropdownRef} className="dropdown-menu">
                 <li>
@@ -245,7 +245,6 @@ const NavigationBar = () => {
                   setMenuOpen(false);
                   navigate("/login", { replace: false });
                 }}
-                style={{ background: "none", border: "none", cursor: "pointer", padding: 0, color: "inherit" }}
               >
                 <FaUser /> Logout
               </button>
@@ -276,7 +275,6 @@ const NavigationBar = () => {
                   setMenuOpen(false);
                   navigate("/vendor-login", { replace: false });
                 }}
-                style={{ background: "none", border: "none", cursor: "pointer", padding: 0, color: "inherit" }}
               >
                 <FaStore /> Logout
               </button>

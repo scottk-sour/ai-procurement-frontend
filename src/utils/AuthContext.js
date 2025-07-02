@@ -1,5 +1,3 @@
-// src/context/AuthContext.js
-
 import React, {
   createContext,
   useContext,
@@ -21,11 +19,32 @@ export const useAuth = () => {
   return context;
 };
 
+// Hook for navigation (to be used in Router context)
+export const useAuthNavigation = () => {
+  const { login, logout } = useAuth();
+  const navigate = React.useNavigate(); // Safe within RouterProvider context
+
+  const loginWithNav = useCallback(
+    (token, user) => {
+      login(token, user);
+      navigate(user.role === "vendor" ? "/vendor-dashboard" : "/dashboard");
+    },
+    [login, navigate]
+  );
+
+  const logoutWithNav = useCallback(() => {
+    logout();
+    navigate("/login");
+  }, [logout, navigate]);
+
+  return { login: loginWithNav, logout: logoutWithNav };
+};
+
 export const AuthProvider = ({ children }) => {
   const [auth, setAuth] = useState({
     isAuthenticated: false,
     isLoading: true,
-    user: null, // { userId, vendorId, email, name, role }
+    user: null,
     token: null,
   });
 

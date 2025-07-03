@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import './QuoteDetails.css';
 
 const capitaliseFirstLetter = (str) => {
@@ -9,9 +9,13 @@ const capitaliseFirstLetter = (str) => {
 
 const QuoteDetails = () => {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const [quotes, setQuotes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // ✅ Define API URL based on environment
+  const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000";
 
   // Extract the status from the query parameters, e.g. ?status=created
   const status = searchParams.get('status');
@@ -21,13 +25,23 @@ const QuoteDetails = () => {
       try {
         setLoading(true);
         setError(null);
-
+        
         if (!status) {
-          throw new Error('Status parameter missing.');
+          // ✅ Instead of throwing an error, redirect to dashboard with helpful message
+          console.warn('No status parameter provided, redirecting to dashboard');
+          navigate('/dashboard?message=Please select a quote status to view quotes');
+          return;
         }
 
-        // Replace with your actual endpoint for fetching quotes by status
-        const response = await fetch(`http://localhost:5000/api/quotes?status=${status}`);
+        // ✅ Use environment variable for API URL
+        const response = await fetch(`${API_URL}/api/quotes?status=${status}`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          },
+        });
+
         if (!response.ok) {
           throw new Error(`Failed to fetch quotes with status: ${status}`);
         }
@@ -35,7 +49,7 @@ const QuoteDetails = () => {
         const data = await response.json();
         setQuotes(data);
       } catch (err) {
-        console.error(err);
+        console.error('Error fetching quotes:', err);
         setError(err.message || 'An error occurred while fetching quotes.');
       } finally {
         setLoading(false);
@@ -43,7 +57,7 @@ const QuoteDetails = () => {
     };
 
     fetchQuotes();
-  }, [status]);
+  }, [status, API_URL, navigate]);
 
   const renderContent = () => {
     if (loading) {
@@ -56,11 +70,31 @@ const QuoteDetails = () => {
     }
 
     if (error) {
-      return <p className="quote-details-body error">{error}</p>;
+      return (
+        <div className="quote-details-body error">
+          <p>{error}</p>
+          <button 
+            onClick={() => navigate('/dashboard')}
+            className="back-button"
+          >
+            Back to Dashboard
+          </button>
+        </div>
+      );
     }
 
     if (quotes.length === 0) {
-      return <p className="quote-details-body">No quotes found for this status.</p>;
+      return (
+        <div className="quote-details-body">
+          <p>No quotes found for this status.</p>
+          <button 
+            onClick={() => navigate('/dashboard')}
+            className="back-button"
+          >
+            Back to Dashboard
+          </button>
+        </div>
+      );
     }
 
     return (
@@ -79,9 +113,30 @@ const QuoteDetails = () => {
   return (
     <div className="quote-details-container">
       <h1 className="quote-details-header">
-        Quotes: {capitaliseFirstLetter(status)}
+        Quotes: {capitaliseFirstLetter(status) || 'Loading...'}
       </h1>
       {renderContent()}
+      
+      {/* ✅ Debug info in development */}
+      {process.env.NODE_ENV === "development" && (
+        <div
+          style={{
+            marginTop: "20px",
+            padding: "10px",
+            backgroundColor: "#f0f0f0",
+            fontSize: "12px",
+            borderRadius: "4px",
+          }}
+        >
+          <strong>Debug Info:</strong>
+          <br />
+          API_URL: {API_URL}
+          <br />
+          Status Parameter: {status || 'Missing'}
+          <br />
+          Quotes Endpoint: {API_URL}/api/quotes?status={status}
+        </div>
+      )}
     </div>
   );
 };

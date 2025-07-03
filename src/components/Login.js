@@ -15,7 +15,8 @@ const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // ❌ Removed API_URL constant; we'll call /api/... directly
+  // ✅ Define API URL based on environment
+  const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000";
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -42,6 +43,8 @@ const Login = () => {
     // 🔍 Debug logging
     console.log("🔍 Environment check:");
     console.log("NODE_ENV:", process.env.NODE_ENV);
+    console.log("REACT_APP_API_URL:", process.env.REACT_APP_API_URL);
+    console.log("API_URL:", API_URL);
     console.log("Current origin:", window.location.origin);
 
     if (!email.trim() || !password.trim()) {
@@ -56,13 +59,17 @@ const Login = () => {
     }
 
     try {
-      // 🛣️ Use relative path—Vercel will proxy /api to your backend
-      const loginUrl = "/api/users/login";
+      // ✅ Use full backend URL - this is the fix!
+      const loginUrl = `${API_URL}/api/users/login`;
       console.log("🔍 Making login request to:", loginUrl);
 
       const response = await fetch(loginUrl, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          // Add CORS headers if needed
+          "Accept": "application/json",
+        },
         credentials: "include",
         body: JSON.stringify({ email, password }),
       });
@@ -72,6 +79,12 @@ const Login = () => {
         "📡 Response headers:",
         Object.fromEntries(response.headers.entries())
       );
+
+      // Check if response is actually JSON
+      const contentType = response.headers.get("content-type");
+      if (!contentType || !contentType.includes("application/json")) {
+        throw new Error("Server returned non-JSON response");
+      }
 
       const data = await response.json();
       console.log("Login response:", response.status, data);
@@ -94,6 +107,8 @@ const Login = () => {
             ? "Too many login attempts. Please try again later."
             : response.status === 500
             ? "Server error. Please try again later."
+            : response.status === 503
+            ? "Service temporarily unavailable. Please try again later."
             : data.message || "Invalid email or password.";
         setError(errorMsg);
       }
@@ -102,6 +117,10 @@ const Login = () => {
       if (err.name === "TypeError" && err.message.includes("fetch")) {
         setError(
           "Cannot connect to server. Please check your connection or try again later."
+        );
+      } else if (err.message.includes("non-JSON response")) {
+        setError(
+          "Server configuration error. Please contact support if this persists."
         );
       } else {
         setError("A network error occurred. Please try again.");
@@ -195,7 +214,7 @@ const Login = () => {
             </button>
 
             <p className="signup-link">
-              Don’t have an account?{" "}
+              Don't have an account?{" "}
               <a
                 href="/signup"
                 onClick={(e) => {
@@ -221,7 +240,11 @@ const Login = () => {
             >
               <strong>Debug Info:</strong>
               <br />
-              Login Endpoint: /api/users/login
+              API_URL: {API_URL}
+              <br />
+              Login Endpoint: {API_URL}/api/users/login
+              <br />
+              REACT_APP_API_URL: {process.env.REACT_APP_API_URL || "Not set"}
             </div>
           )}
         </div>

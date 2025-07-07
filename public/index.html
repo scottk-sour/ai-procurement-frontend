@@ -8,7 +8,10 @@
     
     <!-- Performance & Security -->
     <meta name="referrer" content="strict-origin-when-cross-origin" />
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://www.google-analytics.com;" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://www.google-analytics.com https://ai-procurement-backend-q35u.onrender.com; frame-src 'none'; object-src 'none';"
+    />
     
     <!-- SEO Meta -->
     <title>TendorAI – Compare 3 Instant Quotes for Office Equipment | AI-Powered Procurement</title>
@@ -31,7 +34,7 @@
     <!-- Theme & Branding -->
     <meta name="theme-color" content="#1D4ED8" />
     <meta name="msapplication-TileColor" content="#1D4ED8" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="TendorAI" />
     
@@ -84,7 +87,10 @@
       "url": "https://www.tendorai.com/",
       "potentialAction": {
         "@type": "SearchAction",
-        "target": "https://www.tendorai.com/search?q={search_term_string}",
+        "target": {
+          "@type": "EntryPoint",
+          "urlTemplate": "https://www.tendorai.com/search?q={search_term_string}"
+        },
         "query-input": "required name=search_term_string"
       }
     }
@@ -105,23 +111,37 @@
     }
     </script>
     
-    <!-- Preconnect for Performance -->
+    <!-- Preconnect and Preload for Performance -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="preconnect" href="https://www.google-analytics.com" />
     <link rel="preconnect" href="https://www.googletagmanager.com" />
+    <link rel="preconnect" href="https://ai-procurement-backend-q35u.onrender.com" />
+    
+    <!-- Preload Critical Assets -->
+    <link
+      rel="preload"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Poppins:wght@400;600;700&display=swap"
+      as="style"
+    />
+    <link
+      rel="preload"
+      href="/static/js/main.js"
+      as="script"
+    />
     
     <!-- DNS Prefetch -->
     <link rel="dns-prefetch" href="//fonts.googleapis.com" />
     <link rel="dns-prefetch" href="//www.google-analytics.com" />
+    <link rel="dns-prefetch" href="//ai-procurement-backend-q35u.onrender.com" />
     
-    <!-- Critical CSS Inline (placeholder - replace with actual critical CSS) -->
+    <!-- Critical CSS Inline -->
     <style>
       /* Critical CSS for above-the-fold content */
       html, body {
         margin: 0;
         padding: 0;
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         background-color: #ffffff;
         color: #1f2937;
         line-height: 1.6;
@@ -162,6 +182,13 @@
         font-size: 14px;
         z-index: 9999;
       }
+      
+      /* Reduced motion */
+      @media (prefers-reduced-motion: reduce) {
+        .loading-spinner {
+          animation: none;
+        }
+      }
     </style>
   </head>
   <body>
@@ -175,7 +202,7 @@
     </noscript>
     
     <!-- Loading Indicator -->
-    <div id="loading-indicator">
+    <div id="loading-indicator" aria-hidden="true">
       <div class="loading-spinner"></div>
       <div class="loading-text">Loading TendorAI...</div>
     </div>
@@ -185,16 +212,12 @@
     
     <!-- Remove loading indicator when React loads -->
     <script>
-      // Remove loading indicator when React app mounts
-      window.addEventListener('load', function() {
-        const loadingIndicator = document.getElementById('loading-indicator');
+      window.addEventListener("load", function () {
+        const loadingIndicator = document.getElementById("loading-indicator");
         if (loadingIndicator) {
-          setTimeout(() => {
-            loadingIndicator.style.opacity = '0';
-            setTimeout(() => {
-              loadingIndicator.remove();
-            }, 300);
-          }, 500);
+          loadingIndicator.style.transition = "opacity 0.3s ease";
+          loadingIndicator.style.opacity = "0";
+          setTimeout(() => loadingIndicator.remove(), 300);
         }
       });
     </script>
@@ -203,11 +226,13 @@
     <script async src="https://www.googletagmanager.com/gtag/js?id=GA_MEASUREMENT_ID"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'GA_MEASUREMENT_ID', {
-        page_title: 'TendorAI - Home',
-        page_location: window.location.href
+      function gtag() {
+        dataLayer.push(arguments);
+      }
+      gtag("js", new Date());
+      gtag("config", "GA_MEASUREMENT_ID", {
+        page_title: "TendorAI - Home",
+        page_location: window.location.href,
       });
     </script>
   </body>

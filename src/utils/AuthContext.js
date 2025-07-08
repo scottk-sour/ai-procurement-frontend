@@ -48,10 +48,20 @@ export const AuthProvider = ({ children }) => {
     token: null,
   });
 
+  // ✅ API Configuration
+  const API_URL = process.env.NODE_ENV === "development" 
+    ? "http://localhost:5000"
+    : process.env.REACT_APP_API_URL || "https://ai-procurement-backend-q35u.onrender.com";
+
   useEffect(() => {
     const checkToken = async () => {
+      console.log('🔄 Starting token verification at:', new Date().toISOString());
+      
       const token = getAuthToken();
+      console.log('🔍 Token:', token ? 'Found' : 'Not found');
+      
       if (!token) {
+        console.log('❌ No token found, setting unauthenticated state');
         setAuth({
           isAuthenticated: false,
           isLoading: false,
@@ -62,54 +72,77 @@ export const AuthProvider = ({ children }) => {
       }
 
       try {
-        // Try user endpoint
-        let resp = await fetch("/api/auth/verify", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        let data = await resp.json();
-
-        if (resp.ok && data?.user) {
-          setAuth({
-            isAuthenticated: true,
-            isLoading: false,
-            user: {
-              ...data.user,
-              name:
-                data.user.name ||
-                data.user.vendorName ||
-                data.user.email ||
-                "User",
-            },
-            token,
+        console.log('🔍 Verifying token with backend...');
+        
+        // ✅ FIXED: Try user verification with correct endpoint
+        try {
+          const userResponse = await fetch(`${API_URL}/api/auth/verify`, {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
           });
-          return;
+
+          if (userResponse.ok) {
+            const userData = await userResponse.json();
+            console.log('✅ User token verified:', userData);
+            
+            if (userData?.user) {
+              setAuth({
+                isAuthenticated: true,
+                isLoading: false,
+                user: {
+                  id: userData.user.userId,
+                  userId: userData.user.userId,
+                  email: userData.user.email,
+                  name: userData.user.name || userData.user.email || "User",
+                  role: userData.user.role || "user",
+                },
+                token,
+              });
+              return;
+            }
+          }
+        } catch (userError) {
+          console.log('⚠️ User verification failed:', userError.message);
         }
 
-        // Try vendor endpoint
-        resp = await fetch("/api/vendors/verify", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        data = await resp.json();
-
-        if (resp.ok && data?.vendor) {
-          setAuth({
-            isAuthenticated: true,
-            isLoading: false,
-            user: {
-              vendorId: data.vendor.vendorId,
-              email: data.vendor.email,
-              name:
-                data.vendor.vendorName ||
-                data.vendor.name ||
-                data.vendor.email,
-              role: "vendor",
-            },
-            token,
+        // ✅ FIXED: Try vendor verification with correct endpoint
+        try {
+          const vendorResponse = await fetch(`${API_URL}/api/vendors/verify`, {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
           });
-          return;
+
+          if (vendorResponse.ok) {
+            const vendorData = await vendorResponse.json();
+            console.log('✅ Vendor token verified:', vendorData);
+            
+            if (vendorData?.vendor) {
+              setAuth({
+                isAuthenticated: true,
+                isLoading: false,
+                user: {
+                  vendorId: vendorData.vendor.vendorId,
+                  email: vendorData.vendor.email,
+                  name: vendorData.vendor.vendorName || vendorData.vendor.name || vendorData.vendor.email,
+                  role: "vendor",
+                },
+                token,
+              });
+              return;
+            }
+          }
+        } catch (vendorError) {
+          console.log('⚠️ Vendor verification failed:', vendorError.message);
         }
 
-        // Token invalid
+        // Both verifications failed
+        console.log('❌ Token verification failed, clearing auth');
         setAuth({
           isAuthenticated: false,
           isLoading: false,
@@ -117,8 +150,9 @@ export const AuthProvider = ({ children }) => {
           token: null,
         });
         clearLocalAuth();
+        
       } catch (error) {
-        console.error("Token verification failed:", error);
+        console.error("❌ Token verification error:", error);
         setAuth({
           isAuthenticated: false,
           isLoading: false,
@@ -130,9 +164,10 @@ export const AuthProvider = ({ children }) => {
     };
 
     checkToken();
-  }, []);
+  }, [API_URL]);
 
   const login = useCallback((token, user) => {
+    console.log('✅ Login successful, setting auth state for:', user);
     setToken(token);
     setAuth({
       isAuthenticated: true,
@@ -143,6 +178,7 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const logout = useCallback(() => {
+    console.log('🔄 Logging out, clearing auth state');
     clearLocalAuth();
     setAuth({
       isAuthenticated: false,

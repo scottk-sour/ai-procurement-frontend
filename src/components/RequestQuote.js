@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useDropzone } from 'react-dropzone';
 import './RequestQuote.css';
 import { getAuthToken, getUserId } from '../utils/auth';
-import { useAuth } from '../utils/AuthContext';
+import { useAuth } from '../context/AuthContext'; // ✅ FIXED: Correct import path
 import { motion } from 'framer-motion';
 
 // AI-driven copier suggestion function using an external API
@@ -41,7 +41,9 @@ const suggestCopiers = async (data) => {
 
 const RequestQuote = () => {
   const navigate = useNavigate();
-  const { isLoggedIn } = useAuth();
+  const { auth } = useAuth(); // ✅ FIXED: Now using correct AuthContext
+  const isLoggedIn = auth?.isAuthenticated; // ✅ FIXED: Updated to use auth state
+  
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
     companyName: '',
@@ -208,8 +210,9 @@ const RequestQuote = () => {
       return;
     }
 
-    const token = getAuthToken();
-    const userId = getUserId();
+    // ✅ FIXED: Use auth context instead of separate functions
+    const token = auth?.token || getAuthToken();
+    const userId = auth?.user?.userId || auth?.user?.id || getUserId();
 
     if (!token || !userId) {
       alert('Authentication failed. Please log in again.');
@@ -224,20 +227,23 @@ const RequestQuote = () => {
     try {
       let response, data;
 
+      // ✅ FIXED: Use environment variable or fallback
+      const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+
       if (uploadedFiles.length > 0) {
         const requestData = new FormData();
         requestData.append('userRequirements', JSON.stringify(formattedData));
         requestData.append('userId', userId);
         uploadedFiles.forEach((file) => requestData.append('documents', file));
         console.log('📤 Sending API Request with files...', Array.from(requestData.entries()));
-        response = await fetch('http://localhost:5000/api/quotes/request', {
+        response = await fetch(`${API_BASE_URL}/api/quotes/request`, {
           method: 'POST',
           headers: { Authorization: `Bearer ${token}` },
           body: requestData,
         });
       } else {
         console.log('📤 Sending API Request without files...');
-        response = await fetch('http://localhost:5000/api/quotes/request', {
+        response = await fetch(`${API_BASE_URL}/api/quotes/request`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -258,6 +264,17 @@ const RequestQuote = () => {
       console.log('✅ Quote request submitted successfully!');
       setSuccessMessage('Quote request submitted successfully!');
       setErrorMessage('');
+      
+      // ✅ NEW: Navigate to quote details page instead of dashboard
+      // This will always navigate to the results page, even if no vendors are found
+      navigate(`/quote-details?status=created&quoteId=${data._id}`, {
+        state: {
+          quoteData: data,
+          hasVendors: data.matchedVendors && data.matchedVendors.length > 0
+        }
+      });
+
+      // Reset form data
       setFormData({
         companyName: '',
         industryType: '',
@@ -286,7 +303,7 @@ const RequestQuote = () => {
       });
       setUploadedFiles([]);
       setStep(1);
-      setTimeout(() => navigate('/compare-vendors', { state: { quote: data.quote } }), 2000);
+      
     } catch (error) {
       console.error('Error submitting quote request:', error.message);
       setErrorMessage(error.message);

@@ -1,349 +1,754 @@
-/* 📌 General Layout */
+/* 🎨 Production-Level RequestQuote CSS */
+
+/* ====================================
+   📌 CSS Custom Properties (Design System)
+   ==================================== */
+:root {
+  /* 🎨 Color Palette */
+  --primary-color: #2563eb;
+  --primary-hover: #1d4ed8;
+  --primary-light: #dbeafe;
+  --secondary-color: #10b981;
+  --secondary-hover: #059669;
+  --secondary-light: #d1fae5;
+  --accent-color: #f59e0b;
+  --accent-hover: #d97706;
+  --accent-light: #fef3c7;
+  --danger-color: #ef4444;
+  --danger-hover: #dc2626;
+  --danger-light: #fee2e2;
+  --success-color: #10b981;
+  --warning-color: #f59e0b;
+  
+  /* 🌈 Neutral Colors */
+  --gray-50: #f9fafb;
+  --gray-100: #f3f4f6;
+  --gray-200: #e5e7eb;
+  --gray-300: #d1d5db;
+  --gray-400: #9ca3af;
+  --gray-500: #6b7280;
+  --gray-600: #4b5563;
+  --gray-700: #374151;
+  --gray-800: #1f2937;
+  --gray-900: #111827;
+  
+  /* 📐 Spacing Scale */
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2rem;
+  --space-2xl: 3rem;
+  --space-3xl: 4rem;
+  
+  /* 📏 Border Radius */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.5rem;
+  --radius-3xl: 2rem;
+  
+  /* 🎭 Shadows */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  --shadow-2xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+  --shadow-inner: inset 0 2px 4px 0 rgb(0 0 0 / 0.05);
+  
+  /* ⚡ Transitions */
+  --transition-fast: 150ms ease-in-out;
+  --transition-normal: 250ms ease-in-out;
+  --transition-slow: 350ms ease-in-out;
+  
+  /* 🔤 Typography */
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-display: 'Poppins', var(--font-sans);
+  --font-mono: 'Fira Code', 'Monaco', 'Consolas', monospace;
+  
+  /* 📊 Z-Index Scale */
+  --z-dropdown: 1000;
+  --z-sticky: 1020;
+  --z-modal: 1050;
+  --z-tooltip: 1070;
+  
+  /* 🎨 Semantic Colors (Light Mode) */
+  --background: #ffffff;
+  --surface: #ffffff;
+  --surface-alt: var(--gray-50);
+  --text-primary: var(--gray-900);
+  --text-secondary: var(--gray-600);
+  --text-muted: var(--gray-500);
+  --border: var(--gray-200);
+  --border-focus: var(--primary-color);
+  --input-bg: #ffffff;
+  --hover-bg: var(--gray-50);
+  --focus-ring: rgb(59 130 246 / 0.5);
+}
+
+/* ====================================
+   📌 Dark Mode Variables
+   ==================================== */
+[data-theme="dark"] {
+  --background: #0f172a;
+  --surface: #1e293b;
+  --surface-alt: #334155;
+  --text-primary: #f1f5f9;
+  --text-secondary: #cbd5e1;
+  --text-muted: #94a3b8;
+  --border: #334155;
+  --border-focus: #60a5fa;
+  --input-bg: #1e293b;
+  --hover-bg: #334155;
+  --focus-ring: rgb(96 165 250 / 0.5);
+  --primary-color: #60a5fa;
+  --primary-hover: #3b82f6;
+  --primary-light: #1e3a8a;
+}
+
+/* ====================================
+   📌 Main Container
+   ==================================== */
 .request-quote-container {
-  max-width: 900px;
-  margin: 60px auto;
-  padding: 40px;
-  background: linear-gradient(135deg, rgba(247, 250, 252, 0.95), rgba(237, 242, 247, 0.95));
-  border-radius: 20px;
-  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.1);
-  font-family: "Poppins", sans-serif;
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.25);
+  max-width: 56rem; /* 896px */
+  margin: var(--space-3xl) auto;
+  padding: var(--space-2xl);
+  background: var(--surface);
+  border-radius: var(--radius-3xl);
+  box-shadow: var(--shadow-2xl);
+  font-family: var(--font-sans);
+  border: 1px solid var(--border);
+  position: relative;
   overflow: hidden;
-  transition: background 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
+  transition: box-shadow var(--transition-slow), transform var(--transition-slow);
 }
 
-/* 📌 Dark Mode Layout */
-[data-theme="dark"] .request-quote-container {
-  background: linear-gradient(135deg, rgba(30, 30, 30, 0.95), rgba(55, 65, 81, 0.95));
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.3);
+.request-quote-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--primary-color), var(--secondary-color), var(--accent-color));
+  border-radius: var(--radius-3xl) var(--radius-3xl) 0 0;
 }
 
-/* 📌 Title */
+.request-quote-container:hover {
+  box-shadow: var(--shadow-2xl), 0 0 0 1px var(--primary-light);
+  transform: translateY(-2px);
+}
+
+/* ====================================
+   📌 Typography
+   ==================================== */
 .request-quote-container h2 {
-  text-align: center;
-  color: var(--primary-color);
+  font-family: var(--font-display);
   font-size: 2.5rem;
   font-weight: 700;
-  margin-bottom: 30px;
-  text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.1);
-  letter-spacing: 0.6px;
+  color: var(--text-primary);
+  text-align: center;
+  margin: 0 0 var(--space-2xl) 0;
+  letter-spacing: -0.025em;
+  line-height: 1.1;
+  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
-/* 📌 Step Subheading */
 .request-quote-container h3 {
-  color: var(--primary-color);
-  font-size: 1.75rem;
+  font-family: var(--font-display);
+  font-size: 1.875rem;
   font-weight: 600;
-  margin-bottom: 25px;
-  text-align: left;
+  color: var(--text-primary);
+  margin: 0 0 var(--space-lg) 0;
+  letter-spacing: -0.025em;
+  line-height: 1.2;
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
 }
 
-/* 📌 Suggested Machines */
+.request-quote-container h3::before {
+  content: '';
+  width: 4px;
+  height: 2rem;
+  background: linear-gradient(180deg, var(--primary-color), var(--secondary-color));
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+}
+
 .request-quote-container h4 {
-  color: var(--focus-color);
   font-size: 1.25rem;
   font-weight: 600;
-  margin: 20px 0 10px;
+  color: var(--primary-color);
+  margin: var(--space-lg) 0 var(--space-md) 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
 }
 
-.request-quote-container ul {
-  list-style: none;
-  padding: 0;
-  margin: 0 0 20px;
-}
-
-.request-quote-container ul li {
-  color: var(--text-color);
+.request-quote-container h4::before {
+  content: '🤖';
   font-size: 1rem;
-  padding: 10px 15px;
-  border-bottom: 1px solid var(--border-color);
-  transition: background 0.3s ease;
 }
 
-.request-quote-container ul li:hover {
-  background: var(--hover-bg);
-}
-
-/* 📌 Form Fields */
+/* ====================================
+   📌 Form Structure
+   ==================================== */
 .request-quote-container form {
   display: flex;
   flex-direction: column;
-  gap: 25px;
+  gap: var(--space-xl);
 }
 
-/* 📌 Labels */
+/* ====================================
+   📌 Form Fields
+   ==================================== */
 .request-quote-container label {
-  color: var(--text-color);
-  font-size: 1.1rem;
+  color: var(--text-primary);
+  font-size: 0.875rem;
   font-weight: 600;
-  margin-bottom: 8px;
+  margin-bottom: var(--space-sm);
   display: block;
-  text-align: left;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transition: color var(--transition-fast);
 }
 
-/* 📌 Required Field Indicator */
 .request-quote-container .required {
-  color: #dc2626;
-  font-size: 1.2rem;
-  margin-left: 4px;
+  color: var(--danger-color);
+  font-size: 1rem;
+  margin-left: var(--space-xs);
+  font-weight: 700;
 }
 
-/* 📌 Input Fields */
+/* ====================================
+   📌 Input Fields
+   ==================================== */
 .request-quote-container input,
-.request-quote-container select {
+.request-quote-container select,
+.request-quote-container textarea {
   width: 100%;
-  padding: 14px;
-  border: 2px solid var(--border-color);
-  border-radius: 10px;
+  padding: var(--space-lg);
+  border: 2px solid var(--border);
+  border-radius: var(--radius-xl);
   font-size: 1rem;
-  color: var(--text-color);
+  font-family: var(--font-sans);
+  color: var(--text-primary);
   background: var(--input-bg);
-  transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.2s ease;
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.04);
+  transition: all var(--transition-normal);
+  box-shadow: var(--shadow-inner);
+  line-height: 1.5;
 }
 
 .request-quote-container input:focus,
-.request-quote-container select:focus {
-  border-color: var(--focus-color);
-  box-shadow: 0 0 10px var(--focus-glow), inset 0 2px 4px rgba(0, 0, 0, 0.04);
-  transform: scale(1.02);
+.request-quote-container select:focus,
+.request-quote-container textarea:focus {
   outline: none;
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 3px var(--focus-ring), var(--shadow-md);
+  transform: translateY(-1px);
 }
 
-/* 📌 Invalid Input Fields */
-.request-quote-container input:invalid[required]:focus,
-.request-quote-container select:invalid[required]:focus {
-  border-color: #dc2626;
-  box-shadow: 0 0 10px rgba(220, 38, 38, 0.4), inset 0 2px 4px rgba(0, 0, 0, 0.04);
+.request-quote-container input:hover,
+.request-quote-container select:hover,
+.request-quote-container textarea:hover {
+  border-color: var(--primary-color);
+  box-shadow: var(--shadow-sm);
 }
 
-/* 📌 Dropdown Styling */
+.request-quote-container input::placeholder,
+.request-quote-container textarea::placeholder {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+/* ====================================
+   📌 Select Dropdown Styling
+   ==================================== */
 .request-quote-container select {
   appearance: none;
   cursor: pointer;
-  background: var(--input-bg) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%234b5563' viewBox='0 0 16 16'%3E%3Cpath d='M8 12l-6-6h12z'/%3E%3C/svg%3E") no-repeat right 14px center;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+  background-position: right var(--space-lg) center;
+  background-repeat: no-repeat;
+  background-size: 1.5em 1.5em;
+  padding-right: 3rem;
 }
 
 [data-theme="dark"] .request-quote-container select {
-  background: var(--input-bg) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23d1d5db' viewBox='0 0 16 16'%3E%3Cpath d='M8 12l-6-6h12z'/%3E%3C/svg%3E") no-repeat right 14px center;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%94a3b8' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
 }
 
-/* 📌 Checkbox Fieldset */
+/* ====================================
+   📌 Validation States
+   ==================================== */
+.request-quote-container input:invalid:not(:placeholder-shown),
+.request-quote-container select:invalid:not(:placeholder-shown) {
+  border-color: var(--danger-color);
+  box-shadow: 0 0 0 3px var(--danger-light);
+}
+
+.request-quote-container input:valid:not(:placeholder-shown),
+.request-quote-container select:valid:not(:placeholder-shown) {
+  border-color: var(--success-color);
+}
+
+/* ====================================
+   📌 Fieldset & Checkboxes
+   ==================================== */
 .request-quote-container fieldset {
-  border: 2px solid var(--border-color);
-  border-radius: 10px;
-  padding: 20px;
+  border: 2px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-xl);
   margin: 0;
-  background: var(--light-bg);
-  transition: background 0.3s ease, border-color 0.3s ease;
+  background: var(--surface-alt);
+  transition: all var(--transition-normal);
+  position: relative;
+}
+
+.request-quote-container fieldset:hover {
+  border-color: var(--primary-color);
+  box-shadow: var(--shadow-sm);
 }
 
 .request-quote-container fieldset legend {
   color: var(--primary-color);
   font-weight: 600;
-  font-size: 1.2rem;
-  padding: 0 10px;
+  font-size: 1rem;
+  padding: 0 var(--space-md);
+  background: var(--surface);
+  border-radius: var(--radius-md);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .request-quote-container fieldset label {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin: 12px 0;
-  font-weight: normal;
-  font-size: 1rem;
+  gap: var(--space-md);
+  margin: var(--space-md) 0;
+  font-weight: 500;
+  font-size: 0.875rem;
+  text-transform: none;
+  letter-spacing: normal;
+  cursor: pointer;
+  padding: var(--space-sm);
+  border-radius: var(--radius-md);
+  transition: background var(--transition-fast);
+}
+
+.request-quote-container fieldset label:hover {
+  background: var(--hover-bg);
 }
 
 .request-quote-container fieldset input[type="checkbox"] {
-  width: 20px;
-  height: 20px;
+  width: 1.25rem;
+  height: 1.25rem;
   margin: 0;
   cursor: pointer;
-  accent-color: var(--focus-color);
-  transition: transform 0.2s ease;
+  accent-color: var(--primary-color);
+  transition: transform var(--transition-fast);
+  border-radius: var(--radius-sm);
 }
 
 .request-quote-container fieldset input[type="checkbox"]:hover {
+  transform: scale(1.05);
+}
+
+.request-quote-container fieldset input[type="checkbox"]:checked {
   transform: scale(1.1);
 }
 
-/* 📌 Buttons */
+/* ====================================
+   📌 Buttons
+   ==================================== */
 .request-quote-container button {
-  background: linear-gradient(135deg, var(--button-color), var(--button-hover));
-  color: white;
-  font-size: 1.1rem;
-  font-weight: 600;
-  padding: 14px 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  padding: var(--space-lg) var(--space-2xl);
   border: none;
-  border-radius: 10px;
+  border-radius: var(--radius-xl);
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  font-weight: 600;
   cursor: pointer;
-  transition: background 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
-  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.2);
-  margin: 10px 5px;
+  transition: all var(--transition-normal);
+  position: relative;
+  overflow: hidden;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: var(--space-sm);
+  min-height: 3rem;
 }
 
-.request-quote-container button:hover:not(:disabled) {
-  background: linear-gradient(135deg, var(--button-hover), var(--primary-color));
-  transform: translateY(-3px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+.request-quote-container button:not(:disabled) {
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
+  color: white;
+  box-shadow: var(--shadow-lg);
 }
 
-.request-quote-container button:active:not(:disabled) {
+.request-quote-container button:not(:disabled):hover {
+  background: linear-gradient(135deg, var(--primary-hover), var(--secondary-color));
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-xl);
+}
+
+.request-quote-container button:not(:disabled):active {
   transform: translateY(0);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  box-shadow: var(--shadow-md);
 }
 
 .request-quote-container button:disabled {
-  background: #d1d5db;
-  color: #6b7280;
+  background: var(--gray-300);
+  color: var(--gray-500);
   cursor: not-allowed;
   box-shadow: none;
   transform: none;
 }
 
-/* 📌 File Upload Section */
+/* Button Variants */
+.request-quote-container button[type="submit"] {
+  background: linear-gradient(135deg, var(--success-color), var(--secondary-hover));
+}
+
+.request-quote-container button[type="submit"]:hover:not(:disabled) {
+  background: linear-gradient(135deg, var(--secondary-hover), var(--success-color));
+}
+
+/* ====================================
+   📌 File Upload (Dropzone)
+   ==================================== */
 .dropzone {
-  padding: 25px;
+  padding: var(--space-2xl);
   text-align: center;
-  background: var(--light-bg);
-  border: 2px dashed var(--border-color);
-  border-radius: 10px;
+  background: var(--surface-alt);
+  border: 2px dashed var(--border);
+  border-radius: var(--radius-xl);
   cursor: pointer;
-  transition: border-color 0.3s ease, background 0.3s ease, box-shadow 0.3s ease;
+  transition: all var(--transition-normal);
+  position: relative;
+  min-height: 120px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.dropzone::before {
+  content: '📁';
+  font-size: 2rem;
+  margin-bottom: var(--space-md);
+  opacity: 0.7;
+  transition: all var(--transition-normal);
 }
 
 .dropzone:hover {
-  border-color: var(--focus-color);
-  background: var(--input-bg);
-  box-shadow: 0 4px 12px var(--focus-glow);
+  border-color: var(--primary-color);
+  background: var(--hover-bg);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.dropzone:hover::before {
+  transform: scale(1.1);
+  opacity: 1;
 }
 
 .dropzone p {
   margin: 0;
-  color: var(--text-color);
+  color: var(--text-secondary);
   font-size: 1rem;
+  font-weight: 500;
 }
 
-/* 📌 Uploaded Files Count */
-.request-quote-container > p {
-  margin: 15px 0 0;
-  color: var(--text-color);
-  font-size: 0.95rem;
-  text-align: center;
+.dropzone.drag-over {
+  border-color: var(--success-color);
+  background: var(--secondary-light);
+  transform: scale(1.02);
 }
 
-/* 📌 Progress Bar */
+/* ====================================
+   📌 Progress Bar
+   ==================================== */
 .progress-bar {
   width: 100%;
-  background: var(--border-color);
-  height: 12px;
-  border-radius: 6px;
-  margin: 20px 0 30px;
+  background: var(--gray-200);
+  height: 0.75rem;
+  border-radius: var(--radius-lg);
+  margin: var(--space-lg) 0 var(--space-2xl);
   position: relative;
   overflow: hidden;
+  box-shadow: var(--shadow-inner);
 }
 
 .progress {
   height: 100%;
-  background: linear-gradient(135deg, var(--focus-color), var(--primary-color));
-  border-radius: 6px;
-  transition: width 0.5s ease-in-out;
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+  background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+  border-radius: var(--radius-lg);
+  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 0 10px var(--focus-ring);
+  position: relative;
+}
+
+.progress::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
 }
 
 .progress-bar span {
   position: absolute;
-  top: -30px;
+  top: -2rem;
   left: 50%;
   transform: translateX(-50%);
-  font-size: 1.1rem;
+  font-size: 0.875rem;
   color: var(--primary-color);
   font-weight: 600;
+  background: var(--surface);
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
 }
 
-/* 📌 Review Section */
-.review-section {
-  background: var(--light-bg);
-  padding: 20px;
-  border-radius: 10px;
-  text-align: left;
+/* ====================================
+   📌 AI Suggestions
+   ==================================== */
+.request-quote-container ul {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 var(--space-lg) 0;
+  background: var(--surface-alt);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+
+.request-quote-container ul li {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  padding: var(--space-lg);
+  border-bottom: 1px solid var(--border);
+  transition: all var(--transition-fast);
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.request-quote-container ul li:last-child {
+  border-bottom: none;
+}
+
+.request-quote-container ul li::before {
+  content: '⚡';
   font-size: 1rem;
-  color: var(--text-color);
-  margin-bottom: 20px;
-  border: 1px solid var(--border-color);
-  transition: background 0.3s ease, border-color 0.3s ease;
+  opacity: 0.7;
+}
+
+.request-quote-container ul li:hover {
+  background: var(--hover-bg);
+  color: var(--text-primary);
+  transform: translateX(var(--space-sm));
+}
+
+/* ====================================
+   📌 Review Section
+   ==================================== */
+.review-section {
+  background: var(--surface-alt);
+  padding: var(--space-xl);
+  border-radius: var(--radius-xl);
+  margin-bottom: var(--space-lg);
+  border: 1px solid var(--border);
+  transition: all var(--transition-normal);
+}
+
+.review-section:hover {
+  box-shadow: var(--shadow-md);
+  border-color: var(--primary-color);
+}
+
+.review-section > p:first-child {
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: var(--space-lg);
+  font-size: 1.125rem;
 }
 
 .review-section pre {
-  font-size: 0.9rem;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
   max-height: 300px;
   overflow-y: auto;
   background: var(--input-bg);
-  padding: 15px;
-  border-radius: 8px;
-  border: 1px solid var(--border-color);
+  padding: var(--space-lg);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  line-height: 1.4;
+  box-shadow: var(--shadow-inner);
 }
 
-/* 📌 Error and Success Messages */
+.review-section pre::-webkit-scrollbar {
+  width: 6px;
+}
+
+.review-section pre::-webkit-scrollbar-track {
+  background: var(--surface-alt);
+  border-radius: var(--radius-sm);
+}
+
+.review-section pre::-webkit-scrollbar-thumb {
+  background: var(--primary-color);
+  border-radius: var(--radius-sm);
+}
+
+/* ====================================
+   📌 Messages (Error & Success)
+   ==================================== */
 .error-message,
 .success-message {
-  font-size: 1rem;
+  font-size: 0.875rem;
   text-align: center;
-  margin: 15px 0;
-  padding: 12px;
-  border-radius: 8px;
-  transition: opacity 0.3s ease;
+  margin: var(--space-lg) 0;
+  padding: var(--space-lg);
+  border-radius: var(--radius-xl);
+  font-weight: 500;
+  border: 1px solid;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  animation: slideIn 0.3s ease-out;
 }
 
 .error-message {
-  color: #dc2626;
-  background: rgba(220, 38, 38, 0.1);
-  border: 1px solid #dc2626;
+  color: var(--danger-color);
+  background: var(--danger-light);
+  border-color: var(--danger-color);
+}
+
+.error-message::before {
+  content: '❌';
+  font-size: 1rem;
 }
 
 .success-message {
-  color: #15803d;
-  background: rgba(21, 128, 61, 0.1);
-  border: 1px solid #15803d;
+  color: var(--success-color);
+  background: var(--secondary-light);
+  border-color: var(--success-color);
 }
 
-/* 📌 Dark Mode Support */
-:root {
-  --background: #ffffff;
-  --text-color: #4b5563;
-  --primary-color: #1e3a8a;
-  --border-color: #e5e7eb;
-  --focus-color: #2563eb;
-  --focus-glow: rgba(37, 99, 235, 0.5);
-  --input-bg: rgba(255, 255, 255, 0.85);
-  --hover-bg: #f1f5f9;
-  --button-color: #2563eb;
-  --button-hover: #1e40af;
-  --light-bg: #f9fafb;
+.success-message::before {
+  content: '✅';
+  font-size: 1rem;
 }
 
-[data-theme='dark'] {
-  --background: #1e1e1e;
-  --text-color: #d1d5db;
-  --primary-color: #60a5fa;
-  --border-color: #4b5563;
-  --focus-color: #60a5fa;
-  --focus-glow: rgba(96, 165, 250, 0.5);
-  --input-bg: #2d3748;
-  --hover-bg: #374151;
-  --button-color: #2563eb;
-  --button-hover: #1e40af;
-  --light-bg: #374151;
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-/* 📌 Responsive Design */
+/* ====================================
+   📌 File Count Display
+   ==================================== */
+.request-quote-container > p {
+  margin: var(--space-lg) 0 0;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  text-align: center;
+  font-weight: 500;
+  padding: var(--space-md);
+  background: var(--surface-alt);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+}
+
+/* ====================================
+   📌 Accessibility Enhancements
+   ==================================== */
+.request-quote-container button:focus-visible,
+.request-quote-container input:focus-visible,
+.request-quote-container select:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ====================================
+   📌 Loading States
+   ==================================== */
+.request-quote-container button[disabled] {
+  position: relative;
+}
+
+.request-quote-container button[disabled]::after {
+  content: '';
+  position: absolute;
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid transparent;
+  border-top: 2px solid currentColor;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* ====================================
+   📌 Responsive Design
+   ==================================== */
+
+/* Large Tablets */
+@media (max-width: 1024px) {
+  .request-quote-container {
+    max-width: 90%;
+    padding: var(--space-xl);
+    margin: var(--space-2xl) auto;
+  }
+}
+
+/* Tablets */
 @media (max-width: 768px) {
   .request-quote-container {
     max-width: 95%;
-    padding: 25px;
-    margin: 40px 10px;
+    padding: var(--space-lg);
+    margin: var(--space-xl) auto;
   }
 
   .request-quote-container h2 {
@@ -354,55 +759,441 @@
     font-size: 1.5rem;
   }
 
+  .request-quote-container form {
+    gap: var(--space-lg);
+  }
+
   .request-quote-container input,
-  .request-quote-container select {
-    padding: 12px;
-    font-size: 0.95rem;
+  .request-quote-container select,
+  .request-quote-container textarea {
+    padding: var(--space-md);
+    font-size: 0.875rem;
   }
 
   .request-quote-container button {
-    padding: 12px 20px;
-    font-size: 1rem;
+    padding: var(--space-md) var(--space-lg);
+    font-size: 0.875rem;
   }
 
   .dropzone {
-    padding: 20px;
-    font-size: 0.9rem;
+    padding: var(--space-lg);
+    min-height: 100px;
   }
 
-  .progress-bar span {
-    font-size: 1rem;
-  }
-
-  .review-section pre {
-    font-size: 0.85rem;
+  .dropzone::before {
+    font-size: 1.5rem;
   }
 }
 
-@media (max-width: 480px) {
+/* Mobile Phones */
+@media (max-width: 640px) {
   .request-quote-container {
-    padding: 20px;
-    margin: 30px 10px;
+    margin: var(--space-lg) var(--space-sm);
+    padding: var(--space-lg);
   }
 
   .request-quote-container h2 {
-    font-size: 1.8rem;
+    font-size: 1.75rem;
+    margin-bottom: var(--space-lg);
   }
 
   .request-quote-container h3 {
-    font-size: 1.3rem;
+    font-size: 1.25rem;
+  }
+
+  .request-quote-container h3::before {
+    width: 3px;
+    height: 1.5rem;
   }
 
   .request-quote-container label {
-    font-size: 1rem;
+    font-size: 0.8125rem;
+  }
+
+  .request-quote-container fieldset {
+    padding: var(--space-md);
   }
 
   .request-quote-container fieldset label {
-    font-size: 0.9rem;
+    font-size: 0.8125rem;
+    gap: var(--space-sm);
   }
 
   .request-quote-container button {
-    padding: 10px 15px;
-    font-size: 0.95rem;
+    padding: var(--space-sm) var(--space-md);
+    font-size: 0.8125rem;
+    margin: var(--space-xs);
+  }
+
+  .dropzone {
+    padding: var(--space-md);
+    min-height: 80px;
+  }
+
+  .dropzone::before {
+    font-size: 1.25rem;
+    margin-bottom: var(--space-sm);
+  }
+
+  .dropzone p {
+    font-size: 0.875rem;
+  }
+
+  .review-section pre {
+    font-size: 0.6875rem;
+    padding: var(--space-md);
+  }
+}
+
+/* ====================================
+   📌 Print Styles
+   ==================================== */
+@media print {
+  .request-quote-container {
+    box-shadow: none;
+    border: 1px solid #ccc;
+    background: white;
+    color: black;
+  }
+
+  .request-quote-container button {
+    display: none;
+  }
+
+  .dropzone {
+    display: none;
+  }
+
+  .progress-bar {
+    display: none;
+  }
+}
+
+/* ====================================
+   📌 Reduced Motion
+   ==================================== */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .request-quote-container:hover {
+    transform: none;
+  }
+
+  .request-quote-container button:hover {
+    transform: none;
+  }
+}
+
+/* ====================================
+   📌 High Contrast Mode
+   ==================================== */
+@media (prefers-contrast: high) {
+  .request-quote-container {
+    border: 2px solid #000;
+  }
+
+  .request-quote-container input,
+  .request-quote-container select,
+  .request-quote-container fieldset {
+    border: 2px solid #000;
+  }
+
+  .request-quote-container button {
+    border: 2px solid #000;
+    background: #000;
+    color: #fff;
+  }
+
+  .request-quote-container button:hover {
+    background: #fff;
+    color: #000;
+  }
+}
+
+/* ====================================
+   📌 Motion & Interaction Enhancements
+   ==================================== */
+
+/* Smooth focus transitions */
+.request-quote-container input:focus,
+.request-quote-container select:focus,
+.request-quote-container button:focus {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Hover effects for interactive elements */
+.request-quote-container label:hover {
+  color: var(--primary-color);
+}
+
+/* Form field grouping */
+.form-group {
+  position: relative;
+  margin-bottom: var(--space-lg);
+}
+
+.form-group label {
+  position: relative;
+  z-index: 1;
+}
+
+/* Step indicators */
+.step-indicator {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-xl);
+  padding: var(--space-lg);
+  background: var(--surface-alt);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--border);
+}
+
+.step-indicator::before {
+  content: '📋';
+  font-size: 1.25rem;
+}
+
+.step-indicator span {
+  font-weight: 600;
+  color: var(--primary-color);
+}
+
+/* Enhanced file upload states */
+.dropzone.uploading {
+  border-color: var(--accent-color);
+  background: var(--accent-light);
+  pointer-events: none;
+}
+
+.dropzone.uploading::before {
+  content: '⏳';
+  animation: pulse 1.5s infinite;
+}
+
+.dropzone.success {
+  border-color: var(--success-color);
+  background: var(--secondary-light);
+}
+
+.dropzone.success::before {
+  content: '✅';
+}
+
+.dropzone.error {
+  border-color: var(--danger-color);
+  background: var(--danger-light);
+}
+
+.dropzone.error::before {
+  content: '❌';
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* Enhanced button interactions */
+.request-quote-container button:not(:disabled)::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  transition: left 0.5s;
+}
+
+.request-quote-container button:not(:disabled):hover::before {
+  left: 100%;
+}
+
+/* Form validation feedback */
+.field-valid {
+  position: relative;
+}
+
+.field-valid::after {
+  content: '✓';
+  position: absolute;
+  right: var(--space-lg);
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--success-color);
+  font-weight: bold;
+  font-size: 1.125rem;
+}
+
+.field-invalid {
+  position: relative;
+}
+
+.field-invalid::after {
+  content: '⚠';
+  position: absolute;
+  right: var(--space-lg);
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--danger-color);
+  font-weight: bold;
+  font-size: 1.125rem;
+}
+
+/* Tooltip styles for help text */
+.tooltip {
+  position: relative;
+  display: inline-block;
+}
+
+.tooltip .tooltip-text {
+  visibility: hidden;
+  width: 240px;
+  background: var(--gray-900);
+  color: white;
+  text-align: center;
+  border-radius: var(--radius-md);
+  padding: var(--space-sm);
+  position: absolute;
+  z-index: var(--z-tooltip);
+  bottom: 125%;
+  left: 50%;
+  margin-left: -120px;
+  opacity: 0;
+  transition: opacity var(--transition-normal);
+  font-size: 0.8125rem;
+  font-weight: 500;
+}
+
+.tooltip .tooltip-text::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: var(--gray-900) transparent transparent transparent;
+}
+
+.tooltip:hover .tooltip-text {
+  visibility: visible;
+  opacity: 1;
+}
+
+/* Enhanced checkbox styling */
+.request-quote-container input[type="checkbox"] {
+  position: relative;
+  appearance: none;
+  width: 1.25rem;
+  height: 1.25rem;
+  border: 2px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--input-bg);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.request-quote-container input[type="checkbox"]:checked {
+  background: var(--primary-color);
+  border-color: var(--primary-color);
+}
+
+.request-quote-container input[type="checkbox"]:checked::after {
+  content: '✓';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  font-size: 0.75rem;
+  font-weight: bold;
+}
+
+.request-quote-container input[type="checkbox"]:focus {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+/* Loading overlay for form submission */
+.form-loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(4px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: var(--z-modal);
+  border-radius: var(--radius-3xl);
+}
+
+.form-loading-spinner {
+  width: 3rem;
+  height: 3rem;
+  border: 4px solid var(--gray-200);
+  border-top: 4px solid var(--primary-color);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: var(--space-lg);
+}
+
+.form-loading-text {
+  color: var(--text-primary);
+  font-size: 1.125rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+/* Enhanced mobile interactions */
+@media (max-width: 640px) {
+  /* Larger touch targets for mobile */
+  .request-quote-container button {
+    min-height: 3rem;
+    padding: var(--space-md) var(--space-lg);
+  }
+
+  .request-quote-container input[type="checkbox"] {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+
+  /* Improved mobile spacing */
+  .request-quote-container fieldset label {
+    padding: var(--space-md);
+    margin: var(--space-sm) 0;
+  }
+
+  /* Mobile-optimized tooltips */
+  .tooltip .tooltip-text {
+    width: 200px;
+    margin-left: -100px;
+    font-size: 0.75rem;
+  }
+}
+
+/* Safari-specific fixes */
+@supports (-webkit-touch-callout: none) {
+  .request-quote-container input,
+  .request-quote-container select {
+    font-size: 16px; /* Prevents zoom on iOS */
+  }
+}
+
+/* Firefox-specific fixes */
+@-moz-document url-prefix() {
+  .request-quote-container select {
+    padding-right: 2rem;
   }
 }

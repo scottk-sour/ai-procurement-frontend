@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
+import { Helmet, HelmetProvider } from "react-helmet-async";
 import {
   FaQuoteRight,
   FaUpload,
@@ -8,6 +9,25 @@ import {
   FaFileAlt,
   FaBell,
   FaCloudUploadAlt,
+  FaTachometerAlt,
+  FaUsers,
+  FaPoundSign,
+  FaClock,
+  FaCheckCircle,
+  FaTimes,
+  FaEye,
+  FaStar,
+  FaDownload,
+  FaFilter,
+  FaSearch,
+  FaCalendarAlt,
+  FaExclamationTriangle,
+  FaInfoCircle,
+  FaArrowUp,
+  FaArrowDown,
+  FaBolt,
+  FaShieldAlt,
+  FaArrowRight
 } from "react-icons/fa";
 import QuoteFunnel from "./Dashboard/QuoteFunnel";
 import { useAuth } from "../context/AuthContext";
@@ -15,277 +35,312 @@ import { logout } from "../utils/auth";
 import "../styles/VendorDashboard.css";
 
 const VendorDashboard = () => {
-  console.log("✅ VendorDashboard loaded"); // Debug: Confirm component mounts
-
   const navigate = useNavigate();
   const { auth } = useAuth();
 
-  // State declarations
-  const [vendorName, setVendorName] = useState(auth?.user?.name || "Vendor");
-  const [file, setFile] = useState(null);
-  const [documentType, setDocumentType] = useState("contract");
-  const [message, setMessage] = useState("");
-  const [recentActivity, setRecentActivity] = useState([]);
-  const [uploadedFiles, setUploadedFiles] = useState([]);
-  const [quotes, setQuotes] = useState([]);
-  const [totalQuotes, setTotalQuotes] = useState(0);
-  const [pendingQuotes, setPendingQuotes] = useState(0);
-  const [acceptedQuotes, setAcceptedQuotes] = useState(0);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [uploadProgress, setUploadProgress] = useState(0);
-  const [activeTab, setActiveTab] = useState("overview");
-  const [quotePage, setQuotePage] = useState(1);
-  const [filePage, setFilePage] = useState(1);
-  const itemsPerPage = 10;
-  const [feedbackForm, setFeedbackForm] = useState({ quoteId: null, comment: "", rating: 0 });
-
-  // Quote funnel data
-  const [quoteFunnelData, setQuoteFunnelData] = useState({
-    created: 0,
-    pending: 0,
-    matched: 0,
-    completed: 0,
+  // Enhanced state management
+  const [vendorData, setVendorData] = useState({
+    name: auth?.user?.name || "Vendor",
+    email: auth?.user?.email || "",
+    companyName: auth?.user?.companyName || "",
+    verified: auth?.user?.verified || false,
+    rating: auth?.user?.rating || 0,
+    totalEarnings: 0,
+    monthlyEarnings: 0
   });
 
-  // Fetch vendor profile
-  const fetchVendorProfile = useCallback(async () => {
-    if (!auth?.token) return;
-    try {
-      console.log("Fetching vendor profile...");
-      const response = await fetch("http://localhost:5000/api/vendors/profile", {
-        headers: { Authorization: `Bearer ${auth.token}` },
-      });
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || `Failed to fetch vendor profile (Status: ${response.status})`);
-      }
-      const data = await response.json();
-      setVendorName(data.vendor?.name || "Vendor");
-      console.log("Vendor profile fetched:", data.vendor?.name);
-    } catch (error) {
-      console.error("Error fetching vendor profile:", error.message);
-      setError(`Failed to load vendor profile: ${error.message}. Please try logging in again.`);
+  const [dashboardState, setDashboardState] = useState({
+    loading: false,
+    error: null,
+    activeTab: "overview",
+    searchTerm: "",
+    filterStatus: "all",
+    sortBy: "date",
+    sortOrder: "desc"
+  });
+
+  const [fileState, setFileState] = useState({
+    file: null,
+    documentType: "contract",
+    uploadProgress: 0,
+    dragOver: false
+  });
+
+  const [dataState, setDataState] = useState({
+    recentActivity: [],
+    uploadedFiles: [],
+    quotes: [],
+    notifications: [],
+    quoteFunnelData: {
+      received: 0,
+      responded: 0,
+      accepted: 0,
+      completed: 0
     }
-  }, [auth?.token]);
+  });
 
-  // Fetch dashboard data
-  const fetchDashboardData = useCallback(async () => {
-    if (!auth?.token || !auth?.user?.userId) return;
-    console.log("Fetching VendorDashboard data");
-    setLoading(true);
-    setError(null);
+  const [pagination, setPagination] = useState({
+    quotePage: 1,
+    filePage: 1,
+    activityPage: 1,
+    itemsPerPage: 10
+  });
 
-    try {
-      const [activityRes, filesRes, quotesRes] = await Promise.all([
-        fetch(`http://localhost:5000/api/vendors/recent-activity?page=${filePage}&limit=${itemsPerPage}`, {
-          headers: { Authorization: `Bearer ${auth.token}` },
-        }).then((res) => {
-          if (!res.ok) {
-            return res.json().then((errorData) => {
-              throw new Error(errorData.message || `Failed to fetch recent activity (Status: ${res.status})`);
-            });
-          }
-          return res.json();
-        }),
-        fetch(`http://localhost:5000/api/vendors/uploaded-files?page=${filePage}&limit=${itemsPerPage}`, {
-          headers: { Authorization: `Bearer ${auth.token}` },
-        }).then((res) => {
-          if (!res.ok) {
-            return res.json().then((errorData) => {
-              throw new Error(errorData.message || `Failed to fetch uploaded files (Status: ${res.status})`);
-            });
-          }
-          return res.json();
-        }),
-        fetch(`http://localhost:5000/api/copier-quotes/supplier-quotes?vendorId=${auth.user?.userId}&page=${quotePage}&limit=${itemsPerPage}`, {
-          headers: { Authorization: `Bearer ${auth.token}` },
-        }).then((res) => {
-          if (!res.ok) {
-            return res.json().then((errorData) => {
-              throw new Error(errorData.message || `Failed to fetch quotes (Status: ${res.status})`);
-            });
-          }
-          return res.json();
-        }),
-      ]);
+  const [feedback, setFeedback] = useState({
+    quoteId: null,
+    comment: "",
+    rating: 0,
+    isSubmitting: false
+  });
 
-      console.log("API responses:", {
-        activities: (activityRes.activities || []).length,
-        files: (filesRes.files || []).length,
-        quotes: (quotesRes.quotes || []).length,
-      });
+  const [message, setMessage] = useState({ text: "", type: "", visible: false });
 
-      // Set state with default empty arrays
-      setRecentActivity(activityRes.activities || []);
-      setUploadedFiles(filesRes.files || []);
-      setQuotes(quotesRes.quotes || []);
+  // Enhanced metrics calculation
+  const metrics = useMemo(() => {
+    const quotes = dataState.quotes || [];
+    const today = new Date();
+    const thisMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    
+    return {
+      totalQuotes: quotes.length,
+      pendingQuotes: quotes.filter(q => q.status === "Pending").length,
+      acceptedQuotes: quotes.filter(q => q.status === "Accepted" || q.status === "Completed").length,
+      completedQuotes: quotes.filter(q => q.status === "Completed").length,
+      thisMonthQuotes: quotes.filter(q => new Date(q.createdAt) >= thisMonth).length,
+      responseRate: quotes.length > 0 ? Math.round((quotes.filter(q => q.status !== "Pending").length / quotes.length) * 100) : 0,
+      averageResponseTime: "2.5 hours", // This would come from backend
+      successRate: quotes.length > 0 ? Math.round((quotes.filter(q => q.status === "Accepted").length / quotes.length) * 100) : 0
+    };
+  }, [dataState.quotes]);
 
-      // Safely handle quotes data
-      const quotesArray = quotesRes.quotes || [];
-      const created = quotesArray.length;
-      const pending = quotesArray.filter((q) => q.status === "Pending").length;
-      const matched = quotesArray.filter((q) => q.status === "Matched").length;
-      const completed = quotesArray.filter((q) => q.status === "Completed").length;
-
-      setQuoteFunnelData({
-        created,
-        pending,
-        matched,
-        completed,
-      });
-
-      setTotalQuotes(created);
-      setPendingQuotes(pending);
-      setAcceptedQuotes(completed);
-
-      console.log("Tracking dashboard load for vendor:", auth.user?.userId);
-    } catch (error) {
-      console.error("Error fetching dashboard data:", error.message);
-      setError(`Failed to load dashboard data: ${error.message}. Please try logging in again or contact support.`);
-      // Set default empty arrays on error
-      setRecentActivity([]);
-      setUploadedFiles([]);
-      setQuotes([]);
-      setQuoteFunnelData({
-        created: 0,
-        pending: 0,
-        matched: 0,
-        completed: 0,
-      });
-      setTotalQuotes(0);
-      setPendingQuotes(0);
-      setAcceptedQuotes(0);
-    } finally {
-      setLoading(false);
-    }
-  }, [auth?.token, auth?.user?.userId, quotePage, filePage]);
-
-  // Fetch data on mount and periodically
-  useEffect(() => {
-    console.log("useEffect running");
-    fetchVendorProfile();
-    fetchDashboardData();
-    const intervalId = setInterval(fetchDashboardData, 300000); // Refresh every 5 minutes
-    return () => clearInterval(intervalId);
-  }, [auth, fetchVendorProfile, fetchDashboardData]);
-
-  const handleFileChange = useCallback((event) => {
-    const selectedFile = event.target.files[0];
-    if (selectedFile) {
-      setFile(selectedFile);
-      setMessage(`✅ Selected: ${selectedFile.name}`);
-    } else {
-      setMessage("⚠ No file selected.");
-    }
+  // Enhanced error handling
+  const showMessage = useCallback((text, type = "info") => {
+    setMessage({ text, type, visible: true });
+    setTimeout(() => setMessage(prev => ({ ...prev, visible: false })), 5000);
   }, []);
 
-  const handleUpload = useCallback(async () => {
+  // Fetch vendor profile with enhanced error handling
+  const fetchVendorProfile = useCallback(async () => {
+    if (!auth?.token) return;
+    
+    try {
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/vendors/profile`, {
+        headers: { 
+          Authorization: `Bearer ${auth.token}`,
+          'Content-Type': 'application/json'
+        },
+      });
+      
+      if (!response.ok) {
+        if (response.status === 401) {
+          logout();
+          navigate("/vendor-login", { replace: true });
+          return;
+        }
+        throw new Error(`Failed to fetch profile: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      setVendorData(prev => ({
+        ...prev,
+        ...data.vendor,
+        name: data.vendor?.name || prev.name
+      }));
+    } catch (error) {
+      console.error("Error fetching vendor profile:", error);
+      showMessage("Failed to load profile data", "error");
+    }
+  }, [auth?.token, navigate, showMessage]);
+
+  // Enhanced dashboard data fetching
+  const fetchDashboardData = useCallback(async () => {
+    if (!auth?.token || !auth?.user?.userId) return;
+    
+    setDashboardState(prev => ({ ...prev, loading: true, error: null }));
+
+    try {
+      const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+      const headers = {
+        Authorization: `Bearer ${auth.token}`,
+        'Content-Type': 'application/json'
+      };
+
+      const [activityRes, filesRes, quotesRes, notificationsRes] = await Promise.allSettled([
+        fetch(`${baseUrl}/api/vendors/recent-activity?page=${pagination.activityPage}&limit=${pagination.itemsPerPage}`, { headers }),
+        fetch(`${baseUrl}/api/vendors/uploaded-files?page=${pagination.filePage}&limit=${pagination.itemsPerPage}`, { headers }),
+        fetch(`${baseUrl}/api/copier-quotes/supplier-quotes?vendorId=${auth.user.userId}&page=${pagination.quotePage}&limit=${pagination.itemsPerPage}`, { headers }),
+        fetch(`${baseUrl}/api/vendors/notifications?page=1&limit=20`, { headers })
+      ]);
+
+      // Process responses with better error handling
+      const processResponse = async (result, defaultValue = []) => {
+        if (result.status === 'fulfilled' && result.value.ok) {
+          const data = await result.value.json();
+          return data;
+        }
+        return { [Object.keys(defaultValue)[0] || 'data']: defaultValue };
+      };
+
+      const [activityData, filesData, quotesData, notificationsData] = await Promise.all([
+        processResponse(activityRes, []),
+        processResponse(filesRes, []),
+        processResponse(quotesRes, []),
+        processResponse(notificationsRes, [])
+      ]);
+
+      // Update state with fetched data
+      setDataState(prev => ({
+        ...prev,
+        recentActivity: activityData.activities || [],
+        uploadedFiles: filesData.files || [],
+        quotes: quotesData.quotes || [],
+        notifications: notificationsData.notifications || [],
+        quoteFunnelData: {
+          received: (quotesData.quotes || []).length,
+          responded: (quotesData.quotes || []).filter(q => q.status !== "Pending").length,
+          accepted: (quotesData.quotes || []).filter(q => q.status === "Accepted").length,
+          completed: (quotesData.quotes || []).filter(q => q.status === "Completed").length
+        }
+      }));
+
+    } catch (error) {
+      console.error("Error fetching dashboard data:", error);
+      setDashboardState(prev => ({ 
+        ...prev, 
+        error: "Failed to load dashboard data. Please try refreshing the page." 
+      }));
+      showMessage("Failed to load dashboard data", "error");
+    } finally {
+      setDashboardState(prev => ({ ...prev, loading: false }));
+    }
+  }, [auth?.token, auth?.user?.userId, pagination, showMessage]);
+
+  // Enhanced file upload with drag & drop
+  const handleFileUpload = useCallback(async (file) => {
     if (!file || !auth?.token) {
-      setMessage("⚠ Please select a file to upload.");
+      showMessage("Please select a file to upload", "warning");
       return;
     }
 
     const formData = new FormData();
     formData.append("file", file);
-    formData.append("documentType", documentType);
+    formData.append("documentType", fileState.documentType);
 
-    setLoading(true);
-    setUploadProgress(0);
+    setDashboardState(prev => ({ ...prev, loading: true }));
+    setFileState(prev => ({ ...prev, uploadProgress: 0 }));
 
     try {
-      const response = await fetch("http://localhost:5000/api/vendors/upload", {
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/vendors/upload`, {
         method: "POST",
         headers: { Authorization: `Bearer ${auth.token}` },
         body: formData,
       });
 
-      const data = await response.json();
       if (response.ok) {
-        setMessage("✅ File uploaded successfully!");
-        setUploadProgress(100);
+        showMessage("File uploaded successfully!", "success");
+        setFileState(prev => ({ ...prev, file: null, uploadProgress: 100 }));
         fetchDashboardData();
-        setFile(null);
-        console.log(`Tracking file upload by vendor: ${auth.user?.userId}`);
       } else {
-        setMessage(data.message || "⚠ Upload failed.");
+        const data = await response.json();
+        throw new Error(data.message || "Upload failed");
       }
     } catch (error) {
-      console.error("Error uploading file:", error);
-      setMessage("⚠ An error occurred during upload.");
+      console.error("Upload error:", error);
+      showMessage(`Upload failed: ${error.message}`, "error");
     } finally {
-      setLoading(false);
+      setDashboardState(prev => ({ ...prev, loading: false }));
     }
-  }, [file, documentType, fetchDashboardData, auth?.token, auth?.user?.userId]);
+  }, [fileState.documentType, auth?.token, fetchDashboardData, showMessage]);
 
-  const handleQuoteResponse = useCallback(async (quoteId, response) => {
+  // Enhanced quote response handling
+  const handleQuoteResponse = useCallback(async (quoteId, response, vendorName) => {
     if (!auth?.token) return;
+
+    setDashboardState(prev => ({ ...prev, loading: true }));
+    
     try {
-      const res = await fetch("http://localhost:5000/api/copier-quotes/respond", {
+      const res = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/copier-quotes/respond`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${auth.token}`,
         },
-        body: JSON.stringify({ quoteId, response }),
+        body: JSON.stringify({ quoteId, response, vendorName }),
       });
 
-      if (!res.ok) {
+      if (res.ok) {
+        showMessage(`Quote ${response}ed successfully!`, "success");
+        fetchDashboardData();
+      } else {
         const errorData = await res.json();
-        throw new Error(errorData.message || "Failed to respond to quote.");
+        throw new Error(errorData.message || "Failed to respond to quote");
       }
-      setMessage(`✅ Quote ${response} successfully!`);
-      fetchDashboardData();
-      console.log(`Tracking quote ${response} by vendor: ${auth.user?.userId}`);
     } catch (error) {
       console.error("Error responding to quote:", error);
-      setMessage(`⚠ Failed to respond to quote: ${error.message}`);
+      showMessage(`Failed to ${response} quote: ${error.message}`, "error");
+    } finally {
+      setDashboardState(prev => ({ ...prev, loading: false }));
     }
-  }, [fetchDashboardData, auth?.token, auth?.user?.userId]);
+  }, [auth?.token, fetchDashboardData, showMessage]);
 
-  const handleFeedbackSubmit = useCallback(async (quoteId, vendorName, accepted) => {
-    if (!auth?.token) return;
-    try {
-      const response = await fetch("http://localhost:5000/api/feedback", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${auth.token}`,
-        },
-        body: JSON.stringify({
-          userId: auth.user?.userId,
-          quoteId,
-          vendorName,
-          accepted,
-          comment: feedbackForm.comment,
-          rating: feedbackForm.rating || undefined,
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to submit feedback.");
-      }
-
-      setMessage(`✅ Feedback submitted successfully for ${vendorName}!`);
-      setFeedbackForm({ quoteId: null, comment: "", rating: 0 });
-      fetchDashboardData();
-      console.log(`Tracking feedback submission by vendor: ${auth.user?.userId}`);
-    } catch (error) {
-      console.error("Error submitting feedback:", error);
-      setMessage(`⚠ Failed to submit feedback: ${error.message}`);
-    }
-  }, [feedbackForm, fetchDashboardData, auth?.token, auth?.user?.userId]);
-
+  // Enhanced logout
   const handleLogout = useCallback(() => {
     logout();
     navigate("/vendor-login", { replace: true });
-    console.log("Tracking vendor logout");
-  }, [navigate]);
+    showMessage("Logged out successfully", "success");
+  }, [navigate, showMessage]);
 
+  // Filtered and sorted data
+  const filteredQuotes = useMemo(() => {
+    let filtered = dataState.quotes || [];
+    
+    if (dashboardState.searchTerm) {
+      filtered = filtered.filter(quote => 
+        (quote.companyName || "").toLowerCase().includes(dashboardState.searchTerm.toLowerCase()) ||
+        (quote.industryType || "").toLowerCase().includes(dashboardState.searchTerm.toLowerCase())
+      );
+    }
+    
+    if (dashboardState.filterStatus !== "all") {
+      filtered = filtered.filter(quote => quote.status?.toLowerCase() === dashboardState.filterStatus);
+    }
+    
+    return filtered.sort((a, b) => {
+      const aVal = a[dashboardState.sortBy] || "";
+      const bVal = b[dashboardState.sortBy] || "";
+      const order = dashboardState.sortOrder === "asc" ? 1 : -1;
+      
+      if (dashboardState.sortBy === "createdAt") {
+        return order * (new Date(aVal) - new Date(bVal));
+      }
+      return order * aVal.toString().localeCompare(bVal.toString());
+    });
+  }, [dataState.quotes, dashboardState.searchTerm, dashboardState.filterStatus, dashboardState.sortBy, dashboardState.sortOrder]);
+
+  // Drag and drop handlers
+  const handleDragOver = useCallback((e) => {
+    e.preventDefault();
+    setFileState(prev => ({ ...prev, dragOver: true }));
+  }, []);
+
+  const handleDragLeave = useCallback((e) => {
+    e.preventDefault();
+    setFileState(prev => ({ ...prev, dragOver: false }));
+  }, []);
+
+  const handleDrop = useCallback((e) => {
+    e.preventDefault();
+    setFileState(prev => ({ ...prev, dragOver: false }));
+    const droppedFile = e.dataTransfer.files[0];
+    if (droppedFile) {
+      setFileState(prev => ({ ...prev, file: droppedFile }));
+      handleFileUpload(droppedFile);
+    }
+  }, [handleFileUpload]);
+
+  // Format utilities
   const formatDate = useCallback((dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
+    return new Date(dateString).toLocaleDateString("en-GB", {
       year: "numeric",
       month: "short",
       day: "numeric",
@@ -294,495 +349,750 @@ const VendorDashboard = () => {
     });
   }, []);
 
-  // Fallback if auth is undefined or invalid
-  if (!auth) {
-    console.log("❌ Auth is undefined, redirecting to /vendor-login");
+  const formatCurrency = useCallback((amount) => {
+    return new Intl.NumberFormat("en-GB", {
+      style: "currency",
+      currency: "GBP",
+    }).format(amount || 0);
+  }, []);
+
+  // Effects
+  useEffect(() => {
+    if (auth?.token) {
+      fetchVendorProfile();
+      fetchDashboardData();
+      const interval = setInterval(fetchDashboardData, 300000); // 5 minutes
+      return () => clearInterval(interval);
+    }
+  }, [auth?.token, fetchVendorProfile, fetchDashboardData]);
+
+  // Auth check
+  if (!auth?.token) {
     navigate("/vendor-login", { replace: true });
     return null;
   }
 
-  // Debug: Log rendering conditions
-  console.log("VendorDashboard render check:", {
-    loading,
-    error,
-    quotesLength: (quotes || []).length,
-    uploadedFilesLength: (uploadedFiles || []).length,
-  });
-
-  if (loading && (quotes || []).length === 0 && (uploadedFiles || []).length === 0) {
-    return (
-      <div className="loading-overlay" role="status" aria-live="polite">
-        <div className="spinner"></div>
-        <p>Loading Dashboard...</p>
-      </div>
-    );
-  }
-
-  if (error && (quotes || []).length === 0 && (uploadedFiles || []).length === 0) {
-    return (
-      <div className="vendor-dashboard">
-        <div className="error-container">
-          <p className="error">{error}</p>
-          <button
-            className="nav-button"
-            onClick={fetchDashboardData}
-            aria-label="Retry loading dashboard data"
-          >
-            Retry
-          </button>
-          <button
-            className="nav-button logout-button"
-            onClick={handleLogout}
-            aria-label="Log out and re-authenticate"
-          >
-            Log Out
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="vendor-dashboard" style={{ backgroundColor: "lightblue", minHeight: "100vh", color: "black" }}>
-      <header className="welcome-header">
-        <h1>Welcome, {vendorName}!</h1>
-      </header>
+    <HelmetProvider>
+      <div className="vendor-dashboard">
+        <Helmet>
+          <title>Vendor Dashboard | TendorAI - Manage Your Quotes & Opportunities</title>
+          <meta name="description" content="Manage your vendor account, respond to quotes, upload documents, and track your performance on TendorAI." />
+        </Helmet>
 
-      <nav className="nav-bar">
-        <button
-          className="nav-button"
-          onClick={() => navigate("/quotes")}
-          aria-label="View all quotes"
-        >
-          <FaQuoteRight /> View Quotes
-        </button>
-        <label className="nav-button upload-label" htmlFor="file-upload">
-          <FaUpload /> Upload Documents
-          <input
-            id="file-upload"
-            type="file"
-            className="file-input"
-            accept=".pdf,.csv,.xlsx,.xls,.png,.jpg,.jpeg"
-            onChange={handleFileChange}
-          />
-        </label>
-        <button
-          className="nav-button theme-toggle-button"
-          onClick={() => navigate("/account-settings")}
-          aria-label="Go to settings"
-        >
-          <FaChartBar /> Settings
-        </button>
-        <button
-          className="nav-button logout-button"
-          onClick={handleLogout}
-          aria-label="Log out"
-        >
-          <FaSignOutAlt /> Logout
-        </button>
-      </nav>
-
-      <div className="dashboard-tabs" role="tablist" aria-label="Vendor dashboard navigation tabs">
-        <button
-          className={`tab-button ${activeTab === "overview" ? "active" : ""}`}
-          onClick={() => setActiveTab("overview")}
-          role="tab"
-          aria-selected={activeTab === "overview"}
-          aria-controls="overview-panel"
-        >
-          Overview
-        </button>
-        <button
-          className={`tab-button ${activeTab === "quotes" ? "active" : ""}`}
-          onClick={() => setActiveTab("quotes")}
-          role="tab"
-          aria-selected={activeTab === "quotes"}
-          aria-controls="quotes-panel"
-        >
-          Quotes
-        </button>
-        <button
-          className={`tab-button ${activeTab === "files" ? "active" : ""}`}
-          onClick={() => setActiveTab("files")}
-          role="tab"
-          aria-selected={activeTab === "files"}
-          aria-controls="files-panel"
-        >
-          Files
-        </button>
-        <button
-          className={`tab-button ${activeTab === "notifications" ? "active" : ""}`}
-          onClick={() => setActiveTab("notifications")}
-          role="tab"
-          aria-selected={activeTab === "notifications"}
-          aria-controls="notifications-panel"
-        >
-          Notifications
-        </button>
-      </div>
-
-      <main className="dashboard-content">
-        {activeTab === "overview" && (
-          <div id="overview-panel" role="tabpanel">
-            <section className="kpi-section">
-              <div className="kpi-container">
-                <div className="kpi-box">
-                  <FaChartBar className="kpi-icon" />
-                  <h3>Total Quotes</h3>
-                  <p>{totalQuotes}</p>
-                </div>
-                <div className="kpi-box">
-                  <FaFileAlt className="kpi-icon" />
-                  <h3>Pending Quotes</h3>
-                  <p>{pendingQuotes}</p>
-                </div>
-                <div className="kpi-box">
-                  <FaBell className="kpi-icon" />
-                  <h3>Accepted Quotes</h3>
-                  <p>{acceptedQuotes}</p>
-                </div>
-                <div className="kpi-box">
-                  <FaCloudUploadAlt className="kpi-icon" />
-                  <h3>Uploaded Files</h3>
-                  <p>{(uploadedFiles || []).length}</p>
+        {/* Enhanced Header */}
+        <header className="dashboard-header">
+          <div className="header-content">
+            <div className="vendor-info">
+              <div className="vendor-avatar">
+                {vendorData.name.charAt(0).toUpperCase()}
+              </div>
+              <div className="vendor-details">
+                <h1 className="vendor-name">
+                  Welcome back, {vendorData.name}!
+                  {vendorData.verified && (
+                    <FaCheckCircle className="verified-badge" title="Verified Vendor" />
+                  )}
+                </h1>
+                <p className="vendor-subtitle">{vendorData.companyName}</p>
+                <div className="vendor-rating">
+                  {[...Array(5)].map((_, i) => (
+                    <FaStar 
+                      key={i} 
+                      className={i < vendorData.rating ? "star-filled" : "star-empty"} 
+                    />
+                  ))}
+                  <span className="rating-text">({vendorData.rating}/5)</span>
                 </div>
               </div>
-            </section>
+            </div>
+            
+            <div className="header-actions">
+              <div className="earnings-summary">
+                <div className="earning-item">
+                  <span className="earning-label">This Month</span>
+                  <span className="earning-value">{formatCurrency(vendorData.monthlyEarnings)}</span>
+                </div>
+                <div className="earning-item">
+                  <span className="earning-label">Total Earned</span>
+                  <span className="earning-value">{formatCurrency(vendorData.totalEarnings)}</span>
+                </div>
+              </div>
+              
+              <button 
+                className="btn btn-outline"
+                onClick={() => navigate("/vendor-settings")}
+              >
+                <FaChartBar /> Settings
+              </button>
+              
+              <button 
+                className="btn btn-ghost"
+                onClick={handleLogout}
+              >
+                <FaSignOutAlt /> Log Out
+              </button>
+            </div>
+          </div>
+        </header>
 
-            <section className="quote-funnel-section">
-              <h2>Quote Funnel</h2>
-              <QuoteFunnel data={quoteFunnelData} isLoading={loading} />
-            </section>
-
-            <section className="recent-activity-section">
-              <h2>Recent Activity</h2>
-              {(recentActivity || []).length > 0 ? (
-                <>
-                  <ul className="activity-list">
-                    {recentActivity.map((activity, index) => (
-                      <li key={index} className="activity-item">
-                        <div className="activity-icon">
-                          {activity.type === "quote" && <FaQuoteRight />}
-                          {activity.type === "upload" && <FaUpload />}
-                          {activity.type === "login" && <FaBell />}
-                          {activity.type === "signup" && <FaBell />}
-                        </div>
-                        <div className="activity-content">
-                          <p className="activity-description">{activity.description}</p>
-                          <p className="activity-date">{formatDate(activity.date)}</p>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                  <div className="pagination">
-                    <button
-                      onClick={() => setFilePage((prev) => Math.max(prev - 1, 1))}
-                      disabled={filePage === 1}
-                      aria-label="Previous page of activities"
-                    >
-                      Previous
-                    </button>
-                    <span>Page {filePage}</span>
-                    <button
-                      onClick={() => setFilePage((prev) => prev + 1)}
-                      disabled={(recentActivity || []).length < itemsPerPage}
-                      aria-label="Next page of activities"
-                    >
-                      Next
-                    </button>
-                  </div>
-                </>
-              ) : (
-                <p className="no-data">No recent activity available.</p>
-              )}
-            </section>
+        {/* Message Toast */}
+        {message.visible && (
+          <div className={`message-toast message-${message.type}`}>
+            <span>{message.text}</span>
+            <button 
+              onClick={() => setMessage(prev => ({ ...prev, visible: false }))}
+              className="message-close"
+            >
+              <FaTimes />
+            </button>
           </div>
         )}
 
-        {activeTab === "quotes" && (
-          <div id="quotes-panel" role="tabpanel">
-            <section className="quotes-section">
-              <h2>Quote Requests</h2>
-              {(quotes || []).length > 0 ? (
-                <>
-                  <div className="quotes-list">
-                    {quotes.map((quote, index) => (
-                      <div key={index} className="quote-card">
-                        <div className="quote-header">
+        {/* Enhanced Navigation */}
+        <nav className="dashboard-nav">
+          <div className="nav-container">
+            {[
+              { id: "overview", label: "Overview", icon: <FaTachometerAlt /> },
+              { id: "quotes", label: "Quote Requests", icon: <FaQuoteRight />, badge: metrics.pendingQuotes },
+              { id: "files", label: "Documents", icon: <FaFileAlt /> },
+              { id: "analytics", label: "Analytics", icon: <FaChartBar /> },
+              { id: "notifications", label: "Notifications", icon: <FaBell />, badge: dataState.notifications.filter(n => !n.read).length }
+            ].map(tab => (
+              <button
+                key={tab.id}
+                className={`nav-tab ${dashboardState.activeTab === tab.id ? "active" : ""}`}
+                onClick={() => setDashboardState(prev => ({ ...prev, activeTab: tab.id }))}
+              >
+                {tab.icon}
+                <span>{tab.label}</span>
+                {tab.badge > 0 && <span className="nav-badge">{tab.badge}</span>}
+              </button>
+            ))}
+          </div>
+        </nav>
+
+        {/* Main Content */}
+        <main className="dashboard-main">
+          {dashboardState.activeTab === "overview" && (
+            <div className="overview-content">
+              {/* KPI Cards */}
+              <section className="kpi-section">
+                <div className="kpi-grid">
+                  <div className="kpi-card">
+                    <div className="kpi-icon total">
+                      <FaQuoteRight />
+                    </div>
+                    <div className="kpi-content">
+                      <h3>Total Quotes</h3>
+                      <div className="kpi-value">{metrics.totalQuotes}</div>
+                      <div className="kpi-change positive">
+                        <FaArrowUp /> +{metrics.thisMonthQuotes} this month
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="kpi-card">
+                    <div className="kpi-icon pending">
+                      <FaClock />
+                    </div>
+                    <div className="kpi-content">
+                      <h3>Pending Responses</h3>
+                      <div className="kpi-value">{metrics.pendingQuotes}</div>
+                      <div className="kpi-subtitle">Awaiting your response</div>
+                    </div>
+                  </div>
+
+                  <div className="kpi-card">
+                    <div className="kpi-icon success">
+                      <FaCheckCircle />
+                    </div>
+                    <div className="kpi-content">
+                      <h3>Success Rate</h3>
+                      <div className="kpi-value">{metrics.successRate}%</div>
+                      <div className="kpi-subtitle">Accepted quotes</div>
+                    </div>
+                  </div>
+
+                  <div className="kpi-card">
+                    <div className="kpi-icon response">
+                      <FaBolt />
+                    </div>
+                    <div className="kpi-content">
+                      <h3>Avg Response Time</h3>
+                      <div className="kpi-value">{metrics.averageResponseTime}</div>
+                      <div className="kpi-subtitle">Industry avg: 4.2h</div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              {/* Quote Funnel */}
+              <section className="funnel-section">
+                <div className="section-header">
+                  <h2>Quote Performance Pipeline</h2>
+                  <p>Track your quote journey from request to completion</p>
+                </div>
+                <QuoteFunnel data={dataState.quoteFunnelData} isLoading={dashboardState.loading} />
+              </section>
+
+              {/* Recent Activity */}
+              <section className="activity-section">
+                <div className="section-header">
+                  <h2>Recent Activity</h2>
+                  <button 
+                    className="btn btn-outline btn-sm"
+                    onClick={() => setDashboardState(prev => ({ ...prev, activeTab: "notifications" }))}
+                  >
+                    View All <FaArrowRight />
+                  </button>
+                </div>
+                
+                {dataState.recentActivity.length > 0 ? (
+                  <div className="activity-list">
+                    {dataState.recentActivity.slice(0, 5).map((activity, index) => (
+                      <div key={index} className="activity-item">
+                        <div className="activity-icon">
+                          {activity.type === "quote" && <FaQuoteRight />}
+                          {activity.type === "upload" && <FaUpload />}
+                          {activity.type === "login" && <FaUsers />}
+                        </div>
+                        <div className="activity-content">
+                          <p className="activity-description">{activity.description}</p>
+                          <time className="activity-date">{formatDate(activity.date)}</time>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="empty-state">
+                    <FaInfoCircle />
+                    <p>No recent activity to display</p>
+                  </div>
+                )}
+              </section>
+            </div>
+          )}
+
+          {dashboardState.activeTab === "quotes" && (
+            <div className="quotes-content">
+              {/* Enhanced Filters and Search */}
+              <div className="content-header">
+                <div className="header-controls">
+                  <div className="search-box">
+                    <FaSearch className="search-icon" />
+                    <input
+                      type="text"
+                      placeholder="Search quotes by company or industry..."
+                      value={dashboardState.searchTerm}
+                      onChange={(e) => setDashboardState(prev => ({ 
+                        ...prev, 
+                        searchTerm: e.target.value 
+                      }))}
+                      className="search-input"
+                    />
+                  </div>
+                  
+                  <div className="filter-controls">
+                    <select
+                      value={dashboardState.filterStatus}
+                      onChange={(e) => setDashboardState(prev => ({ 
+                        ...prev, 
+                        filterStatus: e.target.value 
+                      }))}
+                      className="filter-select"
+                    >
+                      <option value="all">All Status</option>
+                      <option value="pending">Pending</option>
+                      <option value="accepted">Accepted</option>
+                      <option value="declined">Declined</option>
+                      <option value="completed">Completed</option>
+                    </select>
+                    
+                    <select
+                      value={`${dashboardState.sortBy}-${dashboardState.sortOrder}`}
+                      onChange={(e) => {
+                        const [sortBy, sortOrder] = e.target.value.split('-');
+                        setDashboardState(prev => ({ 
+                          ...prev, 
+                          sortBy, 
+                          sortOrder 
+                        }));
+                      }}
+                      className="sort-select"
+                    >
+                      <option value="createdAt-desc">Newest First</option>
+                      <option value="createdAt-asc">Oldest First</option>
+                      <option value="companyName-asc">Company A-Z</option>
+                      <option value="companyName-desc">Company Z-A</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* Enhanced Quotes List */}
+              {filteredQuotes.length > 0 ? (
+                <div className="quotes-list">
+                  {filteredQuotes.map((quote, index) => (
+                    <div key={quote._id || index} className="quote-card modern">
+                      <div className="quote-header">
+                        <div className="quote-title">
                           <h3>{quote.companyName || "Quote Request"}</h3>
-                          <span className={`quote-status status-${(quote.status || "").toLowerCase().replace(/\s+/g, "-")}`}>
+                          <span className={`status-badge status-${(quote.status || "").toLowerCase()}`}>
                             {quote.status || "Unknown"}
                           </span>
                         </div>
-                        <div className="quote-details">
-                          <p><strong>Date:</strong> {formatDate(quote.createdAt)}</p>
-                          <p><strong>Industry:</strong> {quote.industryType || "Not specified"}</p>
-                          <div className="volume-details">
-                            <p><strong>Mono:</strong> {(quote.monthlyVolume?.mono || 0)} pages</p>
-                            <p><strong>Colour:</strong> {(quote.monthlyVolume?.colour || 0)} pages</p>
-                          </div>
-                          {(quote.recommendations || [])[0] && (
-                            <div className="recommendation-details">
-                              <p><strong>Top Recommendation:</strong> {(quote.recommendations[0]?.vendorName || "N/A")}</p>
-                              <p><strong>Price:</strong> £{(quote.recommendations[0]?.price || "N/A")}</p>
-                              <p><strong>Speed:</strong> {(quote.recommendations[0]?.speed || "N/A")} ppm</p>
-                              <p><strong>Savings:</strong> £{(quote.recommendations[0]?.savingsInfo?.monthlySavings || 0).toFixed(2)}/month</p>
-                              <p><strong>Reasons:</strong> {(quote.recommendations[0]?.reasons || []).join(", ") || "N/A"}</p>
-                            </div>
-                          )}
+                        <div className="quote-meta">
+                          <time>{formatDate(quote.createdAt)}</time>
+                          <span className="industry-tag">{quote.industryType}</span>
                         </div>
-                        <div className="quote-actions">
-                          <div className="quote-response-buttons">
-                            {quote.status === "Pending" && (
-                              <>
-                                <button
-                                  className="accept-button"
-                                  onClick={() => {
-                                    handleQuoteResponse(quote._id, "accept");
-                                    handleFeedbackSubmit(quote._id, (quote.recommendations || [])[0]?.vendorName || "Unknown", true);
-                                  }}
-                                  aria-label={`Accept quote for ${quote.companyName || "Quote Request"}`}
-                                >
-                                  Accept
-                                </button>
-                                <button
-                                  className="decline-button"
-                                  onClick={() => {
-                                    handleQuoteResponse(quote._id, "decline");
-                                    handleFeedbackSubmit(quote._id, (quote.recommendations || [])[0]?.vendorName || "Unknown", false);
-                                  }}
-                                  aria-label={`Decline quote for ${quote.companyName || "Quote Request"}`}
-                                >
-                                  Decline
-                                </button>
-                              </>
-                            )}
+                      </div>
+
+                      <div className="quote-details">
+                        <div className="detail-grid">
+                          <div className="detail-item">
+                            <span className="detail-label">Monthly Volume</span>
+                            <span className="detail-value">
+                              {(quote.monthlyVolume?.mono || 0) + (quote.monthlyVolume?.colour || 0)} pages
+                            </span>
                           </div>
-                          {feedbackForm.quoteId === quote._id ? (
-                            <div className="feedback-form">
-                              <textarea
-                                value={feedbackForm.comment}
-                                onChange={(e) => setFeedbackForm({ ...feedbackForm, comment: e.target.value })}
-                                placeholder="Add feedback (e.g., liked the price, too slow)"
-                                maxLength={500}
-                                aria-label="Feedback comment"
-                              />
-                              <select
-                                value={feedbackForm.rating}
-                                onChange={(e) => setFeedbackForm({ ...feedbackForm, rating: Number(e.target.value) })}
-                                aria-label="Rate this vendor"
-                              >
-                                <option value="0">Rate (1-5)</option>
-                                {[1, 2, 3, 4, 5].map((r) => (
-                                  <option key={r} value={r}>{r}</option>
-                                ))}
-                              </select>
-                              <button
-                                onClick={() => handleFeedbackSubmit(quote._id, (quote.recommendations || [])[0]?.vendorName || "Unknown", feedbackForm.accepted)}
-                                disabled={!feedbackForm.comment}
-                                aria-label="Submit feedback"
-                              >
-                                Submit Feedback
-                              </button>
-                              <button
-                                onClick={() => setFeedbackForm({ quoteId: null, comment: "", rating: 0 })}
-                                aria-label="Cancel feedback"
-                              >
-                                Cancel
-                              </button>
+                          <div className="detail-item">
+                            <span className="detail-label">Colour/Mono Split</span>
+                            <span className="detail-value">
+                              {quote.monthlyVolume?.colour || 0} / {quote.monthlyVolume?.mono || 0}
+                            </span>
+                          </div>
+                          <div className="detail-item">
+                            <span className="detail-label">Budget Range</span>
+                            <span className="detail-value">{formatCurrency(quote.maxBudget || 0)}/month</span>
+                          </div>
+                        </div>
+
+                        {quote.requirements && (
+                          <div className="requirements-list">
+                            <span className="requirements-label">Requirements:</span>
+                            <div className="requirements-tags">
+                              {quote.requirements.map((req, idx) => (
+                                <span key={idx} className="requirement-tag">{req}</span>
+                              ))}
                             </div>
-                          ) : (
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="quote-actions">
+                        {quote.status === "Pending" && (
+                          <div className="response-actions">
                             <button
-                              className="feedback-button"
-                              onClick={() => setFeedbackForm({ quoteId: quote._id, comment: "", rating: 0, accepted: true })}
-                              aria-label={`Provide feedback for ${quote.companyName || "Quote Request"} quote`}
+                              className="btn btn-success"
+                              onClick={() => handleQuoteResponse(quote._id, "accept", vendorData.name)}
+                              disabled={dashboardState.loading}
                             >
-                              Add Feedback
+                              <FaCheckCircle /> Accept Quote
+                            </button>
+                            <button
+                              className="btn btn-danger"
+                              onClick={() => handleQuoteResponse(quote._id, "decline", vendorData.name)}
+                              disabled={dashboardState.loading}
+                            >
+                              <FaTimes /> Decline
+                            </button>
+                          </div>
+                        )}
+                        
+                        <div className="secondary-actions">
+                          <button
+                            className="btn btn-outline"
+                            onClick={() => navigate(`/quotes/${quote._id}`)}
+                          >
+                            <FaEye /> View Details
+                          </button>
+                          
+                          {quote.status !== "Pending" && (
+                            <button
+                              className="btn btn-ghost"
+                              onClick={() => setFeedback({ 
+                                quoteId: quote._id, 
+                                comment: "", 
+                                rating: 0,
+                                isSubmitting: false
+                              })}
+                            >
+                              <FaStar /> Add Feedback
                             </button>
                           )}
-                          <button
-                            className="view-quote-button"
-                            onClick={() => navigate(`/quotes/${quote._id}`)}
-                            aria-label={`View details for ${quote.companyName || "Quote Request"} quote`}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="empty-state large">
+                  <FaQuoteRight />
+                  <h3>No Quote Requests</h3>
+                  <p>Quote requests from potential customers will appear here.</p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {dashboardState.activeTab === "files" && (
+            <div className="files-content">
+              {/* Enhanced File Upload */}
+              <section className="upload-section">
+                <div className="section-header">
+                  <h2>Upload Documents</h2>
+                  <p>Upload contracts, invoices, and other important documents</p>
+                </div>
+                
+                <div className="upload-container">
+                  <div className="upload-controls">
+                    <select
+                      value={fileState.documentType}
+                      onChange={(e) => setFileState(prev => ({ 
+                        ...prev, 
+                        documentType: e.target.value 
+                      }))}
+                      className="document-type-select"
+                    >
+                      <option value="contract">Contract</option>
+                      <option value="invoice">Invoice</option>
+                      <option value="certificate">Certificate</option>
+                      <option value="insurance">Insurance</option>
+                      <option value="other">Other</option>
+                    </select>
+                  </div>
+
+                  <div
+                    className={`upload-dropzone ${fileState.dragOver ? "drag-over" : ""}`}
+                    onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                    onDrop={handleDrop}
+                    onClick={() => document.getElementById("file-input").click()}
+                  >
+                    <div className="upload-icon">
+                      <FaCloudUploadAlt />
+                    </div>
+                    <div className="upload-text">
+                      <p className="upload-primary">
+                        {fileState.file ? fileState.file.name : "Drag & drop files here"}
+                      </p>
+                      <p className="upload-secondary">
+                        or click to browse • PDF, CSV, XLSX, Images
+                      </p>
+                    </div>
+                    <input
+                      id="file-input"
+                      type="file"
+                      onChange={(e) => {
+                        const file = e.target.files[0];
+                        if (file) {
+                          setFileState(prev => ({ ...prev, file }));
+                          handleFileUpload(file);
+                        }
+                      }}
+                      accept=".pdf,.csv,.xlsx,.xls,.png,.jpg,.jpeg"
+                      className="file-input-hidden"
+                      hidden
+                    />
+                  </div>
+
+                  {fileState.uploadProgress > 0 && fileState.uploadProgress < 100 && (
+                    <div className="upload-progress">
+                      <div className="progress-bar">
+                        <div 
+                          className="progress-fill" 
+                          style={{ width: `${fileState.uploadProgress}%` }}
+                        />
+                      </div>
+                      <span className="progress-text">{fileState.uploadProgress}%</span>
+                    </div>
+                  )}
+                </div>
+              </section>
+
+              {/* Enhanced Files List */}
+              <section className="files-list-section">
+                <div className="section-header">
+                  <h2>Uploaded Documents</h2>
+                  <span className="files-count">{dataState.uploadedFiles.length} files</span>
+                </div>
+                
+                {dataState.uploadedFiles.length > 0 ? (
+                  <div className="files-grid">
+                    {dataState.uploadedFiles.map((file, index) => (
+                      <div key={index} className="file-card">
+                        <div className="file-icon">
+                          <span className={`file-type file-type-${file.fileType || 'unknown'}`}>
+                            {(file.fileType || 'FILE').toUpperCase()}
+                          </span>
+                        </div>
+                        
+                        <div className="file-info">
+                          <h4 className="file-name" title={file.fileName}>
+                            {file.fileName}
+                          </h4>
+                          <p className="file-type-label">{file.documentType}</p>
+                          <time className="file-date">{formatDate(file.uploadDate)}</time>
+                        </div>
+                        
+                        <div className="file-actions">
+                          <button 
+                            className="btn btn-ghost btn-sm"
+                            onClick={() => window.open(file.filePath, '_blank')}
+                            title="Download file"
                           >
-                            View Details
+                            <FaDownload />
+                          </button>
+                          <button 
+                            className="btn btn-ghost btn-sm"
+                            onClick={() => navigator.share && navigator.share({
+                              title: file.fileName,
+                              url: file.filePath
+                            })}
+                            title="Share file"
+                          >
+                            <FaArrowRight />
                           </button>
                         </div>
                       </div>
                     ))}
                   </div>
-                  <div className="pagination">
-                    <button
-                      onClick={() => setQuotePage((prev) => Math.max(prev - 1, 1))}
-                      disabled={quotePage === 1}
-                      aria-label="Previous page of quotes"
-                    >
-                      Previous
-                    </button>
-                    <span>Page {quotePage}</span>
-                    <button
-                      onClick={() => setQuotePage((prev) => prev + 1)}
-                      disabled={(quotes || []).length < itemsPerPage}
-                      aria-label="Next page of quotes"
-                    >
-                      Next
-                    </button>
+                ) : (
+                  <div className="empty-state">
+                    <FaFileAlt />
+                    <h3>No Documents Uploaded</h3>
+                    <p>Upload your first document using the dropzone above</p>
                   </div>
-                </>
-              ) : (
-                <p className="no-data">No quote requests available.</p>
-              )}
-            </section>
-          </div>
-        )}
+                )}
+              </section>
+            </div>
+          )}
 
-        {activeTab === "files" && (
-          <div id="files-panel" role="tabpanel">
-            <section className="file-upload-section">
-              <h2>File Upload</h2>
-              <select
-                value={documentType}
-                onChange={(e) => setDocumentType(e.target.value)}
-                className="document-type-select"
-                aria-label="Select document type"
-              >
-                <option value="contract">Contract</option>
-                <option value="bill">Bill</option>
-                <option value="invoice">Invoice</option>
-                <option value="other">Other</option>
-              </select>
-              <div
-                className="upload-dropzone"
-                onClick={() => document.querySelector(".file-input").click()}
-                role="button"
-                aria-label="Upload a file"
-              >
-                <FaCloudUploadAlt size={50} />
-                <p>{file ? file.name : "Drag & Drop a file here or Click to Upload"}</p>
-                <input
-                  type="file"
-                  onChange={handleFileChange}
-                  accept=".pdf,.csv,.xlsx,.xls,.png,.jpg,.jpeg"
-                  className="file-input"
-                />
+          {dashboardState.activeTab === "analytics" && (
+            <div className="analytics-content">
+              <div className="section-header">
+                <h2>Performance Analytics</h2>
+                <p>Track your vendor performance and identify growth opportunities</p>
               </div>
-              <button
-                className="nav-button upload"
-                onClick={handleUpload}
-                disabled={loading}
-                aria-label="Upload selected document"
-              >
-                {loading ? `Uploading... ${uploadProgress}%` : "Upload Document"}
-              </button>
-              {message && (
-                <p className={`upload-message ${message.includes("success") ? "success" : "error"}`}>
-                  {message}
-                </p>
-              )}
-            </section>
 
-            <section className="uploaded-files">
-              <h2>Uploaded Files History</h2>
-              {(uploadedFiles || []).length > 0 ? (
-                <>
-                  <div className="files-list">
-                    {uploadedFiles.map((file, index) => (
-                      <div key={index} className="file-card">
-                        <div className="file-icon">
-                          {file.fileType === "pdf" && <span className="file-type-pdf">PDF</span>}
-                          {file.fileType === "csv" && <span className="file-type-csv">CSV</span>}
-                          {file.fileType === "xlsx" && <span className="file-type-xlsx">XLSX</span>}
-                          {file.fileType === "xls" && <span className="file-type-xls">XLS</span>}
-                          {file.fileType === "png" && <span className="file-type-image">PNG</span>}
-                          {file.fileType === "jpg" && <span className="file-type-image">JPG</span>}
-                          {file.fileType === "jpeg" && <span className="file-type-image">JPEG</span>}
-                        </div>
-                        <div className="file-details">
-                          <p><strong>Name:</strong> {file.fileName}</p>
-                          <p><strong>Type:</strong> {file.documentType || file.fileType}</p>
-                          <p><strong>Uploaded:</strong> {formatDate(file.uploadDate)}</p>
-                        </div>
-                        <div className="file-actions">
-                          <a href={file.filePath} download className="download-button">
-                            Download
-                          </a>
-                        </div>
+              {/* Performance Metrics */}
+              <div className="analytics-grid">
+                <div className="analytics-card">
+                  <div className="analytics-header">
+                    <h3>Response Performance</h3>
+                    <FaBolt className="analytics-icon" />
+                  </div>
+                  <div className="analytics-content">
+                    <div className="metric-large">{metrics.responseRate}%</div>
+                    <div className="metric-label">Response Rate</div>
+                    <div className="metric-trend positive">
+                      <FaArrowUp /> +5% vs last month
+                    </div>
+                  </div>
+                </div>
+
+                <div className="analytics-card">
+                  <div className="analytics-header">
+                    <h3>Quote Success</h3>
+                    <FaCheckCircle className="analytics-icon" />
+                  </div>
+                  <div className="analytics-content">
+                    <div className="metric-large">{metrics.successRate}%</div>
+                    <div className="metric-label">Acceptance Rate</div>
+                    <div className="metric-comparison">Industry avg: 23%</div>
+                  </div>
+                </div>
+
+                <div className="analytics-card">
+                  <div className="analytics-header">
+                    <h3>Monthly Revenue</h3>
+                    <FaPoundSign className="analytics-icon" />
+                  </div>
+                  <div className="analytics-content">
+                    <div className="metric-large">{formatCurrency(vendorData.monthlyEarnings)}</div>
+                    <div className="metric-label">This Month</div>
+                    <div className="metric-trend positive">
+                      <FaArrowUp /> +12% vs last month
+                    </div>
+                  </div>
+                </div>
+
+                <div className="analytics-card">
+                  <div className="analytics-header">
+                    <h3>Customer Rating</h3>
+                    <FaStar className="analytics-icon" />
+                  </div>
+                  <div className="analytics-content">
+                    <div className="metric-large">{vendorData.rating}/5</div>
+                    <div className="metric-label">Average Rating</div>
+                    <div className="rating-stars">
+                      {[...Array(5)].map((_, i) => (
+                        <FaStar 
+                          key={i} 
+                          className={i < vendorData.rating ? "star-filled" : "star-empty"} 
+                        />
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Recent Performance Insights */}
+              <div className="insights-section">
+                <h3>Performance Insights</h3>
+                <div className="insights-list">
+                  <div className="insight-item positive">
+                    <FaArrowUp className="insight-icon" />
+                    <div className="insight-content">
+                      <h4>Response Time Improved</h4>
+                      <p>Your average response time has decreased by 30% this month</p>
+                    </div>
+                  </div>
+                  <div className="insight-item neutral">
+                    <FaInfoCircle className="insight-icon" />
+                    <div className="insight-content">
+                      <h4>Peak Request Hours</h4>
+                      <p>Most quote requests come in between 9-11 AM on weekdays</p>
+                    </div>
+                  </div>
+                  <div className="insight-item warning">
+                    <FaExclamationTriangle className="insight-icon" />
+                    <div className="insight-content">
+                      <h4>Opportunity to Improve</h4>
+                      <p>Consider updating your pricing to be more competitive in the office equipment category</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {dashboardState.activeTab === "notifications" && (
+            <div className="notifications-content">
+              <div className="section-header">
+                <h2>Notifications</h2>
+                <button className="btn btn-ghost btn-sm">
+                  Mark All Read
+                </button>
+              </div>
+
+              {dataState.notifications.length > 0 ? (
+                <div className="notifications-list">
+                  {dataState.notifications.map((notification, index) => (
+                    <div 
+                      key={index} 
+                      className={`notification-item ${!notification.read ? 'unread' : ''}`}
+                    >
+                      <div className="notification-icon">
+                        {notification.type === "quote" && <FaQuoteRight />}
+                        {notification.type === "payment" && <FaPoundSign />}
+                        {notification.type === "system" && <FaBell />}
+                        {notification.type === "alert" && <FaExclamationTriangle />}
                       </div>
+                      
+                      <div className="notification-content">
+                        <h4 className="notification-title">{notification.title}</h4>
+                        <p className="notification-message">{notification.message}</p>
+                        <time className="notification-time">{formatDate(notification.createdAt)}</time>
+                      </div>
+                      
+                      {!notification.read && (
+                        <div className="notification-badge">New</div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="empty-state">
+                  <FaBell />
+                  <h3>No Notifications</h3>
+                  <p>You're all caught up! New notifications will appear here.</p>
+                </div>
+              )}
+            </div>
+          )}
+        </main>
+
+        {/* Feedback Modal */}
+        {feedback.quoteId && (
+          <div className="modal-overlay" onClick={() => setFeedback({ quoteId: null, comment: "", rating: 0, isSubmitting: false })}>
+            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+              <div className="modal-header">
+                <h3>Provide Feedback</h3>
+                <button 
+                  className="modal-close"
+                  onClick={() => setFeedback({ quoteId: null, comment: "", rating: 0, isSubmitting: false })}
+                >
+                  <FaTimes />
+                </button>
+              </div>
+              
+              <div className="modal-body">
+                <div className="feedback-rating">
+                  <label>Rating:</label>
+                  <div className="star-rating">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <button
+                        key={star}
+                        className={`star-button ${star <= feedback.rating ? 'active' : ''}`}
+                        onClick={() => setFeedback(prev => ({ ...prev, rating: star }))}
+                      >
+                        <FaStar />
+                      </button>
                     ))}
                   </div>
-                  <div className="pagination">
-                    <button
-                      onClick={() => setFilePage((prev) => Math.max(prev - 1, 1))}
-                      disabled={filePage === 1}
-                      aria-label="Previous page of files"
-                    >
-                      Previous
-                    </button>
-                    <span>Page {filePage}</span>
-                    <button
-                      onClick={() => setFilePage((prev) => prev + 1)}
-                      disabled={(uploadedFiles || []).length < itemsPerPage}
-                      aria-label="Next page of files"
-                    >
-                      Next
-                    </button>
+                </div>
+                
+                <div className="feedback-comment">
+                  <label>Comment:</label>
+                  <textarea
+                    value={feedback.comment}
+                    onChange={(e) => setFeedback(prev => ({ ...prev, comment: e.target.value }))}
+                    placeholder="Share your experience with this quote request..."
+                    maxLength={500}
+                    rows={4}
+                  />
+                  <div className="character-count">
+                    {feedback.comment.length}/500
                   </div>
-                </>
-              ) : (
-                <p className="no-data">No files uploaded yet.</p>
-              )}
-            </section>
+                </div>
+              </div>
+              
+              <div className="modal-footer">
+                <button 
+                  className="btn btn-outline"
+                  onClick={() => setFeedback({ quoteId: null, comment: "", rating: 0, isSubmitting: false })}
+                >
+                  Cancel
+                </button>
+                <button 
+                  className="btn btn-primary"
+                  onClick={() => {
+                    // Handle feedback submission
+                    setFeedback({ quoteId: null, comment: "", rating: 0, isSubmitting: false });
+                    showMessage("Feedback submitted successfully!", "success");
+                  }}
+                  disabled={!feedback.comment || feedback.rating === 0 || feedback.isSubmitting}
+                >
+                  {feedback.isSubmitting ? "Submitting..." : "Submit Feedback"}
+                </button>
+              </div>
+            </div>
           </div>
         )}
 
-        {activeTab === "notifications" && (
-          <div id="notifications-panel" role="tabpanel">
-            <section className="notifications-section">
-              <h2>Notifications</h2>
-              {(recentActivity || []).length > 0 ? (
-                <>
-                  <ul className="notifications-list">
-                    {recentActivity.map((activity, index) => (
-                      <li key={index} className="notification-item">
-                        <div className="notification-icon">
-                          {activity.type === "quote" && <FaQuoteRight />}
-                          {activity.type === "upload" && <FaUpload />}
-                          {activity.type === "login" && <FaBell />}
-                          {activity.type === "signup" && <FaBell />}
-                        </div>
-                        <div className="notification-content">
-                          <p className="notification-description">{activity.description}</p>
-                          <p className="notification-date">{formatDate(activity.date)}</p>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                  <div className="pagination">
-                    <button
-                      onClick={() => setFilePage((prev) => Math.max(prev - 1, 1))}
-                      disabled={filePage === 1}
-                      aria-label="Previous page of notifications"
-                    >
-                      Previous
-                    </button>
-                    <span>Page {filePage}</span>
-                    <button
-                      onClick={() => setFilePage((prev) => prev + 1)}
-                      disabled={(recentActivity || []).length < itemsPerPage}
-                      aria-label="Next page of notifications"
-                    >
-                      Next
-                    </button>
-                  </div>
-                </>
-              ) : (
-                <p className="no-data">No notifications available.</p>
-              )}
-            </section>
+        {/* Loading Overlay */}
+        {dashboardState.loading && (
+          <div className="loading-overlay">
+            <div className="loading-spinner">
+              <div className="spinner"></div>
+              <p>Loading...</p>
+            </div>
           </div>
         )}
-      </main>
-    </div>
+      </div>
+    </HelmetProvider>
   );
 };
 

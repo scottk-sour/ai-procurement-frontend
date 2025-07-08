@@ -42,6 +42,7 @@ const Login = () => {
     email: "",
     password: ""
   });
+  
   const [uiState, setUiState] = useState({
     passwordVisible: false,
     loading: false,
@@ -62,63 +63,74 @@ const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // ❌ Removed API_URL constant; we'll call /api/... directly
+  // Computed values
+  const loginEndpoint = "/api/users/login";
+  const redirectPath = location.state?.from || "/dashboard";
 
-  useEffect(() => {
-    window.scrollTo(0, 0);
-    const timer = setTimeout(() => setIsVisible(true), 100);
-    return () => clearTimeout(timer);
-  }, [location]);
+  // Helper functions
+  const validateEmail = useCallback((email) => {
+    return VALIDATION_RULES.email.pattern.test(email);
+  }, []);
 
-  useEffect(() => {
-    if (!auth || auth.isLoading) return;
-    if (auth.isAuthenticated && auth.user?.role === "user") {
-      const from = location.state?.from || "/dashboard";
-      navigate(from, { replace: true });
+  const validateForm = useCallback(() => {
+    const emailValue = formData.email;
+    const passwordValue = formData.password;
+    
+    if (!emailValue.trim()) {
+      return { isValid: false, error: "Email is required" };
     }
-  }, [auth, navigate, location]);
-
-  const validateEmail = (email) =>
-    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError("");
-
-    // 🔍 Debug logging
-    console.log("🔍 Environment check:");
-    console.log("NODE_ENV:", process.env.NODE_ENV);
-    console.log("Current origin:", window.location.origin);
-
-    if (!email.trim() || !password.trim()) {
-      setError("Please enter both email and password.");
-      setLoading(false);
-      return;
+    if (!validateEmail(emailValue)) {
+      return { isValid: false, error: VALIDATION_RULES.email.message };
     }
-    if (!validateEmail(email)) {
-      setError("Please enter a valid email address.");
-      setLoading(false);
-      return;
+    if (!passwordValue.trim()) {
+      return { isValid: false, error: "Password is required" };
     }
+    if (passwordValue.length < VALIDATION_RULES.password.minLength) {
+      return { isValid: false, error: VALIDATION_RULES.password.message };
+    }
+    return { isValid: true };
+  }, [formData.email, formData.password, validateEmail]);
+
+  // Get appropriate error message based on status code
+  const getErrorMessage = useCallback((status, data) => {
+    switch (status) {
+      case 400:
+        return data.message || ERROR_MESSAGES.validation;
+      case 401:
+        return ERROR_MESSAGES.unauthorized;
+      case 403:
+        return ERROR_MESSAGES.forbidden;
+      case 429:
+        return ERROR_MESSAGES.rateLimit;
+      case 500:
+        return ERROR_MESSAGES.server;
+      case 503:
+        return ERROR_MESSAGES.maintenance;
+      default:
+        return data.message || data.error || ERROR_MESSAGES.default;
+    }
+  }, []);
+
+  // Make login request with retry logic
+  const makeLoginRequest = useCallback(async (email, password, retryCount = 0) => {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.timeout);
 
     try {
-      // 🛣️ Use relative path—Vercel will proxy /api to your backend
-      const loginUrl = "/api/users/login";
-      console.log("🔍 Making login request to:", loginUrl);
+      console.log("🔍 Making login request to:", loginEndpoint);
 
-      const response = await fetch(loginUrl, {
+      const response = await fetch(loginEndpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({ email, password }),
+        signal: controller.signal
       });
 
+      clearTimeout(timeoutId);
+
       console.log("📡 Response status:", response.status);
-      console.log(
-        "📡 Response headers:",
-        Object.fromEntries(response.headers.entries())
-      );
+      console.log("📡 Response headers:", Object.fromEntries(response.headers.entries()));
 
       const data = await response.json();
 
@@ -154,27 +166,7 @@ const Login = () => {
       
       return { success: false, error: error.message || ERROR_MESSAGES.default };
     }
-  }, [loginEndpoint]);
-
-  // Get appropriate error message based on status code
-  const getErrorMessage = useCallback((status, data) => {
-    switch (status) {
-      case 400:
-        return data.message || ERROR_MESSAGES.validation;
-      case 401:
-        return ERROR_MESSAGES.unauthorized;
-      case 403:
-        return ERROR_MESSAGES.forbidden;
-      case 429:
-        return ERROR_MESSAGES.rateLimit;
-      case 500:
-        return ERROR_MESSAGES.server;
-      case 503:
-        return ERROR_MESSAGES.maintenance;
-      default:
-        return data.message || data.error || ERROR_MESSAGES.default;
-    }
-  }, []);
+  }, [loginEndpoint, getErrorMessage]);
 
   // Handle form submission
   const handleSubmit = useCallback(async (e) => {
@@ -236,23 +228,24 @@ const Login = () => {
         }, 1000);
 
       } else {
-        const errorMsg =
-          response.status === 429
-            ? "Too many login attempts. Please try again later."
-            : response.status === 500
-            ? "Server error. Please try again later."
-            : data.message || "Invalid email or password.";
-        setError(errorMsg);
+        console.error("❌ Login failed:", result.error);
+        setUiState(prev => ({ 
+          ...prev, 
+          error: result.error,
+          retryCount: prev.retryCount + 1
+        }));
       }
     } catch (err) {
       console.error("Login network error:", err);
-      if (err.name === "TypeError" && err.message.includes("fetch")) {
-        setError(
-          "Cannot connect to server. Please check your connection or try again later."
-        );
-      } else {
-        setError("A network error occurred. Please try again.");
-      }
+      const errorMessage = err.name === "TypeError" && err.message.includes("fetch")
+        ? "Cannot connect to server. Please check your connection or try again later."
+        : "A network error occurred. Please try again.";
+      
+      setUiState(prev => ({ 
+        ...prev, 
+        error: errorMessage,
+        retryCount: prev.retryCount + 1
+      }));
     } finally {
       setUiState(prev => ({ ...prev, loading: false }));
     }
@@ -464,7 +457,7 @@ const Login = () => {
             </button>
 
             <p className="signup-link">
-              Don’t have an account?{" "}
+              Don't have an account?{" "}
               <a
                 href="/signup"
                 onClick={(e) => {
@@ -504,8 +497,6 @@ const Login = () => {
               <strong>User Role:</strong> {auth?.user?.role || "None"}
               <br />
               <strong>Form Valid:</strong> {validateForm().isValid ? "Yes" : "No"}
-              <br />
-              Login Endpoint: /api/users/login
             </div>
           )}
         </div>

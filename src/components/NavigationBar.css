@@ -369,6 +369,7 @@
 }
 
 .user-auth-section,
+.vendor-auth-section,
 .user-menu,
 .vendor-menu {
   display: flex;
@@ -470,6 +471,21 @@
   color: var(--text-white);
   border-color: #a855f7;
   transform: translateY(-2px);
+}
+
+.vendor-signup-link {
+  background: linear-gradient(135deg, #a855f7 0%, #7c3aed 100%);
+  color: var(--text-white);
+  border-color: #a855f7;
+  box-shadow: var(--shadow-light);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.vendor-signup-link:hover {
+  background: linear-gradient(135deg, #c084fc 0%, #a855f7 100%);
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-medium);
 }
 
 .logout-link {
@@ -699,6 +715,12 @@
   box-shadow: var(--shadow-light);
 }
 
+.mobile-auth-link.vendor-signup {
+  background: linear-gradient(135deg, #a855f7 0%, #7c3aed 100%);
+  border-color: #a855f7;
+  box-shadow: var(--shadow-light);
+}
+
 .mobile-auth-link.dashboard,
 .mobile-auth-link.vendor-dashboard {
   background: rgba(16, 185, 129, 0.2);
@@ -719,6 +741,11 @@
 
 .mobile-auth-link.signup:hover {
   background: linear-gradient(135deg, var(--accent-orange-light) 0%, var(--accent-orange) 100%);
+  box-shadow: var(--shadow-medium);
+}
+
+.mobile-auth-link.vendor-signup:hover {
+  background: linear-gradient(135deg, #c084fc 0%, #a855f7 100%);
   box-shadow: var(--shadow-medium);
 }
 

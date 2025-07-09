@@ -141,45 +141,30 @@ const NavigationBar = () => {
     }));
   }, []);
 
-  // Enhanced navigation handler
-  const handleNavigation = useCallback((path, shouldReplace = false) => {
-    try {
-      closeMenu();
-      closeDropdown();
-      
-      // Small delay to allow menu animation to start
-      setTimeout(() => {
-        if (shouldReplace) {
-          navigate(path, { replace: true });
-        } else {
-          navigate(path);
-        }
-      }, 100);
-    } catch (error) {
-      console.error('Navigation error:', error);
-      // Fallback to window.location if navigate fails
-      window.location.href = path;
-    }
-  }, [navigate, closeMenu, closeDropdown]);
-
   // Authentication handlers
   const handleLogout = useCallback(() => {
     try {
       logout();
-      handleNavigation("/login", true);
+      closeMenu();
+      navigate("/login", { replace: true });
     } catch (error) {
       console.error('Logout error:', error);
+      // Fallback navigation
+      window.location.href = "/login";
     }
-  }, [logout, handleNavigation]);
+  }, [logout, closeMenu, navigate]);
 
   const handleVendorLogout = useCallback(() => {
     try {
       logout();
-      handleNavigation("/vendor-login", true);
+      closeMenu();
+      navigate("/vendor-login", { replace: true });
     } catch (error) {
       console.error('Vendor logout error:', error);
+      // Fallback navigation
+      window.location.href = "/vendor-login";
     }
-  }, [logout, handleNavigation]);
+  }, [logout, closeMenu, navigate]);
 
   // Keyboard event handlers
   const handleDropdownKeyDown = useCallback((event) => {
@@ -241,7 +226,6 @@ const NavigationBar = () => {
   useEffect(() => {
     closeMenu();
     closeDropdown();
-    window.scrollTo(0, 0);
   }, [pathname, closeMenu, closeDropdown]);
 
   useEffect(() => {
@@ -288,57 +272,41 @@ const NavigationBar = () => {
     }
   }, [uiState.isDropdownOpen]);
 
-  // Enhanced Navigation Link component
-  const NavigationLink = React.memo(({ to, label, exact = false, onClick }) => {
-    const handleClick = useCallback((e) => {
-      e.preventDefault();
-      if (onClick) onClick();
-      handleNavigation(to);
-    }, [to, onClick]);
+  // Simple Navigation Link component - Let NavLink handle navigation naturally
+  const NavigationLink = React.memo(({ to, label, exact = false, onClick }) => (
+    <NavLink
+      to={to}
+      end={exact}
+      onClick={onClick}
+      className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
+      aria-current={pathname === to ? 'page' : undefined}
+    >
+      {label}
+    </NavLink>
+  ));
 
-    return (
-      <NavLink
-        to={to}
-        end={exact}
-        onClick={handleClick}
-        className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
-        aria-current={pathname === to ? 'page' : undefined}
-      >
-        {label}
-      </NavLink>
-    );
-  });
-
-  // Enhanced Service Link component
-  const ServiceLink = React.memo(({ service, className = "", onClick }) => {
-    const handleClick = useCallback((e) => {
-      e.preventDefault();
-      if (onClick) onClick();
-      handleNavigation(service.to);
-    }, [service.to, onClick]);
-
-    return (
-      <NavLink
-        to={service.to}
-        onClick={handleClick}
-        className={className}
-        role="menuitem"
-        tabIndex={uiState.isDropdownOpen ? 0 : -1}
-      >
-        <div className="dropdown-item-content">
-          <span className="dropdown-item-icon" aria-hidden="true">
-            {service.icon}
-          </span>
-          <div className="dropdown-item-text">
-            <span className="dropdown-item-title">{service.label}</span>
-            <span className="dropdown-item-desc">{service.description}</span>
-          </div>
+  // Simple Service Link component
+  const ServiceLink = React.memo(({ service, className = "", onClick }) => (
+    <NavLink
+      to={service.to}
+      onClick={onClick}
+      className={className}
+      role="menuitem"
+      tabIndex={uiState.isDropdownOpen ? 0 : -1}
+    >
+      <div className="dropdown-item-content">
+        <span className="dropdown-item-icon" aria-hidden="true">
+          {service.icon}
+        </span>
+        <div className="dropdown-item-text">
+          <span className="dropdown-item-title">{service.label}</span>
+          <span className="dropdown-item-desc">{service.description}</span>
         </div>
-      </NavLink>
-    );
-  });
+      </div>
+    </NavLink>
+  ));
 
-  // Enhanced Button component for auth actions
+  // Simple Auth Button component
   const AuthButton = React.memo(({ onClick, className, children, ariaLabel, type = "button" }) => (
     <button
       className={className}
@@ -350,25 +318,17 @@ const NavigationBar = () => {
     </button>
   ));
 
-  // Enhanced NavLink component for auth links
-  const AuthNavLink = React.memo(({ to, className, children, ariaLabel, onClick }) => {
-    const handleClick = useCallback((e) => {
-      e.preventDefault();
-      if (onClick) onClick();
-      handleNavigation(to);
-    }, [to, onClick]);
-
-    return (
-      <NavLink
-        to={to}
-        className={className}
-        onClick={handleClick}
-        aria-label={ariaLabel}
-      >
-        {children}
-      </NavLink>
-    );
-  });
+  // Simple Auth NavLink component
+  const AuthNavLink = React.memo(({ to, className, children, ariaLabel, onClick }) => (
+    <NavLink
+      to={to}
+      className={className}
+      onClick={onClick}
+      aria-label={ariaLabel}
+    >
+      {children}
+    </NavLink>
+  ));
 
   // Render authentication section
   const AuthenticationSection = React.memo(() => (
@@ -380,6 +340,7 @@ const NavigationBar = () => {
             to="/login"
             className="auth-link login-link"
             ariaLabel="User login"
+            onClick={closeMenu}
           >
             <FaUser className="auth-icon" aria-hidden="true" />
             <span>User Login</span>
@@ -388,6 +349,7 @@ const NavigationBar = () => {
             to="/signup"
             className="auth-link signup-link cta-button"
             ariaLabel="Create user account"
+            onClick={closeMenu}
           >
             <span>User Sign Up</span>
           </AuthNavLink>
@@ -398,6 +360,7 @@ const NavigationBar = () => {
             to="/dashboard"
             className={({ isActive }) => `auth-link dashboard-link ${isActive ? 'active' : ''}`}
             ariaLabel={`${userName}'s dashboard`}
+            onClick={closeMenu}
           >
             <FaUser className="auth-icon" aria-hidden="true" />
             <span className="user-name">{userName}</span>
@@ -419,6 +382,7 @@ const NavigationBar = () => {
             to="/vendor-login"
             className="auth-link vendor-link"
             ariaLabel="Vendor portal login"
+            onClick={closeMenu}
           >
             <FaStore className="auth-icon" aria-hidden="true" />
             <span>Vendor Login</span>
@@ -427,6 +391,7 @@ const NavigationBar = () => {
             to="/vendor-signup"
             className="auth-link vendor-signup-link cta-button"
             ariaLabel="Create vendor account"
+            onClick={closeMenu}
           >
             <span>Vendor Sign Up</span>
           </AuthNavLink>
@@ -437,6 +402,7 @@ const NavigationBar = () => {
             to="/vendor-dashboard"
             className={({ isActive }) => `auth-link vendor-dashboard-link ${isActive ? 'active' : ''}`}
             ariaLabel="Vendor dashboard"
+            onClick={closeMenu}
           >
             <FaStore className="auth-icon" aria-hidden="true" />
             <span>Vendor Dashboard</span>

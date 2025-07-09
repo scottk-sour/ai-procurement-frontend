@@ -41,10 +41,10 @@ const SERVICE_LINKS = [
 // Navigation links configuration
 const NAVIGATION_LINKS = [
   { to: "/", label: "Home", exact: true },
-  { to: "/how-it-works", label: "How It Works" },
-  { to: "/about-us", label: "About Us" },
-  { to: "/contact", label: "Contact" },
-  { to: "/faq", label: "FAQ" }
+  { to: "/how-it-works", label: "How It Works", exact: false },
+  { to: "/about-us", label: "About Us", exact: false },
+  { to: "/contact", label: "Contact", exact: false },
+  { to: "/faq", label: "FAQ", exact: false }
 ];
 
 const NavigationBar = () => {
@@ -100,7 +100,7 @@ const NavigationBar = () => {
         }
         return prev;
       });
-    }, 10); // Throttle to 10ms
+    }, 10);
   }, []);
 
   // Menu control functions
@@ -108,7 +108,7 @@ const NavigationBar = () => {
     setUiState(prev => ({
       ...prev,
       menuOpen: !prev.menuOpen,
-      isDropdownOpen: false // Close dropdown when opening mobile menu
+      isDropdownOpen: false
     }));
   }, []);
 
@@ -141,26 +141,45 @@ const NavigationBar = () => {
     }));
   }, []);
 
+  // Enhanced navigation handler
+  const handleNavigation = useCallback((path, shouldReplace = false) => {
+    try {
+      closeMenu();
+      closeDropdown();
+      
+      // Small delay to allow menu animation to start
+      setTimeout(() => {
+        if (shouldReplace) {
+          navigate(path, { replace: true });
+        } else {
+          navigate(path);
+        }
+      }, 100);
+    } catch (error) {
+      console.error('Navigation error:', error);
+      // Fallback to window.location if navigate fails
+      window.location.href = path;
+    }
+  }, [navigate, closeMenu, closeDropdown]);
+
   // Authentication handlers
   const handleLogout = useCallback(() => {
     try {
       logout();
-      closeMenu();
-      navigate("/login", { replace: true });
+      handleNavigation("/login", true);
     } catch (error) {
       console.error('Logout error:', error);
     }
-  }, [logout, closeMenu, navigate]);
+  }, [logout, handleNavigation]);
 
   const handleVendorLogout = useCallback(() => {
     try {
       logout();
-      closeMenu();
-      navigate("/vendor-login", { replace: true });
+      handleNavigation("/vendor-login", true);
     } catch (error) {
       console.error('Vendor logout error:', error);
     }
-  }, [logout, closeMenu, navigate]);
+  }, [logout, handleNavigation]);
 
   // Keyboard event handlers
   const handleDropdownKeyDown = useCallback((event) => {
@@ -181,8 +200,9 @@ const NavigationBar = () => {
   const handleGlobalKeyDown = useCallback((event) => {
     if (event.key === ESCAPE_KEY) {
       closeMenu();
+      closeDropdown();
     }
-  }, [closeMenu]);
+  }, [closeMenu, closeDropdown]);
 
   // Click outside handlers
   const handleClickOutsideDropdown = useCallback((event) => {
@@ -208,48 +228,46 @@ const NavigationBar = () => {
 
   // Effects
   useEffect(() => {
-    // Mark component as mounted
     setUiState(prev => ({ ...prev, isMounted: true }));
-    
-    // Scroll to top on route change
-    window.scrollTo(0, 0);
     
     return () => {
       if (scrollTimeoutRef.current) {
         clearTimeout(scrollTimeoutRef.current);
       }
     };
-  }, [pathname]);
+  }, []);
+
+  // Close menu on route change
+  useEffect(() => {
+    closeMenu();
+    closeDropdown();
+    window.scrollTo(0, 0);
+  }, [pathname, closeMenu, closeDropdown]);
 
   useEffect(() => {
-    // Scroll event listener
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, [handleScroll]);
 
   useEffect(() => {
-    // Global keyboard event listener
     document.addEventListener('keydown', handleGlobalKeyDown);
     return () => document.removeEventListener('keydown', handleGlobalKeyDown);
   }, [handleGlobalKeyDown]);
 
   useEffect(() => {
-    // Click outside dropdown listener
     document.addEventListener('mousedown', handleClickOutsideDropdown);
     return () => document.removeEventListener('mousedown', handleClickOutsideDropdown);
   }, [handleClickOutsideDropdown]);
 
   useEffect(() => {
-    // Click outside mobile menu listener
     document.addEventListener('mousedown', handleClickOutsideMobileMenu);
     return () => document.removeEventListener('mousedown', handleClickOutsideMobileMenu);
   }, [handleClickOutsideMobileMenu]);
 
   useEffect(() => {
-    // Manage body scroll when mobile menu is open
     if (uiState.menuOpen) {
       document.body.style.overflow = 'hidden';
-      document.body.style.paddingRight = '0px'; // Prevent scroll jump
+      document.body.style.paddingRight = '0px';
     } else {
       document.body.style.overflow = '';
       document.body.style.paddingRight = '';
@@ -261,7 +279,6 @@ const NavigationBar = () => {
     };
   }, [uiState.menuOpen]);
 
-  // Focus management for accessibility
   useEffect(() => {
     if (uiState.isDropdownOpen && dropdownRef.current) {
       const firstFocusableElement = dropdownRef.current.querySelector('a, button');
@@ -271,18 +288,87 @@ const NavigationBar = () => {
     }
   }, [uiState.isDropdownOpen]);
 
-  // Render navigation link component
-  const NavigationLink = React.memo(({ to, label, exact = false, onClick = closeMenu }) => (
-    <NavLink
-      to={to}
-      end={exact}
+  // Enhanced Navigation Link component
+  const NavigationLink = React.memo(({ to, label, exact = false, onClick }) => {
+    const handleClick = useCallback((e) => {
+      e.preventDefault();
+      if (onClick) onClick();
+      handleNavigation(to);
+    }, [to, onClick]);
+
+    return (
+      <NavLink
+        to={to}
+        end={exact}
+        onClick={handleClick}
+        className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
+        aria-current={pathname === to ? 'page' : undefined}
+      >
+        {label}
+      </NavLink>
+    );
+  });
+
+  // Enhanced Service Link component
+  const ServiceLink = React.memo(({ service, className = "", onClick }) => {
+    const handleClick = useCallback((e) => {
+      e.preventDefault();
+      if (onClick) onClick();
+      handleNavigation(service.to);
+    }, [service.to, onClick]);
+
+    return (
+      <NavLink
+        to={service.to}
+        onClick={handleClick}
+        className={className}
+        role="menuitem"
+        tabIndex={uiState.isDropdownOpen ? 0 : -1}
+      >
+        <div className="dropdown-item-content">
+          <span className="dropdown-item-icon" aria-hidden="true">
+            {service.icon}
+          </span>
+          <div className="dropdown-item-text">
+            <span className="dropdown-item-title">{service.label}</span>
+            <span className="dropdown-item-desc">{service.description}</span>
+          </div>
+        </div>
+      </NavLink>
+    );
+  });
+
+  // Enhanced Button component for auth actions
+  const AuthButton = React.memo(({ onClick, className, children, ariaLabel, type = "button" }) => (
+    <button
+      className={className}
       onClick={onClick}
-      className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
-      aria-current={pathname === to ? 'page' : undefined}
+      aria-label={ariaLabel}
+      type={type}
     >
-      {label}
-    </NavLink>
+      {children}
+    </button>
   ));
+
+  // Enhanced NavLink component for auth links
+  const AuthNavLink = React.memo(({ to, className, children, ariaLabel, onClick }) => {
+    const handleClick = useCallback((e) => {
+      e.preventDefault();
+      if (onClick) onClick();
+      handleNavigation(to);
+    }, [to, onClick]);
+
+    return (
+      <NavLink
+        to={to}
+        className={className}
+        onClick={handleClick}
+        aria-label={ariaLabel}
+      >
+        {children}
+      </NavLink>
+    );
+  });
 
   // Render authentication section
   const AuthenticationSection = React.memo(() => (
@@ -290,71 +376,78 @@ const NavigationBar = () => {
       {/* User Authentication */}
       {!isUserLoggedIn ? (
         <div className="user-auth-section">
-          <NavLink 
-            to="/login" 
+          <AuthNavLink
+            to="/login"
             className="auth-link login-link"
-            aria-label="User login"
+            ariaLabel="User login"
           >
             <FaUser className="auth-icon" aria-hidden="true" />
-            <span>Log In</span>
-          </NavLink>
-          <NavLink 
-            to="/signup" 
+            <span>User Login</span>
+          </AuthNavLink>
+          <AuthNavLink
+            to="/signup"
             className="auth-link signup-link cta-button"
-            aria-label="Create free account"
+            ariaLabel="Create user account"
           >
-            <span>Sign Up Free</span>
-          </NavLink>
+            <span>User Sign Up</span>
+          </AuthNavLink>
         </div>
       ) : (
         <div className="user-menu authenticated">
-          <NavLink
+          <AuthNavLink
             to="/dashboard"
             className={({ isActive }) => `auth-link dashboard-link ${isActive ? 'active' : ''}`}
-            aria-label={`${userName}'s dashboard`}
+            ariaLabel={`${userName}'s dashboard`}
           >
             <FaUser className="auth-icon" aria-hidden="true" />
             <span className="user-name">{userName}</span>
-          </NavLink>
-          <button
+          </AuthNavLink>
+          <AuthButton
             className="auth-link logout-link"
             onClick={handleLogout}
-            aria-label="Log out"
-            type="button"
+            ariaLabel="Log out"
           >
             <span>Log Out</span>
-          </button>
+          </AuthButton>
         </div>
       )}
 
       {/* Vendor Authentication */}
       {!isVendorLoggedIn ? (
-        <NavLink 
-          to="/vendor-login" 
-          className="auth-link vendor-link"
-          aria-label="Vendor portal login"
-        >
-          <FaStore className="auth-icon" aria-hidden="true" />
-          <span>Vendor Portal</span>
-        </NavLink>
+        <div className="vendor-auth-section">
+          <AuthNavLink
+            to="/vendor-login"
+            className="auth-link vendor-link"
+            ariaLabel="Vendor portal login"
+          >
+            <FaStore className="auth-icon" aria-hidden="true" />
+            <span>Vendor Login</span>
+          </AuthNavLink>
+          <AuthNavLink
+            to="/vendor-signup"
+            className="auth-link vendor-signup-link cta-button"
+            ariaLabel="Create vendor account"
+          >
+            <span>Vendor Sign Up</span>
+          </AuthNavLink>
+        </div>
       ) : (
         <div className="vendor-menu authenticated">
-          <NavLink
+          <AuthNavLink
             to="/vendor-dashboard"
             className={({ isActive }) => `auth-link vendor-dashboard-link ${isActive ? 'active' : ''}`}
-            aria-label="Vendor dashboard"
+            ariaLabel="Vendor dashboard"
           >
             <FaStore className="auth-icon" aria-hidden="true" />
             <span>Vendor Dashboard</span>
-          </NavLink>
-          <button
+          </AuthNavLink>
+          <AuthButton
             className="auth-link logout-link"
             onClick={handleVendorLogout}
-            aria-label="Log out from vendor portal"
-            type="button"
+            ariaLabel="Log out from vendor portal"
           >
             <span>Log Out</span>
-          </button>
+          </AuthButton>
         </div>
       )}
     </div>
@@ -396,37 +489,23 @@ const NavigationBar = () => {
           
           <div className="dropdown-grid" role="none">
             {SERVICE_LINKS.map((service) => (
-              <NavLink
+              <ServiceLink
                 key={service.to}
-                to={service.to}
-                onClick={closeMenu}
+                service={service}
                 className="dropdown-item"
-                role="menuitem"
-                tabIndex={uiState.isDropdownOpen ? 0 : -1}
-              >
-                <div className="dropdown-item-content">
-                  <span className="dropdown-item-icon" aria-hidden="true">
-                    {service.icon}
-                  </span>
-                  <div className="dropdown-item-text">
-                    <span className="dropdown-item-title">{service.label}</span>
-                    <span className="dropdown-item-desc">{service.description}</span>
-                  </div>
-                </div>
-              </NavLink>
+                onClick={closeMenu}
+              />
             ))}
           </div>
           
           <div className="dropdown-footer">
-            <NavLink 
-              to="/services" 
-              onClick={closeMenu} 
+            <AuthNavLink
+              to="/services"
+              onClick={closeMenu}
               className="dropdown-cta"
-              role="menuitem"
-              tabIndex={uiState.isDropdownOpen ? 0 : -1}
             >
               View All Services →
-            </NavLink>
+            </AuthNavLink>
           </div>
         </div>
       )}
@@ -448,36 +527,25 @@ const NavigationBar = () => {
           {/* Mobile Navigation Links */}
           <nav className="mobile-nav-section" role="navigation" aria-label="Main navigation">
             {NAVIGATION_LINKS.map((link) => (
-              <NavLink
+              <NavigationLink
                 key={link.to}
                 to={link.to}
-                end={link.exact}
+                label={link.label}
+                exact={link.exact}
                 onClick={closeMenu}
-                className={({ isActive }) => `mobile-nav-link ${isActive ? 'active' : ''}`}
-                aria-current={pathname === link.to ? 'page' : undefined}
-              >
-                {link.label}
-              </NavLink>
+              />
             ))}
 
             {/* Mobile Services */}
             <div className="mobile-services">
               <h4 className="mobile-section-title">Services</h4>
               {SERVICE_LINKS.map((service) => (
-                <NavLink
+                <ServiceLink
                   key={service.to}
-                  to={service.to}
-                  onClick={closeMenu}
+                  service={service}
                   className="mobile-service-link"
-                >
-                  <span className="mobile-service-icon" aria-hidden="true">
-                    {service.icon}
-                  </span>
-                  <div className="mobile-service-content">
-                    <span className="mobile-service-title">{service.label}</span>
-                    <span className="mobile-service-desc">{service.description}</span>
-                  </div>
-                </NavLink>
+                  onClick={closeMenu}
+                />
               ))}
             </div>
           </nav>
@@ -492,39 +560,38 @@ const NavigationBar = () => {
               </h4>
               {!isUserLoggedIn ? (
                 <>
-                  <NavLink
+                  <AuthNavLink
                     to="/login"
                     onClick={closeMenu}
                     className="mobile-auth-link login"
                   >
                     <FaUser className="auth-icon" aria-hidden="true" />
-                    <span>Log In</span>
-                  </NavLink>
-                  <NavLink
+                    <span>User Login</span>
+                  </AuthNavLink>
+                  <AuthNavLink
                     to="/signup"
                     onClick={closeMenu}
                     className="mobile-auth-link signup cta-button"
                   >
-                    <span>Sign Up Free</span>
-                  </NavLink>
+                    <span>User Sign Up</span>
+                  </AuthNavLink>
                 </>
               ) : (
                 <>
-                  <NavLink
+                  <AuthNavLink
                     to="/dashboard"
                     onClick={closeMenu}
                     className="mobile-auth-link dashboard"
                   >
                     <FaUser className="auth-icon" aria-hidden="true" />
                     <span>{userName}'s Dashboard</span>
-                  </NavLink>
-                  <button
+                  </AuthNavLink>
+                  <AuthButton
                     className="mobile-auth-link logout"
                     onClick={handleLogout}
-                    type="button"
                   >
                     <span>Log Out</span>
-                  </button>
+                  </AuthButton>
                 </>
               )}
             </div>
@@ -536,31 +603,39 @@ const NavigationBar = () => {
                 Vendor Portal
               </h4>
               {!isVendorLoggedIn ? (
-                <NavLink
-                  to="/vendor-login"
-                  onClick={closeMenu}
-                  className="mobile-auth-link vendor-login"
-                >
-                  <FaStore className="auth-icon" aria-hidden="true" />
-                  <span>Vendor Log In</span>
-                </NavLink>
+                <>
+                  <AuthNavLink
+                    to="/vendor-login"
+                    onClick={closeMenu}
+                    className="mobile-auth-link vendor-login"
+                  >
+                    <FaStore className="auth-icon" aria-hidden="true" />
+                    <span>Vendor Login</span>
+                  </AuthNavLink>
+                  <AuthNavLink
+                    to="/vendor-signup"
+                    onClick={closeMenu}
+                    className="mobile-auth-link vendor-signup cta-button"
+                  >
+                    <span>Vendor Sign Up</span>
+                  </AuthNavLink>
+                </>
               ) : (
                 <>
-                  <NavLink
+                  <AuthNavLink
                     to="/vendor-dashboard"
                     onClick={closeMenu}
                     className="mobile-auth-link vendor-dashboard"
                   >
                     <FaStore className="auth-icon" aria-hidden="true" />
                     <span>Vendor Dashboard</span>
-                  </NavLink>
-                  <button
+                  </AuthNavLink>
+                  <AuthButton
                     className="mobile-auth-link logout"
                     onClick={handleVendorLogout}
-                    type="button"
                   >
                     <span>Log Out</span>
-                  </button>
+                  </AuthButton>
                 </>
               )}
             </div>
@@ -617,17 +692,17 @@ const NavigationBar = () => {
       <div className="navbar-container">
         {/* Brand Logo */}
         <div className="navbar-brand">
-          <NavLink 
-            to="/" 
-            onClick={closeMenu} 
+          <AuthNavLink
+            to="/"
+            onClick={closeMenu}
             className="brand-link"
-            aria-label="TendorAI - Return to homepage"
+            ariaLabel="TendorAI - Return to homepage"
           >
             <div className="logo-container">
               <span className="logo-text">TENDORAI</span>
               <span className="logo-tagline">AI Procurement Platform</span>
             </div>
-          </NavLink>
+          </AuthNavLink>
         </div>
 
         {/* Desktop Navigation */}
@@ -669,5 +744,4 @@ const NavigationBar = () => {
   );
 };
 
-// Export memoized component for performance
 export default React.memo(NavigationBar);

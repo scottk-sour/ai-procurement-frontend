@@ -63,8 +63,8 @@ const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Computed values
-  const loginEndpoint = "/api/users/login";
+  // Computed values - FIXED: Now properly constructs the full URL
+  const loginEndpoint = `${API_CONFIG.baseURL}/api/users/login`;
   const redirectPath = location.state?.from || "/dashboard";
 
   // Helper functions
@@ -121,7 +121,11 @@ const Login = () => {
 
       const response = await fetch(loginEndpoint, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          // Add origin header for better CORS handling
+          "Origin": window.location.origin
+        },
         credentials: "include",
         body: JSON.stringify({ email, password }),
         signal: controller.signal
@@ -131,6 +135,19 @@ const Login = () => {
 
       console.log("📡 Response status:", response.status);
       console.log("📡 Response headers:", Object.fromEntries(response.headers.entries()));
+
+      // Check if response is actually JSON
+      const contentType = response.headers.get("content-type");
+      if (!contentType || !contentType.includes("application/json")) {
+        const textResponse = await response.text();
+        console.error("❌ Non-JSON response received:", textResponse);
+        return { 
+          success: false, 
+          error: response.status === 503 
+            ? ERROR_MESSAGES.maintenance 
+            : "Server returned an unexpected response format" 
+        };
+      }
 
       const data = await response.json();
 
@@ -146,6 +163,8 @@ const Login = () => {
     } catch (error) {
       clearTimeout(timeoutId);
       
+      console.error("❌ Login request error:", error);
+      
       // Handle different types of errors
       if (error.name === 'AbortError') {
         return { success: false, error: ERROR_MESSAGES.timeout };
@@ -154,6 +173,7 @@ const Login = () => {
       if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
         // Retry logic for network errors
         if (retryCount < API_CONFIG.retries) {
+          console.log(`🔄 Retrying login request (attempt ${retryCount + 1}/${API_CONFIG.retries})`);
           await new Promise(resolve => setTimeout(resolve, 1000 * (retryCount + 1))); // Exponential backoff
           return makeLoginRequest(email, password, retryCount + 1);
         }
@@ -162,6 +182,11 @@ const Login = () => {
       
       if (error.message.includes('CORS')) {
         return { success: false, error: ERROR_MESSAGES.cors };
+      }
+
+      // Handle JSON parsing errors
+      if (error.message.includes('Unexpected token')) {
+        return { success: false, error: ERROR_MESSAGES.maintenance };
       }
       
       return { success: false, error: error.message || ERROR_MESSAGES.default };
@@ -236,7 +261,7 @@ const Login = () => {
         }));
       }
     } catch (err) {
-      console.error("Login network error:", err);
+      console.error("❌ Login network error:", err);
       const errorMessage = err.name === "TypeError" && err.message.includes("fetch")
         ? "Cannot connect to server. Please check your connection or try again later."
         : "A network error occurred. Please try again.";

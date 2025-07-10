@@ -4,32 +4,11 @@ import { FaUser, FaStore, FaChevronDown, FaBars, FaTimes, FaShieldAlt, FaPhone, 
 import { useAuth } from "../context/AuthContext";
 import './NavigationBar.css';
 
-// Constants
 const SERVICE_LINKS = [
-  { 
-    to: "/services/photocopiers", 
-    label: "Photocopiers & Printers", 
-    description: "Advanced office printing solutions and multifunction devices",
-    icon: "🖨️"
-  },
-  { 
-    to: "/services/telecoms", 
-    label: "Telecoms & Communications", 
-    description: "Business phone systems and unified communications",
-    icon: "📞"
-  },
-  { 
-    to: "/services/cctv", 
-    label: "CCTV & Security", 
-    description: "Comprehensive security camera and monitoring systems",
-    icon: "🔒"
-  },
-  { 
-    to: "/services/it", 
-    label: "IT Solutions & Support", 
-    description: "Complete technology infrastructure and support services",
-    icon: "💻"
-  }
+  { to: "/services/photocopiers", label: "Photocopiers & Printers", description: "Advanced office printing solutions and multifunction devices", icon: "🖨️" },
+  { to: "/services/telecoms", label: "Telecoms & Communications", description: "Business phone systems and unified communications", icon: "📞" },
+  { to: "/services/cctv", label: "CCTV & Security", description: "Comprehensive security camera and monitoring systems", icon: "🔒" },
+  { to: "/services/it", label: "IT Solutions & Support", description: "Complete technology infrastructure and support services", icon: "💻" }
 ];
 
 const NAVIGATION_LINKS = [
@@ -41,38 +20,31 @@ const NAVIGATION_LINKS = [
 ];
 
 const NavigationBar = () => {
-  // Simplified state management
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
 
-  // Refs
   const dropdownRef = useRef(null);
   const mobileNavRef = useRef(null);
 
-  // Hooks
   const location = useLocation();
   const navigate = useNavigate();
   const { auth, logout } = useAuth();
 
-  // Derived state
   const isUserLoggedIn = auth?.isAuthenticated && auth.user?.role === "user";
   const isVendorLoggedIn = auth?.isAuthenticated && auth.user?.role === "vendor";
   const userName = auth?.user?.name || "User";
 
-  // Scroll handler
   const handleScroll = useCallback(() => {
     setIsScrolled(window.scrollY > 20);
   }, []);
 
-  // Menu handlers
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
   const closeMenu = () => {
     setIsMenuOpen(false);
     setIsDropdownOpen(false);
   };
 
-  // Authentication handlers
   const handleLogout = useCallback(() => {
     try {
       logout();
@@ -95,7 +67,6 @@ const NavigationBar = () => {
     }
   }, [logout, navigate]);
 
-  // Click outside handler
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -110,18 +81,15 @@ const NavigationBar = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isMenuOpen]);
 
-  // Scroll listener
   useEffect(() => {
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, [handleScroll]);
 
-  // Close menu on route change
   useEffect(() => {
     closeMenu();
   }, [location.pathname]);
 
-  // Body scroll lock
   useEffect(() => {
     if (isMenuOpen) {
       document.body.style.overflow = 'hidden';
@@ -133,7 +101,6 @@ const NavigationBar = () => {
     };
   }, [isMenuOpen]);
 
-  // Keyboard handler
   useEffect(() => {
     const handleKeyDown = (event) => {
       if (event.key === 'Escape') {
@@ -145,7 +112,6 @@ const NavigationBar = () => {
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  // Simple Navigation Link component
   const NavigationLink = ({ to, label, exact = false, onClick, className = "" }) => (
     <NavLink
       to={to}
@@ -157,7 +123,6 @@ const NavigationBar = () => {
     </NavLink>
   );
 
-  // Service Link component
   const ServiceLink = ({ service, onClick, className = "" }) => (
     <NavLink
       to={service.to}
@@ -178,7 +143,6 @@ const NavigationBar = () => {
     <>
       <nav className={`navbar ${isScrolled ? 'navbar-scrolled' : ''}`}>
         <div className="navbar-container">
-          {/* Brand Logo */}
           <div className="navbar-brand">
             <NavLink to="/" className="brand-link" onClick={closeMenu}>
               <div className="logo-container">
@@ -188,13 +152,11 @@ const NavigationBar = () => {
             </NavLink>
           </div>
 
-          {/* Desktop Navigation */}
           <nav className="navbar-nav">
             {NAVIGATION_LINKS.slice(0, 2).map((link) => (
               <NavigationLink key={link.to} {...link} />
             ))}
-            
-            {/* Services Dropdown */}
+
             <div 
               className="dropdown-container"
               ref={dropdownRef}
@@ -205,24 +167,17 @@ const NavigationBar = () => {
                 Services 
                 <FaChevronDown className={`dropdown-icon ${isDropdownOpen ? 'open' : ''}`} />
               </span>
-              
               {isDropdownOpen && (
                 <div className="dropdown-menu">
                   <div className="dropdown-header">
                     <h4>Our Services</h4>
                     <p>Find the right suppliers for your business needs</p>
                   </div>
-                  
                   <div className="dropdown-grid">
                     {SERVICE_LINKS.map((service) => (
-                      <ServiceLink
-                        key={service.to}
-                        service={service}
-                        onClick={closeMenu}
-                      />
+                      <ServiceLink key={service.to} service={service} onClick={closeMenu} />
                     ))}
                   </div>
-                  
                   <div className="dropdown-footer">
                     <NavLink to="/services" onClick={closeMenu} className="dropdown-cta">
                       View All Services →
@@ -231,15 +186,13 @@ const NavigationBar = () => {
                 </div>
               )}
             </div>
-            
+
             {NAVIGATION_LINKS.slice(2).map((link) => (
               <NavigationLink key={link.to} {...link} />
             ))}
           </nav>
 
-          {/* Authentication Section */}
           <div className="navbar-auth">
-            {/* User Authentication */}
             {!isUserLoggedIn ? (
               <div className="user-auth-section">
                 <NavLink to="/login" className="auth-link login-link" onClick={closeMenu}>
@@ -252,11 +205,7 @@ const NavigationBar = () => {
               </div>
             ) : (
               <div className="user-menu authenticated">
-                <NavLink 
-                  to="/dashboard" 
-                  className={({ isActive }) => `auth-link dashboard-link ${isActive ? 'active' : ''}`}
-                  onClick={closeMenu}
-                >
+                <NavLink to="/dashboard" className="auth-link dashboard-link" onClick={closeMenu}>
                   <FaUser className="auth-icon" />
                   <span className="user-name">{userName}</span>
                 </NavLink>
@@ -266,7 +215,6 @@ const NavigationBar = () => {
               </div>
             )}
 
-            {/* Vendor Authentication */}
             {!isVendorLoggedIn ? (
               <div className="vendor-auth-section">
                 <NavLink to="/vendor-login" className="auth-link vendor-link" onClick={closeMenu}>
@@ -279,11 +227,7 @@ const NavigationBar = () => {
               </div>
             ) : (
               <div className="vendor-menu authenticated">
-                <NavLink 
-                  to="/vendor-dashboard" 
-                  className={({ isActive }) => `auth-link vendor-dashboard-link ${isActive ? 'active' : ''}`}
-                  onClick={closeMenu}
-                >
+                <NavLink to="/vendor-dashboard" className="auth-link vendor-dashboard-link" onClick={closeMenu}>
                   <FaStore className="auth-icon" />
                   <span>Vendor Dashboard</span>
                 </NavLink>
@@ -294,7 +238,6 @@ const NavigationBar = () => {
             )}
           </div>
 
-          {/* Mobile Menu Toggle */}
           <button
             className="mobile-menu-toggle"
             onClick={toggleMenu}
@@ -305,45 +248,27 @@ const NavigationBar = () => {
         </div>
       </nav>
 
-      {/* Mobile Navigation */}
       {isMenuOpen && (
         <>
           <div className="mobile-nav-overlay" onClick={closeMenu} />
           <div ref={mobileNavRef} className={`mobile-nav ${isMenuOpen ? 'active' : ''}`}>
             <div className="mobile-nav-content">
-              {/* Mobile Navigation Links */}
               <nav className="mobile-nav-section">
                 {NAVIGATION_LINKS.map((link) => (
-                  <NavigationLink
-                    key={link.to}
-                    {...link}
-                    onClick={closeMenu}
-                    className="mobile-nav-link"
-                  />
+                  <NavigationLink key={link.to} {...link} onClick={closeMenu} className="mobile-nav-link" />
                 ))}
 
-                {/* Mobile Services */}
                 <div className="mobile-services">
                   <h4 className="mobile-section-title">Services</h4>
                   {SERVICE_LINKS.map((service) => (
-                    <ServiceLink
-                      key={service.to}
-                      service={service}
-                      onClick={closeMenu}
-                      className="mobile-service-link"
-                    />
+                    <ServiceLink key={service.to} service={service} onClick={closeMenu} className="mobile-service-link" />
                   ))}
                 </div>
               </nav>
 
-              {/* Mobile Authentication */}
               <div className="mobile-auth-section">
-                {/* User Authentication */}
                 <div className="mobile-user-auth">
-                  <h4 className="mobile-section-title">
-                    <FaUser className="section-icon" />
-                    User Account
-                  </h4>
+                  <h4 className="mobile-section-title"><FaUser className="section-icon" />User Account</h4>
                   {!isUserLoggedIn ? (
                     <>
                       <NavLink to="/login" onClick={closeMenu} className="mobile-auth-link login">
@@ -367,12 +292,8 @@ const NavigationBar = () => {
                   )}
                 </div>
 
-                {/* Vendor Authentication */}
                 <div className="mobile-vendor-auth">
-                  <h4 className="mobile-section-title">
-                    <FaStore className="section-icon" />
-                    Vendor Portal
-                  </h4>
+                  <h4 className="mobile-section-title"><FaStore className="section-icon" />Vendor Portal</h4>
                   {!isVendorLoggedIn ? (
                     <>
                       <NavLink to="/vendor-login" onClick={closeMenu} className="mobile-auth-link vendor-login">
@@ -397,13 +318,9 @@ const NavigationBar = () => {
                 </div>
               </div>
 
-              {/* Mobile Footer */}
               <footer className="mobile-nav-footer">
                 <div className="mobile-footer-content">
-                  <p className="mobile-tagline">
-                    <FaShieldAlt className="tagline-icon" />
-                    Revolutionising procurement with AI
-                  </p>
+                  <p className="mobile-tagline"><FaShieldAlt className="tagline-icon" />Revolutionising procurement with AI</p>
                   <div className="mobile-contact">
                     <a href="mailto:hello@tendorai.com" className="mobile-contact-link">
                       <FaEnvelope className="contact-icon" />
@@ -421,69 +338,7 @@ const NavigationBar = () => {
         </>
       )}
     </>
-  ));
-
-  return (
-    <nav 
-      className={`navbar ${uiState.isScrolled ? 'navbar-scrolled' : ''} ${uiState.isMounted ? 'mounted' : ''}`} 
-      ref={navbarRef}
-      role="navigation"
-      aria-label="Main navigation"
-    >
-      <div className="navbar-container">
-        {/* Brand Logo */}
-        <div className="navbar-brand">
-          <NavLink 
-            to="/" 
-            onClick={closeMenu} 
-            className="brand-link"
-            aria-label="TendorAI - Return to homepage"
-          >
-            <div className="logo-container">
-              <span className="logo-text">TENDORAI</span>
-              <span className="logo-tagline">AI Procurement Platform</span>
-            </div>
-          </NavLink>
-        </div>
-
-        {/* Desktop Navigation */}
-        <nav className="navbar-nav" role="navigation" aria-label="Main navigation">
-          {NAVIGATION_LINKS.slice(0, 2).map((link) => (
-            <NavigationLink key={link.to} {...link} />
-          ))}
-          
-          <ServicesDropdown />
-          
-          {NAVIGATION_LINKS.slice(2).map((link) => (
-            <NavigationLink key={link.to} {...link} />
-          ))}
-        </nav>
-
-        {/* Authentication Section */}
-        <AuthenticationSection />
-
-        {/* Mobile Menu Toggle */}
-        <button
-          className="mobile-menu-toggle"
-          onClick={toggleMenu}
-          aria-label={uiState.menuOpen ? "Close navigation menu" : "Open navigation menu"}
-          aria-expanded={uiState.menuOpen}
-          aria-controls="mobile-navigation"
-          type="button"
-        >
-          {uiState.menuOpen ? (
-            <FaTimes aria-hidden="true" />
-          ) : (
-            <FaBars aria-hidden="true" />
-          )}
-        </button>
-
-        {/* Mobile Navigation */}
-        <MobileNavigation />
-      </div>
-    </nav>
   );
 };
 
-// Export memoized component for performance
 export default React.memo(NavigationBar);

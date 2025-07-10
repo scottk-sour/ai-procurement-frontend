@@ -101,10 +101,22 @@ const UserDashboard = loadWithFallback(
   () => import("./components/UserDashboard"),
   () => <div style={errorStyle}>Failed to load UserDashboard</div>
 );
+
+// ✅ FIXED: Simplified RequestQuote to use EnhancedQuoteRequest directly
 const RequestQuote = loadWithFallback(
-  () => import("./components/RequestQuote"),
-  () => <div style={errorStyle}>Failed to load RequestQuote</div>
+  () => import("./components/EnhancedQuoteRequest"),
+  () => (
+    <div style={{ padding: '2rem', textAlign: 'center' }}>
+      <h1>Request Quote</h1>
+      <p>Quote request form is currently unavailable.</p>
+      <p>Please contact us directly or try again later.</p>
+      <button onClick={() => window.location.href = '/contact'}>
+        Contact Us Instead
+      </button>
+    </div>
+  )
 );
+
 const CompareVendors = loadWithFallback(
   () => import("./components/CompareVendors"),
   () => <div style={errorStyle}>Failed to load CompareVendors</div>
@@ -117,9 +129,19 @@ const QuotesRequested = loadWithFallback(
   () => import("./pages/QuotesRequested"),
   () => <div style={errorStyle}>Failed to load QuotesRequested</div>
 );
+
+// ✅ FIXED: QuoteDetails with better fallback
 const QuoteDetails = loadWithFallback(
   () => import("./components/QuoteDetails"),
-  () => <div style={errorStyle}>Failed to load QuoteDetails</div>
+  () => (
+    <div style={{ padding: '2rem', textAlign: 'center' }}>
+      <h1>Quote Details</h1>
+      <p>Quote details page is currently unavailable.</p>
+      <button onClick={() => window.location.href = '/dashboard'}>
+        Return to Dashboard
+      </button>
+    </div>
+  )
 );
 
 // Vendor Dashboard
@@ -266,6 +288,8 @@ const router = createBrowserRouter(
             { path: "/manage-account", element: <AccountSettings /> },
             { path: "/quotes-requested", element: <QuotesRequested /> },
             { path: "/quotes/:id", element: <QuoteDetails /> },
+            // ✅ ADDED: Missing quote-details route that your form navigates to
+            { path: "/quote-details", element: <QuoteDetails /> },
           ],
         },
         {

@@ -421,7 +421,69 @@ const NavigationBar = () => {
         </>
       )}
     </>
+  ));
+
+  return (
+    <nav 
+      className={`navbar ${uiState.isScrolled ? 'navbar-scrolled' : ''} ${uiState.isMounted ? 'mounted' : ''}`} 
+      ref={navbarRef}
+      role="navigation"
+      aria-label="Main navigation"
+    >
+      <div className="navbar-container">
+        {/* Brand Logo */}
+        <div className="navbar-brand">
+          <NavLink 
+            to="/" 
+            onClick={closeMenu} 
+            className="brand-link"
+            aria-label="TendorAI - Return to homepage"
+          >
+            <div className="logo-container">
+              <span className="logo-text">TENDORAI</span>
+              <span className="logo-tagline">AI Procurement Platform</span>
+            </div>
+          </NavLink>
+        </div>
+
+        {/* Desktop Navigation */}
+        <nav className="navbar-nav" role="navigation" aria-label="Main navigation">
+          {NAVIGATION_LINKS.slice(0, 2).map((link) => (
+            <NavigationLink key={link.to} {...link} />
+          ))}
+          
+          <ServicesDropdown />
+          
+          {NAVIGATION_LINKS.slice(2).map((link) => (
+            <NavigationLink key={link.to} {...link} />
+          ))}
+        </nav>
+
+        {/* Authentication Section */}
+        <AuthenticationSection />
+
+        {/* Mobile Menu Toggle */}
+        <button
+          className="mobile-menu-toggle"
+          onClick={toggleMenu}
+          aria-label={uiState.menuOpen ? "Close navigation menu" : "Open navigation menu"}
+          aria-expanded={uiState.menuOpen}
+          aria-controls="mobile-navigation"
+          type="button"
+        >
+          {uiState.menuOpen ? (
+            <FaTimes aria-hidden="true" />
+          ) : (
+            <FaBars aria-hidden="true" />
+          )}
+        </button>
+
+        {/* Mobile Navigation */}
+        <MobileNavigation />
+      </div>
+    </nav>
   );
 };
 
-export default NavigationBar;
+// Export memoized component for performance
+export default React.memo(NavigationBar);

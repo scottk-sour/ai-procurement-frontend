@@ -18,18 +18,15 @@ import {
   FaEye,
   FaStar,
   FaDownload,
-  FaFilter,
   FaSearch,
-  FaCalendarAlt,
   FaExclamationTriangle,
   FaInfoCircle,
   FaArrowUp,
-  FaArrowDown,
   FaBolt,
-  FaShieldAlt,
-  FaArrowRight
+  FaArrowRight,
+  FaTrash,
+  FaEdit
 } from "react-icons/fa";
-import QuoteFunnel from "./Dashboard/QuoteFunnel";
 import { useAuth } from "../context/AuthContext";
 import { logout } from "../utils/auth";
 import "../styles/VendorDashboard.css";
@@ -70,16 +67,10 @@ const VendorDashboard = () => {
     recentActivity: [],
     uploadedFiles: [],
     quotes: [],
-    notifications: [],
-    quoteFunnelData: {
-      received: 0,
-      responded: 0,
-      accepted: 0,
-      completed: 0
-    }
+    notifications: []
   });
 
-  const [pagination, setPagination] = useState({
+  const [pagination] = useState({
     quotePage: 1,
     filePage: 1,
     activityPage: 1,
@@ -94,6 +85,10 @@ const VendorDashboard = () => {
   });
 
   const [message, setMessage] = useState({ text: "", type: "", visible: false });
+
+  // Enhanced state for product management
+  const [uploadResults, setUploadResults] = useState(null);
+  const [vendorProducts, setVendorProducts] = useState([]);
 
   // Enhanced metrics calculation
   const metrics = useMemo(() => {
@@ -194,13 +189,7 @@ const VendorDashboard = () => {
         recentActivity: activityData.activities || [],
         uploadedFiles: filesData.files || [],
         quotes: quotesData.quotes || [],
-        notifications: notificationsData.notifications || [],
-        quoteFunnelData: {
-          received: (quotesData.quotes || []).length,
-          responded: (quotesData.quotes || []).filter(q => q.status !== "Pending").length,
-          accepted: (quotesData.quotes || []).filter(q => q.status === "Accepted").length,
-          completed: (quotesData.quotes || []).filter(q => q.status === "Completed").length
-        }
+        notifications: notificationsData.notifications || []
       }));
 
     } catch (error) {
@@ -215,7 +204,102 @@ const VendorDashboard = () => {
     }
   }, [auth?.token, auth?.user?.userId, pagination, showMessage]);
 
-  // Enhanced file upload with drag & drop
+  // Fetch vendor products
+  const fetchVendorProducts = useCallback(async () => {
+    if (!auth?.token) return;
+    
+    try {
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/vendors/products`, {
+        headers: { Authorization: `Bearer ${auth.token}` }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setVendorProducts(data.data || []);
+      }
+    } catch (error) {
+      console.error("Error fetching products:", error);
+    }
+  }, [auth?.token]);
+
+  // Enhanced product catalog upload function
+  const handleProductCatalogUpload = useCallback(async (file) => {
+    if (!file || !auth?.token) {
+      showMessage("Please select a file to upload", "warning");
+      return;
+    }
+
+    // Validate file type
+    if (!file.name.match(/\.(csv|xlsx|xls)$/i)) {
+      showMessage("Please upload a CSV or Excel file for product catalogs", "error");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    setDashboardState(prev => ({ ...prev, loading: true }));
+    setFileState(prev => ({ ...prev, uploadProgress: 0 }));
+    setUploadResults(null);
+
+    try {
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/vendors/upload`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${auth.token}` },
+        body: formData,
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        showMessage(`Successfully uploaded ${result.savedProducts} products!`, "success");
+        setFileState(prev => ({ ...prev, file: null, uploadProgress: 100 }));
+        fetchVendorProducts(); // Refresh products list
+      } else {
+        showMessage("Upload failed - check the errors below", "error");
+      }
+      
+      setUploadResults(result);
+
+    } catch (error) {
+      console.error("Upload error:", error);
+      showMessage(`Upload failed: ${error.message}`, "error");
+      setUploadResults({
+        success: false,
+        errors: [error.message]
+      });
+    } finally {
+      setDashboardState(prev => ({ ...prev, loading: false }));
+    }
+  }, [auth?.token, showMessage, fetchVendorProducts]);
+
+  // Delete product
+  const handleDeleteProduct = useCallback(async (productId) => {
+    if (!window.confirm("Are you sure you want to delete this product?")) return;
+    
+    try {
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/vendors/products/${productId}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${auth.token}` }
+      });
+      
+      if (response.ok) {
+        showMessage("Product deleted successfully", "success");
+        fetchVendorProducts();
+      }
+    } catch (error) {
+      console.error("Error deleting product:", error);
+      showMessage("Failed to delete product", "error");
+    }
+  }, [auth?.token, showMessage, fetchVendorProducts]);
+
+  // Edit product placeholder
+  const handleEditProduct = useCallback((product) => {
+    // TODO: Implement edit functionality
+    showMessage("Edit functionality coming soon", "info");
+  }, [showMessage]);
+
+  // Enhanced file upload with drag & drop (for documents)
   const handleFileUpload = useCallback(async (file) => {
     if (!file || !auth?.token) {
       showMessage("Please select a file to upload", "warning");
@@ -230,7 +314,7 @@ const VendorDashboard = () => {
     setFileState(prev => ({ ...prev, uploadProgress: 0 }));
 
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/vendors/upload`, {
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/vendors/upload-legacy`, {
         method: "POST",
         headers: { Authorization: `Bearer ${auth.token}` },
         body: formData,
@@ -334,9 +418,14 @@ const VendorDashboard = () => {
     const droppedFile = e.dataTransfer.files[0];
     if (droppedFile) {
       setFileState(prev => ({ ...prev, file: droppedFile }));
-      handleFileUpload(droppedFile);
+      // Check if it's a product catalog file
+      if (droppedFile.name.match(/\.(csv|xlsx|xls)$/i)) {
+        handleProductCatalogUpload(droppedFile);
+      } else {
+        handleFileUpload(droppedFile);
+      }
     }
-  }, [handleFileUpload]);
+  }, [handleFileUpload, handleProductCatalogUpload]);
 
   // Format utilities
   const formatDate = useCallback((dateString) => {
@@ -361,10 +450,11 @@ const VendorDashboard = () => {
     if (auth?.token) {
       fetchVendorProfile();
       fetchDashboardData();
+      fetchVendorProducts();
       const interval = setInterval(fetchDashboardData, 300000); // 5 minutes
       return () => clearInterval(interval);
     }
-  }, [auth?.token, fetchVendorProfile, fetchDashboardData]);
+  }, [auth?.token, fetchVendorProfile, fetchDashboardData, fetchVendorProducts]);
 
   // Auth check
   if (!auth?.token) {
@@ -455,7 +545,7 @@ const VendorDashboard = () => {
             {[
               { id: "overview", label: "Overview", icon: <FaTachometerAlt /> },
               { id: "quotes", label: "Quote Requests", icon: <FaQuoteRight />, badge: metrics.pendingQuotes },
-              { id: "files", label: "Documents", icon: <FaFileAlt /> },
+              { id: "files", label: "Product Catalog", icon: <FaFileAlt />, badge: vendorProducts.length },
               { id: "analytics", label: "Analytics", icon: <FaChartBar /> },
               { id: "notifications", label: "Notifications", icon: <FaBell />, badge: dataState.notifications.filter(n => !n.read).length }
             ].map(tab => (
@@ -519,21 +609,12 @@ const VendorDashboard = () => {
                       <FaBolt />
                     </div>
                     <div className="kpi-content">
-                      <h3>Avg Response Time</h3>
-                      <div className="kpi-value">{metrics.averageResponseTime}</div>
-                      <div className="kpi-subtitle">Industry avg: 4.2h</div>
+                      <h3>Products Listed</h3>
+                      <div className="kpi-value">{vendorProducts.length}</div>
+                      <div className="kpi-subtitle">In your catalog</div>
                     </div>
                   </div>
                 </div>
-              </section>
-
-              {/* Quote Funnel */}
-              <section className="funnel-section">
-                <div className="section-header">
-                  <h2>Quote Performance Pipeline</h2>
-                  <p>Track your quote journey from request to completion</p>
-                </div>
-                <QuoteFunnel data={dataState.quoteFunnelData} isLoading={dashboardState.loading} />
               </section>
 
               {/* Recent Activity */}
@@ -738,11 +819,252 @@ const VendorDashboard = () => {
 
           {dashboardState.activeTab === "files" && (
             <div className="files-content">
-              {/* Enhanced File Upload */}
+              {/* Enhanced Product Catalog Upload */}
               <section className="upload-section">
                 <div className="section-header">
-                  <h2>Upload Documents</h2>
-                  <p>Upload contracts, invoices, and other important documents</p>
+                  <h2>Product Catalog Management</h2>
+                  <p>Upload your product catalog to receive matching quote requests</p>
+                </div>
+                
+                <div className="upload-container">
+                  {/* Template Download */}
+                  <div className="template-section">
+                    <div className="template-card">
+                      <div className="template-icon">
+                        <FaDownload />
+                      </div>
+                      <div className="template-content">
+                        <h3>Download CSV Template</h3>
+                        <p>Use our template to ensure your products are uploaded correctly</p>
+                        <a 
+                          href={`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/vendors/upload-template`}
+                          download="vendor-products-template.csv"
+                          className="btn btn-outline"
+                        >
+                          <FaDownload /> Download Template
+                        </a>
+                      </div>
+                    </div>
+                    
+                    <div className="upload-guide">
+                      <h4>Upload Requirements:</h4>
+                      <ul>
+                        <li>✅ Use the CSV template format</li>
+                        <li>✅ Include volume ranges (e.g., 6k-13k pages/month)</li>
+                        <li>✅ Specify paper sizes (A4, A3, SRA3)</li>
+                        <li>✅ Set realistic CPC rates (pence per page)</li>
+                        <li>✅ Match speed to volume capacity</li>
+                      </ul>
+                    </div>
+                  </div>
+
+                  {/* Enhanced File Upload */}
+                  <div className="upload-controls">
+                    <div className="upload-type-selector">
+                      <h3>Product Catalog Upload</h3>
+                      <p>Upload your complete product list with pricing and specifications</p>
+                    </div>
+                  </div>
+
+                  <div
+                    className={`upload-dropzone product-upload ${fileState.dragOver ? "drag-over" : ""}`}
+                    onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                    onDrop={handleDrop}
+                    onClick={() => document.getElementById("product-file-input").click()}
+                  >
+                    <div className="upload-icon">
+                      <FaCloudUploadAlt />
+                    </div>
+                    <div className="upload-text">
+                      <p className="upload-primary">
+                        {fileState.file ? fileState.file.name : "Drag & drop your product catalog here"}
+                      </p>
+                      <p className="upload-secondary">
+                        or click to browse • CSV, XLSX files only
+                      </p>
+                      <p className="upload-hint">
+                        💡 Download the template first for the correct format
+                      </p>
+                    </div>
+                    <input
+                      id="product-file-input"
+                      type="file"
+                      onChange={(e) => {
+                        const file = e.target.files[0];
+                        if (file) {
+                          handleProductCatalogUpload(file);
+                        }
+                      }}
+                      accept=".csv,.xlsx,.xls"
+                      className="file-input-hidden"
+                      hidden
+                    />
+                  </div>
+
+                  {/* Upload Progress */}
+                  {fileState.uploadProgress > 0 && fileState.uploadProgress < 100 && (
+                    <div className="upload-progress">
+                      <div className="progress-bar">
+                        <div 
+                          className="progress-fill" 
+                          style={{ width: `${fileState.uploadProgress}%` }}
+                        />
+                      </div>
+                      <span className="progress-text">Uploading... {fileState.uploadProgress}%</span>
+                    </div>
+                  )}
+
+                  {/* Upload Results */}
+                  {uploadResults && (
+                    <div className={`upload-results ${uploadResults.success ? 'success' : 'error'}`}>
+                      <div className="results-header">
+                        <h4>
+                          {uploadResults.success ? (
+                            <>✅ Upload Successful</>
+                          ) : (
+                            <>❌ Upload Failed</>
+                          )}
+                        </h4>
+                      </div>
+                      
+                      {uploadResults.success && (
+                        <div className="success-details">
+                          <p>Successfully uploaded {uploadResults.data?.savedProducts || 0} products</p>
+                          {uploadResults.data?.stats && (
+                            <div className="upload-stats">
+                              <span>Total: {uploadResults.data.stats.total}</span>
+                              <span>Valid: {uploadResults.data.stats.saved}</span>
+                              <span>Errors: {uploadResults.data.stats.invalid || 0}</span>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {uploadResults.data?.warnings && uploadResults.data.warnings.length > 0 && (
+                        <div className="warnings-section">
+                          <h5>⚠️ Warnings ({uploadResults.data.warnings.length}):</h5>
+                          <ul className="warnings-list">
+                            {uploadResults.data.warnings.slice(0, 5).map((warning, index) => (
+                              <li key={index}>{warning}</li>
+                            ))}
+                            {uploadResults.data.warnings.length > 5 && (
+                              <li>... and {uploadResults.data.warnings.length - 5} more warnings</li>
+                            )}
+                          </ul>
+                        </div>
+                      )}
+
+                      {!uploadResults.success && uploadResults.errors && (
+                        <div className="errors-section">
+                          <h5>Errors ({uploadResults.errors.length}):</h5>
+                          <ul className="errors-list">
+                            {uploadResults.errors.slice(0, 5).map((error, index) => (
+                              <li key={index}>{error}</li>
+                            ))}
+                            {uploadResults.errors.length > 5 && (
+                              <li>... and {uploadResults.errors.length - 5} more errors</li>
+                            )}
+                          </ul>
+                          <p className="error-help">
+                            💡 Download the template and check the format requirements above
+                          </p>
+                        </div>
+                      )}
+
+                      <button 
+                        className="btn btn-ghost btn-sm"
+                        onClick={() => setUploadResults(null)}
+                      >
+                        Dismiss
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </section>
+
+              {/* Current Products List */}
+              <section className="products-list-section">
+                <div className="section-header">
+                  <h2>Your Product Catalog</h2>
+                  <div className="header-actions">
+                    <span className="products-count">{vendorProducts.length} products</span>
+                    <button 
+                      className="btn btn-outline btn-sm"
+                      onClick={fetchVendorProducts}
+                    >
+                      <FaDownload /> Refresh
+                    </button>
+                  </div>
+                </div>
+                
+                {vendorProducts.length > 0 ? (
+                  <div className="products-grid">
+                    {vendorProducts.map((product, index) => (
+                      <div key={product._id || index} className="product-card">
+                        <div className="product-header">
+                          <h4 className="product-name">{product.manufacturer} {product.model}</h4>
+                          <span className={`category-badge category-${product.category?.replace(' ', '-').toLowerCase()}`}>
+                            {product.category}
+                          </span>
+                        </div>
+                        
+                        <div className="product-details">
+                          <div className="detail-row">
+                            <span className="detail-label">Speed:</span>
+                            <span className="detail-value">{product.speed} PPM</span>
+                          </div>
+                          <div className="detail-row">
+                            <span className="detail-label">Volume:</span>
+                            <span className="detail-value">
+                              {product.minVolume?.toLocaleString()} - {product.maxVolume?.toLocaleString()} pages/month
+                            </span>
+                          </div>
+                          <div className="detail-row">
+                            <span className="detail-label">Paper Size:</span>
+                            <span className="detail-value">{product.paperSizes?.primary || product.paperSizes?.primary}</span>
+                          </div>
+                          <div className="detail-row">
+                            <span className="detail-label">CPC Rates:</span>
+                            <span className="detail-value">
+                              {product.costs?.cpcRates?.A4Mono || product.A4MonoCPC}p / {product.costs?.cpcRates?.A4Colour || product.A4ColourCPC}p
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="product-actions">
+                          <button 
+                            className="btn btn-ghost btn-sm"
+                            onClick={() => handleEditProduct(product)}
+                            title="Edit product"
+                          >
+                            <FaEdit /> Edit
+                          </button>
+                          <button 
+                            className="btn btn-danger btn-sm"
+                            onClick={() => handleDeleteProduct(product._id)}
+                            title="Delete product"
+                          >
+                            <FaTrash />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="empty-state">
+                    <FaFileAlt />
+                    <h3>No Products in Catalog</h3>
+                    <p>Upload your first product catalog using the upload area above</p>
+                  </div>
+                )}
+              </section>
+
+              {/* Legacy Document Upload (Keep existing for other docs) */}
+              <section className="documents-section">
+                <div className="section-header">
+                  <h2>Other Documents</h2>
+                  <p>Upload contracts, certificates, and other business documents</p>
                 </div>
                 
                 <div className="upload-container">
@@ -767,58 +1089,45 @@ const VendorDashboard = () => {
                     className={`upload-dropzone ${fileState.dragOver ? "drag-over" : ""}`}
                     onDragOver={handleDragOver}
                     onDragLeave={handleDragLeave}
-                    onDrop={handleDrop}
-                    onClick={() => document.getElementById("file-input").click()}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      setFileState(prev => ({ ...prev, dragOver: false }));
+                      const droppedFile = e.dataTransfer.files[0];
+                      if (droppedFile && !droppedFile.name.match(/\.(csv|xlsx|xls)$/i)) {
+                        handleFileUpload(droppedFile); // Use existing function for other docs
+                      }
+                    }}
+                    onClick={() => document.getElementById("document-file-input").click()}
                   >
                     <div className="upload-icon">
                       <FaCloudUploadAlt />
                     </div>
                     <div className="upload-text">
                       <p className="upload-primary">
-                        {fileState.file ? fileState.file.name : "Drag & drop files here"}
+                        Drag & drop documents here
                       </p>
                       <p className="upload-secondary">
-                        or click to browse • PDF, CSV, XLSX, Images
+                        or click to browse • PDF, Images, Documents
                       </p>
                     </div>
                     <input
-                      id="file-input"
+                      id="document-file-input"
                       type="file"
                       onChange={(e) => {
                         const file = e.target.files[0];
                         if (file) {
-                          setFileState(prev => ({ ...prev, file }));
-                          handleFileUpload(file);
+                          handleFileUpload(file); // Use existing function
                         }
                       }}
-                      accept=".pdf,.csv,.xlsx,.xls,.png,.jpg,.jpeg"
+                      accept=".pdf,.png,.jpg,.jpeg,.doc,.docx"
                       className="file-input-hidden"
                       hidden
                     />
                   </div>
-
-                  {fileState.uploadProgress > 0 && fileState.uploadProgress < 100 && (
-                    <div className="upload-progress">
-                      <div className="progress-bar">
-                        <div 
-                          className="progress-fill" 
-                          style={{ width: `${fileState.uploadProgress}%` }}
-                        />
-                      </div>
-                      <span className="progress-text">{fileState.uploadProgress}%</span>
-                    </div>
-                  )}
                 </div>
-              </section>
 
-              {/* Enhanced Files List */}
-              <section className="files-list-section">
-                <div className="section-header">
-                  <h2>Uploaded Documents</h2>
-                  <span className="files-count">{dataState.uploadedFiles.length} files</span>
-                </div>
-                
-                {dataState.uploadedFiles.length > 0 ? (
+                {/* Existing uploaded documents list */}
+                {dataState.uploadedFiles.length > 0 && (
                   <div className="files-grid">
                     {dataState.uploadedFiles.map((file, index) => (
                       <div key={index} className="file-card">
@@ -844,25 +1153,9 @@ const VendorDashboard = () => {
                           >
                             <FaDownload />
                           </button>
-                          <button 
-                            className="btn btn-ghost btn-sm"
-                            onClick={() => navigator.share && navigator.share({
-                              title: file.fileName,
-                              url: file.filePath
-                            })}
-                            title="Share file"
-                          >
-                            <FaArrowRight />
-                          </button>
                         </div>
                       </div>
                     ))}
-                  </div>
-                ) : (
-                  <div className="empty-state">
-                    <FaFileAlt />
-                    <h3>No Documents Uploaded</h3>
-                    <p>Upload your first document using the dropzone above</p>
                   </div>
                 )}
               </section>

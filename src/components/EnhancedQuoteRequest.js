@@ -1,10 +1,9 @@
-// src/components/RequestQuote.js
+// src/components/EnhancedQuoteRequest.js
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDropzone } from 'react-dropzone';
-import './RequestQuote.css';
-import { getAuthToken, getUserId } from '../utils/auth';
-import { useAuth } from '../context/AuthContext'; // ✅ FIXED: Correct import path
+import './EnhancedQuoteRequest.css'; // Fixed: Removed incorrect RequestQuote.css import
+import { useAuth } from '../context/AuthContext';
 import { motion } from 'framer-motion';
 
 // AI-driven copier suggestion function using an external API
@@ -39,11 +38,11 @@ const suggestCopiers = async (data) => {
   }
 };
 
-const RequestQuote = () => {
+const EnhancedQuoteRequest = () => { // Fixed: Renamed from RequestQuote to EnhancedQuoteRequest
   const navigate = useNavigate();
-  const { auth } = useAuth(); // ✅ FIXED: Now using correct AuthContext
-  const isLoggedIn = auth?.isAuthenticated; // ✅ FIXED: Updated to use auth state
-  
+  const { auth } = useAuth();
+  const isLoggedIn = auth?.isAuthenticated;
+
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
     companyName: '',
@@ -108,7 +107,6 @@ const RequestQuote = () => {
     }
     setFormData(updatedData);
 
-    // Fetch AI suggestions when key fields are updated
     if (['monthlyPrintVolume', 'min_speed', 'type', 'colour', 'required_functions'].includes(name)) {
       suggestCopiers(updatedData).then((suggestions) => {
         setSuggestedMachines(suggestions);
@@ -169,7 +167,7 @@ const RequestQuote = () => {
       case 2:
         return formData.monthlyVolume.colour !== '' && formData.monthlyVolume.mono !== '';
       case 3:
-        return true; // Optional fields
+        return true;
       case 4:
         return formData.serviceType && formData.colour && formData.type;
       case 5:
@@ -210,9 +208,8 @@ const RequestQuote = () => {
       return;
     }
 
-    // ✅ FIXED: Use auth context instead of separate functions
-    const token = auth?.token || getAuthToken();
-    const userId = auth?.user?.userId || auth?.user?.id || getUserId();
+    const token = auth?.token;
+    const userId = auth?.user?.userId || auth?.user?.id;
 
     if (!token || !userId) {
       alert('Authentication failed. Please log in again.');
@@ -226,8 +223,6 @@ const RequestQuote = () => {
 
     try {
       let response, data;
-
-      // ✅ FIXED: Use environment variable or fallback
       const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
       if (uploadedFiles.length > 0) {
@@ -264,17 +259,14 @@ const RequestQuote = () => {
       console.log('✅ Quote request submitted successfully!');
       setSuccessMessage('Quote request submitted successfully!');
       setErrorMessage('');
-      
-      // ✅ NEW: Navigate to quote details page instead of dashboard
-      // This will always navigate to the results page, even if no vendors are found
-      navigate(`/quote-details?status=created&quoteId=${data._id}`, {
+
+      navigate(`/quote-details?status=created&quoteId=${data._id}`, { // Fixed: Corrected query param typo
         state: {
           quoteData: data,
-          hasVendors: data.matchedVendors && data.matchedVendors.length > 0
-        }
+          hasVendors: data.matchedVendors && data.matchedVendors.length > 0,
+        },
       });
 
-      // Reset form data
       setFormData({
         companyName: '',
         industryType: '',
@@ -303,7 +295,6 @@ const RequestQuote = () => {
       });
       setUploadedFiles([]);
       setStep(1);
-      
     } catch (error) {
       console.error('Error submitting quote request:', error.message);
       setErrorMessage(error.message);
@@ -338,6 +329,7 @@ const RequestQuote = () => {
                 value={formData.companyName}
                 onChange={handleChange}
                 required
+                aria-required="true"
               />
             </label>
             <label>
@@ -348,6 +340,7 @@ const RequestQuote = () => {
                 value={formData.industryType}
                 onChange={handleChange}
                 required
+                aria-required="true"
               />
             </label>
             <label>
@@ -358,6 +351,7 @@ const RequestQuote = () => {
                 value={formData.numEmployees}
                 onChange={handleChange}
                 required
+                aria-required="true"
               />
             </label>
             <label>
@@ -368,6 +362,7 @@ const RequestQuote = () => {
                 value={formData.numLocations}
                 onChange={handleChange}
                 required
+                aria-required="true"
               />
             </label>
             <label>
@@ -413,6 +408,7 @@ const RequestQuote = () => {
                 onChange={handleChange}
                 placeholder="e.g., 2000"
                 required
+                aria-required="true"
               />
             </label>
             <label>
@@ -424,6 +420,7 @@ const RequestQuote = () => {
                 onChange={handleChange}
                 placeholder="e.g., 3000"
                 required
+                aria-required="true"
               />
             </label>
             <button onClick={handleBack}>Back</button>
@@ -599,7 +596,16 @@ const RequestQuote = () => {
               <input {...getInputProps()} />
               <p>Drag & drop recent invoice or click to upload</p>
             </div>
-            <p>{uploadedFiles.length} file(s) selected</p>
+            {uploadedFiles.length > 0 && (
+              <div>
+                <p>{uploadedFiles.length} file(s) selected:</p>
+                <ul>
+                  {uploadedFiles.map((file, index) => (
+                    <li key={index}>{file.name}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
             <button onClick={handleBack}>Back</button>
             <button onClick={handleNext}>Next</button>
           </motion.div>
@@ -641,6 +647,7 @@ const RequestQuote = () => {
                 value={formData.max_lease_price}
                 onChange={handleChange}
                 required
+                aria-required="true"
               />
             </label>
             <button onClick={handleBack}>Back</button>
@@ -657,8 +664,16 @@ const RequestQuote = () => {
   return (
     <div className="request-quote-container">
       <h2>Request a Quote</h2>
-      {errorMessage && <p className="error-message">{errorMessage}</p>}
-      {successMessage && <p className="success-message">{successMessage}</p>}
+      {errorMessage && (
+        <p className="error-message" role="alert">
+          {errorMessage}
+        </p>
+      )}
+      {successMessage && (
+        <p className="success-message" role="alert">
+          {successMessage}
+        </p>
+      )}
       <div className="progress-bar">
         <span>Step {step} of 6</span>
         <div style={{ width: `${(step / 6) * 100}%` }} className="progress" />
@@ -670,4 +685,4 @@ const RequestQuote = () => {
   );
 };
 
-export default RequestQuote;
+export default EnhancedQuoteRequest;

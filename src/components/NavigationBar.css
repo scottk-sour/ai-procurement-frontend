@@ -1054,3 +1054,24 @@ body {
     transform: translateY(0);
   }
 }
+
+.navbar.mounted {
+  animation: slideInFromTop 0.6s ease-out;
+}
+
+/* Container Queries Support */
+@supports (container-type: inline-size) {
+  .navbar-container {
+    container-type: inline-size;
+  }
+  
+  @container (max-width: 768px) {
+    .navbar-nav {
+      display: none;
+    }
+    
+    .mobile-menu-toggle {
+      display: flex;
+    }
+  }
+}

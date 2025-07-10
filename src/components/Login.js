@@ -19,7 +19,7 @@ const API_CONFIG = {
   timeout: 30000, // 30 seconds
   retries: 3,
   baseURL: process.env.NODE_ENV === "development" 
-    ? "http://localhost:5000"
+    ? ""  // ✅ Use proxy - empty string means same origin
     : process.env.REACT_APP_API_URL || "https://ai-procurement-backend-q35u.onrender.com"
 };
 
@@ -58,13 +58,14 @@ const Login = () => {
   const formRef = useRef(null);
   const retryTimeoutRef = useRef(null);
 
-  // Hooks
-  const { auth, login } = useAuth();
+  // Hooks with safe destructuring
+  const authContext = useAuth();
+  const { auth = {}, login } = authContext || {};
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Computed values - FIXED: Now properly constructs the full URL
-  const loginEndpoint = `${API_CONFIG.baseURL}/api/users/login`;
+  // Computed values
+  const loginEndpoint = "/api/users/login";
   const redirectPath = location.state?.from || "/dashboard";
 
   // Helper functions
@@ -92,7 +93,7 @@ const Login = () => {
   }, [formData.email, formData.password, validateEmail]);
 
   // Get appropriate error message based on status code
-  const getErrorMessage = useCallback((status, data) => {
+  const getErrorMessage = useCallback((status, data = {}) => {
     switch (status) {
       case 400:
         return data.message || ERROR_MESSAGES.validation;
@@ -219,8 +220,19 @@ const Login = () => {
       const result = await makeLoginRequest(formData.email, formData.password);
 
       if (result.success) {
-        // Store authentication data
-        const { token, userId, role = "user", name, email } = result.data;
+        // Store authentication data with proper defaults and safety checks
+        const { 
+          token, 
+          userId, 
+          role = "user", 
+          name = "", 
+          email = "" 
+        } = result.data || {};
+        
+        // Validate required fields
+        if (!token || !userId) {
+          throw new Error("Invalid response: missing required authentication data");
+        }
         
         localStorage.setItem("token", token);
         localStorage.setItem("role", role);
@@ -325,9 +337,10 @@ const Login = () => {
 
   useEffect(() => {
     // Cleanup on unmount
+    const currentTimeoutRef = retryTimeoutRef;
     return () => {
-      if (retryTimeoutRef.current) {
-        clearTimeout(retryTimeoutRef.current);
+      if (currentTimeoutRef.current) {
+        clearTimeout(currentTimeoutRef.current);
       }
     };
   }, []);

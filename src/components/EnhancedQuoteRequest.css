@@ -1,4 +1,370 @@
-/* 🎨 Production-Level RequestQuote CSS */
+/* ====================================
+   📌 Responsive Design
+   ==================================== */
+
+/* Large Desktop */
+@media (max-width: 1024px) {
+  .request-quote-container {
+    max-width: 90%;
+    padding: var(--space-xl);
+    margin: var(--space-2xl) auto;
+  }
+}
+
+/* Tablets */
+@media (max-width: 768px) {
+  .request-quote-container {
+    max-width: 95%;
+    padding: var(--space-lg);
+    margin: var(--space-xl) auto;
+  }
+
+  .request-quote-container h2 {
+    font-size: 2rem;
+  }
+
+  .request-quote-container h3 {
+    font-size: 1.5rem;
+  }
+
+  .form-section {
+    padding: var(--space-lg);
+  }
+
+  .request-quote-container input,
+  .request-quote-container select,
+  .request-quote-container textarea {
+    padding: var(--space-md);
+    font-size: 0.875rem;
+  }
+
+  .request-quote-container button {
+    padding: var(--space-md) var(--space-lg);
+    font-size: 0.875rem;
+  }
+
+  .dropzone {
+    padding: var(--space-lg);
+    min-height: 100px;
+  }
+
+  .dropzone::before {
+    font-size: 1.5rem;
+  }
+
+  .progress-bar span {
+    font-size: 0.8125rem;
+  }
+}
+
+/* Mobile Phones */
+@media (max-width: 640px) {
+  .request-quote-container {
+    margin: var(--space-lg) var(--space-sm);
+    padding: var(--space-lg);
+  }
+
+  .request-quote-container h2 {
+    font-size: 1.75rem;
+    margin-bottom: var(--space-lg);
+  }
+
+  .request-quote-container h3 {
+    font-size: 1.25rem;
+  }
+
+  .request-quote-container h3::before {
+    width: 3px;
+    height: 1.5rem;
+  }
+
+  .form-section {
+    padding: var(--space-md);
+  }
+
+  .request-quote-container label {
+    font-size: 0.8125rem;
+  }
+
+  .request-quote-container fieldset {
+    padding: var(--space-md);
+  }
+
+  .request-quote-container fieldset label {
+    font-size: 0.8125rem;
+    gap: var(--space-sm);
+  }
+
+  .request-quote-container button {
+    padding: var(--space-sm) var(--space-md);
+    font-size: 0.8125rem;
+    margin: var(--space-xs);
+  }
+
+  .dropzone {
+    padding: var(--space-md);
+    min-height: 80px;
+  }
+
+  .dropzone::before {
+    font-size: 1.25rem;
+    margin-bottom: var(--space-sm);
+  }
+
+  .dropzone p {
+    font-size: 0.875rem;
+  }
+
+  .review-section pre {
+    font-size: 0.6875rem;
+    padding: var(--space-md);
+  }
+
+  .progress-bar span {
+    font-size: 0.75rem;
+    padding: var(--space-xs);
+  }
+}
+
+/* Small Mobile */
+@media (max-width: 480px) {
+  .request-quote-container {
+    margin: var(--space-md) var(--space-xs);
+    padding: var(--space-md);
+  }
+  
+  .request-quote-container h2 {
+    font-size: 1.5rem;
+  }
+  
+  .request-quote-container h3 {
+    font-size: 1.125rem;
+  }
+  
+  .form-section {
+    padding: var(--space-sm);
+  }
+
+  .request-quote-container input,
+  .request-quote-container select,
+  .request-quote-container textarea {
+    padding: var(--space-sm);
+    font-size: 0.8125rem;
+  }
+
+  .request-quote-container button {
+    padding: var(--space-sm);
+    font-size: 0.75rem;
+  }
+
+  .progress-bar span {
+    font-size: 0.6875rem;
+  }
+}
+
+/* ====================================
+   📌 Print Styles
+   ==================================== */
+@media print {
+  .request-quote-container {
+    box-shadow: none;
+    border: 1px solid #ccc;
+    background: white;
+    color: black;
+    max-width: 100%;
+    margin: 0;
+    padding: 1rem;
+  }
+
+  .request-quote-container button {
+    display: none;
+  }
+
+  .dropzone {
+    display: none;
+  }
+
+  .progress-bar {
+    display: none;
+  }
+
+  .request-quote-container h2,
+  .request-quote-container h3,
+  .request-quote-container h4 {
+    color: black !important;
+    background: none !important;
+    -webkit-text-fill-color: black !important;
+  }
+
+  .form-section {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+}
+
+/* ====================================
+   📌 Reduced Motion
+   ==================================== */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .request-quote-container:hover {
+    transform: none;
+  }
+
+  .request-quote-container button:hover {
+    transform: none;
+  }
+
+  .dropzone:hover {
+    transform: none;
+  }
+
+  .progress::after {
+    animation: none;
+  }
+}
+
+/* ====================================
+   📌 High Contrast Mode
+   ==================================== */
+@media (prefers-contrast: high) {
+  .request-quote-container {
+    border: 2px solid #000;
+  }
+
+  .request-quote-container input,
+  .request-quote-container select,
+  .request-quote-container fieldset {
+    border: 2px solid #000;
+  }
+
+  .request-quote-container button {
+    border: 2px solid #000;
+    background: #000;
+    color: #fff;
+  }
+
+  .request-quote-container button:hover {
+    background: #fff;
+    color: #000;
+  }
+
+  .form-section {
+    border: 2px solid #000;
+  }
+}
+
+/* ====================================
+   📌 Dark Mode Specific Adjustments
+   ==================================== */
+[data-theme="dark"] .request-quote-container h2 {
+  background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+[data-theme="dark"] .dropzone::before {
+  filter: brightness(1.2);
+}
+
+[data-theme="dark"] .progress {
+  box-shadow: 0 0 10px rgba(96, 165, 250, 0.3);
+}
+
+/* ====================================
+   📌 Form Animation Classes
+   ==================================== */
+.form-step-enter {
+  opacity: 0;
+  transform: translateX(50px);
+}
+
+.form-step-enter-active {
+  opacity: 1;
+  transform: translateX(0);
+  transition: opacity 300ms ease-in-out, transform 300ms ease-in-out;
+}
+
+.form-step-exit {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.form-step-exit-active {
+  opacity: 0;
+  transform: translateX(-50px);
+  transition: opacity 300ms ease-in-out, transform 300ms ease-in-out;
+}
+
+/* ====================================
+   📌 Enhanced Focus Management
+   ==================================== */
+.request-quote-container *:focus {
+  scroll-margin-top: var(--space-2xl);
+}
+
+/* Focus indicators for keyboard navigation */
+.request-quote-container button:focus-visible,
+.request-quote-container input:focus-visible,
+.request-quote-container select:focus-visible,
+.request-quote-container textarea:focus-visible {
+  outline: 3px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+/* ====================================
+   📌 Safari-specific fixes
+   ==================================== */
+@supports (-webkit-touch-callout: none) {
+  .request-quote-container input,
+  .request-quote-container select {
+    font-size: 16px; /* Prevents zoom on iOS */
+  }
+}
+
+/* ====================================
+   📌 Firefox-specific fixes
+   ==================================== */
+@-moz-document url-prefix() {
+  .request-quote-container select {
+    padding-right: 2rem;
+  }
+}
+
+/* ====================================
+   📌 Enhanced Button Group
+   ==================================== */
+.button-group {
+  display: flex;
+  gap: var(--space-md);
+  justify-content: space-between;
+  margin-top: var(--space-xl);
+  flex-wrap: wrap;
+}
+
+.button-group button {
+  flex: 1;
+  min-width: 120px;
+  margin: 0;
+}
+
+@media (max-width: 640px) {
+  .button-group {
+    flex-direction: column;
+  }
+  
+  .button-group button {
+    width: 100%;
+  }
+}
 
 /* ====================================
    📌 CSS Custom Properties (Design System)
@@ -111,7 +477,7 @@
    📌 Main Container
    ==================================== */
 .request-quote-container {
-  max-width: 56rem; /* 896px */
+  max-width: 56rem;
   margin: var(--space-3xl) auto;
   padding: var(--space-2xl);
   background: var(--surface);
@@ -191,7 +557,7 @@
 }
 
 .request-quote-container h4::before {
-  content: '🤖';
+  content: '💼';
   font-size: 1rem;
 }
 
@@ -202,6 +568,30 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-xl);
+}
+
+/* ====================================
+   📌 Form Sections
+   ==================================== */
+.form-section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-xl);
+  margin-bottom: var(--space-lg);
+  transition: all var(--transition-normal);
+}
+
+.form-section:hover {
+  border-color: var(--primary-color);
+  box-shadow: var(--shadow-md);
+}
+
+.form-section h4 {
+  margin-top: 0;
+  margin-bottom: var(--space-lg);
+  padding-bottom: var(--space-md);
+  border-bottom: 2px solid var(--border);
 }
 
 /* ====================================
@@ -242,6 +632,7 @@
   transition: all var(--transition-normal);
   box-shadow: var(--shadow-inner);
   line-height: 1.5;
+  box-sizing: border-box;
 }
 
 .request-quote-container input:focus,
@@ -264,6 +655,11 @@
 .request-quote-container textarea::placeholder {
   color: var(--text-muted);
   font-style: italic;
+}
+
+.request-quote-container textarea {
+  resize: vertical;
+  min-height: 100px;
 }
 
 /* ====================================
@@ -304,7 +700,7 @@
   border: 2px solid var(--border);
   border-radius: var(--radius-xl);
   padding: var(--space-xl);
-  margin: 0;
+  margin: var(--space-lg) 0;
   background: var(--surface-alt);
   transition: all var(--transition-normal);
   position: relative;
@@ -412,7 +808,6 @@
   transform: none;
 }
 
-/* Button Variants */
 .request-quote-container button[type="submit"] {
   background: linear-gradient(135deg, var(--success-color), var(--secondary-hover));
 }
@@ -465,6 +860,11 @@
   color: var(--text-secondary);
   font-size: 1rem;
   font-weight: 500;
+}
+
+.dropzone p.text-muted {
+  font-size: 0.875rem;
+  margin-top: var(--space-sm);
 }
 
 .dropzone.drag-over {
@@ -524,6 +924,7 @@
   padding: var(--space-xs) var(--space-sm);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-sm);
+  white-space: nowrap;
 }
 
 /* ====================================
@@ -590,6 +991,36 @@
   font-size: 1.125rem;
 }
 
+.review-section ul {
+  margin: var(--space-md) 0;
+  padding-left: var(--space-lg);
+}
+
+.review-section ul li {
+  margin: var(--space-sm) 0;
+  color: var(--text-secondary);
+}
+
+.review-section details {
+  margin-top: var(--space-lg);
+}
+
+.review-section summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--primary-color);
+  padding: var(--space-md);
+  background: var(--surface);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  transition: all var(--transition-fast);
+}
+
+.review-section summary:hover {
+  background: var(--hover-bg);
+  border-color: var(--primary-color);
+}
+
 .review-section pre {
   font-family: var(--font-mono);
   font-size: 0.75rem;
@@ -602,6 +1033,7 @@
   color: var(--text-secondary);
   line-height: 1.4;
   box-shadow: var(--shadow-inner);
+  margin-top: var(--space-md);
 }
 
 .review-section pre::-webkit-scrollbar {
@@ -671,18 +1103,49 @@
 }
 
 /* ====================================
-   📌 File Count Display
+   📌 File List Styling
    ==================================== */
-.request-quote-container > p {
-  margin: var(--space-lg) 0 0;
-  color: var(--text-secondary);
-  font-size: 0.875rem;
-  text-align: center;
-  font-weight: 500;
+.file-list {
+  margin-top: var(--space-md);
+  padding: 0;
+}
+
+.file-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   padding: var(--space-md);
   background: var(--surface-alt);
-  border-radius: var(--radius-lg);
   border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--space-sm);
+  transition: all var(--transition-fast);
+}
+
+.file-item:hover {
+  background: var(--hover-bg);
+  border-color: var(--primary-color);
+}
+
+.file-info {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.file-info::before {
+  content: '📄';
+  font-size: 1.25rem;
+}
+
+.file-name {
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.file-size {
+  font-size: 0.75rem;
+  color: var(--text-muted);
 }
 
 /* ====================================
@@ -690,7 +1153,8 @@
    ==================================== */
 .request-quote-container button:focus-visible,
 .request-quote-container input:focus-visible,
-.request-quote-container select:focus-visible {
+.request-quote-container select:focus-visible,
+.request-quote-container textarea:focus-visible {
   outline: 2px solid var(--primary-color);
   outline-offset: 2px;
 }
@@ -710,10 +1174,6 @@
 /* ====================================
    📌 Loading States
    ==================================== */
-.request-quote-container button[disabled] {
-  position: relative;
-}
-
 .request-quote-container button[disabled]::after {
   content: '';
   position: absolute;
@@ -731,469 +1191,41 @@
 }
 
 /* ====================================
-   📌 Responsive Design
+   📌 Utility Classes
    ==================================== */
-
-/* Large Tablets */
-@media (max-width: 1024px) {
-  .request-quote-container {
-    max-width: 90%;
-    padding: var(--space-xl);
-    margin: var(--space-2xl) auto;
-  }
-}
-
-/* Tablets */
-@media (max-width: 768px) {
-  .request-quote-container {
-    max-width: 95%;
-    padding: var(--space-lg);
-    margin: var(--space-xl) auto;
-  }
-
-  .request-quote-container h2 {
-    font-size: 2rem;
-  }
-
-  .request-quote-container h3 {
-    font-size: 1.5rem;
-  }
-
-  .request-quote-container form {
-    gap: var(--space-lg);
-  }
-
-  .request-quote-container input,
-  .request-quote-container select,
-  .request-quote-container textarea {
-    padding: var(--space-md);
-    font-size: 0.875rem;
-  }
-
-  .request-quote-container button {
-    padding: var(--space-md) var(--space-lg);
-    font-size: 0.875rem;
-  }
-
-  .dropzone {
-    padding: var(--space-lg);
-    min-height: 100px;
-  }
-
-  .dropzone::before {
-    font-size: 1.5rem;
-  }
-}
-
-/* Mobile Phones */
-@media (max-width: 640px) {
-  .request-quote-container {
-    margin: var(--space-lg) var(--space-sm);
-    padding: var(--space-lg);
-  }
-
-  .request-quote-container h2 {
-    font-size: 1.75rem;
-    margin-bottom: var(--space-lg);
-  }
-
-  .request-quote-container h3 {
-    font-size: 1.25rem;
-  }
-
-  .request-quote-container h3::before {
-    width: 3px;
-    height: 1.5rem;
-  }
-
-  .request-quote-container label {
-    font-size: 0.8125rem;
-  }
-
-  .request-quote-container fieldset {
-    padding: var(--space-md);
-  }
-
-  .request-quote-container fieldset label {
-    font-size: 0.8125rem;
-    gap: var(--space-sm);
-  }
-
-  .request-quote-container button {
-    padding: var(--space-sm) var(--space-md);
-    font-size: 0.8125rem;
-    margin: var(--space-xs);
-  }
-
-  .dropzone {
-    padding: var(--space-md);
-    min-height: 80px;
-  }
-
-  .dropzone::before {
-    font-size: 1.25rem;
-    margin-bottom: var(--space-sm);
-  }
-
-  .dropzone p {
-    font-size: 0.875rem;
-  }
-
-  .review-section pre {
-    font-size: 0.6875rem;
-    padding: var(--space-md);
-  }
-}
-
-/* ====================================
-   📌 Print Styles
-   ==================================== */
-@media print {
-  .request-quote-container {
-    box-shadow: none;
-    border: 1px solid #ccc;
-    background: white;
-    color: black;
-  }
-
-  .request-quote-container button {
-    display: none;
-  }
-
-  .dropzone {
-    display: none;
-  }
-
-  .progress-bar {
-    display: none;
-  }
-}
-
-/* ====================================
-   📌 Reduced Motion
-   ==================================== */
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
-
-  .request-quote-container:hover {
-    transform: none;
-  }
-
-  .request-quote-container button:hover {
-    transform: none;
-  }
-}
-
-/* ====================================
-   📌 High Contrast Mode
-   ==================================== */
-@media (prefers-contrast: high) {
-  .request-quote-container {
-    border: 2px solid #000;
-  }
-
-  .request-quote-container input,
-  .request-quote-container select,
-  .request-quote-container fieldset {
-    border: 2px solid #000;
-  }
-
-  .request-quote-container button {
-    border: 2px solid #000;
-    background: #000;
-    color: #fff;
-  }
-
-  .request-quote-container button:hover {
-    background: #fff;
-    color: #000;
-  }
-}
-
-/* ====================================
-   📌 Motion & Interaction Enhancements
-   ==================================== */
-
-/* Smooth focus transitions */
-.request-quote-container input:focus,
-.request-quote-container select:focus,
-.request-quote-container button:focus {
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* Hover effects for interactive elements */
-.request-quote-container label:hover {
-  color: var(--primary-color);
-}
-
-/* Form field grouping */
-.form-group {
-  position: relative;
-  margin-bottom: var(--space-lg);
-}
-
-.form-group label {
-  position: relative;
-  z-index: 1;
-}
-
-/* Step indicators */
-.step-indicator {
-  display: flex;
-  align-items: center;
-  gap: var(--space-sm);
-  margin-bottom: var(--space-xl);
-  padding: var(--space-lg);
-  background: var(--surface-alt);
-  border-radius: var(--radius-xl);
-  border: 1px solid var(--border);
-}
-
-.step-indicator::before {
-  content: '📋';
-  font-size: 1.25rem;
-}
-
-.step-indicator span {
-  font-weight: 600;
-  color: var(--primary-color);
-}
-
-/* Enhanced file upload states */
-.dropzone.uploading {
-  border-color: var(--accent-color);
-  background: var(--accent-light);
-  pointer-events: none;
-}
-
-.dropzone.uploading::before {
-  content: '⏳';
-  animation: pulse 1.5s infinite;
-}
-
-.dropzone.success {
-  border-color: var(--success-color);
-  background: var(--secondary-light);
-}
-
-.dropzone.success::before {
-  content: '✅';
-}
-
-.dropzone.error {
-  border-color: var(--danger-color);
-  background: var(--danger-light);
-}
-
-.dropzone.error::before {
-  content: '❌';
-}
-
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
-}
-
-/* Enhanced button interactions */
-.request-quote-container button:not(:disabled)::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-  transition: left 0.5s;
-}
-
-.request-quote-container button:not(:disabled):hover::before {
-  left: 100%;
-}
-
-/* Form validation feedback */
-.field-valid {
-  position: relative;
-}
-
-.field-valid::after {
-  content: '✓';
-  position: absolute;
-  right: var(--space-lg);
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--success-color);
-  font-weight: bold;
-  font-size: 1.125rem;
-}
-
-.field-invalid {
-  position: relative;
-}
-
-.field-invalid::after {
-  content: '⚠';
-  position: absolute;
-  right: var(--space-lg);
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--danger-color);
-  font-weight: bold;
-  font-size: 1.125rem;
-}
-
-/* Tooltip styles for help text */
-.tooltip {
-  position: relative;
-  display: inline-block;
-}
-
-.tooltip .tooltip-text {
-  visibility: hidden;
-  width: 240px;
-  background: var(--gray-900);
-  color: white;
-  text-align: center;
-  border-radius: var(--radius-md);
-  padding: var(--space-sm);
-  position: absolute;
-  z-index: var(--z-tooltip);
-  bottom: 125%;
-  left: 50%;
-  margin-left: -120px;
-  opacity: 0;
-  transition: opacity var(--transition-normal);
-  font-size: 0.8125rem;
-  font-weight: 500;
-}
-
-.tooltip .tooltip-text::after {
-  content: '';
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  margin-left: -5px;
-  border-width: 5px;
-  border-style: solid;
-  border-color: var(--gray-900) transparent transparent transparent;
-}
-
-.tooltip:hover .tooltip-text {
-  visibility: visible;
-  opacity: 1;
-}
-
-/* Enhanced checkbox styling */
-.request-quote-container input[type="checkbox"] {
-  position: relative;
-  appearance: none;
-  width: 1.25rem;
-  height: 1.25rem;
-  border: 2px solid var(--border);
-  border-radius: var(--radius-sm);
-  background: var(--input-bg);
-  cursor: pointer;
-  transition: all var(--transition-fast);
-}
-
-.request-quote-container input[type="checkbox"]:checked {
-  background: var(--primary-color);
-  border-color: var(--primary-color);
-}
-
-.request-quote-container input[type="checkbox"]:checked::after {
-  content: '✓';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  color: white;
-  font-size: 0.75rem;
-  font-weight: bold;
-}
-
-.request-quote-container input[type="checkbox"]:focus {
-  outline: 2px solid var(--primary-color);
-  outline-offset: 2px;
-}
-
-/* Loading overlay for form submission */
-.form-loading-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(4px);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  z-index: var(--z-modal);
-  border-radius: var(--radius-3xl);
-}
-
-.form-loading-spinner {
-  width: 3rem;
-  height: 3rem;
-  border: 4px solid var(--gray-200);
-  border-top: 4px solid var(--primary-color);
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin-bottom: var(--space-lg);
-}
-
-.form-loading-text {
-  color: var(--text-primary);
-  font-size: 1.125rem;
-  font-weight: 600;
-  text-align: center;
-}
-
-/* Enhanced mobile interactions */
-@media (max-width: 640px) {
-  /* Larger touch targets for mobile */
-  .request-quote-container button {
-    min-height: 3rem;
-    padding: var(--space-md) var(--space-lg);
-  }
-
-  .request-quote-container input[type="checkbox"] {
-    width: 1.5rem;
-    height: 1.5rem;
-  }
-
-  /* Improved mobile spacing */
-  .request-quote-container fieldset label {
-    padding: var(--space-md);
-    margin: var(--space-sm) 0;
-  }
-
-  /* Mobile-optimized tooltips */
-  .tooltip .tooltip-text {
-    width: 200px;
-    margin-left: -100px;
-    font-size: 0.75rem;
-  }
-}
-
-/* Safari-specific fixes */
-@supports (-webkit-touch-callout: none) {
-  .request-quote-container input,
-  .request-quote-container select {
-    font-size: 16px; /* Prevents zoom on iOS */
-  }
-}
-
-/* Firefox-specific fixes */
-@-moz-document url-prefix() {
-  .request-quote-container select {
-    padding-right: 2rem;
-  }
-}
+.text-center { text-align: center; }
+.text-left { text-align: left; }
+.text-right { text-align: right; }
+
+.hidden { display: none; }
+.visible { display: block; }
+
+.mb-0 { margin-bottom: 0; }
+.mb-sm { margin-bottom: var(--space-sm); }
+.mb-md { margin-bottom: var(--space-md); }
+.mb-lg { margin-bottom: var(--space-lg); }
+.mb-xl { margin-bottom: var(--space-xl); }
+
+.mt-0 { margin-top: 0; }
+.mt-sm { margin-top: var(--space-sm); }
+.mt-md { margin-top: var(--space-md); }
+.mt-lg { margin-top: var(--space-lg); }
+.mt-xl { margin-top: var(--space-xl); }
+
+.p-0 { padding: 0; }
+.p-sm { padding: var(--space-sm); }
+.p-md { padding: var(--space-md); }
+.p-lg { padding: var(--space-lg); }
+.p-xl { padding: var(--space-xl); }
+
+.font-bold { font-weight: 700; }
+.font-semibold { font-weight: 600; }
+.font-medium { font-weight: 500; }
+.font-normal { font-weight: 400; }
+
+.text-primary { color: var(--text-primary); }
+.text-secondary { color: var(--text-secondary); }
+.text-muted { color: var(--text-muted); }
+.text-success { color: var(--success-color); }
+.text-danger { color: var(--danger-color); }
+.text-warning { color: var(--warning-color); }

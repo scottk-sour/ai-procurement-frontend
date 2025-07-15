@@ -64,8 +64,16 @@ const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Computed values
-  const loginEndpoint = "/api/users/login";
+  // Computed values - FIXED: Now properly constructs the full URL
+  const getFullEndpoint = (endpoint) => {
+    const base = API_CONFIG.baseURL;
+    if (!base || base === "") {
+      return endpoint; // For development with proxy
+    }
+    return `${base}${endpoint}`;
+  };
+
+  const loginEndpoint = getFullEndpoint("/api/users/login");
   const redirectPath = location.state?.from || "/dashboard";
 
   // Helper functions
@@ -119,6 +127,7 @@ const Login = () => {
 
     try {
       console.log("🔍 Making login request to:", loginEndpoint);
+      console.log("🔧 API Config:", API_CONFIG);
 
       const response = await fetch(loginEndpoint, {
         method: "POST",

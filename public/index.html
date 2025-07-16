@@ -5,14 +5,14 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    
+
     <!-- Performance & Security -->
     <meta name="referrer" content="strict-origin-when-cross-origin" />
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://www.google-analytics.com https://ai-procurement-backend-q35u.onrender.com; frame-src 'none'; object-src 'none';"
+      content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://chimpstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://www.google-analytics.com https://ai-procurement-backend-q35u.onrender.com; frame-src 'none'; object-src 'none';"
     />
-    
+
     <!-- SEO Meta -->
     <title>TendorAI – Compare 3 Instant Quotes for Office Equipment | AI-Powered Procurement</title>
     <meta
@@ -24,20 +24,20 @@
       content="TendorAI, office equipment quotes, photocopier quotes, AI procurement, compare quotes, office supplies, business equipment, instant quotes, procurement software"
     />
     <link rel="canonical" href="https://www.tendorai.com/" />
-    
+
     <!-- Enhanced SEO -->
     <meta name="author" content="TendorAI" />
     <meta name="language" content="en" />
     <meta name="revisit-after" content="7 days" />
     <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
-    
+
     <!-- Theme & Branding -->
     <meta name="theme-color" content="#1D4ED8" />
     <meta name="msapplication-TileColor" content="#1D4ED8" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="TendorAI" />
-    
+
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="TendorAI" />
@@ -55,7 +55,7 @@
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta property="og:locale" content="en_US" />
-    
+
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@TendorAI" />
@@ -70,13 +70,13 @@
     />
     <meta name="twitter:image" content="https://www.tendorai.com/twitter-image.png" />
     <meta name="twitter:image:alt" content="TendorAI - AI-powered office equipment procurement" />
-    
+
     <!-- Icons & Manifest -->
     <link rel="icon" href="/favicon.ico" sizes="any" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/manifest.json" />
-    
+
     <!-- Structured Data - JSON-LD -->
     <script type="application/ld+json">
     {
@@ -95,7 +95,7 @@
       }
     }
     </script>
-    
+
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -110,14 +110,14 @@
       ]
     }
     </script>
-    
+
     <!-- Preconnect and Preload for Performance -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="preconnect" href="https://www.google-analytics.com" />
     <link rel="preconnect" href="https://www.googletagmanager.com" />
     <link rel="preconnect" href="https://ai-procurement-backend-q35u.onrender.com" />
-    
+
     <!-- Preload Critical Assets -->
     <link
       rel="preload"
@@ -129,15 +129,14 @@
       href="/static/js/main.js"
       as="script"
     />
-    
+
     <!-- DNS Prefetch -->
     <link rel="dns-prefetch" href="//fonts.googleapis.com" />
     <link rel="dns-prefetch" href="//www.google-analytics.com" />
     <link rel="dns-prefetch" href="//ai-procurement-backend-q35u.onrender.com" />
-    
+
     <!-- Critical CSS Inline -->
     <style>
-      /* Critical CSS for above-the-fold content */
       html, body {
         margin: 0;
         padding: 0;
@@ -146,14 +145,11 @@
         color: #1f2937;
         line-height: 1.6;
       }
-      
       #root {
         min-height: 100vh;
         display: flex;
         flex-direction: column;
       }
-      
-      /* Loading spinner */
       .loading-spinner {
         position: fixed;
         top: 50%;
@@ -167,12 +163,10 @@
         animation: spin 1s linear infinite;
         z-index: 9999;
       }
-      
       @keyframes spin {
         0% { transform: translate(-50%, -50%) rotate(0deg); }
         100% { transform: translate(-50%, -50%) rotate(360deg); }
       }
-      
       .loading-text {
         position: fixed;
         top: 60%;
@@ -182,8 +176,6 @@
         font-size: 14px;
         z-index: 9999;
       }
-      
-      /* Reduced motion */
       @media (prefers-reduced-motion: reduce) {
         .loading-spinner {
           animation: none;
@@ -200,16 +192,16 @@
         <p>For the best experience comparing office equipment quotes, we recommend using the latest version of Chrome, Firefox, Safari, or Edge.</p>
       </div>
     </noscript>
-    
+
     <!-- Loading Indicator -->
     <div id="loading-indicator" aria-hidden="true">
       <div class="loading-spinner"></div>
       <div class="loading-text">Loading TendorAI...</div>
     </div>
-    
+
     <!-- Main App Container -->
     <div id="root"></div>
-    
+
     <!-- Remove loading indicator when React loads -->
     <script>
       window.addEventListener("load", function () {
@@ -221,8 +213,8 @@
         }
       });
     </script>
-    
-    <!-- Google Analytics (replace GA_MEASUREMENT_ID with actual ID) -->
+
+    <!-- Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=GA_MEASUREMENT_ID"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
@@ -234,6 +226,17 @@
         page_title: "TendorAI - Home",
         page_location: window.location.href,
       });
+    </script>
+
+    <!-- ✅ Mailchimp Site Connection -->
+    <script id="mcjs">
+      !function(c,h,i,m,p){
+        m=c.createElement(h),
+        p=c.getElementsByTagName(h)[0],
+        m.async=1,
+        m.src=i,
+        p.parentNode.insertBefore(m,p)
+      }(document,"script","https://chimpstatic.com/mcjs-connected/js/users/a316845fbb538a98787af1923/614ed1ec924eef8559f63d9bc.js");
     </script>
   </body>
 </html>

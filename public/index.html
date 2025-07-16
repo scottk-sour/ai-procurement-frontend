@@ -109,6 +109,15 @@
     <link rel="apple-touch-icon" href="/apple-touch-icon-57x57.png" sizes="57x57" />
     <link rel="manifest" href="/site.webmanifest" />
 
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-0D3RVTRZY9"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-0D3RVTRZY9');
+    </script>
+
     <!-- Structured Data - JSON-LD -->
     <script type="application/ld+json">
     {
@@ -484,56 +493,6 @@
           }
         });
       })();
-    </script>
-
-    <!-- Google Analytics 4 -->
-    <script>
-      // Only load GA if ID is configured
-      if (window.TENDORAI_CONFIG && window.TENDORAI_CONFIG.GA_ID) {
-        (function() {
-          var script = document.createElement('script');
-          script.async = true;
-          script.src = 'https://www.googletagmanager.com/gtag/js?id=' + window.TENDORAI_CONFIG.GA_ID;
-          document.head.appendChild(script);
-          
-          script.onload = function() {
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-            
-            gtag('config', window.TENDORAI_CONFIG.GA_ID, {
-              page_title: 'TendorAI - Home',
-              page_location: window.location.href,
-              custom_map: {
-                dimension1: 'user_type',
-                dimension2: 'plan_type'
-              }
-            });
-            
-            gtag('event', 'page_view', {
-              page_title: 'TendorAI - Home',
-              page_location: window.location.href,
-              content_group1: 'Landing Page',
-              content_group2: 'Home'
-            });
-          };
-        })();
-      }
-    </script>
-
-    <!-- Hotjar Tracking (Optional) -->
-    <script>
-      // Only load Hotjar if ID is configured
-      if (window.TENDORAI_CONFIG && window.TENDORAI_CONFIG.HOTJAR_ID) {
-        (function(h,o,t,j,a,r){
-          h.hj=h.hj||function(){(h.hj.q=h.hj.q||[]).push(arguments)};
-          h._hjSettings={hjid:window.TENDORAI_CONFIG.HOTJAR_ID,hjsv:6};
-          a=o.getElementsByTagName('head')[0];
-          r=o.createElement('script');r.async=1;
-          r.src=t+h._hjSettings.hjid+j+h._hjSettings.hjsv;
-          a.appendChild(r);
-        })(window,document,'https://static.hotjar.com/c/hotjar-','.js?sv=');
-      }
     </script>
 
     <!-- Mailchimp Integration -->

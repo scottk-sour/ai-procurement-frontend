@@ -15,7 +15,6 @@ const NewsletterSignup = () => {
     
     setLoading(true);
     try {
-      // Replace with your actual newsletter endpoint
       const response = await fetch("https://formspree.io/f/xblgkvnk", {
         method: "POST",
         headers: {
@@ -121,21 +120,21 @@ const LandingPage = () => {
   const features = [
     {
       icon: <FaBolt />,
-      title: "Lightning Fast Quotes",
-      description: "Get vendor quotes in minutes, not weeks. Our AI matches you with the perfect suppliers instantly.",
-      metric: "85% faster"
+      title: "Instant Office Equipment Quotes",
+      description: "Get 3 instant quotes for photocopiers, printers, and office equipment in minutes, not days. Our AI matches you with verified UK suppliers instantly.",
+      metric: "3 quotes in minutes"
     },
     {
       icon: <FaShieldAlt />,
-      title: "Verified Vendors Only",
-      description: "Every vendor in our network is thoroughly vetted for quality, reliability, and financial stability.",
+      title: "Verified UK Suppliers Only",
+      description: "Every supplier in our network is thoroughly vetted for quality, reliability, and financial stability. Compare prices from trusted UK vendors.",
       metric: "100% verified"
     },
     {
       icon: <FaChartLine />,
-      title: "Smart Comparisons",
-      description: "Compare quotes with AI-powered insights that highlight the best value beyond just price.",
-      metric: "Save 30%"
+      title: "AI-Powered Price Comparison",
+      description: "Compare office equipment prices with AI-powered insights that highlight the best value beyond just cost. Smart procurement made simple.",
+      metric: "Save up to 30%"
     }
   ];
 
@@ -143,34 +142,34 @@ const LandingPage = () => {
     {
       link: "/services/photocopiers",
       image: "photocopier.PNG",
-      alt: "Photocopiers & Printers",
-      title: "Photocopiers & Printers",
-      description: "Find the perfect printing solutions for your business with competitive quotes from top suppliers.",
-      features: ["Lease & Purchase Options", "Maintenance Included", "Latest Technology"]
+      alt: "Photocopiers & Multifunction Printers",
+      title: "Photocopier Quotes UK",
+      description: "Get instant quotes for photocopiers and multifunction printers from verified UK suppliers. Compare lease and purchase options.",
+      features: ["Instant Quote Comparison", "Lease & Purchase Options", "Maintenance Included"]
     },
     {
       link: "/services/telecoms",
       image: "phone.PNG",
-      alt: "Telecoms & Communications",
-      title: "Telecoms & Communications",
-      description: "Upgrade your business communications with cutting-edge telecom solutions and support.",
-      features: ["VoIP Systems", "Mobile Plans", "Internet Connectivity"]
+      alt: "Office Printer Quotes",
+      title: "Office Printer Quotes",
+      description: "Compare prices for office printers, inkjet, laser, and wide-format printers. Find the best deals from UK suppliers.",
+      features: ["All Printer Types", "Competitive Pricing", "Fast Delivery"]
     },
     {
       link: "/services/cctv",
       image: "cctv.PNG",
-      alt: "Security & CCTV",
-      title: "Security & CCTV",
-      description: "Protect your assets with professional security systems from trusted installation partners.",
-      features: ["HD Cameras", "24/7 Monitoring", "Smart Analytics"]
+      alt: "Office Furniture Quotes",
+      title: "Office Furniture Quotes",
+      description: "Get instant quotes for office desks, chairs, storage solutions, and complete office setups from trusted UK suppliers.",
+      features: ["Complete Office Solutions", "Ergonomic Furniture", "Flexible Payment Terms"]
     },
     {
       link: "/services/it",
       image: "wifi.PNG",
-      alt: "IT Solutions",
-      title: "IT Solutions & Support",
-      description: "Transform your business with comprehensive IT services and ongoing technical support.",
-      features: ["Cloud Solutions", "Cybersecurity", "IT Support"]
+      alt: "IT Equipment Quotes",
+      title: "IT Equipment Quotes",
+      description: "Compare quotes for computers, servers, networking equipment, and IT solutions from verified UK technology suppliers.",
+      features: ["Latest Technology", "Business Grade Equipment", "Technical Support"]
     }
   ];
 
@@ -179,121 +178,147 @@ const LandingPage = () => {
       name: "Sarah Mitchell",
       company: "WalesWest Construction",
       role: "Procurement Manager",
-      quote: "TendorAI revolutionised our procurement process. We've cut sourcing time by 75% and found suppliers we never knew existed.",
+      quote: "TendorAI's instant quote system saved us weeks of procurement time. We got 3 competitive photocopier quotes in minutes and saved £8,000 on our annual contract.",
       logo: "waleswest.png",
-      savings: "£45K saved annually"
+      savings: "£8K saved on photocopiers"
     },
     {
       name: "James Thompson",
       company: "Monhinge Motors",
       role: "Operations Director",
-      quote: "The quality of vendors and speed of response is incredible. Our team can focus on strategy instead of chasing quotes.",
+      quote: "The AI-powered supplier matching is incredible. We found office furniture suppliers we didn't know existed and got better prices than our usual vendors.",
       logo: "monmotors.png",
-      savings: "60% time reduction"
+      savings: "3x faster procurement"
     },
     {
       name: "Maria Santos",
       company: "Ascari Consulting",
       role: "CFO",
-      quote: "The cost savings and vendor quality have exceeded our expectations. This platform pays for itself many times over.",
+      quote: "Getting instant office equipment quotes through TendorAI has transformed our procurement process. The platform pays for itself with the first purchase.",
       logo: "Ascari.png",
-      savings: "£120K saved"
+      savings: "£15K saved annually"
     },
     {
       name: "David Chen",
       company: "TechFlow Solutions",
       role: "CEO",
-      quote: "Finally, a procurement platform that understands modern business needs. The AI recommendations are spot-on.",
+      quote: "Finally, a procurement platform that understands UK businesses. The instant quotes and verified suppliers have made office equipment purchasing so much easier.",
       logo: "GoCompare.png",
-      savings: "90% accuracy rate"
+      savings: "95% time reduction"
     }
   ];
 
   const stats = [
-    { number: 2500, suffix: "+", label: "Active Vendors" },
-    { number: 50000, suffix: "+", label: "Quotes Delivered" },
+    { number: 2500, suffix: "+", label: "Verified UK Suppliers" },
+    { number: 50000, suffix: "+", label: "Instant Quotes Delivered" },
     { number: 97, suffix: "%", label: "Client Satisfaction" },
-    { number: 24, suffix: "h", label: "Average Response Time" }
+    { number: 5, suffix: " min", label: "Average Quote Time" }
+  ];
+
+  const faqItems = [
+    {
+      question: "How quickly can I get office equipment quotes?",
+      answer: "With TendorAI's AI-powered platform, you can get 3 instant quotes for office equipment in minutes. Simply tell us what you need or upload your requirements, and our AI matches you with verified UK suppliers instantly."
+    },
+    {
+      question: "What types of office equipment can I get quotes for?",
+      answer: "TendorAI provides instant quotes for photocopiers, multifunction printers, office printers, desks, chairs, filing cabinets, and other office equipment from verified UK suppliers."
+    },
+    {
+      question: "Is the AI procurement platform free to use?",
+      answer: "Yes, TendorAI's AI-powered quote comparison service is completely free for UK businesses. We earn commission from suppliers when you choose to purchase, but there are no fees for comparing quotes."
+    },
+    {
+      question: "How does AI-powered procurement work?",
+      answer: "Our AI analyzes your office equipment requirements and instantly matches you with the most suitable verified suppliers from our network. You receive 3 tailored quotes to compare prices, features, and terms."
+    },
+    {
+      question: "Are the suppliers verified and trusted?",
+      answer: "Yes, all suppliers in TendorAI's network are thoroughly verified and rated. We only work with trusted UK suppliers who meet our quality and service standards."
+    },
+    {
+      question: "Can I get quotes for photocopiers and printers?",
+      answer: "Absolutely! We specialize in photocopier quotes UK and office printer quotes. Compare lease and purchase options from leading brands like Canon, HP, Xerox, and Ricoh."
+    }
   ];
 
   return (
     <HelmetProvider>
       <div className="landing-page">
+        {/* SEO Meta Tags */}
         <Helmet>
-          <title>TendorAI | AI-Powered Procurement Platform - Get Instant Vendor Quotes</title>
+          <title>TendorAI - Get 3 Instant Office Equipment Quotes | AI-Powered Procurement UK</title>
           <meta
             name="description"
-            content="Transform your procurement with TendorAI's AI-powered platform. Get instant quotes from verified vendors, compare options intelligently, and save up to 30% on business purchases."
+            content="Get 3 instant office equipment quotes in minutes with TendorAI's AI-powered platform. Compare photocopier, printer & office furniture prices from verified UK suppliers. Free comparison service."
           />
-          <meta name="keywords" content="procurement, vendor quotes, AI procurement, business suppliers, tender platform" />
-          <link rel="canonical" href="https://tendorai.com" />
+          <meta 
+            name="keywords" 
+            content="instant office equipment quotes, AI procurement platform, photocopier quotes UK, compare office equipment prices, office equipment supplier comparison, automated procurement quotes, smart procurement software UK, business equipment quotes" 
+          />
+          <link rel="canonical" href="https://www.tendorai.com/" />
         </Helmet>
 
-        {/* Hero Section - Fixed for white text and visible background */}
+        {/* Hero Section */}
         <section className="hero-section hero-section-white" data-animation="fadeIn" data-visible={isVisible}>
           <div className="hero-background">
-            {/* Reduced overlay opacity to show background image */}
             <div className="hero-overlay-light" />
             <img 
               src="/assets/images/landingpagepic.png"
-              alt="Modern procurement technology"
+              alt="AI-powered office equipment procurement platform"
               className="hero-bg-image-visible"
               loading="eager"
               onError={(e) => {
                 console.error('❌ Image failed to load:', e.target.src);
                 e.target.style.display = 'none';
-                // Add fallback pattern background
                 e.target.parentElement.style.background = `
                   linear-gradient(135deg, #1e40af 0%, #3b82f6 100%),
                   radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
                   radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%)
                 `;
               }}
-              onLoad={() => {
-                console.log('✅ Background image loaded successfully!');
-              }}
             />
           </div>
           
           <div className="hero-content hero-content-white">
             <div className="hero-badge hero-badge-white">
-              🚀 Now in Beta - Free Early Access
+              🚀 Get 3 Instant Quotes - Free Service
             </div>
             
             <h1 className="hero-title hero-title-white">
-              Revolutionise Your <span className="gradient-text-white">Procurement</span> with AI
+              Get 3 Instant Office Equipment Quotes with <span className="gradient-text-white">AI-Powered Procurement</span>
             </h1>
             
             <p className="hero-subtitle hero-subtitle-white">
-              Connect with verified vendors, receive tailored quotes in minutes, and make smarter purchasing decisions with AI-powered insights.
+              Compare photocopier, printer & office furniture prices from verified UK suppliers in minutes. Free AI-powered comparison service that saves time and money.
             </p>
             
             <div className="hero-stats hero-stats-white">
               <div className="stat-item stat-item-white">
                 <span className="stat-number stat-number-white">2,500+</span>
-                <span className="stat-label stat-label-white">Verified Vendors</span>
+                <span className="stat-label stat-label-white">Verified UK Suppliers</span>
               </div>
               <div className="stat-item stat-item-white">
-                <span className="stat-number stat-number-white">85%</span>
-                <span className="stat-label stat-label-white">Faster Sourcing</span>
+                <span className="stat-number stat-number-white">3</span>
+                <span className="stat-label stat-label-white">Instant Quotes</span>
               </div>
               <div className="stat-item stat-item-white">
-                <span className="stat-number stat-number-white">30%</span>
-                <span className="stat-label stat-label-white">Average Savings</span>
+                <span className="stat-number stat-number-white">5 min</span>
+                <span className="stat-label stat-label-white">Average Response</span>
               </div>
             </div>
             
             <div className="hero-actions">
-              <Link to="/signup" className="btn btn-primary btn-lg">
-                Start Free Trial <FaArrowRight />
+              <Link to="/request-quote" className="btn btn-primary btn-lg">
+                Get Instant Quotes <FaArrowRight />
               </Link>
               <Link to="/how-it-works" className="btn btn-secondary-white btn-lg">
-                See How It Works
+                How AI Procurement Works
               </Link>
             </div>
             
             <p className="hero-note hero-note-white">
-              ✓ No credit card required ✓ Setup in 2 minutes ✓ Cancel anytime
+              ✓ Free comparison service ✓ 3 quotes in minutes ✓ Verified UK suppliers only
             </p>
           </div>
         </section>
@@ -302,9 +327,9 @@ const LandingPage = () => {
         <section className="features-section" data-animation="fadeInUp" data-visible={isVisible}>
           <div className="container">
             <div className="section-header">
-              <h2 className="section-title">Why Choose TendorAI?</h2>
+              <h2 className="section-title">Why Choose Instant Office Equipment Quotes?</h2>
               <p className="section-subtitle">
-                Experience the future of procurement with our AI-powered platform
+                Experience the fastest way to compare office equipment prices with AI-powered procurement
               </p>
             </div>
             
@@ -331,9 +356,9 @@ const LandingPage = () => {
         <section className="services-section" data-animation="fadeInUp" data-visible={isVisible}>
           <div className="container">
             <div className="section-header">
-              <h2 className="section-title">Our Services</h2>
+              <h2 className="section-title">Compare Office Equipment Prices Across All Categories</h2>
               <p className="section-subtitle">
-                Comprehensive procurement solutions across all business categories
+                Get instant quotes for photocopiers, printers, office furniture, and IT equipment from verified UK suppliers
               </p>
             </div>
             
@@ -357,7 +382,7 @@ const LandingPage = () => {
                       }}
                     />
                     <div className="service-overlay">
-                      <span className="service-cta">Get Quotes <FaArrowRight /></span>
+                      <span className="service-cta">Get Instant Quotes <FaArrowRight /></span>
                     </div>
                   </div>
                   
@@ -400,9 +425,9 @@ const LandingPage = () => {
         <section className="testimonials-section" data-animation="fadeInUp" data-visible={isVisible}>
           <div className="container">
             <div className="section-header">
-              <h2 className="section-title">Trusted by Industry Leaders</h2>
+              <h2 className="section-title">Trusted by UK Businesses for Office Equipment Procurement</h2>
               <p className="section-subtitle">
-                See what our clients say about their procurement transformation
+                See how our AI-powered platform has transformed procurement for companies across the UK
               </p>
             </div>
             
@@ -442,36 +467,63 @@ const LandingPage = () => {
           </div>
         </section>
 
+        {/* FAQ Section */}
+        <section className="faq-section" data-animation="fadeInUp" data-visible={isVisible}>
+          <div className="container">
+            <div className="section-header">
+              <h2 className="section-title">Frequently Asked Questions</h2>
+              <p className="section-subtitle">
+                Everything you need to know about getting instant office equipment quotes
+              </p>
+            </div>
+            
+            <div className="faq-grid">
+              {faqItems.map((faq, index) => (
+                <div key={index} className="faq-item">
+                  <h3>{faq.question}</h3>
+                  <p>{faq.answer}</p>
+                </div>
+              ))}
+            </div>
+            
+            <div className="faq-cta">
+              <Link to="/faq" className="btn btn-secondary">
+                View All FAQs
+              </Link>
+            </div>
+          </div>
+        </section>
+
         {/* CTA Section */}
         <section className="cta-section" data-animation="fadeInUp" data-visible={isVisible}>
           <div className="container">
             <div className="cta-content">
-              <h2 className="cta-title">Ready to Transform Your Procurement?</h2>
+              <h2 className="cta-title">Ready to Get Your 3 Instant Office Equipment Quotes?</h2>
               <p className="cta-subtitle">
-                Join thousands of businesses already saving time and money with TendorAI
+                Join thousands of UK businesses already saving time and money with AI-powered procurement
               </p>
               
               <div className="cta-benefits">
                 <div className="benefit-item">
                   <FaClock className="benefit-icon" />
-                  <span>Setup in 2 minutes</span>
+                  <span>3 quotes in minutes</span>
                 </div>
                 <div className="benefit-item">
                   <FaAward className="benefit-icon" />
-                  <span>Free for 30 days</span>
+                  <span>Free comparison service</span>
                 </div>
                 <div className="benefit-item">
                   <FaUsers className="benefit-icon" />
-                  <span>Dedicated support</span>
+                  <span>Verified UK suppliers</span>
                 </div>
               </div>
               
               <div className="cta-actions">
-                <Link to="/signup" className="btn btn-primary btn-xl">
-                  Start Free Trial Now <FaArrowRight />
+                <Link to="/request-quote" className="btn btn-primary btn-xl">
+                  Get Instant Quotes Now <FaArrowRight />
                 </Link>
                 <Link to="/contact" className="btn btn-outline btn-xl">
-                  Schedule Demo
+                  Learn More
                 </Link>
               </div>
               

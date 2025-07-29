@@ -39,28 +39,28 @@ import {
 import { LineChart as RechartsLineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart as RechartsBarChart, Bar, PieChart as RechartsPieChart, Pie, Cell } from 'recharts';
 
 const VendorDashboard = () => {
-  // Mock auth context
+  // Mock auth context - cleaned up
   const auth = {
     token: "mock-token",
     user: {
-      name: "John Smith",
-      email: "john@printtech.com",
-      companyName: "PrintTech Solutions",
-      verified: true,
-      rating: 4.2,
+      name: "",
+      email: "",
+      companyName: "",
+      verified: false,
+      rating: 0,
       userId: "vendor123"
     }
   };
 
-  // Enhanced state management
+  // Enhanced state management - cleaned up
   const [vendorData, setVendorData] = useState({
     name: auth?.user?.name || "Vendor",
     email: auth?.user?.email || "",
     companyName: auth?.user?.companyName || "",
     verified: auth?.user?.verified || false,
     rating: auth?.user?.rating || 0,
-    totalEarnings: 15420,
-    monthlyEarnings: 3240
+    totalEarnings: 0,
+    monthlyEarnings: 0
   });
 
   const [dashboardState, setDashboardState] = useState({
@@ -80,80 +80,19 @@ const VendorDashboard = () => {
     dragOver: false
   });
 
+  // Data state - cleaned up
   const [dataState, setDataState] = useState({
-    recentActivity: [
-      { type: "quote", description: "New quote request from TechCorp", date: new Date().toISOString() },
-      { type: "upload", description: "Uploaded 15 new products", date: new Date(Date.now() - 86400000).toISOString() }
-    ],
+    recentActivity: [],
     uploadedFiles: [],
-    quotes: [
-      {
-        _id: "quote1",
-        companyName: "TechCorp Ltd",
-        status: "Pending",
-        industryType: "Technology",
-        monthlyVolume: { mono: 5000, colour: 2000 },
-        maxBudget: 850,
-        requirements: ["A4 Support", "High Speed", "Network Ready"],
-        createdAt: new Date().toISOString()
-      }
-    ],
-    notifications: [
-      { type: "quote", title: "New Quote Request", message: "TechCorp has requested a quote", read: false, createdAt: new Date().toISOString() }
-    ]
+    quotes: [],
+    notifications: []
   });
 
   const [message, setMessage] = useState({ text: "", type: "", visible: false });
   const [uploadResults, setUploadResults] = useState(null);
 
-  // Enhanced product management state
-  const [vendorProducts, setVendorProducts] = useState([
-    {
-      _id: "prod1",
-      manufacturer: "Canon",
-      model: "imageRUNNER ADVANCE DX C5750i",
-      category: "Multifunction Printer",
-      speed: 50,
-      minVolume: 5000,
-      maxVolume: 15000,
-      paperSizes: { primary: "A4", supported: ["A4", "A3", "Letter"] },
-      costs: { cpcRates: { A4Mono: 1.2, A4Colour: 4.8 } },
-      status: "active",
-      features: ["Duplex", "Network", "Mobile Print"],
-      description: "High-volume color multifunction printer",
-      createdAt: new Date().toISOString()
-    },
-    {
-      _id: "prod2", 
-      manufacturer: "HP",
-      model: "LaserJet Enterprise MFP M635h",
-      category: "Laser Printer",
-      speed: 65,
-      minVolume: 8000,
-      maxVolume: 25000,
-      paperSizes: { primary: "A4", supported: ["A4", "Letter", "Legal"] },
-      costs: { cpcRates: { A4Mono: 0.9, A4Colour: 0 } },
-      status: "active",
-      features: ["High Speed", "Security", "Energy Efficient"],
-      description: "Enterprise-grade monochrome laser printer",
-      createdAt: new Date(Date.now() - 86400000).toISOString()
-    },
-    {
-      _id: "prod3",
-      manufacturer: "Xerox",
-      model: "VersaLink C405",
-      category: "Multifunction Printer",
-      speed: 36,
-      minVolume: 2000,
-      maxVolume: 8000,
-      paperSizes: { primary: "A4", supported: ["A4", "A5", "Letter"] },
-      costs: { cpcRates: { A4Mono: 1.5, A4Colour: 5.2 } },
-      status: "inactive",
-      features: ["Compact", "WiFi", "Touch Screen"],
-      description: "Compact color multifunction for small offices",
-      createdAt: new Date(Date.now() - 172800000).toISOString()
-    }
-  ]);
+  // Enhanced product management state - cleaned up
+  const [vendorProducts, setVendorProducts] = useState([]);
 
   // Product management state
   const [productState, setProductState] = useState({
@@ -222,86 +161,6 @@ const VendorDashboard = () => {
       totalProducts: products.length
     };
   }, [dataState.quotes, vendorProducts]);
-
-  // Mock analytics data
-  const analyticsData = useMemo(() => {
-    const currentDate = new Date();
-    const days = parseInt(analyticsState.dateRange);
-    
-    // Generate revenue data
-    const revenueData = [];
-    for (let i = days - 1; i >= 0; i--) {
-      const date = new Date(currentDate);
-      date.setDate(date.getDate() - i);
-      revenueData.push({
-        date: date.toLocaleDateString("en-GB", { month: 'short', day: 'numeric' }),
-        revenue: Math.floor(Math.random() * 1000) + 500,
-        quotes: Math.floor(Math.random() * 10) + 5,
-        conversions: Math.floor(Math.random() * 5) + 2,
-        avgDealValue: Math.floor(Math.random() * 200) + 300
-      });
-    }
-
-    // Product performance data
-    const productPerformance = [
-      { name: "Canon MF Series", quotes: 45, revenue: 15400, successRate: 73 },
-      { name: "HP LaserJet Pro", quotes: 38, revenue: 12800, successRate: 68 },
-      { name: "Xerox WorkCentre", quotes: 32, revenue: 11200, successRate: 62 },
-      { name: "Brother HL Series", quotes: 28, revenue: 9600, successRate: 71 },
-      { name: "Ricoh MP Series", quotes: 22, revenue: 7800, successRate: 59 }
-    ];
-
-    // Industry breakdown
-    const industryData = [
-      { name: "Technology", value: 35, count: 24, avgValue: 850 },
-      { name: "Healthcare", value: 28, count: 19, avgValue: 920 },
-      { name: "Finance", value: 18, count: 12, avgValue: 1200 },
-      { name: "Education", value: 12, count: 8, avgValue: 650 },
-      { name: "Manufacturing", value: 7, count: 5, avgValue: 780 }
-    ];
-
-    // Monthly trends
-    const monthlyTrends = [
-      { month: "Jan", revenue: 18500, quotes: 67, avgResponse: 2.3 },
-      { month: "Feb", revenue: 21200, quotes: 73, avgResponse: 2.1 },
-      { month: "Mar", revenue: 19800, quotes: 69, avgResponse: 2.4 },
-      { month: "Apr", revenue: 23400, quotes: 81, avgResponse: 1.9 },
-      { month: "May", revenue: 25100, quotes: 87, avgResponse: 1.8 },
-      { month: "Jun", revenue: 26800, quotes: 92, avgResponse: 1.7 }
-    ];
-
-    // Performance metrics
-    const performanceMetrics = {
-      totalRevenue: 134800,
-      totalQuotes: 469,
-      averageConversion: 68,
-      averageResponseTime: 1.9,
-      topPerformingCategory: "Multifunction Printers",
-      bestMonth: "June",
-      growthRate: 15.2,
-      customerSatisfaction: 4.3
-    };
-
-    return {
-      revenueData,
-      productPerformance,
-      industryData,
-      monthlyTrends,
-      performanceMetrics
-    };
-  }, [analyticsState.dateRange]);
-
-  // Chart colors
-  const chartColors = {
-    primary: '#3b82f6',
-    secondary: '#10b981',
-    accent: '#f59e0b',
-    danger: '#ef4444',
-    info: '#6366f1',
-    success: '#22c55e'
-  };
-
-  const pieColors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
 
   // Enhanced error handling
   const showMessage = useCallback((text, type = "info") => {
@@ -465,40 +324,6 @@ const VendorDashboard = () => {
     showMessage("Product status updated", "success");
   }, [showMessage]);
 
-  // Bulk operations
-  const handleSelectProduct = useCallback((productId, checked) => {
-    setProductState(prev => {
-      const newSelected = new Set(prev.selectedProducts);
-      if (checked) {
-        newSelected.add(productId);
-      } else {
-        newSelected.delete(productId);
-      }
-      return { ...prev, selectedProducts: newSelected };
-    });
-  }, []);
-
-  const handleBulkDelete = useCallback(() => {
-    if (productState.selectedProducts.size === 0) return;
-    
-    setBulkActions({
-      isOpen: true,
-      action: "delete",
-      confirmText: `Delete ${productState.selectedProducts.size} selected products?`
-    });
-  }, [productState.selectedProducts]);
-
-  const executeBulkAction = useCallback(() => {
-    if (bulkActions.action === "delete") {
-      setVendorProducts(prev => 
-        prev.filter(p => !productState.selectedProducts.has(p._id))
-      );
-      setProductState(prev => ({ ...prev, selectedProducts: new Set() }));
-      showMessage(`Deleted ${productState.selectedProducts.size} products`, "success");
-    }
-    setBulkActions({ isOpen: false, action: "", confirmText: "" });
-  }, [bulkActions, productState.selectedProducts, showMessage]);
-
   // Enhanced product catalog upload function
   const handleProductCatalogUpload = useCallback(async (file) => {
     if (!file) {
@@ -533,58 +358,6 @@ const VendorDashboard = () => {
       setDashboardState(prev => ({ ...prev, loading: false }));
     }, 2000);
   }, [showMessage]);
-
-  // Filtered and sorted products
-  const filteredProducts = useMemo(() => {
-    let filtered = vendorProducts || [];
-    
-    if (productState.searchTerm) {
-      const search = productState.searchTerm.toLowerCase();
-      filtered = filtered.filter(product => 
-        (product.manufacturer || "").toLowerCase().includes(search) ||
-        (product.model || "").toLowerCase().includes(search) ||
-        (product.category || "").toLowerCase().includes(search)
-      );
-    }
-    
-    if (productState.filterCategory !== "all") {
-      filtered = filtered.filter(product => product.category === productState.filterCategory);
-    }
-    
-    if (productState.filterStatus !== "all") {
-      filtered = filtered.filter(product => product.status === productState.filterStatus);
-    }
-    
-    return filtered.sort((a, b) => {
-      const aVal = a[productState.sortBy] || "";
-      const bVal = b[productState.sortBy] || "";
-      const order = productState.sortOrder === "asc" ? 1 : -1;
-      
-      if (productState.sortBy === "createdAt") {
-        return order * (new Date(aVal) - new Date(bVal));
-      }
-      return order * aVal.toString().localeCompare(bVal.toString());
-    });
-  }, [vendorProducts, productState]);
-
-  // This must come after filteredProducts is defined
-  const handleSelectAllProducts = useCallback((checked) => {
-    const filtered = filteredProducts;
-    if (checked) {
-      setProductState(prev => ({ 
-        ...prev, 
-        selectedProducts: new Set(filtered.map(p => p._id)) 
-      }));
-    } else {
-      setProductState(prev => ({ ...prev, selectedProducts: new Set() }));
-    }
-  }, [filteredProducts]);
-
-  // Get unique categories for filter
-  const categories = useMemo(() => {
-    const cats = [...new Set(vendorProducts.map(p => p.category).filter(Boolean))];
-    return cats.sort();
-  }, [vendorProducts]);
 
   // Format utilities
   const formatDate = useCallback((dateString) => {
@@ -647,16 +420,16 @@ const VendorDashboard = () => {
                 fontSize: '1.5rem',
                 fontWeight: 'bold'
               }}>
-                {vendorData.name.charAt(0).toUpperCase()}
+                {vendorData.name.charAt(0).toUpperCase() || "V"}
               </div>
               <div>
                 <h1 style={{ margin: 0, fontSize: '1.8rem', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  Welcome back, {vendorData.name}!
+                  Welcome back, {vendorData.name || "Vendor"}!
                   {vendorData.verified && (
                     <CheckCircle size={20} style={{ color: '#4ade80' }} />
                   )}
                 </h1>
-                <p style={{ margin: '0.25rem 0 0', opacity: 0.9 }}>{vendorData.companyName}</p>
+                <p style={{ margin: '0.25rem 0 0', opacity: 0.9 }}>{vendorData.companyName || "Your Company"}</p>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.25rem' }}>
                   {[...Array(5)].map((_, i) => (
                     <Star 
@@ -760,7 +533,7 @@ const VendorDashboard = () => {
               { id: "quotes", label: "Quote Requests", icon: <Quote size={18} />, badge: metrics.pendingQuotes },
               { id: "files", label: "Product Catalog", icon: <Package size={18} />, badge: metrics.totalProducts },
               { id: "analytics", label: "Analytics", icon: <BarChart3 size={18} /> },
-              { id: "notifications", label: "Notifications", icon: <Bell size={18} />, badge: 1 }
+              { id: "notifications", label: "Notifications", icon: <Bell size={18} />, badge: dataState.notifications.filter(n => !n.read).length }
             ].map(tab => (
               <button
                 key={tab.id}
@@ -914,317 +687,6 @@ const VendorDashboard = () => {
           </div>
         )}
 
-        {dashboardState.activeTab === "analytics" && (
-          <div>
-            {/* Analytics Header */}
-            <div style={{ marginBottom: '2rem' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                <div>
-                  <h2 style={{ margin: 0, fontSize: '1.5rem', fontWeight: '600' }}>Performance Analytics</h2>
-                  <p style={{ margin: '0.5rem 0 0', color: '#6b7280' }}>
-                    Track your vendor performance and identify growth opportunities
-                  </p>
-                </div>
-                <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-                  <select
-                    value={analyticsState.dateRange}
-                    onChange={(e) => setAnalyticsState(prev => ({ ...prev, dateRange: e.target.value }))}
-                    style={{
-                      padding: '0.5rem 1rem',
-                      border: '1px solid #d1d5db',
-                      borderRadius: '0.375rem',
-                      background: 'white',
-                      cursor: 'pointer'
-                    }}
-                  >
-                    <option value="7">Last 7 days</option>
-                    <option value="30">Last 30 days</option>
-                    <option value="90">Last 3 months</option>
-                    <option value="365">Last year</option>
-                  </select>
-                  <button
-                    style={{
-                      background: '#3b82f6',
-                      color: 'white',
-                      border: 'none',
-                      padding: '0.5rem 1rem',
-                      borderRadius: '0.375rem',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.5rem'
-                    }}
-                  >
-                    <Download size={16} /> Export Report
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Key Performance Indicators */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
-              <div style={{ background: 'white', padding: '1.5rem', borderRadius: '0.75rem', boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)', border: '1px solid #e5e7eb' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
-                  <div style={{ padding: '0.75rem', background: '#dbeafe', borderRadius: '0.5rem', color: '#1d4ed8' }}>
-                    <PoundSterling size={24} />
-                  </div>
-                  <div style={{ fontSize: '0.875rem', color: '#10b981', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                    <TrendingUp size={14} /> +15.2%
-                  </div>
-                </div>
-                <h3 style={{ margin: 0, fontSize: '0.875rem', color: '#6b7280', fontWeight: '500' }}>Total Revenue</h3>
-                <div style={{ fontSize: '2rem', fontWeight: '700', color: '#1f2937', margin: '0.25rem 0' }}>
-                  {formatCurrency(analyticsData.performanceMetrics.totalRevenue)}
-                </div>
-                <p style={{ margin: 0, fontSize: '0.75rem', color: '#6b7280' }}>vs last period</p>
-              </div>
-
-              <div style={{ background: 'white', padding: '1.5rem', borderRadius: '0.75rem', boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)', border: '1px solid #e5e7eb' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
-                  <div style={{ padding: '0.75rem', background: '#dcfce7', borderRadius: '0.5rem', color: '#16a34a' }}>
-                    <Target size={24} />
-                  </div>
-                  <div style={{ fontSize: '0.875rem', color: '#10b981', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                    <TrendingUp size={14} /> +3.2%
-                  </div>
-                </div>
-                <h3 style={{ margin: 0, fontSize: '0.875rem', color: '#6b7280', fontWeight: '500' }}>Conversion Rate</h3>
-                <div style={{ fontSize: '2rem', fontWeight: '700', color: '#1f2937', margin: '0.25rem 0' }}>
-                  {analyticsData.performanceMetrics.averageConversion}%
-                </div>
-                <p style={{ margin: 0, fontSize: '0.75rem', color: '#6b7280' }}>quotes to wins</p>
-              </div>
-
-              <div style={{ background: 'white', padding: '1.5rem', borderRadius: '0.75rem', boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)', border: '1px solid #e5e7eb' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
-                  <div style={{ padding: '0.75rem', background: '#fef3c7', borderRadius: '0.5rem', color: '#d97706' }}>
-                    <Clock size={24} />
-                  </div>
-                  <div style={{ fontSize: '0.875rem', color: '#10b981', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                    <TrendingDown size={14} /> -12min
-                  </div>
-                </div>
-                <h3 style={{ margin: 0, fontSize: '0.875rem', color: '#6b7280', fontWeight: '500' }}>Avg Response Time</h3>
-                <div style={{ fontSize: '2rem', fontWeight: '700', color: '#1f2937', margin: '0.25rem 0' }}>
-                  {analyticsData.performanceMetrics.averageResponseTime}h
-                </div>
-                <p style={{ margin: 0, fontSize: '0.75rem', color: '#6b7280' }}>industry avg: 4.2h</p>
-              </div>
-
-              <div style={{ background: 'white', padding: '1.5rem', borderRadius: '0.75rem', boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)', border: '1px solid #e5e7eb' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
-                  <div style={{ padding: '0.75rem', background: '#e0e7ff', borderRadius: '0.5rem', color: '#4338ca' }}>
-                    <Star size={24} />
-                  </div>
-                  <div style={{ fontSize: '0.875rem', color: '#10b981', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                    <TrendingUp size={14} /> +0.2
-                  </div>
-                </div>
-                <h3 style={{ margin: 0, fontSize: '0.875rem', color: '#6b7280', fontWeight: '500' }}>Customer Rating</h3>
-                <div style={{ fontSize: '2rem', fontWeight: '700', color: '#1f2937', margin: '0.25rem 0' }}>
-                  {analyticsData.performanceMetrics.customerSatisfaction}/5
-                </div>
-                <p style={{ margin: 0, fontSize: '0.75rem', color: '#6b7280' }}>based on 127 reviews</p>
-              </div>
-            </div>
-
-            {/* Charts Section */}
-            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1.5rem', marginBottom: '2rem' }}>
-              {/* Revenue Trend Chart */}
-              <div style={{ background: 'white', padding: '1.5rem', borderRadius: '0.75rem', boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)', border: '1px solid #e5e7eb' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-                  <h3 style={{ margin: 0, fontSize: '1.125rem', fontWeight: '600' }}>Revenue Trend</h3>
-                  <div style={{ display: 'flex', gap: '0.5rem' }}>
-                    {['revenue', 'quotes', 'conversions'].map(metric => (
-                      <button
-                        key={metric}
-                        onClick={() => setAnalyticsState(prev => ({ ...prev, selectedMetric: metric }))}
-                        style={{
-                          background: analyticsState.selectedMetric === metric ? '#3b82f6' : '#f3f4f6',
-                          color: analyticsState.selectedMetric === metric ? 'white' : '#6b7280',
-                          border: 'none',
-                          padding: '0.25rem 0.75rem',
-                          borderRadius: '0.375rem',
-                          cursor: 'pointer',
-                          fontSize: '0.75rem',
-                          textTransform: 'capitalize'
-                        }}
-                      >
-                        {metric}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                <ResponsiveContainer width="100%" height={300}>
-                  <RechartsLineChart data={analyticsData.revenueData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                    <XAxis dataKey="date" stroke="#6b7280" fontSize={12} />
-                    <YAxis stroke="#6b7280" fontSize={12} />
-                    <Tooltip 
-                      contentStyle={{ 
-                        background: 'white', 
-                        border: '1px solid #e5e7eb', 
-                        borderRadius: '0.5rem',
-                        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
-                      }} 
-                    />
-                    <Line 
-                      type="monotone" 
-                      dataKey={analyticsState.selectedMetric} 
-                      stroke={chartColors.primary} 
-                      strokeWidth={3}
-                      dot={{ fill: chartColors.primary, strokeWidth: 2, r: 4 }}
-                      activeDot={{ r: 6, stroke: chartColors.primary, strokeWidth: 2 }}
-                    />
-                  </RechartsLineChart>
-                </ResponsiveContainer>
-              </div>
-
-              {/* Industry Breakdown */}
-              <div style={{ background: 'white', padding: '1.5rem', borderRadius: '0.75rem', boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)', border: '1px solid #e5e7eb' }}>
-                <h3 style={{ margin: '0 0 1.5rem', fontSize: '1.125rem', fontWeight: '600' }}>Industry Breakdown</h3>
-                <ResponsiveContainer width="100%" height={200}>
-                  <RechartsPieChart>
-                    <Pie
-                      data={analyticsData.industryData}
-                      dataKey="value"
-                      nameKey="name"
-                      cx="50%"
-                      cy="50%"
-                      outerRadius={80}
-                      label={({ name, value }) => `${name}: ${value}%`}
-                      labelLine={false}
-                    >
-                      {analyticsData.industryData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={pieColors[index % pieColors.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip 
-                      contentStyle={{ 
-                        background: 'white', 
-                        border: '1px solid #e5e7eb', 
-                        borderRadius: '0.5rem'
-                      }} 
-                    />
-                  </RechartsPieChart>
-                </ResponsiveContainer>
-                <div style={{ marginTop: '1rem' }}>
-                  {analyticsData.industryData.map((item, index) => (
-                    <div key={item.name} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.5rem 0', borderBottom: index < analyticsData.industryData.length - 1 ? '1px solid #f3f4f6' : 'none' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: pieColors[index % pieColors.length] }} />
-                        <span style={{ fontSize: '0.875rem', color: '#374151' }}>{item.name}</span>
-                      </div>
-                      <div style={{ textAlign: 'right' }}>
-                        <div style={{ fontSize: '0.875rem', fontWeight: '600', color: '#1f2937' }}>{item.count} quotes</div>
-                        <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>{formatCurrency(item.avgValue)} avg</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Product Performance & Monthly Trends */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '2rem' }}>
-              {/* Top Products */}
-              <div style={{ background: 'white', padding: '1.5rem', borderRadius: '0.75rem', boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)', border: '1px solid #e5e7eb' }}>
-                <h3 style={{ margin: '0 0 1.5rem', fontSize: '1.125rem', fontWeight: '600' }}>Top Performing Products</h3>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                  {analyticsData.productPerformance.map((product, index) => (
-                    <div key={product.name} style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '1rem', background: '#f9fafb', borderRadius: '0.5rem' }}>
-                      <div style={{ 
-                        width: '40px', 
-                        height: '40px', 
-                        borderRadius: '0.5rem', 
-                        background: index === 0 ? '#fbbf24' : index === 1 ? '#9ca3af' : index === 2 ? '#d97706' : '#6b7280',
-                        display: 'flex', 
-                        alignItems: 'center', 
-                        justifyContent: 'center',
-                        color: 'white',
-                        fontWeight: '700',
-                        fontSize: '0.875rem'
-                      }}>
-                        #{index + 1}
-                      </div>
-                      <div style={{ flex: 1 }}>
-                        <div style={{ fontWeight: '600', color: '#1f2937', marginBottom: '0.25rem' }}>{product.name}</div>
-                        <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>
-                          {product.quotes} quotes • {product.successRate}% success rate
-                        </div>
-                      </div>
-                      <div style={{ textAlign: 'right' }}>
-                        <div style={{ fontWeight: '600', color: '#1f2937' }}>{formatCurrency(product.revenue)}</div>
-                        <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>revenue</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Monthly Performance */}
-              <div style={{ background: 'white', padding: '1.5rem', borderRadius: '0.75rem', boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)', border: '1px solid #e5e7eb' }}>
-                <h3 style={{ margin: '0 0 1.5rem', fontSize: '1.125rem', fontWeight: '600' }}>Monthly Performance</h3>
-                <ResponsiveContainer width="100%" height={250}>
-                  <RechartsBarChart data={analyticsData.monthlyTrends}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                    <XAxis dataKey="month" stroke="#6b7280" fontSize={12} />
-                    <YAxis stroke="#6b7280" fontSize={12} />
-                    <Tooltip 
-                      contentStyle={{ 
-                        background: 'white', 
-                        border: '1px solid #e5e7eb', 
-                        borderRadius: '0.5rem'
-                      }} 
-                      formatter={(value, name) => [
-                        name === 'revenue' ? formatCurrency(value) : value,
-                        name === 'revenue' ? 'Revenue' : name === 'quotes' ? 'Quotes' : 'Avg Response (hrs)'
-                      ]}
-                    />
-                    <Bar dataKey="revenue" fill={chartColors.primary} radius={[4, 4, 0, 0]} />
-                  </RechartsBarChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-
-            {/* Performance Insights */}
-            <div style={{ background: 'white', padding: '1.5rem', borderRadius: '0.75rem', boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)', border: '1px solid #e5e7eb' }}>
-              <h3 style={{ margin: '0 0 1.5rem', fontSize: '1.125rem', fontWeight: '600' }}>Performance Insights</h3>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1rem' }}>
-                <div style={{ padding: '1rem', background: '#f0fdf4', borderRadius: '0.5rem', border: '1px solid #bbf7d0' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                    <TrendingUp size={16} style={{ color: '#16a34a' }} />
-                    <h4 style={{ margin: 0, fontSize: '0.875rem', fontWeight: '600', color: '#166534' }}>Strong Growth</h4>
-                  </div>
-                  <p style={{ margin: 0, fontSize: '0.875rem', color: '#166534' }}>
-                    Revenue increased by 15.2% compared to last period, driven by improved conversion rates.
-                  </p>
-                </div>
-
-                <div style={{ padding: '1rem', background: '#eff6ff', borderRadius: '0.5rem', border: '1px solid #bfdbfe' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                    <Award size={16} style={{ color: '#2563eb' }} />
-                    <h4 style={{ margin: 0, fontSize: '0.875rem', fontWeight: '600', color: '#1e40af' }}>Top Performer</h4>
-                  </div>
-                  <p style={{ margin: 0, fontSize: '0.875rem', color: '#1e40af' }}>
-                    Your response time is 53% faster than industry average, leading to higher win rates.
-                  </p>
-                </div>
-
-                <div style={{ padding: '1rem', background: '#fefce8', borderRadius: '0.5rem', border: '1px solid #fde047' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                    <Target size={16} style={{ color: '#ca8a04' }} />
-                    <h4 style={{ margin: 0, fontSize: '0.875rem', fontWeight: '600', color: '#a16207' }}>Opportunity</h4>
-                  </div>
-                  <p style={{ margin: 0, fontSize: '0.875rem', color: '#a16207' }}>
-                    Focus on the Healthcare sector - it shows 12% higher average deal values.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
         {dashboardState.activeTab === "files" && (
           <div>
             {/* Product Catalog Header */}
@@ -1259,174 +721,6 @@ const VendorDashboard = () => {
                     <Plus size={16} /> Add Product
                   </button>
                 </div>
-              </div>
-
-              {/* Product Controls */}
-              <div style={{ 
-                background: '#f9fafb', 
-                padding: '1.5rem', 
-                borderRadius: '0.75rem',
-                marginBottom: '1.5rem',
-                border: '1px solid #e5e7eb'
-              }}>
-                <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'center', marginBottom: '1rem' }}>
-                  {/* Search */}
-                  <div style={{ position: 'relative', minWidth: '300px', flex: 1 }}>
-                    <Search style={{ 
-                      position: 'absolute', 
-                      left: '1rem', 
-                      top: '50%', 
-                      transform: 'translateY(-50%)',
-                      color: '#9ca3af' 
-                    }} size={16} />
-                    <input
-                      type="text"
-                      placeholder="Search products by manufacturer, model, or category..."
-                      value={productState.searchTerm}
-                      onChange={(e) => setProductState(prev => ({ ...prev, searchTerm: e.target.value }))}
-                      style={{
-                        width: '100%',
-                        padding: '0.75rem 1rem 0.75rem 2.5rem',
-                        border: '1px solid #d1d5db',
-                        borderRadius: '0.5rem',
-                        fontSize: '0.875rem',
-                        background: 'white'
-                      }}
-                    />
-                  </div>
-                  
-                  {/* Filters */}
-                  <select
-                    value={productState.filterCategory}
-                    onChange={(e) => setProductState(prev => ({ ...prev, filterCategory: e.target.value }))}
-                    style={{ 
-                      padding: '0.75rem', 
-                      border: '1px solid #d1d5db', 
-                      borderRadius: '0.5rem',
-                      background: 'white',
-                      cursor: 'pointer'
-                    }}
-                  >
-                    <option value="all">All Categories</option>
-                    {categories.map(cat => (
-                      <option key={cat} value={cat}>{cat}</option>
-                    ))}
-                  </select>
-                  
-                  <select
-                    value={productState.filterStatus}
-                    onChange={(e) => setProductState(prev => ({ ...prev, filterStatus: e.target.value }))}
-                    style={{ 
-                      padding: '0.75rem', 
-                      border: '1px solid #d1d5db', 
-                      borderRadius: '0.5rem',
-                      background: 'white',
-                      cursor: 'pointer'
-                    }}
-                  >
-                    <option value="all">All Status</option>
-                    <option value="active">Active</option>
-                    <option value="inactive">Inactive</option>
-                  </select>
-                  
-                  <select
-                    value={`${productState.sortBy}-${productState.sortOrder}`}
-                    onChange={(e) => {
-                      const [sortBy, sortOrder] = e.target.value.split('-');
-                      setProductState(prev => ({ ...prev, sortBy, sortOrder }));
-                    }}
-                    style={{ 
-                      padding: '0.75rem', 
-                      border: '1px solid #d1d5db', 
-                      borderRadius: '0.5rem',
-                      background: 'white',
-                      cursor: 'pointer'
-                    }}
-                  >
-                    <option value="manufacturer-asc">Manufacturer A-Z</option>
-                    <option value="manufacturer-desc">Manufacturer Z-A</option>
-                    <option value="createdAt-desc">Newest First</option>
-                    <option value="createdAt-asc">Oldest First</option>
-                    <option value="speed-desc">Highest Speed</option>
-                    <option value="speed-asc">Lowest Speed</option>
-                  </select>
-
-                  {/* View Mode Toggle */}
-                  <div style={{ display: 'flex', border: '1px solid #d1d5db', borderRadius: '0.5rem', overflow: 'hidden' }}>
-                    <button
-                      onClick={() => setProductState(prev => ({ ...prev, viewMode: 'grid' }))}
-                      style={{
-                        background: productState.viewMode === 'grid' ? '#3b82f6' : 'white',
-                        color: productState.viewMode === 'grid' ? 'white' : '#6b7280',
-                        border: 'none',
-                        padding: '0.5rem',
-                        cursor: 'pointer'
-                      }}
-                    >
-                      <Grid size={16} />
-                    </button>
-                    <button
-                      onClick={() => setProductState(prev => ({ ...prev, viewMode: 'table' }))}
-                      style={{
-                        background: productState.viewMode === 'table' ? '#3b82f6' : 'white',
-                        color: productState.viewMode === 'table' ? 'white' : '#6b7280',
-                        border: 'none',
-                        padding: '0.5rem',
-                        cursor: 'pointer'
-                      }}
-                    >
-                      <List size={16} />
-                    </button>
-                  </div>
-                </div>
-
-                {/* Bulk Actions */}
-                {productState.selectedProducts.size > 0 && (
-                  <div style={{ 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    gap: '1rem', 
-                    padding: '0.75rem', 
-                    background: '#eff6ff', 
-                    borderRadius: '0.5rem',
-                    border: '1px solid #bfdbfe'
-                  }}>
-                    <span style={{ fontSize: '0.875rem', color: '#1e40af' }}>
-                      {productState.selectedProducts.size} products selected
-                    </span>
-                    <button
-                      onClick={handleBulkDelete}
-                      style={{
-                        background: '#ef4444',
-                        color: 'white',
-                        border: 'none',
-                        padding: '0.5rem 1rem',
-                        borderRadius: '0.375rem',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.5rem',
-                        fontSize: '0.875rem'
-                      }}
-                    >
-                      <Trash2 size={14} /> Delete Selected
-                    </button>
-                    <button
-                      onClick={() => setProductState(prev => ({ ...prev, selectedProducts: new Set() }))}
-                      style={{
-                        background: 'transparent',
-                        color: '#6b7280',
-                        border: '1px solid #d1d5db',
-                        padding: '0.5rem 1rem',
-                        borderRadius: '0.375rem',
-                        cursor: 'pointer',
-                        fontSize: '0.875rem'
-                      }}
-                    >
-                      Clear Selection
-                    </button>
-                  </div>
-                )}
               </div>
 
               {/* Bulk Upload Section */}
@@ -1575,629 +869,42 @@ const VendorDashboard = () => {
               </div>
             </div>
 
-            {/* Products List */}
-            {filteredProducts.length > 0 ? (
-              <div>
-                {productState.viewMode === 'grid' ? (
-                  /* Grid View */
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: '1.5rem' }}>
-                    {filteredProducts.map((product, index) => (
-                      <div key={product._id || index} style={{
-                        background: 'white',
-                        border: '1px solid #e5e7eb',
-                        borderRadius: '0.75rem',
-                        overflow: 'hidden',
-                        boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)',
-                        transition: 'all 0.2s',
-                        ':hover': { boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }
-                      }}>
-                        <div style={{ padding: '1.5rem' }}>
-                          {/* Product Header */}
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
-                            <div style={{ flex: 1 }}>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                                <input
-                                  type="checkbox"
-                                  checked={productState.selectedProducts.has(product._id)}
-                                  onChange={(e) => handleSelectProduct(product._id, e.target.checked)}
-                                  style={{ marginRight: '0.5rem' }}
-                                />
-                                <h4 style={{ margin: 0, fontSize: '1.125rem', fontWeight: '600', color: '#1f2937' }}>
-                                  {product.manufacturer} {product.model}
-                                </h4>
-                              </div>
-                              <span style={{
-                                display: 'inline-block',
-                                padding: '0.25rem 0.75rem',
-                                background: product.category === 'Multifunction Printer' ? '#dbeafe' : '#f3e8ff',
-                                color: product.category === 'Multifunction Printer' ? '#1e40af' : '#7c3aed',
-                                borderRadius: '9999px',
-                                fontSize: '0.75rem',
-                                fontWeight: '500'
-                              }}>
-                                {product.category}
-                              </span>
-                            </div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                              <button
-                                onClick={() => handleToggleProductStatus(product._id)}
-                                style={{
-                                  background: 'none',
-                                  border: 'none',
-                                  cursor: 'pointer',
-                                  color: product.status === 'active' ? '#10b981' : '#6b7280'
-                                }}
-                                title={`Status: ${product.status}`}
-                              >
-                                {product.status === 'active' ? <ToggleRight size={20} /> : <ToggleLeft size={20} />}
-                              </button>
-                            </div>
-                          </div>
-
-                          {/* Product Details */}
-                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '1rem' }}>
-                            <div>
-                              <span style={{ fontSize: '0.75rem', color: '#6b7280', fontWeight: '500' }}>Speed:</span>
-                              <div style={{ fontSize: '0.875rem', color: '#374151', fontWeight: '600' }}>{product.speed} PPM</div>
-                            </div>
-                            <div>
-                              <span style={{ fontSize: '0.75rem', color: '#6b7280', fontWeight: '500' }}>Paper Size:</span>
-                              <div style={{ fontSize: '0.875rem', color: '#374151', fontWeight: '600' }}>{product.paperSizes?.primary}</div>
-                            </div>
-                            <div style={{ gridColumn: 'span 2' }}>
-                              <span style={{ fontSize: '0.75rem', color: '#6b7280', fontWeight: '500' }}>Volume Range:</span>
-                              <div style={{ fontSize: '0.875rem', color: '#374151', fontWeight: '600' }}>
-                                {product.minVolume?.toLocaleString()} - {product.maxVolume?.toLocaleString()} pages/month
-                              </div>
-                            </div>
-                            <div>
-                              <span style={{ fontSize: '0.75rem', color: '#6b7280', fontWeight: '500' }}>Mono CPC:</span>
-                              <div style={{ fontSize: '0.875rem', color: '#374151', fontWeight: '600' }}>
-                                {product.costs?.cpcRates?.A4Mono || product.A4MonoCPC}p
-                              </div>
-                            </div>
-                            <div>
-                              <span style={{ fontSize: '0.75rem', color: '#6b7280', fontWeight: '500' }}>Color CPC:</span>
-                              <div style={{ fontSize: '0.875rem', color: '#374151', fontWeight: '600' }}>
-                                {product.costs?.cpcRates?.A4Colour || product.A4ColourCPC || 'N/A'}p
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* Features */}
-                          {product.features && product.features.length > 0 && (
-                            <div style={{ marginBottom: '1rem' }}>
-                              <span style={{ fontSize: '0.75rem', color: '#6b7280', fontWeight: '500' }}>Features:</span>
-                              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.25rem', marginTop: '0.25rem' }}>
-                                {product.features.map((feature, idx) => (
-                                  <span key={idx} style={{
-                                    padding: '0.125rem 0.5rem',
-                                    background: '#f3f4f6',
-                                    color: '#374151',
-                                    borderRadius: '0.25rem',
-                                    fontSize: '0.75rem'
-                                  }}>
-                                    {feature}
-                                  </span>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-
-                          {/* Product Actions */}
-                          <div style={{ display: 'flex', gap: '0.5rem', paddingTop: '1rem', borderTop: '1px solid #f3f4f6' }}>
-                            <button 
-                              onClick={() => handleEditProduct(product)}
-                              style={{
-                                flex: 1,
-                                background: '#3b82f6',
-                                color: 'white',
-                                border: 'none',
-                                padding: '0.5rem',
-                                borderRadius: '0.375rem',
-                                cursor: 'pointer',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                gap: '0.5rem',
-                                fontSize: '0.875rem'
-                              }}
-                            >
-                              <Edit3 size={14} /> Edit
-                            </button>
-                            <button 
-                              onClick={() => handleDuplicateProduct(product)}
-                              style={{
-                                background: '#f3f4f6',
-                                color: '#374151',
-                                border: 'none',
-                                padding: '0.5rem',
-                                borderRadius: '0.375rem',
-                                cursor: 'pointer',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center'
-                              }}
-                              title="Duplicate product"
-                            >
-                              <Copy size={14} />
-                            </button>
-                            <button 
-                              onClick={() => handleDeleteProduct(product._id)}
-                              style={{
-                                background: '#fef2f2',
-                                color: '#dc2626',
-                                border: 'none',
-                                padding: '0.5rem',
-                                borderRadius: '0.375rem',
-                                cursor: 'pointer',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center'
-                              }}
-                              title="Delete product"
-                            >
-                              <Trash2 size={14} />
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  /* Table View */
-                  <div style={{ background: 'white', borderRadius: '0.75rem', border: '1px solid #e5e7eb', overflow: 'hidden' }}>
-                    <div style={{ overflowX: 'auto' }}>
-                      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                        <thead style={{ background: '#f9fafb' }}>
-                          <tr>
-                            <th style={{ padding: '1rem', textAlign: 'left', fontSize: '0.75rem', fontWeight: '600', color: '#374151', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                              <input
-                                type="checkbox"
-                                onChange={(e) => handleSelectAllProducts(e.target.checked)}
-                                checked={productState.selectedProducts.size === filteredProducts.length && filteredProducts.length > 0}
-                                style={{ marginRight: '0.5rem' }}
-                              />
-                              Product
-                            </th>
-                            <th style={{ padding: '1rem', textAlign: 'left', fontSize: '0.75rem', fontWeight: '600', color: '#374151', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Category</th>
-                            <th style={{ padding: '1rem', textAlign: 'left', fontSize: '0.75rem', fontWeight: '600', color: '#374151', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Speed</th>
-                            <th style={{ padding: '1rem', textAlign: 'left', fontSize: '0.75rem', fontWeight: '600', color: '#374151', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Volume Range</th>
-                            <th style={{ padding: '1rem', textAlign: 'left', fontSize: '0.75rem', fontWeight: '600', color: '#374151', textTransform: 'uppercase', letterSpacing: '0.05em' }}>CPC Rates</th>
-                            <th style={{ padding: '1rem', textAlign: 'left', fontSize: '0.75rem', fontWeight: '600', color: '#374151', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Status</th>
-                            <th style={{ padding: '1rem', textAlign: 'left', fontSize: '0.75rem', fontWeight: '600', color: '#374151', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Actions</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {filteredProducts.map((product, index) => (
-                            <tr key={product._id || index} style={{ borderTop: '1px solid #f3f4f6' }}>
-                              <td style={{ padding: '1rem' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                                  <input
-                                    type="checkbox"
-                                    checked={productState.selectedProducts.has(product._id)}
-                                    onChange={(e) => handleSelectProduct(product._id, e.target.checked)}
-                                  />
-                                  <div>
-                                    <div style={{ fontWeight: '600', color: '#1f2937' }}>
-                                      {product.manufacturer} {product.model}
-                                    </div>
-                                    <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>
-                                      {product.paperSizes?.primary}
-                                    </div>
-                                  </div>
-                                </div>
-                              </td>
-                              <td style={{ padding: '1rem' }}>
-                                <span style={{
-                                  padding: '0.25rem 0.75rem',
-                                  background: product.category === 'Multifunction Printer' ? '#dbeafe' : '#f3e8ff',
-                                  color: product.category === 'Multifunction Printer' ? '#1e40af' : '#7c3aed',
-                                  borderRadius: '9999px',
-                                  fontSize: '0.75rem',
-                                  fontWeight: '500'
-                                }}>
-                                  {product.category}
-                                </span>
-                              </td>
-                              <td style={{ padding: '1rem', color: '#374151' }}>{product.speed} PPM</td>
-                              <td style={{ padding: '1rem', color: '#374151' }}>
-                                {product.minVolume?.toLocaleString()} - {product.maxVolume?.toLocaleString()}
-                              </td>
-                              <td style={{ padding: '1rem', color: '#374151' }}>
-                                <div style={{ fontSize: '0.875rem' }}>
-                                  <div>Mono: {product.costs?.cpcRates?.A4Mono}p</div>
-                                  <div>Color: {product.costs?.cpcRates?.A4Colour || 'N/A'}p</div>
-                                </div>
-                              </td>
-                              <td style={{ padding: '1rem' }}>
-                                <button
-                                  onClick={() => handleToggleProductStatus(product._id)}
-                                  style={{
-                                    background: 'none',
-                                    border: 'none',
-                                    cursor: 'pointer',
-                                    color: product.status === 'active' ? '#10b981' : '#6b7280',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '0.5rem'
-                                  }}
-                                >
-                                  {product.status === 'active' ? <ToggleRight size={20} /> : <ToggleLeft size={20} />}
-                                  <span style={{ fontSize: '0.875rem', textTransform: 'capitalize' }}>{product.status}</span>
-                                </button>
-                              </td>
-                              <td style={{ padding: '1rem' }}>
-                                <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                  <button 
-                                    onClick={() => handleEditProduct(product)}
-                                    style={{
-                                      background: '#3b82f6',
-                                      color: 'white',
-                                      border: 'none',
-                                      padding: '0.25rem 0.5rem',
-                                      borderRadius: '0.25rem',
-                                      cursor: 'pointer',
-                                      display: 'flex',
-                                      alignItems: 'center',
-                                      gap: '0.25rem',
-                                      fontSize: '0.75rem'
-                                    }}
-                                  >
-                                    <Edit3 size={12} /> Edit
-                                  </button>
-                                  <button 
-                                    onClick={() => handleDuplicateProduct(product)}
-                                    style={{
-                                      background: '#f3f4f6',
-                                      color: '#374151',
-                                      border: 'none',
-                                      padding: '0.25rem',
-                                      borderRadius: '0.25rem',
-                                      cursor: 'pointer'
-                                    }}
-                                    title="Duplicate"
-                                  >
-                                    <Copy size={12} />
-                                  </button>
-                                  <button 
-                                    onClick={() => handleDeleteProduct(product._id)}
-                                    style={{
-                                      background: '#fef2f2',
-                                      color: '#dc2626',
-                                      border: 'none',
-                                      padding: '0.25rem',
-                                      borderRadius: '0.25rem',
-                                      cursor: 'pointer'
-                                    }}
-                                    title="Delete"
-                                  >
-                                    <Trash2 size={12} />
-                                  </button>
-                                </div>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div style={{ 
-                textAlign: 'center', 
-                padding: '4rem 2rem',
-                background: 'white',
-                borderRadius: '0.75rem',
-                border: '1px solid #e5e7eb'
-              }}>
-                <Package size={64} style={{ color: '#d1d5db', margin: '0 auto 1rem' }} />
-                <h3 style={{ margin: '0 0 0.5rem', fontSize: '1.125rem', color: '#374151' }}>No Products in Catalog</h3>
-                <p style={{ margin: '0 0 1.5rem', color: '#6b7280' }}>
-                  Get started by adding your first product or uploading a catalog
-                </p>
-                <button
-                  onClick={handleAddProduct}
-                  style={{
-                    background: '#3b82f6',
-                    color: 'white',
-                    border: 'none',
-                    padding: '0.75rem 1.5rem',
-                    borderRadius: '0.5rem',
-                    cursor: 'pointer',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '0.5rem',
-                    fontWeight: '500'
-                  }}
-                >
-                  <Plus size={16} /> Add Your First Product
-                </button>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Other tabs content would go here */}
-        {dashboardState.activeTab === "quotes" && (
-          <div>
-            {/* Enhanced Filters and Search */}
-            <div style={{ marginBottom: '1.5rem' }}>
-              <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>
-                <div style={{ position: 'relative', minWidth: '300px', flex: 1 }}>
-                  <Search style={{ 
-                    position: 'absolute', 
-                    left: '1rem', 
-                    top: '50%', 
-                    transform: 'translateY(-50%)',
-                    color: '#9ca3af' 
-                  }} size={16} />
-                  <input
-                    type="text"
-                    placeholder="Search quotes by company or industry..."
-                    value={dashboardState.searchTerm}
-                    onChange={(e) => setDashboardState(prev => ({ 
-                      ...prev, 
-                      searchTerm: e.target.value 
-                    }))}
-                    style={{
-                      width: '100%',
-                      padding: '0.75rem 1rem 0.75rem 2.5rem',
-                      border: '1px solid #d1d5db',
-                      borderRadius: '0.5rem',
-                      fontSize: '0.875rem'
-                    }}
-                  />
-                </div>
-                
-                <select
-                  value={dashboardState.filterStatus}
-                  onChange={(e) => setDashboardState(prev => ({ 
-                    ...prev, 
-                    filterStatus: e.target.value 
-                  }))}
-                  style={{ 
-                    padding: '0.75rem', 
-                    border: '1px solid #d1d5db', 
-                    borderRadius: '0.5rem',
-                    background: 'white'
-                  }}
-                >
-                  <option value="all">All Status</option>
-                  <option value="pending">Pending</option>
-                  <option value="accepted">Accepted</option>
-                  <option value="declined">Declined</option>
-                  <option value="completed">Completed</option>
-                </select>
-              </div>
-            </div>
-
-            {/* Enhanced Quotes List */}
-            {dataState.quotes.length > 0 ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                {dataState.quotes.map((quote, index) => (
-                  <div key={quote._id || index} style={{
-                    background: 'white',
-                    border: '1px solid #e5e7eb',
-                    borderRadius: '0.75rem',
-                    padding: '1.5rem',
-                    boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)'
-                  }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
-                      <div>
-                        <h3 style={{ margin: '0 0 0.5rem', fontSize: '1.25rem', fontWeight: '600' }}>{quote.companyName || "Quote Request"}</h3>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                          <span style={{
-                            padding: '0.25rem 0.75rem',
-                            background: quote.status === 'Pending' ? '#fef3c7' : quote.status === 'Accepted' ? '#dcfce7' : '#fecaca',
-                            color: quote.status === 'Pending' ? '#d97706' : quote.status === 'Accepted' ? '#16a34a' : '#dc2626',
-                            borderRadius: '9999px',
-                            fontSize: '0.75rem',
-                            fontWeight: '500'
-                          }}>
-                            {quote.status || "Unknown"}
-                          </span>
-                          <time style={{ fontSize: '0.875rem', color: '#6b7280' }}>{formatDate(quote.createdAt)}</time>
-                          <span style={{ fontSize: '0.875rem', color: '#6b7280' }}>{quote.industryType}</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '1rem' }}>
-                      <div>
-                        <span style={{ fontSize: '0.875rem', color: '#6b7280', fontWeight: '500' }}>Monthly Volume</span>
-                        <div style={{ fontSize: '1rem', color: '#374151', fontWeight: '600' }}>
-                          {(quote.monthlyVolume?.mono || 0) + (quote.monthlyVolume?.colour || 0)} pages
-                        </div>
-                      </div>
-                      <div>
-                        <span style={{ fontSize: '0.875rem', color: '#6b7280', fontWeight: '500' }}>Colour/Mono Split</span>
-                        <div style={{ fontSize: '1rem', color: '#374151', fontWeight: '600' }}>
-                          {quote.monthlyVolume?.colour || 0} / {quote.monthlyVolume?.mono || 0}
-                        </div>
-                      </div>
-                      <div>
-                        <span style={{ fontSize: '0.875rem', color: '#6b7280', fontWeight: '500' }}>Budget Range</span>
-                        <div style={{ fontSize: '1rem', color: '#374151', fontWeight: '600' }}>{formatCurrency(quote.maxBudget || 0)}/month</div>
-                      </div>
-                    </div>
-
-                    {quote.requirements && (
-                      <div style={{ marginBottom: '1rem' }}>
-                        <span style={{ fontSize: '0.875rem', color: '#6b7280', fontWeight: '500' }}>Requirements:</span>
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginTop: '0.5rem' }}>
-                          {quote.requirements.map((req, idx) => (
-                            <span key={idx} style={{
-                              padding: '0.25rem 0.75rem',
-                              background: '#f3f4f6',
-                              color: '#374151',
-                              borderRadius: '0.375rem',
-                              fontSize: '0.75rem'
-                            }}>
-                              {req}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    <div style={{ display: 'flex', gap: '1rem', paddingTop: '1rem', borderTop: '1px solid #f3f4f6' }}>
-                      {quote.status === "Pending" && (
-                        <>
-                          <button
-                            style={{
-                              background: '#10b981',
-                              color: 'white',
-                              border: 'none',
-                              padding: '0.75rem 1.5rem',
-                              borderRadius: '0.5rem',
-                              cursor: 'pointer',
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '0.5rem',
-                              fontWeight: '500'
-                            }}
-                          >
-                            <CheckCircle size={16} /> Accept Quote
-                          </button>
-                          <button
-                            style={{
-                              background: '#ef4444',
-                              color: 'white',
-                              border: 'none',
-                              padding: '0.75rem 1.5rem',
-                              borderRadius: '0.5rem',
-                              cursor: 'pointer',
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '0.5rem',
-                              fontWeight: '500'
-                            }}
-                          >
-                            <X size={16} /> Decline
-                          </button>
-                        </>
-                      )}
-                      
-                      <button
-                        style={{
-                          background: 'transparent',
-                          color: '#3b82f6',
-                          border: '1px solid #3b82f6',
-                          padding: '0.75rem 1.5rem',
-                          borderRadius: '0.5rem',
-                          cursor: 'pointer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '0.5rem'
-                        }}
-                      >
-                        <Eye size={16} /> View Details
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div style={{ 
-                textAlign: 'center', 
-                padding: '4rem 2rem',
-                background: 'white',
-                borderRadius: '0.75rem',
-                border: '1px solid #e5e7eb'
-              }}>
-                <Quote size={64} style={{ color: '#d1d5db', margin: '0 auto 1rem' }} />
-                <h3 style={{ margin: '0 0 0.5rem', fontSize: '1.125rem', color: '#374151' }}>No Quote Requests</h3>
-                <p style={{ margin: 0, color: '#6b7280' }}>
-                  Quote requests from potential customers will appear here.
-                </p>
-              </div>
-            )}
-          </div>
-        )}
-
-        {dashboardState.activeTab === "notifications" && (
-          <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-              <h2 style={{ margin: 0, fontSize: '1.5rem', fontWeight: '600' }}>Notifications</h2>
-              <button style={{
-                background: 'transparent',
-                border: '1px solid #d1d5db',
-                color: '#374151',
-                padding: '0.5rem 1rem',
-                borderRadius: '0.375rem',
-                cursor: 'pointer',
-                fontSize: '0.875rem'
-              }}>
-                Mark All Read
+            {/* Empty State for Products */}
+            <div style={{ 
+              textAlign: 'center', 
+              padding: '4rem 2rem',
+              background: 'white',
+              borderRadius: '0.75rem',
+              border: '1px solid #e5e7eb'
+            }}>
+              <Package size={64} style={{ color: '#d1d5db', margin: '0 auto 1rem' }} />
+              <h3 style={{ margin: '0 0 0.5rem', fontSize: '1.125rem', color: '#374151' }}>No Products in Catalog</h3>
+              <p style={{ margin: '0 0 1.5rem', color: '#6b7280' }}>
+                Get started by adding your first product or uploading a catalog
+              </p>
+              <button
+                onClick={handleAddProduct}
+                style={{
+                  background: '#3b82f6',
+                  color: 'white',
+                  border: 'none',
+                  padding: '0.75rem 1.5rem',
+                  borderRadius: '0.5rem',
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  fontWeight: '500'
+                }}
+              >
+                <Plus size={16} /> Add Your First Product
               </button>
             </div>
-
-            {dataState.notifications.length > 0 ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                {dataState.notifications.map((notification, index) => (
-                  <div 
-                    key={index} 
-                    style={{
-                      background: 'white',
-                      border: '1px solid #e5e7eb',
-                      borderRadius: '0.75rem',
-                      padding: '1.5rem',
-                      display: 'flex',
-                      alignItems: 'flex-start',
-                      gap: '1rem',
-                      boxShadow: notification.read ? 'none' : '0 1px 3px 0 rgba(0, 0, 0, 0.1)'
-                    }}
-                  >
-                    <div style={{ 
-                      padding: '0.5rem', 
-                      background: notification.type === 'quote' ? '#dbeafe' : '#dcfce7',
-                      color: notification.type === 'quote' ? '#1d4ed8' : '#16a34a',
-                      borderRadius: '0.5rem'
-                    }}>
-                      {notification.type === "quote" && <Quote size={20} />}
-                      {notification.type === "payment" && <PoundSterling size={20} />}
-                      {notification.type === "system" && <Bell size={20} />}
-                      {notification.type === "alert" && <AlertTriangle size={20} />}
-                    </div>
-                    
-                    <div style={{ flex: 1 }}>
-                      <h4 style={{ margin: '0 0 0.5rem', fontSize: '1rem', fontWeight: '600', color: '#1f2937' }}>{notification.title}</h4>
-                      <p style={{ margin: '0 0 0.5rem', color: '#6b7280', fontSize: '0.875rem' }}>{notification.message}</p>
-                      <time style={{ fontSize: '0.75rem', color: '#9ca3af' }}>{formatDate(notification.createdAt)}</time>
-                    </div>
-                    
-                    {!notification.read && (
-                      <div style={{
-                        width: '8px',
-                        height: '8px',
-                        background: '#3b82f6',
-                        borderRadius: '50%'
-                      }} />
-                    )}
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div style={{ 
-                textAlign: 'center', 
-                padding: '4rem 2rem',
-                background: 'white',
-                borderRadius: '0.75rem',
-                border: '1px solid #e5e7eb'
-              }}>
-                <Bell size={64} style={{ color: '#d1d5db', margin: '0 auto 1rem' }} />
-                <h3 style={{ margin: '0 0 0.5rem', fontSize: '1.125rem', color: '#374151' }}>No Notifications</h3>
-                <p style={{ margin: 0, color: '#6b7280' }}>
-                  You're all caught up! New notifications will appear here.
-                </p>
-              </div>
-            )}
           </div>
         )}
 
-        {dashboardState.activeTab !== "overview" && dashboardState.activeTab !== "files" && dashboardState.activeTab !== "analytics" && dashboardState.activeTab !== "quotes" && dashboardState.activeTab !== "notifications" && (
+        {/* Other tabs show coming soon message */}
+        {(dashboardState.activeTab === "quotes" || dashboardState.activeTab === "analytics" || dashboardState.activeTab === "notifications") && (
           <div style={{ 
             textAlign: 'center', 
             padding: '4rem 2rem',
@@ -2205,11 +912,26 @@ const VendorDashboard = () => {
             borderRadius: '0.75rem',
             border: '1px solid #e5e7eb'
           }}>
+            <div style={{ 
+              padding: '1rem', 
+              background: '#f3f4f6', 
+              borderRadius: '50%', 
+              width: '80px', 
+              height: '80px', 
+              margin: '0 auto 1rem',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}>
+              {dashboardState.activeTab === "quotes" && <Quote size={32} style={{ color: '#6b7280' }} />}
+              {dashboardState.activeTab === "analytics" && <BarChart3 size={32} style={{ color: '#6b7280' }} />}
+              {dashboardState.activeTab === "notifications" && <Bell size={32} style={{ color: '#6b7280' }} />}
+            </div>
             <h3 style={{ margin: '0 0 0.5rem', fontSize: '1.125rem', color: '#374151' }}>
-              {dashboardState.activeTab.charAt(0).toUpperCase() + dashboardState.activeTab.slice(1)} Tab
+              {dashboardState.activeTab.charAt(0).toUpperCase() + dashboardState.activeTab.slice(1)} Coming Soon
             </h3>
             <p style={{ margin: 0, color: '#6b7280' }}>
-              This section is under development
+              This section is under development. Start by adding products to your catalog!
             </p>
           </div>
         )}
@@ -2659,72 +1381,6 @@ const VendorDashboard = () => {
                 {productForm.mode === 'add' ? 'Add Product' : 
                  productForm.mode === 'edit' ? 'Update Product' : 'Duplicate Product'}
               </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Bulk Actions Confirmation Modal */}
-      {bulkActions.isOpen && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background: 'rgba(0, 0, 0, 0.5)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 1000
-        }}>
-          <div style={{
-            background: 'white',
-            borderRadius: '0.75rem',
-            padding: '2rem',
-            maxWidth: '400px',
-            width: '90%',
-            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
-          }}>
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ color: '#dc2626', marginBottom: '1rem' }}>
-                <AlertTriangle size={48} style={{ margin: '0 auto' }} />
-              </div>
-              <h3 style={{ margin: '0 0 1rem', fontSize: '1.125rem', fontWeight: '600' }}>
-                Confirm Action
-              </h3>
-              <p style={{ margin: '0 0 2rem', color: '#6b7280' }}>
-                {bulkActions.confirmText}
-              </p>
-              <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
-                <button
-                  onClick={() => setBulkActions({ isOpen: false, action: "", confirmText: "" })}
-                  style={{
-                    background: 'transparent',
-                    border: '1px solid #d1d5db',
-                    color: '#374151',
-                    padding: '0.75rem 1.5rem',
-                    borderRadius: '0.375rem',
-                    cursor: 'pointer'
-                  }}
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={executeBulkAction}
-                  style={{
-                    background: '#dc2626',
-                    color: 'white',
-                    border: 'none',
-                    padding: '0.75rem 1.5rem',
-                    borderRadius: '0.375rem',
-                    cursor: 'pointer',
-                    fontWeight: '500'
-                  }}
-                >
-                  Confirm
-                </button>
-              </div>
             </div>
           </div>
         </div>

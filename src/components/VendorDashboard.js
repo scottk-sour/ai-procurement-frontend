@@ -324,7 +324,7 @@ const VendorDashboard = () => {
     showMessage("Product status updated", "success");
   }, [showMessage]);
 
-  // Enhanced product catalog upload function
+  // ✅ FIXED: Real product catalog upload function
   const handleProductCatalogUpload = useCallback(async (file) => {
     if (!file) {
       showMessage("Please select a file to upload", "warning");
@@ -339,25 +339,71 @@ const VendorDashboard = () => {
     setDashboardState(prev => ({ ...prev, loading: true }));
     setUploadResults(null);
 
-    // Simulate upload process
-    setTimeout(() => {
-      const mockResults = {
-        success: true,
-        savedProducts: 25,
-        data: {
-          stats: { total: 27, saved: 25, invalid: 2 },
-          warnings: [
-            "Row 15: Price seems high for volume range",
-            "Row 23: No colour support specified, assuming mono only"
-          ]
-        }
-      };
+    try {
+      // Get the vendor token from localStorage or auth context
+      const token = localStorage.getItem('vendorToken') || 
+                   localStorage.getItem('token') || 
+                   auth?.token;
       
-      setUploadResults(mockResults);
-      showMessage(`Successfully uploaded ${mockResults.savedProducts} products!`, "success");
+      if (!token) {
+        throw new Error('Authentication required. Please log in again.');
+      }
+
+      // Create FormData for file upload
+      const formData = new FormData();
+      formData.append('file', file);
+
+      console.log('🚀 Starting real upload to /api/vendors/upload');
+      console.log('📁 File:', file.name, file.size, 'bytes');
+
+      // Make the actual API call to your backend
+      const response = await fetch('/api/vendors/upload', {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      console.log('📡 Response status:', response.status);
+      
+      const result = await response.json();
+      console.log('📄 Response data:', result);
+
+      if (!response.ok) {
+        throw new Error(result.message || result.errors?.[0] || `Upload failed with status ${response.status}`);
+      }
+
+      // Handle successful upload
+      const savedProducts = result.data?.savedProducts || result.savedProducts || 0;
+      
+      setUploadResults({
+        success: true,
+        savedProducts: savedProducts,
+        data: {
+          stats: result.data?.stats || result.stats || { total: savedProducts, saved: savedProducts },
+          warnings: result.data?.warnings || result.warnings || []
+        }
+      });
+
+      showMessage(`✅ Successfully uploaded ${savedProducts} products!`, "success");
+      
+      // Optionally refresh the product list if you have one
+      // fetchVendorProducts();
+
+    } catch (error) {
+      console.error('❌ Upload error:', error);
+      
+      setUploadResults({
+        success: false,
+        error: error.message
+      });
+      
+      showMessage(`❌ Upload failed: ${error.message}`, "error");
+    } finally {
       setDashboardState(prev => ({ ...prev, loading: false }));
-    }, 2000);
-  }, [showMessage]);
+    }
+  }, [showMessage, auth]);
 
   // Format utilities
   const formatDate = useCallback((dateString) => {
@@ -799,7 +845,7 @@ const VendorDashboard = () => {
                   </div>
                 </div>
 
-                {/* Upload Results */}
+                {/* ✅ FIXED: Enhanced Upload Results */}
                 {uploadResults && (
                   <div style={{
                     marginTop: '1rem',
@@ -819,7 +865,7 @@ const VendorDashboard = () => {
                       {uploadResults.success ? 'Upload Successful' : 'Upload Failed'}
                     </h4>
                     
-                    {uploadResults.success && (
+                    {uploadResults.success ? (
                       <div>
                         <p style={{ margin: '0 0 0.5rem', fontSize: '0.875rem', color: '#166534' }}>
                           Successfully uploaded {uploadResults.savedProducts} products
@@ -828,9 +874,15 @@ const VendorDashboard = () => {
                           <div style={{ fontSize: '0.75rem', color: '#166534', display: 'flex', gap: '1rem' }}>
                             <span>Total: {uploadResults.data.stats.total}</span>
                             <span>Valid: {uploadResults.data.stats.saved}</span>
-                            <span>Errors: {uploadResults.data.stats.invalid || 0}</span>
+                            <span>Errors: {uploadResults.data.stats.total - uploadResults.data.stats.saved || 0}</span>
                           </div>
                         )}
+                      </div>
+                    ) : (
+                      <div>
+                        <p style={{ margin: '0 0 0.5rem', fontSize: '0.875rem', color: '#dc2626' }}>
+                          {uploadResults.error || 'Upload failed'}
+                        </p>
                       </div>
                     )}
 
@@ -1418,7 +1470,7 @@ const VendorDashboard = () => {
               borderRadius: '50%',
               animation: 'spin 1s linear infinite'
             }} />
-            <p style={{ margin: 0, color: '#374151', fontWeight: '500' }}>Loading...</p>
+            <p style={{ margin: 0, color: '#374151', fontWeight: '500' }}>Processing upload...</p>
             <style>
               {`
                 @keyframes spin {

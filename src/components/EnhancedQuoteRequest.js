@@ -37,6 +37,121 @@ const suggestCopiers = async (data) => {
   }
 };
 
+// Transform frontend data to match backend schema
+const transformQuoteData = (formData, userProfile) => {
+  return {
+    // Basic company info
+    companyName: formData.companyName,
+    contactName: userProfile?.name || '',
+    email: userProfile?.email || '',
+    
+    // Location info - you'll need to add postcode field to your form
+    location: {
+      postcode: formData.postcode || '', // Add this field to your form
+    },
+    
+    // Fix enum issues
+    status: 'Pending', // Use valid status instead of "In Progress"
+    
+    // Transform data structure
+    submittedBy: userProfile?.id || userProfile?.email || userProfile?.userId,
+    
+    urgency: {
+      timeframe: formData.implementationTimeline
+    },
+    
+    budget: {
+      maxLeasePrice: formData.max_lease_price
+    },
+    
+    requirements: {
+      priority: formData.preference
+    },
+    
+    currentSetup: {
+      machineAge: formData.currentEquipmentAge
+    },
+    
+    paperRequirements: {
+      primarySize: formData.type
+    },
+    
+    monthlyVolume: {
+      colour: formData.monthlyVolume.colour,
+      mono: formData.monthlyVolume.mono,
+      total: (formData.monthlyVolume.colour || 0) + (formData.monthlyVolume.mono || 0)
+    },
+    
+    // Fix numLocations (ensure it's positive)
+    numLocations: Math.abs(formData.numLocations) || 1,
+    
+    // Keep other fields as they are
+    industryType: formData.industryType,
+    subSector: formData.subSector,
+    annualRevenue: formData.annualRevenue,
+    numEmployees: formData.numEmployees,
+    officeBasedEmployees: formData.officeBasedEmployees,
+    primaryBusinessActivity: formData.primaryBusinessActivity,
+    organizationStructure: formData.organizationStructure,
+    multiFloor: formData.multiFloor,
+    primaryChallenges: formData.primaryChallenges,
+    currentPainPoints: formData.currentPainPoints,
+    impactOnProductivity: formData.impactOnProductivity,
+    urgencyLevel: formData.urgencyLevel,
+    budgetCycle: formData.budgetCycle,
+    monthlyPrintVolume: formData.monthlyPrintVolume,
+    annualPrintVolume: formData.annualPrintVolume,
+    peakUsagePeriods: formData.peakUsagePeriods,
+    documentTypes: formData.documentTypes,
+    averagePageCount: formData.averagePageCount,
+    finishingRequirements: formData.finishingRequirements,
+    departmentBreakdown: formData.departmentBreakdown,
+    networkSetup: formData.networkSetup,
+    itSupportStructure: formData.itSupportStructure,
+    securityRequirements: formData.securityRequirements,
+    currentSoftwareEnvironment: formData.currentSoftwareEnvironment,
+    cloudPreference: formData.cloudPreference,
+    integrationNeeds: formData.integrationNeeds,
+    mobileRequirements: formData.mobileRequirements,
+    remoteWorkImpact: formData.remoteWorkImpact,
+    currentColorCPC: formData.currentColorCPC,
+    currentMonoCPC: formData.currentMonoCPC,
+    quarterlyLeaseCost: formData.quarterlyLeaseCost,
+    totalAnnualCosts: formData.totalAnnualCosts,
+    hiddenCosts: formData.hiddenCosts,
+    leasingCompany: formData.leasingCompany,
+    serviceProvider: formData.serviceProvider,
+    contractStartDate: formData.contractStartDate,
+    contractEndDate: formData.contractEndDate,
+    maintenanceIssues: formData.maintenanceIssues,
+    additionalServices: formData.additionalServices,
+    paysForScanning: formData.paysForScanning,
+    serviceType: formData.serviceType,
+    colour: formData.colour,
+    min_speed: formData.min_speed,
+    securityFeatures: formData.securityFeatures,
+    accessibilityNeeds: formData.accessibilityNeeds,
+    sustainabilityGoals: formData.sustainabilityGoals,
+    responseTimeExpectation: formData.responseTimeExpectation,
+    maintenancePreference: formData.maintenancePreference,
+    trainingNeeds: formData.trainingNeeds,
+    supplyManagement: formData.supplyManagement,
+    reportingNeeds: formData.reportingNeeds,
+    vendorRelationshipType: formData.vendorRelationshipType,
+    decisionMakers: formData.decisionMakers,
+    evaluationCriteria: formData.evaluationCriteria,
+    contractLengthPreference: formData.contractLengthPreference,
+    pricingModelPreference: formData.pricingModelPreference,
+    required_functions: formData.required_functions,
+    roiExpectations: formData.roiExpectations,
+    expectedGrowth: formData.expectedGrowth,
+    expansionPlans: formData.expansionPlans,
+    technologyRoadmap: formData.technologyRoadmap,
+    digitalTransformation: formData.digitalTransformation,
+    threeYearVision: formData.threeYearVision
+  };
+};
+
 const EnhancedQuoteRequest = () => {
   const navigate = useNavigate();
   const { auth } = useAuth();
@@ -55,6 +170,7 @@ const EnhancedQuoteRequest = () => {
     primaryBusinessActivity: '',
     organizationStructure: '',
     multiFloor: 'No',
+    postcode: '', // Added missing field
     
     // Step 2: Current Challenges & Timeline
     primaryChallenges: [],
@@ -208,7 +324,7 @@ const EnhancedQuoteRequest = () => {
       ...data,
       numEmployees: data.numEmployees ? parseInt(data.numEmployees, 10) : undefined,
       officeBasedEmployees: data.officeBasedEmployees ? parseInt(data.officeBasedEmployees, 10) : undefined,
-      numLocations: data.numLocations ? parseInt(data.numLocations, 10) : undefined,
+      numLocations: data.numLocations ? Math.abs(parseInt(data.numLocations, 10)) || 1 : 1, // Fixed negative number issue
       monthlyPrintVolume: data.monthlyPrintVolume ? parseInt(data.monthlyPrintVolume, 10) : undefined,
       annualPrintVolume: data.annualPrintVolume ? parseInt(data.annualPrintVolume, 10) : undefined,
       monthlyVolume: {
@@ -231,7 +347,7 @@ const EnhancedQuoteRequest = () => {
   const validateStep = (currentStep) => {
     switch (currentStep) {
       case 1:
-        return formData.companyName && formData.industryType && formData.numEmployees && formData.numLocations;
+        return formData.companyName && formData.industryType && formData.numEmployees && formData.numLocations && formData.postcode;
       case 2:
         return formData.primaryChallenges.length > 0 && formData.urgencyLevel && formData.implementationTimeline;
       case 3:
@@ -284,6 +400,12 @@ const EnhancedQuoteRequest = () => {
 
     const token = auth?.token;
     const userId = auth?.user?.userId || auth?.user?.id;
+    const userProfile = {
+      id: userId,
+      name: auth?.user?.name || auth?.user?.username,
+      email: auth?.user?.email,
+      userId: userId
+    };
 
     if (!token || !userId) {
       alert('Authentication failed. Please log in again.');
@@ -293,17 +415,21 @@ const EnhancedQuoteRequest = () => {
     }
 
     const formattedData = formatFormData(formData);
-    console.log('🚀 Full Formatted Data:', JSON.stringify(formattedData, null, 2));
+    const transformedData = transformQuoteData(formattedData, userProfile);
+    
+    console.log('🚀 Full Transformed Data:', JSON.stringify(transformedData, null, 2));
 
     try {
-      let response, data;
       const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+
+      let response, data;
 
       if (uploadedFiles.length > 0) {
         const requestData = new FormData();
-        requestData.append('userRequirements', JSON.stringify(formattedData));
+        requestData.append('userRequirements', JSON.stringify(transformedData));
         requestData.append('userId', userId);
         uploadedFiles.forEach((file) => requestData.append('documents', file));
+        
         response = await fetch(`${API_BASE_URL}/api/quotes/request`, {
           method: 'POST',
           headers: { Authorization: `Bearer ${token}` },
@@ -316,17 +442,18 @@ const EnhancedQuoteRequest = () => {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify({ ...formattedData, userId }),
+          body: JSON.stringify({ ...transformedData, userId }),
         });
       }
 
-      data = await response.json();
-
       if (!response.ok) {
-        const errorMessage = data.details?.join('; ') || data.message || 'Failed to submit the request.';
+        const errorData = await response.json();
+        console.error('Backend validation errors:', errorData);
+        const errorMessage = errorData.details?.join('; ') || errorData.message || 'Failed to submit the request.';
         throw new Error(errorMessage);
       }
 
+      data = await response.json();
       setSuccessMessage('Comprehensive quote request submitted successfully!');
       setErrorMessage('');
 
@@ -341,7 +468,7 @@ const EnhancedQuoteRequest = () => {
       setFormData({
         companyName: '', industryType: '', subSector: '', annualRevenue: '', numEmployees: '', 
         officeBasedEmployees: '', numLocations: '', primaryBusinessActivity: '', organizationStructure: '',
-        multiFloor: 'No', primaryChallenges: [], currentPainPoints: '', impactOnProductivity: '',
+        multiFloor: 'No', postcode: '', primaryChallenges: [], currentPainPoints: '', impactOnProductivity: '',
         urgencyLevel: '', implementationTimeline: '', budgetCycle: '', monthlyPrintVolume: '',
         annualPrintVolume: '', monthlyVolume: { colour: '', mono: '' }, peakUsagePeriods: '',
         documentTypes: [], averagePageCount: '', finishingRequirements: [], departmentBreakdown: [],
@@ -507,6 +634,17 @@ const EnhancedQuoteRequest = () => {
                 />
               </label>
               <label>
+                Postcode: <span className="required">*</span>
+                <input
+                  type="text"
+                  name="postcode"
+                  value={formData.postcode}
+                  onChange={handleChange}
+                  placeholder="e.g., SW1A 1AA"
+                  required
+                />
+              </label>
+              <label>
                 Industry Type: <span className="required">*</span>
                 <select name="industryType" value={formData.industryType} onChange={handleChange} required>
                   <option value="">Select Industry</option>
@@ -575,6 +713,7 @@ const EnhancedQuoteRequest = () => {
                   name="numLocations"
                   value={formData.numLocations}
                   onChange={handleChange}
+                  min="1"
                   required
                 />
               </label>
@@ -1497,7 +1636,7 @@ const EnhancedQuoteRequest = () => {
                 <p><strong>Key Requirements Summary:</strong></p>
                 <ul>
                   <li>Industry: {formData.industryType}</li>
-                  <li>Monthly Volume: {formData.monthlyVolume.colour + formData.monthlyVolume.mono} pages</li>
+                  <li>Monthly Volume: {(formData.monthlyVolume.colour || 0) + (formData.monthlyVolume.mono || 0)} pages</li>
                   <li>Priority: {formData.preference}</li>
                   <li>Budget: £{formData.max_lease_price}/month</li>
                   <li>Timeline: {formData.implementationTimeline}</li>

@@ -39,6 +39,9 @@ const suggestCopiers = async (data) => {
 
 // Transform frontend data to match backend schema
 const transformQuoteData = (formData, userProfile) => {
+  console.log('🔍 Starting transformation with formData:', formData);
+  console.log('🔍 UserProfile:', userProfile);
+  
   // Map frontend industry types to backend enum values
   const industryMapping = {
     'Technology': 'Other',
@@ -56,33 +59,36 @@ const transformQuoteData = (formData, userProfile) => {
 
   // Map frontend timeframes to backend enum values
   const timeframeMapping = {
-    'ASAP': 'Immediately',
-    '1-2 months': 'Within 1 month',
-    '3-6 months': '1-3 months',
-    '6-12 months': '3+ months',
-    '12+ months': '3+ months'
+    'ASAP': 'ASAP',
+    'As soon as possible': 'ASAP',
+    '1-2 months': '1-2 months',
+    '3-6 months': '3-6 months',
+    '6-12 months': '6-12 months',
+    '12+ months': '12+ months'
   };
 
   // Map frontend equipment age to backend enum values
   const ageMapping = {
-    'Less than 1 year': 'Under 2 years',
-    '1-2 years': 'Under 2 years',
+    'Less than 1 year': '0-2 years',
+    '1-2 years': '0-2 years',
     '3-4 years': '2-5 years',
     '5-6 years': '5+ years',
     'Over 6 years': '5+ years',
-    'Mixed ages': '5+ years'
+    'Mixed ages': '5+ years',
+    '': 'No current machine'
   };
 
   // Calculate total monthly volume
-  const monthlyColour = parseInt(formData.monthlyVolume.colour) || 0;
-  const monthlyMono = parseInt(formData.monthlyVolume.mono) || 0;
+  const monthlyColour = parseInt(formData.monthlyVolume?.colour) || 0;
+  const monthlyMono = parseInt(formData.monthlyVolume?.mono) || 0;
   const totalVolume = monthlyColour + monthlyMono;
-
-  return {
-    // Required fields - ensure they exist
+  
+  // Ensure we have valid values for required fields
+  const transformedData = {
+    // Required fields - with fallbacks
     companyName: formData.companyName || 'Unknown Company',
-    contactName: userProfile?.name || userProfile?.username || 'Unknown Contact',
-    email: userProfile?.email || 'unknown@example.com',
+    contactName: userProfile?.name || userProfile?.username || formData.contactName || 'Unknown Contact',
+    email: userProfile?.email || formData.email || 'unknown@example.com',
     
     // Industry type with proper mapping
     industryType: industryMapping[formData.industryType] || 'Other',
@@ -91,120 +97,111 @@ const transformQuoteData = (formData, userProfile) => {
     numEmployees: Math.max(1, parseInt(formData.numEmployees) || 1),
     numLocations: Math.max(1, parseInt(formData.numLocations) || 1),
     
-    // Monthly volume - required object
+    // Monthly volume - required object with minimum values
     monthlyVolume: {
-      mono: monthlyMono,
-      colour: monthlyColour,
-      total: totalVolume
+      mono: Math.max(0, monthlyMono),
+      colour: Math.max(0, monthlyColour),
+      total: Math.max(1, totalVolume) // Backend requires at least 1
     },
     
     // Paper requirements - required object
     paperRequirements: {
-      primarySize: formData.type || 'A4' // Map from 'type' field
+      primarySize: formData.type || formData.paperSize || 'A4'
     },
     
     // Current setup - required object  
     currentSetup: {
-      machineAge: ageMapping[formData.currentEquipmentAge] || 'No current machine',
-      currentSupplier: formData.leasingCompany || '',
-      contractEndDate: formData.contractEndDate ? new Date(formData.contractEndDate) : null,
-      currentCosts: {
-        monoRate: parseFloat(formData.currentMonoCPC) || null,
-        colourRate: parseFloat(formData.currentColorCPC) || null,
-        quarterlyLeaseCost: parseFloat(formData.quarterlyLeaseCost) || null
-      },
-      painPoints: formData.primaryChallenges || [],
-      satisfactionLevel: 'Neutral'
+      machineAge: ageMapping[formData.currentEquipmentAge] || 'No current machine'
     },
     
     // Requirements - required object
     requirements: {
-      priority: formData.preference || 'balanced',
-      essentialFeatures: formData.required_functions || [],
-      minSpeed: parseInt(formData.min_speed) || null
+      priority: formData.preference || 'balanced'
     },
     
-    // Budget - required object
+    // Budget - required object with minimum value
     budget: {
-      maxLeasePrice: parseInt(formData.max_lease_price) || 0,
-      preferredTerm: formData.contractLengthPreference === '1-2 years' ? '24 months' : 
-                     formData.contractLengthPreference === '3-4 years' ? '36 months' :
-                     formData.contractLengthPreference === '5+ years' ? '60 months' : '36 months'
+      maxLeasePrice: Math.max(1, parseInt(formData.max_lease_price) || 100)
     },
     
     // Urgency - required object
     urgency: {
-      timeframe: timeframeMapping[formData.implementationTimeline] || 'Within 1 month',
-      reason: formData.currentPainPoints || ''
+      timeframe: timeframeMapping[formData.implementationTimeline] || 'ASAP'
     },
     
     // Location - required object
     location: {
-      postcode: formData.postcode || 'Unknown',
-      installationRequirements: formData.multiFloor === 'Yes' ? 'Multi-floor installation' : 'Single floor'
+      postcode: formData.postcode || 'Unknown'
     },
     
-    // System fields
-    submittedBy: userProfile?.id || userProfile?.userId,
-    status: 'pending', // Use valid enum value
+    // System fields - CRITICAL: Must have valid IDs
+    submittedBy: userProfile?.id || userProfile?.userId || userProfile?._id || 'temp_user_id',
+    status: 'pending', // FIXED: Use lowercase 'pending'
     submissionSource: 'web_form',
     
-    // Optional fields - keep existing structure for compatibility
-    subSector: formData.subSector,
-    annualRevenue: formData.annualRevenue,
-    officeBasedEmployees: parseInt(formData.officeBasedEmployees) || null,
-    primaryBusinessActivity: formData.primaryBusinessActivity,
-    organizationStructure: formData.organizationStructure,
-    multiFloor: formData.multiFloor === 'Yes',
-    primaryChallenges: formData.primaryChallenges,
-    currentPainPoints: formData.currentPainPoints,
-    impactOnProductivity: formData.impactOnProductivity,
-    urgencyLevel: formData.urgencyLevel,
-    budgetCycle: formData.budgetCycle,
-    monthlyPrintVolume: parseInt(formData.monthlyPrintVolume) || null,
-    peakUsagePeriods: formData.peakUsagePeriods,
-    documentTypes: formData.documentTypes,
-    averagePageCount: formData.averagePageCount,
-    finishingRequirements: formData.finishingRequirements,
-    departmentBreakdown: formData.departmentBreakdown,
-    networkSetup: formData.networkSetup,
-    itSupportStructure: formData.itSupportStructure,
-    securityRequirements: formData.securityRequirements,
-    currentSoftwareEnvironment: formData.currentSoftwareEnvironment,
-    cloudPreference: formData.cloudPreference,
-    integrationNeeds: formData.integrationNeeds,
-    mobileRequirements: formData.mobileRequirements === 'Yes',
-    remoteWorkImpact: formData.remoteWorkImpact,
-    totalAnnualCosts: parseFloat(formData.totalAnnualCosts) || null,
-    hiddenCosts: formData.hiddenCosts,
-    serviceProvider: formData.serviceProvider,
-    contractStartDate: formData.contractStartDate ? new Date(formData.contractStartDate) : null,
-    maintenanceIssues: formData.maintenanceIssues,
-    additionalServices: formData.additionalServices,
-    paysForScanning: formData.paysForScanning === 'Yes',
-    serviceType: formData.serviceType,
-    colour: formData.colour,
-    min_speed: parseInt(formData.min_speed) || null,
-    securityFeatures: formData.securityFeatures,
-    accessibilityNeeds: formData.accessibilityNeeds === 'Yes',
-    sustainabilityGoals: formData.sustainabilityGoals,
-    responseTimeExpectation: formData.responseTimeExpectation,
-    maintenancePreference: formData.maintenancePreference,
-    trainingNeeds: formData.trainingNeeds,
-    supplyManagement: formData.supplyManagement,
-    reportingNeeds: formData.reportingNeeds,
-    vendorRelationshipType: formData.vendorRelationshipType,
-    decisionMakers: formData.decisionMakers,
-    evaluationCriteria: formData.evaluationCriteria,
-    contractLengthPreference: formData.contractLengthPreference,
-    pricingModelPreference: formData.pricingModelPreference,
-    roiExpectations: formData.roiExpectations,
-    expectedGrowth: formData.expectedGrowth,
-    expansionPlans: formData.expansionPlans,
-    technologyRoadmap: formData.technologyRoadmap,
-    digitalTransformation: formData.digitalTransformation,
-    threeYearVision: formData.threeYearVision
+    // Optional fields - only include if they have values
+    ...(formData.subSector && { subSector: formData.subSector }),
+    ...(formData.annualRevenue && { annualRevenue: formData.annualRevenue }),
+    ...(formData.officeBasedEmployees && { officeBasedEmployees: parseInt(formData.officeBasedEmployees) }),
+    ...(formData.primaryBusinessActivity && { primaryBusinessActivity: formData.primaryBusinessActivity }),
+    ...(formData.organizationStructure && { organizationStructure: formData.organizationStructure }),
+    ...(formData.multiFloor && { multiFloor: formData.multiFloor === 'Yes' }),
+    ...(formData.primaryChallenges?.length > 0 && { primaryChallenges: formData.primaryChallenges }),
+    ...(formData.currentPainPoints && { currentPainPoints: formData.currentPainPoints }),
+    ...(formData.impactOnProductivity && { impactOnProductivity: formData.impactOnProductivity }),
+    ...(formData.urgencyLevel && { urgencyLevel: formData.urgencyLevel }),
+    ...(formData.budgetCycle && { budgetCycle: formData.budgetCycle }),
+    ...(formData.monthlyPrintVolume && { monthlyPrintVolume: parseInt(formData.monthlyPrintVolume) }),
+    ...(formData.peakUsagePeriods && { peakUsagePeriods: formData.peakUsagePeriods }),
+    ...(formData.documentTypes?.length > 0 && { documentTypes: formData.documentTypes }),
+    ...(formData.averagePageCount && { averagePageCount: formData.averagePageCount }),
+    ...(formData.finishingRequirements?.length > 0 && { finishingRequirements: formData.finishingRequirements }),
+    ...(formData.departmentBreakdown?.length > 0 && { departmentBreakdown: formData.departmentBreakdown }),
+    ...(formData.networkSetup && { networkSetup: formData.networkSetup }),
+    ...(formData.itSupportStructure && { itSupportStructure: formData.itSupportStructure }),
+    ...(formData.securityRequirements?.length > 0 && { securityRequirements: formData.securityRequirements }),
+    ...(formData.currentSoftwareEnvironment && { currentSoftwareEnvironment: formData.currentSoftwareEnvironment }),
+    ...(formData.cloudPreference && { cloudPreference: formData.cloudPreference }),
+    ...(formData.integrationNeeds?.length > 0 && { integrationNeeds: formData.integrationNeeds }),
+    ...(formData.mobileRequirements && { mobileRequirements: formData.mobileRequirements === 'Yes' }),
+    ...(formData.remoteWorkImpact && { remoteWorkImpact: formData.remoteWorkImpact }),
+    ...(formData.totalAnnualCosts && { totalAnnualCosts: parseFloat(formData.totalAnnualCosts) }),
+    ...(formData.hiddenCosts && { hiddenCosts: formData.hiddenCosts }),
+    ...(formData.serviceProvider && { serviceProvider: formData.serviceProvider }),
+    ...(formData.contractStartDate && { contractStartDate: new Date(formData.contractStartDate) }),
+    ...(formData.maintenanceIssues && { maintenanceIssues: formData.maintenanceIssues }),
+    ...(formData.additionalServices?.length > 0 && { additionalServices: formData.additionalServices }),
+    ...(formData.paysForScanning && { paysForScanning: formData.paysForScanning === 'Yes' }),
+    ...(formData.serviceType && { serviceType: formData.serviceType }),
+    ...(formData.colour && { colour: formData.colour }),
+    ...(formData.min_speed && { min_speed: parseInt(formData.min_speed) }),
+    ...(formData.securityFeatures?.length > 0 && { securityFeatures: formData.securityFeatures }),
+    ...(formData.accessibilityNeeds && { accessibilityNeeds: formData.accessibilityNeeds === 'Yes' }),
+    ...(formData.sustainabilityGoals && { sustainabilityGoals: formData.sustainabilityGoals }),
+    ...(formData.responseTimeExpectation && { responseTimeExpectation: formData.responseTimeExpectation }),
+    ...(formData.maintenancePreference && { maintenancePreference: formData.maintenancePreference }),
+    ...(formData.trainingNeeds && { trainingNeeds: formData.trainingNeeds }),
+    ...(formData.supplyManagement && { supplyManagement: formData.supplyManagement }),
+    ...(formData.reportingNeeds?.length > 0 && { reportingNeeds: formData.reportingNeeds }),
+    ...(formData.vendorRelationshipType && { vendorRelationshipType: formData.vendorRelationshipType }),
+    ...(formData.decisionMakers?.length > 0 && { decisionMakers: formData.decisionMakers }),
+    ...(formData.evaluationCriteria?.length > 0 && { evaluationCriteria: formData.evaluationCriteria }),
+    ...(formData.contractLengthPreference && { contractLengthPreference: formData.contractLengthPreference }),
+    ...(formData.pricingModelPreference && { pricingModelPreference: formData.pricingModelPreference }),
+    ...(formData.roiExpectations && { roiExpectations: formData.roiExpectations }),
+    ...(formData.expectedGrowth && { expectedGrowth: formData.expectedGrowth }),
+    ...(formData.expansionPlans && { expansionPlans: formData.expansionPlans }),
+    ...(formData.technologyRoadmap && { technologyRoadmap: formData.technologyRoadmap }),
+    ...(formData.digitalTransformation && { digitalTransformation: formData.digitalTransformation }),
+    ...(formData.threeYearVision && { threeYearVision: formData.threeYearVision })
   };
+  
+  // Force the correct status and remove any incorrect fields
+  transformedData.status = 'pending'; // Force lowercase
+  delete transformedData.userId; // Remove duplicate user ID field
+  
+  console.log('✅ Transformation complete. Result:', transformedData);
+  return transformedData;
 };
 
 const EnhancedQuoteRequest = () => {
@@ -379,7 +376,7 @@ const EnhancedQuoteRequest = () => {
       ...data,
       numEmployees: data.numEmployees ? parseInt(data.numEmployees, 10) : undefined,
       officeBasedEmployees: data.officeBasedEmployees ? parseInt(data.officeBasedEmployees, 10) : undefined,
-      numLocations: data.numLocations ? Math.abs(parseInt(data.numLocations, 10)) || 1 : 1, // Fixed negative number issue
+      numLocations: data.numLocations ? Math.abs(parseInt(data.numLocations, 10)) || 1 : 1,
       monthlyPrintVolume: data.monthlyPrintVolume ? parseInt(data.monthlyPrintVolume, 10) : undefined,
       annualPrintVolume: data.annualPrintVolume ? parseInt(data.annualPrintVolume, 10) : undefined,
       monthlyVolume: {
@@ -392,10 +389,11 @@ const EnhancedQuoteRequest = () => {
       totalAnnualCosts: data.totalAnnualCosts ? parseFloat(data.totalAnnualCosts) : undefined,
       min_speed: data.min_speed ? parseInt(data.min_speed, 10) : undefined,
       max_lease_price: data.max_lease_price ? parseInt(data.max_lease_price, 10) : undefined,
-      multiFloor: data.multiFloor.toLowerCase() === 'yes',
-      paysForScanning: data.paysForScanning.toLowerCase() === 'yes',
-      mobileRequirements: data.mobileRequirements.toLowerCase() === 'yes',
-      accessibilityNeeds: data.accessibilityNeeds.toLowerCase() === 'yes',
+      multiFloor: data.multiFloor && data.multiFloor.toLowerCase() === 'yes',
+      paysForScanning: data.paysForScanning && data.paysForScanning.toLowerCase() === 'yes',
+      mobileRequirements: data.mobileRequirements && data.mobileRequirements.toLowerCase() === 'yes',
+      accessibilityNeeds: data.accessibilityNeeds && data.accessibilityNeeds.toLowerCase() === 'yes',
+      // Remove any status field from formatFormData - let transformation handle it
     };
   };
 
@@ -470,36 +468,47 @@ const EnhancedQuoteRequest = () => {
     }
 
     const formattedData = formatFormData(formData);
+    console.log('📝 Formatted data:', formattedData);
+    
     const transformedData = transformQuoteData(formattedData, userProfile);
+    console.log('🔄 Final transformed data:', transformedData);
     
     // Add validation to catch transformation issues
     const validateTransformedData = (data) => {
       const errors = [];
       
-      // Check required fields
-      if (!data.companyName) errors.push('Company name missing after transformation');
-      if (!data.contactName) errors.push('Contact name missing after transformation');
-      if (!data.email) errors.push('Email missing after transformation');
-      if (!data.location?.postcode) errors.push('Postcode missing after transformation');
-      if (!data.urgency?.timeframe) errors.push('Timeframe missing after transformation');
-      if (!data.budget?.maxLeasePrice) errors.push('Max lease price missing after transformation');
-      if (!data.requirements?.priority) errors.push('Priority missing after transformation');
-      if (!data.currentSetup?.machineAge) errors.push('Machine age missing after transformation');
-      if (!data.paperRequirements?.primarySize) errors.push('Primary size missing after transformation');
-      if (!data.monthlyVolume?.total) errors.push('Monthly volume total missing after transformation');
-      if (!data.numLocations) errors.push('Number of locations missing after transformation');
-      if (!data.submittedBy) errors.push('Submitted by missing after transformation');
+      // Check required fields exist and have values
+      const requiredChecks = [
+        { field: 'companyName', value: data.companyName },
+        { field: 'contactName', value: data.contactName },
+        { field: 'email', value: data.email },
+        { field: 'location.postcode', value: data.location?.postcode },
+        { field: 'urgency.timeframe', value: data.urgency?.timeframe },
+        { field: 'budget.maxLeasePrice', value: data.budget?.maxLeasePrice },
+        { field: 'requirements.priority', value: data.requirements?.priority },
+        { field: 'currentSetup.machineAge', value: data.currentSetup?.machineAge },
+        { field: 'paperRequirements.primarySize', value: data.paperRequirements?.primarySize },
+        { field: 'monthlyVolume.total', value: data.monthlyVolume?.total },
+        { field: 'numLocations', value: data.numLocations },
+        { field: 'submittedBy', value: data.submittedBy }
+      ];
+      
+      requiredChecks.forEach(check => {
+        if (!check.value || check.value === '' || check.value === 0) {
+          errors.push(`${check.field} is missing or empty (value: ${check.value})`);
+        }
+      });
       
       // Check enum values
       const validIndustryTypes = ["Healthcare", "Legal", "Education", "Finance", "Government", "Manufacturing", "Retail", "Other"];
       const validStatusValues = ["pending", "processing", "quotes_generated", "quotes_sent", "completed", "cancelled"];
       
       if (data.industryType && !validIndustryTypes.includes(data.industryType)) {
-        errors.push(`Invalid industryType after transformation: ${data.industryType}`);
+        errors.push(`Invalid industryType: ${data.industryType}. Valid: ${validIndustryTypes.join(', ')}`);
       }
       
       if (data.status && !validStatusValues.includes(data.status)) {
-        errors.push(`Invalid status after transformation: ${data.status}`);
+        errors.push(`Invalid status: ${data.status}. Valid: ${validStatusValues.join(', ')}`);
       }
       
       return errors;

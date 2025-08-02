@@ -471,7 +471,12 @@ const EnhancedQuoteRequest = () => {
     console.log('📝 Formatted data:', formattedData);
     
     const transformedData = transformQuoteData(formattedData, userProfile);
-    console.log('🔄 Final transformed data:', transformedData);
+    
+    // FORCE CORRECT VALUES AFTER TRANSFORMATION
+    transformedData.status = 'pending'; // Force lowercase
+    delete transformedData.userId; // Remove any duplicate userId
+    
+    console.log('🔄 Final transformed data (after fixes):', transformedData);
     
     // Add validation to catch transformation issues
     const validateTransformedData = (data) => {

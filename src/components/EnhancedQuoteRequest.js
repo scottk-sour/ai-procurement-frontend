@@ -472,7 +472,49 @@ const EnhancedQuoteRequest = () => {
     const formattedData = formatFormData(formData);
     const transformedData = transformQuoteData(formattedData, userProfile);
     
-    console.log('🚀 Full Transformed Data:', JSON.stringify(transformedData, null, 2));
+    // Add validation to catch transformation issues
+    const validateTransformedData = (data) => {
+      const errors = [];
+      
+      // Check required fields
+      if (!data.companyName) errors.push('Company name missing after transformation');
+      if (!data.contactName) errors.push('Contact name missing after transformation');
+      if (!data.email) errors.push('Email missing after transformation');
+      if (!data.location?.postcode) errors.push('Postcode missing after transformation');
+      if (!data.urgency?.timeframe) errors.push('Timeframe missing after transformation');
+      if (!data.budget?.maxLeasePrice) errors.push('Max lease price missing after transformation');
+      if (!data.requirements?.priority) errors.push('Priority missing after transformation');
+      if (!data.currentSetup?.machineAge) errors.push('Machine age missing after transformation');
+      if (!data.paperRequirements?.primarySize) errors.push('Primary size missing after transformation');
+      if (!data.monthlyVolume?.total) errors.push('Monthly volume total missing after transformation');
+      if (!data.numLocations) errors.push('Number of locations missing after transformation');
+      if (!data.submittedBy) errors.push('Submitted by missing after transformation');
+      
+      // Check enum values
+      const validIndustryTypes = ["Healthcare", "Legal", "Education", "Finance", "Government", "Manufacturing", "Retail", "Other"];
+      const validStatusValues = ["pending", "processing", "quotes_generated", "quotes_sent", "completed", "cancelled"];
+      
+      if (data.industryType && !validIndustryTypes.includes(data.industryType)) {
+        errors.push(`Invalid industryType after transformation: ${data.industryType}`);
+      }
+      
+      if (data.status && !validStatusValues.includes(data.status)) {
+        errors.push(`Invalid status after transformation: ${data.status}`);
+      }
+      
+      return errors;
+    };
+    
+    // Validate transformed data
+    const validationErrors = validateTransformedData(transformedData);
+    if (validationErrors.length > 0) {
+      console.error('Validation errors in transformed data:', validationErrors);
+      setErrorMessage(`Data transformation errors: ${validationErrors.join('; ')}`);
+      setIsSubmitting(false);
+      return;
+    }
+    
+    console.log('🚀 Validated Transformed Data:', JSON.stringify(transformedData, null, 2));
 
     try {
       const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
@@ -481,25 +523,25 @@ const EnhancedQuoteRequest = () => {
 
       if (uploadedFiles.length > 0) {
         const requestData = new FormData();
+        // Send the TRANSFORMED data, not the original formData
         requestData.append('userRequirements', JSON.stringify(transformedData));
-        requestData.append('userId', userId);
         uploadedFiles.forEach((file) => requestData.append('documents', file));
         
-        // Use the correct endpoint
         response = await fetch(`${API_BASE_URL}/api/quotes/request`, {
           method: 'POST',
           headers: { Authorization: `Bearer ${token}` },
           body: requestData,
         });
       } else {
-        // Use the correct endpoint
+        // Send the TRANSFORMED data, not the original formData
         response = await fetch(`${API_BASE_URL}/api/quotes/request`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify({ ...transformedData, userId }),
+          // ✅ Use transformedData instead of adding userId separately
+          body: JSON.stringify(transformedData),
         });
       }
 

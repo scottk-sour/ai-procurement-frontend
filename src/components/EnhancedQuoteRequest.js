@@ -373,27 +373,84 @@ const EnhancedQuoteRequest = () => {
 
   const formatFormData = (data) => {
     return {
-      ...data,
+      // Only include specific fields we want, don't spread the original data
+      companyName: data.companyName,
+      industryType: data.industryType,
+      subSector: data.subSector,
+      annualRevenue: data.annualRevenue,
       numEmployees: data.numEmployees ? parseInt(data.numEmployees, 10) : undefined,
       officeBasedEmployees: data.officeBasedEmployees ? parseInt(data.officeBasedEmployees, 10) : undefined,
       numLocations: data.numLocations ? Math.abs(parseInt(data.numLocations, 10)) || 1 : 1,
+      primaryBusinessActivity: data.primaryBusinessActivity,
+      organizationStructure: data.organizationStructure,
+      multiFloor: data.multiFloor && data.multiFloor.toLowerCase() === 'yes',
+      postcode: data.postcode,
+      primaryChallenges: data.primaryChallenges,
+      currentPainPoints: data.currentPainPoints,
+      impactOnProductivity: data.impactOnProductivity,
+      urgencyLevel: data.urgencyLevel,
+      implementationTimeline: data.implementationTimeline,
+      budgetCycle: data.budgetCycle,
       monthlyPrintVolume: data.monthlyPrintVolume ? parseInt(data.monthlyPrintVolume, 10) : undefined,
       annualPrintVolume: data.annualPrintVolume ? parseInt(data.annualPrintVolume, 10) : undefined,
       monthlyVolume: {
         colour: data.monthlyVolume.colour ? parseInt(data.monthlyVolume.colour, 10) : 0,
         mono: data.monthlyVolume.mono ? parseInt(data.monthlyVolume.mono, 10) : 0,
       },
+      peakUsagePeriods: data.peakUsagePeriods,
+      documentTypes: data.documentTypes,
+      averagePageCount: data.averagePageCount,
+      finishingRequirements: data.finishingRequirements,
+      departmentBreakdown: data.departmentBreakdown,
+      networkSetup: data.networkSetup,
+      itSupportStructure: data.itSupportStructure,
+      securityRequirements: data.securityRequirements,
+      currentSoftwareEnvironment: data.currentSoftwareEnvironment,
+      cloudPreference: data.cloudPreference,
+      integrationNeeds: data.integrationNeeds,
+      mobileRequirements: data.mobileRequirements && data.mobileRequirements.toLowerCase() === 'yes',
+      remoteWorkImpact: data.remoteWorkImpact,
       currentColorCPC: data.currentColorCPC ? parseFloat(data.currentColorCPC) : undefined,
       currentMonoCPC: data.currentMonoCPC ? parseFloat(data.currentMonoCPC) : undefined,
       quarterlyLeaseCost: data.quarterlyLeaseCost ? parseFloat(data.quarterlyLeaseCost) : undefined,
       totalAnnualCosts: data.totalAnnualCosts ? parseFloat(data.totalAnnualCosts) : undefined,
-      min_speed: data.min_speed ? parseInt(data.min_speed, 10) : undefined,
-      max_lease_price: data.max_lease_price ? parseInt(data.max_lease_price, 10) : undefined,
-      multiFloor: data.multiFloor && data.multiFloor.toLowerCase() === 'yes',
+      hiddenCosts: data.hiddenCosts,
+      leasingCompany: data.leasingCompany,
+      serviceProvider: data.serviceProvider,
+      contractStartDate: data.contractStartDate,
+      contractEndDate: data.contractEndDate,
+      currentEquipmentAge: data.currentEquipmentAge,
+      maintenanceIssues: data.maintenanceIssues,
+      additionalServices: data.additionalServices,
       paysForScanning: data.paysForScanning && data.paysForScanning.toLowerCase() === 'yes',
-      mobileRequirements: data.mobileRequirements && data.mobileRequirements.toLowerCase() === 'yes',
+      serviceType: data.serviceType,
+      colour: data.colour,
+      type: data.type,
+      min_speed: data.min_speed ? parseInt(data.min_speed, 10) : undefined,
+      securityFeatures: data.securityFeatures,
       accessibilityNeeds: data.accessibilityNeeds && data.accessibilityNeeds.toLowerCase() === 'yes',
-      // Remove any status field from formatFormData - let transformation handle it
+      sustainabilityGoals: data.sustainabilityGoals,
+      responseTimeExpectation: data.responseTimeExpectation,
+      maintenancePreference: data.maintenancePreference,
+      trainingNeeds: data.trainingNeeds,
+      supplyManagement: data.supplyManagement,
+      reportingNeeds: data.reportingNeeds,
+      vendorRelationshipType: data.vendorRelationshipType,
+      decisionMakers: data.decisionMakers,
+      evaluationCriteria: data.evaluationCriteria,
+      contractLengthPreference: data.contractLengthPreference,
+      pricingModelPreference: data.pricingModelPreference,
+      required_functions: data.required_functions,
+      preference: data.preference,
+      max_lease_price: data.max_lease_price ? parseInt(data.max_lease_price, 10) : undefined,
+      roiExpectations: data.roiExpectations,
+      expectedGrowth: data.expectedGrowth,
+      expansionPlans: data.expansionPlans,
+      technologyRoadmap: data.technologyRoadmap,
+      digitalTransformation: data.digitalTransformation,
+      threeYearVision: data.threeYearVision
+      // Do NOT include status here - let transformation handle it
+      // Do NOT use ...data to avoid copying unwanted fields
     };
   };
 
@@ -435,6 +492,9 @@ const EnhancedQuoteRequest = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log('🔍 FILE VERSION CHECK: Updated transformation file is being used');
+    console.log('🔍 Original formData before formatting:', formData);
+    
     if (!validateStep(9)) {
       setErrorMessage('Please fill out all required fields before submitting.');
       return;
@@ -528,7 +588,7 @@ const EnhancedQuoteRequest = () => {
       return;
     }
     
-    console.log('🚀 Validated Transformed Data:', JSON.stringify(transformedData, null, 2));
+    console.log('🚨 EXACTLY WHAT WE ARE SENDING:', JSON.stringify(transformedData, null, 2));
 
     try {
       const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';

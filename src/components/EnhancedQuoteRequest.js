@@ -136,6 +136,7 @@ const transformQuoteData = (formData, userProfile) => {
     
     // System fields - CRITICAL: Must have valid IDs
     submittedBy: userProfile?.id || userProfile?.userId || userProfile?._id || 'temp_user_id',
+    userId: userProfile?.id || userProfile?.userId || userProfile?._id, // Add userId for backend
     status: 'pending', // FIXED: Use lowercase 'pending'
     submissionSource: 'web_form',
     
@@ -534,7 +535,7 @@ const EnhancedQuoteRequest = () => {
     
     // FORCE CORRECT VALUES AFTER TRANSFORMATION
     transformedData.status = 'pending'; // Force lowercase
-    delete transformedData.userId; // Remove any duplicate userId
+    // Don't delete userId - backend needs it!
     
     console.log('🔄 Final transformed data (after fixes):', transformedData);
     

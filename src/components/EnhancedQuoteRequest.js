@@ -199,7 +199,6 @@ const transformQuoteData = (formData, userProfile) => {
   
   // Force the correct status and remove any incorrect fields
   transformedData.status = 'pending'; // Force lowercase
-  delete transformedData.userId; // Remove duplicate user ID field
   
   console.log('✅ Transformation complete. Result:', transformedData);
   return transformedData;
@@ -535,7 +534,6 @@ const EnhancedQuoteRequest = () => {
     
     // FORCE CORRECT VALUES AFTER TRANSFORMATION
     transformedData.status = 'pending'; // Force lowercase
-    // Don't delete userId - backend needs it!
     
     console.log('🔄 Final transformed data (after fixes):', transformedData);
     
@@ -592,7 +590,8 @@ const EnhancedQuoteRequest = () => {
     console.log('🚨 EXACTLY WHAT WE ARE SENDING:', JSON.stringify(transformedData, null, 2));
 
     try {
-      const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+      // ✅ FIXED: Use the correct environment variable
+      const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5000';
 
       let response, data;
 

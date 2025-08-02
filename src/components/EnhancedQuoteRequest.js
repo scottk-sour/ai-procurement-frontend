@@ -39,68 +39,129 @@ const suggestCopiers = async (data) => {
 
 // Transform frontend data to match backend schema
 const transformQuoteData = (formData, userProfile) => {
+  // Map frontend industry types to backend enum values
+  const industryMapping = {
+    'Technology': 'Other',
+    'Real Estate': 'Other',
+    'Non-profit': 'Other',
+    'Healthcare': 'Healthcare',
+    'Legal': 'Legal',
+    'Education': 'Education',
+    'Finance': 'Finance',
+    'Manufacturing': 'Manufacturing',
+    'Retail': 'Retail',
+    'Government': 'Government',
+    'Other': 'Other'
+  };
+
+  // Map frontend timeframes to backend enum values
+  const timeframeMapping = {
+    'ASAP': 'Immediately',
+    '1-2 months': 'Within 1 month',
+    '3-6 months': '1-3 months',
+    '6-12 months': '3+ months',
+    '12+ months': '3+ months'
+  };
+
+  // Map frontend equipment age to backend enum values
+  const ageMapping = {
+    'Less than 1 year': 'Under 2 years',
+    '1-2 years': 'Under 2 years',
+    '3-4 years': '2-5 years',
+    '5-6 years': '5+ years',
+    'Over 6 years': '5+ years',
+    'Mixed ages': '5+ years'
+  };
+
+  // Calculate total monthly volume
+  const monthlyColour = parseInt(formData.monthlyVolume.colour) || 0;
+  const monthlyMono = parseInt(formData.monthlyVolume.mono) || 0;
+  const totalVolume = monthlyColour + monthlyMono;
+
   return {
-    // Basic company info
-    companyName: formData.companyName,
-    contactName: userProfile?.name || '',
-    email: userProfile?.email || '',
+    // Required fields - ensure they exist
+    companyName: formData.companyName || 'Unknown Company',
+    contactName: userProfile?.name || userProfile?.username || 'Unknown Contact',
+    email: userProfile?.email || 'unknown@example.com',
     
-    // Location info - you'll need to add postcode field to your form
-    location: {
-      postcode: formData.postcode || '', // Add this field to your form
-    },
+    // Industry type with proper mapping
+    industryType: industryMapping[formData.industryType] || 'Other',
     
-    // Fix enum issues
-    status: 'Pending', // Use valid status instead of "In Progress"
+    // Required numbers with validation
+    numEmployees: Math.max(1, parseInt(formData.numEmployees) || 1),
+    numLocations: Math.max(1, parseInt(formData.numLocations) || 1),
     
-    // Transform data structure
-    submittedBy: userProfile?.id || userProfile?.email || userProfile?.userId,
-    
-    urgency: {
-      timeframe: formData.implementationTimeline
-    },
-    
-    budget: {
-      maxLeasePrice: formData.max_lease_price
-    },
-    
-    requirements: {
-      priority: formData.preference
-    },
-    
-    currentSetup: {
-      machineAge: formData.currentEquipmentAge
-    },
-    
-    paperRequirements: {
-      primarySize: formData.type
-    },
-    
+    // Monthly volume - required object
     monthlyVolume: {
-      colour: formData.monthlyVolume.colour,
-      mono: formData.monthlyVolume.mono,
-      total: (formData.monthlyVolume.colour || 0) + (formData.monthlyVolume.mono || 0)
+      mono: monthlyMono,
+      colour: monthlyColour,
+      total: totalVolume
     },
     
-    // Fix numLocations (ensure it's positive)
-    numLocations: Math.abs(formData.numLocations) || 1,
+    // Paper requirements - required object
+    paperRequirements: {
+      primarySize: formData.type || 'A4' // Map from 'type' field
+    },
     
-    // Keep other fields as they are
-    industryType: formData.industryType,
+    // Current setup - required object  
+    currentSetup: {
+      machineAge: ageMapping[formData.currentEquipmentAge] || 'No current machine',
+      currentSupplier: formData.leasingCompany || '',
+      contractEndDate: formData.contractEndDate ? new Date(formData.contractEndDate) : null,
+      currentCosts: {
+        monoRate: parseFloat(formData.currentMonoCPC) || null,
+        colourRate: parseFloat(formData.currentColorCPC) || null,
+        quarterlyLeaseCost: parseFloat(formData.quarterlyLeaseCost) || null
+      },
+      painPoints: formData.primaryChallenges || [],
+      satisfactionLevel: 'Neutral'
+    },
+    
+    // Requirements - required object
+    requirements: {
+      priority: formData.preference || 'balanced',
+      essentialFeatures: formData.required_functions || [],
+      minSpeed: parseInt(formData.min_speed) || null
+    },
+    
+    // Budget - required object
+    budget: {
+      maxLeasePrice: parseInt(formData.max_lease_price) || 0,
+      preferredTerm: formData.contractLengthPreference === '1-2 years' ? '24 months' : 
+                     formData.contractLengthPreference === '3-4 years' ? '36 months' :
+                     formData.contractLengthPreference === '5+ years' ? '60 months' : '36 months'
+    },
+    
+    // Urgency - required object
+    urgency: {
+      timeframe: timeframeMapping[formData.implementationTimeline] || 'Within 1 month',
+      reason: formData.currentPainPoints || ''
+    },
+    
+    // Location - required object
+    location: {
+      postcode: formData.postcode || 'Unknown',
+      installationRequirements: formData.multiFloor === 'Yes' ? 'Multi-floor installation' : 'Single floor'
+    },
+    
+    // System fields
+    submittedBy: userProfile?.id || userProfile?.userId,
+    status: 'pending', // Use valid enum value
+    submissionSource: 'web_form',
+    
+    // Optional fields - keep existing structure for compatibility
     subSector: formData.subSector,
     annualRevenue: formData.annualRevenue,
-    numEmployees: formData.numEmployees,
-    officeBasedEmployees: formData.officeBasedEmployees,
+    officeBasedEmployees: parseInt(formData.officeBasedEmployees) || null,
     primaryBusinessActivity: formData.primaryBusinessActivity,
     organizationStructure: formData.organizationStructure,
-    multiFloor: formData.multiFloor,
+    multiFloor: formData.multiFloor === 'Yes',
     primaryChallenges: formData.primaryChallenges,
     currentPainPoints: formData.currentPainPoints,
     impactOnProductivity: formData.impactOnProductivity,
     urgencyLevel: formData.urgencyLevel,
     budgetCycle: formData.budgetCycle,
-    monthlyPrintVolume: formData.monthlyPrintVolume,
-    annualPrintVolume: formData.annualPrintVolume,
+    monthlyPrintVolume: parseInt(formData.monthlyPrintVolume) || null,
     peakUsagePeriods: formData.peakUsagePeriods,
     documentTypes: formData.documentTypes,
     averagePageCount: formData.averagePageCount,
@@ -112,25 +173,20 @@ const transformQuoteData = (formData, userProfile) => {
     currentSoftwareEnvironment: formData.currentSoftwareEnvironment,
     cloudPreference: formData.cloudPreference,
     integrationNeeds: formData.integrationNeeds,
-    mobileRequirements: formData.mobileRequirements,
+    mobileRequirements: formData.mobileRequirements === 'Yes',
     remoteWorkImpact: formData.remoteWorkImpact,
-    currentColorCPC: formData.currentColorCPC,
-    currentMonoCPC: formData.currentMonoCPC,
-    quarterlyLeaseCost: formData.quarterlyLeaseCost,
-    totalAnnualCosts: formData.totalAnnualCosts,
+    totalAnnualCosts: parseFloat(formData.totalAnnualCosts) || null,
     hiddenCosts: formData.hiddenCosts,
-    leasingCompany: formData.leasingCompany,
     serviceProvider: formData.serviceProvider,
-    contractStartDate: formData.contractStartDate,
-    contractEndDate: formData.contractEndDate,
+    contractStartDate: formData.contractStartDate ? new Date(formData.contractStartDate) : null,
     maintenanceIssues: formData.maintenanceIssues,
     additionalServices: formData.additionalServices,
-    paysForScanning: formData.paysForScanning,
+    paysForScanning: formData.paysForScanning === 'Yes',
     serviceType: formData.serviceType,
     colour: formData.colour,
-    min_speed: formData.min_speed,
+    min_speed: parseInt(formData.min_speed) || null,
     securityFeatures: formData.securityFeatures,
-    accessibilityNeeds: formData.accessibilityNeeds,
+    accessibilityNeeds: formData.accessibilityNeeds === 'Yes',
     sustainabilityGoals: formData.sustainabilityGoals,
     responseTimeExpectation: formData.responseTimeExpectation,
     maintenancePreference: formData.maintenancePreference,
@@ -142,7 +198,6 @@ const transformQuoteData = (formData, userProfile) => {
     evaluationCriteria: formData.evaluationCriteria,
     contractLengthPreference: formData.contractLengthPreference,
     pricingModelPreference: formData.pricingModelPreference,
-    required_functions: formData.required_functions,
     roiExpectations: formData.roiExpectations,
     expectedGrowth: formData.expectedGrowth,
     expansionPlans: formData.expansionPlans,
@@ -430,12 +485,14 @@ const EnhancedQuoteRequest = () => {
         requestData.append('userId', userId);
         uploadedFiles.forEach((file) => requestData.append('documents', file));
         
+        // Use the correct endpoint
         response = await fetch(`${API_BASE_URL}/api/quotes/request`, {
           method: 'POST',
           headers: { Authorization: `Bearer ${token}` },
           body: requestData,
         });
       } else {
+        // Use the correct endpoint
         response = await fetch(`${API_BASE_URL}/api/quotes/request`, {
           method: 'POST',
           headers: {
@@ -1526,10 +1583,7 @@ const EnhancedQuoteRequest = () => {
                   <option value="cost">Lowest total cost</option>
                   <option value="quality">Best print quality</option>
                   <option value="speed">Fastest performance</option>
-                  <option value="service">Superior service & support</option>
                   <option value="reliability">Maximum uptime/reliability</option>
-                  <option value="security">Advanced security features</option>
-                  <option value="environmental">Environmental impact</option>
                   <option value="balanced">Balanced approach</option>
                 </select>
               </label>
@@ -1636,7 +1690,7 @@ const EnhancedQuoteRequest = () => {
                 <p><strong>Key Requirements Summary:</strong></p>
                 <ul>
                   <li>Industry: {formData.industryType}</li>
-                  <li>Monthly Volume: {(formData.monthlyVolume.colour || 0) + (formData.monthlyVolume.mono || 0)} pages</li>
+                  <li>Monthly Volume: {(parseInt(formData.monthlyVolume.colour) || 0) + (parseInt(formData.monthlyVolume.mono) || 0)} pages</li>
                   <li>Priority: {formData.preference}</li>
                   <li>Budget: £{formData.max_lease_price}/month</li>
                   <li>Timeline: {formData.implementationTimeline}</li>

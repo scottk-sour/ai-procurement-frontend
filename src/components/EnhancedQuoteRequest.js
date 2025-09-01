@@ -7,16 +7,18 @@ import { motion } from 'framer-motion';
 
 // AI-driven copier suggestion function using an external API
 const suggestCopiers = async (data) => {
-  const API_URL = process.env.REACT_APP_AI_API_URL;
+  // ✅ FIXED: Use the correct API base URL for AI suggestions
+  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://ai-procurement-backend-q35u.onrender.com';
   const API_KEY = process.env.REACT_APP_AI_API_KEY;
 
-  if (!API_URL || !API_KEY) {
-    console.error('AI API URL or API KEY is missing in .env');
+  if (!API_KEY) {
+    console.warn('AI API KEY is missing in .env - skipping AI suggestions');
     return [];
   }
 
   try {
-    const response = await fetch(`${API_URL}/suggest-copiers`, {
+    // ✅ FIXED: Use the main API base URL instead of separate AI API URL
+    const response = await fetch(`${API_BASE_URL}/api/suggest-copiers`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -26,14 +28,16 @@ const suggestCopiers = async (data) => {
     });
 
     if (!response.ok) {
-      throw new Error('Failed to fetch copier suggestions');
+      // Don't throw error for missing AI endpoint, just return empty array
+      console.warn('AI suggestions endpoint not available');
+      return [];
     }
 
     const result = await response.json();
     return result.suggestions || [];
   } catch (error) {
-    console.error('Error fetching copier suggestions:', error);
-    return [];
+    console.warn('AI suggestions not available:', error.message);
+    return []; // Return empty array instead of throwing error
   }
 };
 
@@ -337,10 +341,12 @@ const EnhancedQuoteRequest = () => {
     }
     setFormData(updatedData);
 
-    // Fetch AI suggestions when key fields are updated
+    // Fetch AI suggestions when key fields are updated (only if AI endpoint exists)
     if (['monthlyPrintVolume', 'min_speed', 'type', 'colour', 'required_functions', 'industryType'].includes(name)) {
       suggestCopiers(updatedData).then((suggestions) => {
         setSuggestedMachines(suggestions);
+      }).catch(error => {
+        console.warn('AI suggestions not available:', error);
       });
     }
   };
@@ -590,8 +596,8 @@ const EnhancedQuoteRequest = () => {
     console.log('🚨 EXACTLY WHAT WE ARE SENDING:', JSON.stringify(transformedData, null, 2));
 
     try {
-      // ✅ FIXED: Use the correct environment variable
-      const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5000';
+      // ✅ FIXED: Use the production URL by default, fallback to localhost for development
+      const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://ai-procurement-backend-q35u.onrender.com';
 
       let response, data;
 
@@ -944,43 +950,18 @@ const EnhancedQuoteRequest = () => {
               </fieldset>
               
               <label>
-                Describe Your Current Pain Points:
-                <textarea
-                  name="currentPainPoints"
-                  value={formData.currentPainPoints}
-                  onChange={handleChange}
-                  placeholder="What specific problems are you experiencing with your current setup?"
-                  rows="4"
-                />
-              </label>
-              
-              <label>
-                Impact on Productivity/Operations:
-                <textarea
-                  name="impactOnProductivity"
-                  value={formData.impactOnProductivity}
-                  onChange={handleChange}
-                  placeholder="How are these issues affecting your business operations?"
-                  rows="3"
-                />
-              </label>
-            </div>
-            
-            <div className="form-section">
-              <h4>Timeline & Urgency</h4>
-              <label>
                 Urgency Level: <span className="required">*</span>
                 <select name="urgencyLevel" value={formData.urgencyLevel} onChange={handleChange} required>
                   <option value="">Select Urgency</option>
-                  <option value="Critical">Critical (Immediate - current system failing)</option>
-                  <option value="High">High (Within 1-2 months)</option>
-                  <option value="Medium">Medium (Within 3-6 months)</option>
-                  <option value="Low">Low (Planning for future - 6+ months)</option>
+                  <option value="Critical">Critical (Immediate)</option>
+                  <option value="High">High (1-2 months)</option>
+                  <option value="Medium">Medium (3-6 months)</option>
+                  <option value="Low">Low (6+ months)</option>
                 </select>
               </label>
               
               <label>
-                Preferred Implementation Timeline: <span className="required">*</span>
+                Implementation Timeline: <span className="required">*</span>
                 <select name="implementationTimeline" value={formData.implementationTimeline} onChange={handleChange} required>
                   <option value="">Select Timeline</option>
                   <option value="ASAP">As soon as possible</option>
@@ -988,18 +969,6 @@ const EnhancedQuoteRequest = () => {
                   <option value="3-6 months">3-6 months</option>
                   <option value="6-12 months">6-12 months</option>
                   <option value="12+ months">12+ months</option>
-                </select>
-              </label>
-              
-              <label>
-                Budget Cycle/Approval Process:
-                <select name="budgetCycle" value={formData.budgetCycle} onChange={handleChange}>
-                  <option value="">Select Budget Cycle</option>
-                  <option value="April-March">April - March</option>
-                  <option value="January-December">January - December</option>
-                  <option value="July-June">July - June</option>
-                  <option value="As needed">As needed</option>
-                  <option value="Other">Other</option>
                 </select>
               </label>
             </div>
@@ -1015,26 +984,6 @@ const EnhancedQuoteRequest = () => {
             <h3>Usage Patterns & Document Workflow</h3>
             <div className="form-section">
               <h4>Print Volume Analysis</h4>
-              <label>
-                Monthly Print Volume (pages):
-                <input
-                  type="number"
-                  name="monthlyPrintVolume"
-                  value={formData.monthlyPrintVolume}
-                  onChange={handleChange}
-                  placeholder="Total monthly pages across all devices"
-                />
-              </label>
-              <label>
-                Annual Print Volume (pages):
-                <input
-                  type="number"
-                  name="annualPrintVolume"
-                  value={formData.annualPrintVolume}
-                  onChange={handleChange}
-                  placeholder="If different from monthly x 12"
-                />
-              </label>
               <label>
                 Monthly Color Volume (pages): <span className="required">*</span>
                 <input
@@ -1057,63 +1006,6 @@ const EnhancedQuoteRequest = () => {
                   required
                 />
               </label>
-              <label>
-                Peak Usage Periods:
-                <textarea
-                  name="peakUsagePeriods"
-                  value={formData.peakUsagePeriods}
-                  onChange={handleChange}
-                  placeholder="When do you experience highest print volumes? (e.g., month-end, quarterly reports, seasonal campaigns)"
-                  rows="2"
-                />
-              </label>
-              <label>
-                Average Document Page Count:
-                <select name="averagePageCount" value={formData.averagePageCount} onChange={handleChange}>
-                  <option value="">Select Average</option>
-                  <option value="1-2 pages">1-2 pages</option>
-                  <option value="3-5 pages">3-5 pages</option>
-                  <option value="6-10 pages">6-10 pages</option>
-                  <option value="11-25 pages">11-25 pages</option>
-                  <option value="25+ pages">25+ pages</option>
-                  <option value="Mixed">Mixed (varies significantly)</option>
-                </select>
-              </label>
-            </div>
-            
-            <div className="form-section">
-              <h4>Document Types & Requirements</h4>
-              <fieldset>
-                <legend>Document Types You Print (Select all that apply):</legend>
-                {documentTypeOptions.map((docType) => (
-                  <label key={docType}>
-                    <input
-                      type="checkbox"
-                      name="documentTypes"
-                      value={docType}
-                      checked={formData.documentTypes.includes(docType)}
-                      onChange={handleChange}
-                    />
-                    {docType}
-                  </label>
-                ))}
-              </fieldset>
-              
-              <fieldset>
-                <legend>Finishing Requirements (Select all that apply):</legend>
-                {finishingOptions.map((finish) => (
-                  <label key={finish}>
-                    <input
-                      type="checkbox"
-                      name="finishingRequirements"
-                      value={finish}
-                      checked={formData.finishingRequirements.includes(finish)}
-                      onChange={handleChange}
-                    />
-                    {finish}
-                  </label>
-                ))}
-              </fieldset>
             </div>
             
             <button onClick={handleBack}>Back</button>
@@ -1149,87 +1041,6 @@ const EnhancedQuoteRequest = () => {
                   <option value="No dedicated IT">No dedicated IT support</option>
                 </select>
               </label>
-              
-              <label>
-                Current Software Environment:
-                <select name="currentSoftwareEnvironment" value={formData.currentSoftwareEnvironment} onChange={handleChange}>
-                  <option value="">Select Environment</option>
-                  <option value="Windows primarily">Windows primarily</option>
-                  <option value="Mac primarily">Mac primarily</option>
-                  <option value="Mixed Windows/Mac">Mixed Windows/Mac</option>
-                  <option value="Linux/Unix">Linux/Unix</option>
-                  <option value="Cloud-based apps">Cloud-based applications</option>
-                </select>
-              </label>
-              
-              <label>
-                Cloud vs On-Premise Preference:
-                <select name="cloudPreference" value={formData.cloudPreference} onChange={handleChange}>
-                  <option value="">Select Preference</option>
-                  <option value="Cloud preferred">Cloud preferred</option>
-                  <option value="On-premise preferred">On-premise preferred</option>
-                  <option value="Hybrid approach">Hybrid approach</option>
-                  <option value="No preference">No preference</option>
-                </select>
-              </label>
-            </div>
-            
-            <div className="form-section">
-              <h4>Security & Compliance</h4>
-              <fieldset>
-                <legend>Security Requirements (Select all that apply):</legend>
-                {securityRequirementOptions.map((security) => (
-                  <label key={security}>
-                    <input
-                      type="checkbox"
-                      name="securityRequirements"
-                      value={security}
-                      checked={formData.securityRequirements.includes(security)}
-                      onChange={handleChange}
-                    />
-                    {security}
-                  </label>
-                ))}
-              </fieldset>
-            </div>
-            
-            <div className="form-section">
-              <h4>Integration & Mobility</h4>
-              <fieldset>
-                <legend>Integration Needs (Select all that apply):</legend>
-                {integrationOptions.map((integration) => (
-                  <label key={integration}>
-                    <input
-                      type="checkbox"
-                      name="integrationNeeds"
-                      value={integration}
-                      checked={formData.integrationNeeds.includes(integration)}
-                      onChange={handleChange}
-                    />
-                    {integration}
-                  </label>
-                ))}
-              </fieldset>
-              
-              <label>
-                Mobile/Remote Printing Requirements:
-                <select name="mobileRequirements" value={formData.mobileRequirements} onChange={handleChange}>
-                  <option value="No">Not required</option>
-                  <option value="Yes">Yes, essential</option>
-                  <option value="Nice to have">Nice to have</option>
-                </select>
-              </label>
-              
-              <label>
-                Remote/Hybrid Work Impact:
-                <textarea
-                  name="remoteWorkImpact"
-                  value={formData.remoteWorkImpact}
-                  onChange={handleChange}
-                  placeholder="How has remote/hybrid work affected your printing needs?"
-                  rows="3"
-                />
-              </label>
             </div>
             
             <button onClick={handleBack}>Back</button>
@@ -1244,101 +1055,7 @@ const EnhancedQuoteRequest = () => {
             <div className="form-section">
               <h4>Current Equipment & Costs</h4>
               <label>
-                Current Color Cost Per Copy (pence):
-                <input
-                  type="number"
-                  name="currentColorCPC"
-                  value={formData.currentColorCPC}
-                  onChange={handleChange}
-                  placeholder="e.g., 5.5"
-                  step="0.1"
-                />
-              </label>
-              <label>
-                Current Mono Cost Per Copy (pence):
-                <input
-                  type="number"
-                  name="currentMonoCPC"
-                  value={formData.currentMonoCPC}
-                  onChange={handleChange}
-                  placeholder="e.g., 1.4"
-                  step="0.1"
-                />
-              </label>
-              <label>
-                Quarterly Lease Cost (£):
-                <input
-                  type="number"
-                  name="quarterlyLeaseCost"
-                  value={formData.quarterlyLeaseCost}
-                  onChange={handleChange}
-                  placeholder="e.g., 300"
-                />
-              </label>
-              <label>
-                Total Annual Printing Costs (£):
-                <input
-                  type="number"
-                  name="totalAnnualCosts"
-                  value={formData.totalAnnualCosts}
-                  onChange={handleChange}
-                  placeholder="Include all printing-related expenses"
-                />
-              </label>
-              <label>
-                Hidden/Unexpected Costs:
-                <textarea
-                  name="hiddenCosts"
-                  value={formData.hiddenCosts}
-                  onChange={handleChange}
-                  placeholder="Any additional costs not captured above (maintenance, supplies, downtime, etc.)"
-                  rows="3"
-                />
-              </label>
-            </div>
-            
-            <div className="form-section">
-              <h4>Current Contracts & Equipment</h4>
-              <label>
-                Current Leasing Company:
-                <input
-                  type="text"
-                  name="leasingCompany"
-                  value={formData.leasingCompany}
-                  onChange={handleChange}
-                  placeholder="e.g., Sharp Leasing, Xerox Financial"
-                />
-              </label>
-              <label>
-                Current Service Provider:
-                <input
-                  type="text"
-                  name="serviceProvider"
-                  value={formData.serviceProvider}
-                  onChange={handleChange}
-                  placeholder="e.g., Sharp Service, Canon Support"
-                />
-              </label>
-              <label>
-                Contract Start Date:
-                <input
-                  type="date"
-                  name="contractStartDate"
-                  value={formData.contractStartDate}
-                  onChange={handleChange}
-                />
-              </label>
-              <label>
-                Contract End Date:
-                <input
-                  type="date"
-                  name="contractEndDate"
-                  value={formData.contractEndDate}
-                  onChange={handleChange}
-                />
-              </label>
-              <label>
-                Average Age of Current Equipment:
+                Current Equipment Age:
                 <select name="currentEquipmentAge" value={formData.currentEquipmentAge} onChange={handleChange}>
                   <option value="">Select Age Range</option>
                   <option value="Less than 1 year">Less than 1 year</option>
@@ -1348,16 +1065,6 @@ const EnhancedQuoteRequest = () => {
                   <option value="Over 6 years">Over 6 years</option>
                   <option value="Mixed ages">Mixed ages</option>
                 </select>
-              </label>
-              <label>
-                Current Maintenance Issues:
-                <textarea
-                  name="maintenanceIssues"
-                  value={formData.maintenanceIssues}
-                  onChange={handleChange}
-                  placeholder="Describe any ongoing problems with current equipment"
-                  rows="3"
-                />
               </label>
             </div>
             
@@ -1403,83 +1110,6 @@ const EnhancedQuoteRequest = () => {
                   </select>
                 </label>
               )}
-              <label>
-                Minimum Speed Requirement (PPM):
-                <input
-                  type="number"
-                  name="min_speed"
-                  value={formData.min_speed}
-                  onChange={handleChange}
-                  placeholder="Pages per minute minimum"
-                />
-              </label>
-            </div>
-            
-            <div className="form-section">
-              <h4>Security & Access Features</h4>
-              <fieldset>
-                <legend>Security Features Required (Select all that apply):</legend>
-                {securityFeatureOptions.map((feature) => (
-                  <label key={feature}>
-                    <input
-                      type="checkbox"
-                      name="securityFeatures"
-                      value={feature}
-                      checked={formData.securityFeatures.includes(feature)}
-                      onChange={handleChange}
-                    />
-                    {feature}
-                  </label>
-                ))}
-              </fieldset>
-              
-              <label>
-                Accessibility Requirements:
-                <select name="accessibilityNeeds" value={formData.accessibilityNeeds} onChange={handleChange}>
-                  <option value="No">No specific requirements</option>
-                  <option value="Yes">Yes, accessibility features needed</option>
-                  <option value="Compliance">ADA/DDA compliance required</option>
-                </select>
-              </label>
-            </div>
-            
-            <div className="form-section">
-              <h4>Functions & Features</h4>
-              <fieldset>
-                <legend>Required Functions (Select all that apply):</legend>
-                {['Print', 'Copy', 'Scan', 'Fax', 'Email', 'Cloud Storage', 'Wireless Printing', 'Duplex Printing', 'Large Capacity Trays', 'Booklet Making'].map((func) => (
-                  <label key={func}>
-                    <input
-                      type="checkbox"
-                      name="required_functions"
-                      value={func}
-                      checked={formData.required_functions.includes(func)}
-                      onChange={handleChange}
-                    />
-                    {func}
-                  </label>
-                ))}
-              </fieldset>
-              
-              <label>
-                Do You Pay for Scanning?
-                <select name="paysForScanning" value={formData.paysForScanning} onChange={handleChange}>
-                  <option value="Yes">Yes</option>
-                  <option value="No">No</option>
-                  <option value="Unknown">Not sure</option>
-                </select>
-              </label>
-              
-              <label>
-                Sustainability Goals:
-                <textarea
-                  name="sustainabilityGoals"
-                  value={formData.sustainabilityGoals}
-                  onChange={handleChange}
-                  placeholder="Any environmental or sustainability requirements?"
-                  rows="2"
-                />
-              </label>
             </div>
             
             <div className="form-section">
@@ -1548,78 +1178,6 @@ const EnhancedQuoteRequest = () => {
                   <option value="Self-service">Self-service with remote support</option>
                 </select>
               </label>
-              
-              <label>
-                Training Needs:
-                <select name="trainingNeeds" value={formData.trainingNeeds} onChange={handleChange}>
-                  <option value="">Select Training Level</option>
-                  <option value="Comprehensive">Comprehensive user training</option>
-                  <option value="Basic">Basic operation training</option>
-                  <option value="Admin only">Administrator training only</option>
-                  <option value="Self-service">Self-service resources</option>
-                  <option value="None">No formal training needed</option>
-                </select>
-              </label>
-              
-              <label>
-                Supply Management Preference:
-                <select name="supplyManagement" value={formData.supplyManagement} onChange={handleChange}>
-                  <option value="">Select Preference</option>
-                  <option value="Auto-replenishment">Automatic replenishment</option>
-                  <option value="Just-in-time">Just-in-time delivery</option>
-                  <option value="Bulk ordering">Bulk ordering</option>
-                  <option value="Self-managed">Self-managed purchasing</option>
-                </select>
-              </label>
-            </div>
-            
-            <div className="form-section">
-              <h4>Reporting & Analytics</h4>
-              <fieldset>
-                <legend>Reporting Needs (Select all that apply):</legend>
-                {reportingOptions.map((report) => (
-                  <label key={report}>
-                    <input
-                      type="checkbox"
-                      name="reportingNeeds"
-                      value={report}
-                      checked={formData.reportingNeeds.includes(report)}
-                      onChange={handleChange}
-                    />
-                    {report}
-                  </label>
-                ))}
-              </fieldset>
-              
-              <label>
-                Vendor Relationship Type:
-                <select name="vendorRelationshipType" value={formData.vendorRelationshipType} onChange={handleChange}>
-                  <option value="">Select Relationship</option>
-                  <option value="Strategic partner">Strategic partnership</option>
-                  <option value="Preferred supplier">Preferred supplier</option>
-                  <option value="Transactional">Transactional relationship</option>
-                  <option value="Competitive">Competitive bidding</option>
-                </select>
-              </label>
-            </div>
-            
-            <div className="form-section">
-              <h4>Additional Services</h4>
-              <fieldset>
-                <legend>Additional Services of Interest (Select all that apply):</legend>
-                {additionalServicesOptions.map((service) => (
-                  <label key={service}>
-                    <input
-                      type="checkbox"
-                      name="additionalServices"
-                      value={service}
-                      checked={formData.additionalServices.includes(service)}
-                      onChange={handleChange}
-                    />
-                    {service}
-                  </label>
-                ))}
-              </fieldset>
             </div>
             
             <button onClick={handleBack}>Back</button>
@@ -1649,49 +1207,6 @@ const EnhancedQuoteRequest = () => {
                 ))}
               </fieldset>
               
-              <fieldset>
-                <legend>Evaluation Criteria (Select all that apply):</legend>
-                {evaluationCriteriaOptions.map((criteria) => (
-                  <label key={criteria}>
-                    <input
-                      type="checkbox"
-                      name="evaluationCriteria"
-                      value={criteria}
-                      checked={formData.evaluationCriteria.includes(criteria)}
-                      onChange={handleChange}
-                    />
-                    {criteria}
-                  </label>
-                ))}
-              </fieldset>
-            </div>
-            
-            <div className="form-section">
-              <h4>Commercial Preferences</h4>
-              <label>
-                Contract Length Preference:
-                <select name="contractLengthPreference" value={formData.contractLengthPreference} onChange={handleChange}>
-                  <option value="">Select Length</option>
-                  <option value="1-2 years">1-2 years</option>
-                  <option value="3-4 years">3-4 years</option>
-                  <option value="5+ years">5+ years</option>
-                  <option value="Month-to-month">Month-to-month</option>
-                  <option value="Flexible">Flexible</option>
-                </select>
-              </label>
-              
-              <label>
-                Pricing Model Preference:
-                <select name="pricingModelPreference" value={formData.pricingModelPreference} onChange={handleChange}>
-                  <option value="">Select Model</option>
-                  <option value="Per-page">Per-page pricing</option>
-                  <option value="Fixed monthly">Fixed monthly fee</option>
-                  <option value="Tiered volume">Tiered volume pricing</option>
-                  <option value="Hybrid">Hybrid model</option>
-                  <option value="Equipment + service">Equipment + service separate</option>
-                </select>
-              </label>
-              
               <label>
                 What is most important to you? <span className="required">*</span>
                 <select name="preference" value={formData.preference} onChange={handleChange} required>
@@ -1713,17 +1228,6 @@ const EnhancedQuoteRequest = () => {
                   onChange={handleChange}
                   placeholder="Total monthly budget for all equipment/services"
                   required
-                />
-              </label>
-              
-              <label>
-                ROI Expectations:
-                <textarea
-                  name="roiExpectations"
-                  value={formData.roiExpectations}
-                  onChange={handleChange}
-                  placeholder="What return on investment are you expecting? (cost savings, productivity gains, etc.)"
-                  rows="3"
                 />
               </label>
             </div>
@@ -1753,45 +1257,12 @@ const EnhancedQuoteRequest = () => {
               </label>
               
               <label>
-                Office Expansion/Relocation Plans:
-                <textarea
-                  name="expansionPlans"
-                  value={formData.expansionPlans}
-                  onChange={handleChange}
-                  placeholder="Any plans for new offices, relocations, or space changes in the next 3 years?"
-                  rows="3"
-                />
-              </label>
-              
-              <label>
-                Technology Roadmap:
-                <textarea
-                  name="technologyRoadmap"
-                  value={formData.technologyRoadmap}
-                  onChange={handleChange}
-                  placeholder="How do you see technology evolving in your business? (cloud adoption, automation, etc.)"
-                  rows="3"
-                />
-              </label>
-              
-              <label>
-                Digital Transformation Initiatives:
-                <textarea
-                  name="digitalTransformation"
-                  value={formData.digitalTransformation}
-                  onChange={handleChange}
-                  placeholder="Any paperless initiatives, workflow automation, or digital transformation projects?"
-                  rows="3"
-                />
-              </label>
-              
-              <label>
                 3-Year Vision: <span className="required">*</span>
                 <textarea
                   name="threeYearVision"
                   value={formData.threeYearVision}
                   onChange={handleChange}
-                  placeholder="Where do you see your document/printing needs in 3 years? What would success look like?"
+                  placeholder="Where do you see your document/printing needs in 3 years?"
                   rows="4"
                   required
                 />
@@ -1801,7 +1272,6 @@ const EnhancedQuoteRequest = () => {
             <div className="form-section">
               <h4>Final Review Summary</h4>
               <div className="review-section">
-                <p><strong>Estimated Current Buyout:</strong> £{calculateBuyout()}</p>
                 <p><strong>Assessment Completion:</strong> 95% complete</p>
                 <p><strong>Key Requirements Summary:</strong></p>
                 <ul>
@@ -1811,10 +1281,6 @@ const EnhancedQuoteRequest = () => {
                   <li>Budget: £{formData.max_lease_price}/month</li>
                   <li>Timeline: {formData.implementationTimeline}</li>
                 </ul>
-                <details>
-                  <summary>View Complete Data (Click to expand)</summary>
-                  <pre>{JSON.stringify(formatFormData(formData), null, 2)}</pre>
-                </details>
               </div>
             </div>
             

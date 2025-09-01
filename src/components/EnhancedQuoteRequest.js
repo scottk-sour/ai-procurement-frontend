@@ -10,12 +10,10 @@ const suggestCopiers = async (data) => {
   // ✅ FIXED: Use the correct API base URL for AI suggestions
   const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://ai-procurement-backend-q35u.onrender.com';
   const API_KEY = process.env.REACT_APP_AI_API_KEY;
-
   if (!API_KEY) {
     console.warn('AI API KEY is missing in .env - skipping AI suggestions');
     return [];
   }
-
   try {
     // ✅ FIXED: Use the main API base URL instead of separate AI API URL
     const response = await fetch(`${API_BASE_URL}/api/suggest-copiers`, {
@@ -26,13 +24,11 @@ const suggestCopiers = async (data) => {
       },
       body: JSON.stringify(data),
     });
-
     if (!response.ok) {
       // Don't throw error for missing AI endpoint, just return empty array
       console.warn('AI suggestions endpoint not available');
       return [];
     }
-
     const result = await response.json();
     return result.suggestions || [];
   } catch (error) {
@@ -45,7 +41,7 @@ const suggestCopiers = async (data) => {
 const transformQuoteData = (formData, userProfile) => {
   console.log('🔍 Starting transformation with formData:', formData);
   console.log('🔍 UserProfile:', userProfile);
-  
+ 
   // Map frontend industry types to backend enum values
   const industryMapping = {
     'Technology': 'Other',
@@ -60,7 +56,6 @@ const transformQuoteData = (formData, userProfile) => {
     'Government': 'Government',
     'Other': 'Other'
   };
-
   // Map frontend timeframes to backend enum values
   const timeframeMapping = {
     'ASAP': 'ASAP',
@@ -70,7 +65,6 @@ const transformQuoteData = (formData, userProfile) => {
     '6-12 months': '6-12 months',
     '12+ months': '12+ months'
   };
-
   // Map frontend equipment age to backend enum values
   const ageMapping = {
     'Less than 1 year': '0-2 years',
@@ -81,69 +75,68 @@ const transformQuoteData = (formData, userProfile) => {
     'Mixed ages': '5+ years',
     '': 'No current machine'
   };
-
   // Calculate total monthly volume
   const monthlyColour = parseInt(formData.monthlyVolume?.colour) || 0;
   const monthlyMono = parseInt(formData.monthlyVolume?.mono) || 0;
   const totalVolume = monthlyColour + monthlyMono;
-  
+ 
   // Ensure we have valid values for required fields
   const transformedData = {
     // Required fields - with fallbacks
     companyName: formData.companyName || 'Unknown Company',
     contactName: userProfile?.name || userProfile?.username || formData.contactName || 'Unknown Contact',
     email: userProfile?.email || formData.email || 'unknown@example.com',
-    
+   
     // Industry type with proper mapping
     industryType: industryMapping[formData.industryType] || 'Other',
-    
+   
     // Required numbers with validation
     numEmployees: Math.max(1, parseInt(formData.numEmployees) || 1),
     numLocations: Math.max(1, parseInt(formData.numLocations) || 1),
-    
+   
     // Monthly volume - required object with minimum values
     monthlyVolume: {
       mono: Math.max(0, monthlyMono),
       colour: Math.max(0, monthlyColour),
       total: Math.max(1, totalVolume) // Backend requires at least 1
     },
-    
+   
     // Paper requirements - required object
     paperRequirements: {
       primarySize: formData.type || formData.paperSize || 'A4'
     },
-    
-    // Current setup - required object  
+   
+    // Current setup - required object
     currentSetup: {
       machineAge: ageMapping[formData.currentEquipmentAge] || 'No current machine'
     },
-    
+   
     // Requirements - required object
     requirements: {
       priority: formData.preference || 'balanced'
     },
-    
+   
     // Budget - required object with minimum value
     budget: {
       maxLeasePrice: Math.max(1, parseInt(formData.max_lease_price) || 100)
     },
-    
+   
     // Urgency - required object
     urgency: {
       timeframe: timeframeMapping[formData.implementationTimeline] || 'ASAP'
     },
-    
+   
     // Location - required object
     location: {
       postcode: formData.postcode || 'Unknown'
     },
-    
+   
     // System fields - CRITICAL: Must have valid IDs
     submittedBy: userProfile?.id || userProfile?.userId || userProfile?._id || 'temp_user_id',
     userId: userProfile?.id || userProfile?.userId || userProfile?._id, // Add userId for backend
     status: 'pending', // FIXED: Use lowercase 'pending'
     submissionSource: 'web_form',
-    
+   
     // Optional fields - only include if they have values
     ...(formData.subSector && { subSector: formData.subSector }),
     ...(formData.annualRevenue && { annualRevenue: formData.annualRevenue }),
@@ -200,10 +193,10 @@ const transformQuoteData = (formData, userProfile) => {
     ...(formData.digitalTransformation && { digitalTransformation: formData.digitalTransformation }),
     ...(formData.threeYearVision && { threeYearVision: formData.threeYearVision })
   };
-  
+ 
   // Force the correct status and remove any incorrect fields
   transformedData.status = 'pending'; // Force lowercase
-  
+ 
   console.log('✅ Transformation complete. Result:', transformedData);
   return transformedData;
 };
@@ -212,7 +205,6 @@ const EnhancedQuoteRequest = () => {
   const navigate = useNavigate();
   const { auth } = useAuth();
   const isLoggedIn = auth?.isAuthenticated;
-
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
     // Step 1: Company Profile & Context
@@ -227,7 +219,7 @@ const EnhancedQuoteRequest = () => {
     organizationStructure: '',
     multiFloor: 'No',
     postcode: '', // Added missing field
-    
+   
     // Step 2: Current Challenges & Timeline
     primaryChallenges: [],
     currentPainPoints: '',
@@ -235,7 +227,7 @@ const EnhancedQuoteRequest = () => {
     urgencyLevel: '',
     implementationTimeline: '',
     budgetCycle: '',
-    
+   
     // Step 3: Usage Patterns & Document Workflow
     monthlyPrintVolume: '',
     annualPrintVolume: '',
@@ -245,7 +237,7 @@ const EnhancedQuoteRequest = () => {
     averagePageCount: '',
     finishingRequirements: [],
     departmentBreakdown: [],
-    
+   
     // Step 4: Technical Environment & Integration
     networkSetup: '',
     itSupportStructure: '',
@@ -255,7 +247,7 @@ const EnhancedQuoteRequest = () => {
     integrationNeeds: [],
     mobileRequirements: 'No',
     remoteWorkImpact: '',
-    
+   
     // Step 5: Current Setup & Costs
     currentColorCPC: '',
     currentMonoCPC: '',
@@ -268,7 +260,7 @@ const EnhancedQuoteRequest = () => {
     contractEndDate: '',
     currentEquipmentAge: '',
     maintenanceIssues: '',
-    
+   
     // Step 6: Requirements & Specifications
     additionalServices: [],
     paysForScanning: 'No',
@@ -279,7 +271,7 @@ const EnhancedQuoteRequest = () => {
     securityFeatures: [],
     accessibilityNeeds: 'No',
     sustainabilityGoals: '',
-    
+   
     // Step 7: Service & Support Expectations
     responseTimeExpectation: '',
     maintenancePreference: '',
@@ -287,7 +279,7 @@ const EnhancedQuoteRequest = () => {
     supplyManagement: '',
     reportingNeeds: [],
     vendorRelationshipType: '',
-    
+   
     // Step 8: Decision Process & Commercial
     decisionMakers: [],
     evaluationCriteria: [],
@@ -297,7 +289,7 @@ const EnhancedQuoteRequest = () => {
     preference: '',
     max_lease_price: '',
     roiExpectations: '',
-    
+   
     // Step 9: Future Planning
     expectedGrowth: '',
     expansionPlans: '',
@@ -305,7 +297,6 @@ const EnhancedQuoteRequest = () => {
     digitalTransformation: '',
     threeYearVision: ''
   });
-
   const [uploadedFiles, setUploadedFiles] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
@@ -315,10 +306,10 @@ const EnhancedQuoteRequest = () => {
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     let updatedData;
-    
+   
     if (type === 'checkbox') {
-      if (['primaryChallenges', 'documentTypes', 'finishingRequirements', 'securityRequirements', 
-           'integrationNeeds', 'additionalServices', 'securityFeatures', 'reportingNeeds', 
+      if (['primaryChallenges', 'documentTypes', 'finishingRequirements', 'securityRequirements',
+           'integrationNeeds', 'additionalServices', 'securityFeatures', 'reportingNeeds',
            'decisionMakers', 'evaluationCriteria', 'required_functions'].includes(name)) {
         updatedData = {
           ...formData,
@@ -340,7 +331,6 @@ const EnhancedQuoteRequest = () => {
       };
     }
     setFormData(updatedData);
-
     // Fetch AI suggestions when key fields are updated (only if AI endpoint exists)
     if (['monthlyPrintVolume', 'min_speed', 'type', 'colour', 'required_functions', 'industryType'].includes(name)) {
       suggestCopiers(updatedData).then((suggestions) => {
@@ -366,11 +356,9 @@ const EnhancedQuoteRequest = () => {
   const calculateBuyout = () => {
     const { quarterlyLeaseCost, contractEndDate } = formData;
     if (!quarterlyLeaseCost || !contractEndDate) return 'N/A';
-
     const end = new Date(contractEndDate);
     const today = new Date();
     if (today > end) return 'Contract Ended';
-
     const monthsRemaining = (end - today) / (1000 * 60 * 60 * 24 * 30);
     const quarterlyCost = parseFloat(quarterlyLeaseCost) || 0;
     const buyout = (quarterlyCost / 3) * monthsRemaining;
@@ -500,23 +488,20 @@ const EnhancedQuoteRequest = () => {
     e.preventDefault();
     console.log('🔍 FILE VERSION CHECK: Updated transformation file is being used');
     console.log('🔍 Original formData before formatting:', formData);
-    
+   
     if (!validateStep(9)) {
       setErrorMessage('Please fill out all required fields before submitting.');
       return;
     }
-
     setIsSubmitting(true);
     setErrorMessage('');
     setSuccessMessage('');
-
     if (!isLoggedIn) {
       alert('You must be logged in to submit a quote request.');
       navigate('/login');
       setIsSubmitting(false);
       return;
     }
-
     const token = auth?.token;
     const userId = auth?.user?.userId || auth?.user?.id;
     const userProfile = {
@@ -525,28 +510,26 @@ const EnhancedQuoteRequest = () => {
       email: auth?.user?.email,
       userId: userId
     };
-
     if (!token || !userId) {
       alert('Authentication failed. Please log in again.');
       navigate('/login');
       setIsSubmitting(false);
       return;
     }
-
     const formattedData = formatFormData(formData);
     console.log('📝 Formatted data:', formattedData);
-    
+   
     const transformedData = transformQuoteData(formattedData, userProfile);
-    
+   
     // FORCE CORRECT VALUES AFTER TRANSFORMATION
     transformedData.status = 'pending'; // Force lowercase
-    
+   
     console.log('🔄 Final transformed data (after fixes):', transformedData);
-    
+   
     // Add validation to catch transformation issues
     const validateTransformedData = (data) => {
       const errors = [];
-      
+     
       // Check required fields exist and have values
       const requiredChecks = [
         { field: 'companyName', value: data.companyName },
@@ -562,28 +545,28 @@ const EnhancedQuoteRequest = () => {
         { field: 'numLocations', value: data.numLocations },
         { field: 'submittedBy', value: data.submittedBy }
       ];
-      
+     
       requiredChecks.forEach(check => {
         if (!check.value || check.value === '' || check.value === 0) {
           errors.push(`${check.field} is missing or empty (value: ${check.value})`);
         }
       });
-      
+     
       // Check enum values
       const validIndustryTypes = ["Healthcare", "Legal", "Education", "Finance", "Government", "Manufacturing", "Retail", "Other"];
       const validStatusValues = ["pending", "processing", "quotes_generated", "quotes_sent", "completed", "cancelled"];
-      
+     
       if (data.industryType && !validIndustryTypes.includes(data.industryType)) {
         errors.push(`Invalid industryType: ${data.industryType}. Valid: ${validIndustryTypes.join(', ')}`);
       }
-      
+     
       if (data.status && !validStatusValues.includes(data.status)) {
         errors.push(`Invalid status: ${data.status}. Valid: ${validStatusValues.join(', ')}`);
       }
-      
+     
       return errors;
     };
-    
+   
     // Validate transformed data
     const validationErrors = validateTransformedData(transformedData);
     if (validationErrors.length > 0) {
@@ -592,60 +575,50 @@ const EnhancedQuoteRequest = () => {
       setIsSubmitting(false);
       return;
     }
-    
+   
     console.log('🚨 EXACTLY WHAT WE ARE SENDING:', JSON.stringify(transformedData, null, 2));
-
     try {
-      // ✅ FIXED: Use the production URL by default, fallback to localhost for development
+      // ✅ Use the production URL consistently
       const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://ai-procurement-backend-q35u.onrender.com';
-
+      console.log('🔗 Submitting to URL:', `${API_BASE_URL}/api/quotes/request`); // Debug log
       let response, data;
-
       if (uploadedFiles.length > 0) {
         const requestData = new FormData();
-        // Send the TRANSFORMED data, not the original formData
         requestData.append('userRequirements', JSON.stringify(transformedData));
-        uploadedFiles.forEach((file) => requestData.append('documents', file));
-        
+        uploadedFiles.forEach((file, index) => requestData.append(`documents[${index}]`, file));
+       
         response = await fetch(`${API_BASE_URL}/api/quotes/request`, {
           method: 'POST',
           headers: { Authorization: `Bearer ${token}` },
           body: requestData,
         });
       } else {
-        // Send the TRANSFORMED data, not the original formData
         response = await fetch(`${API_BASE_URL}/api/quotes/request`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${token}`,
           },
-          // ✅ Use transformedData instead of adding userId separately
           body: JSON.stringify(transformedData),
         });
       }
-
       if (!response.ok) {
-        const errorData = await response.json();
-        console.error('Backend validation errors:', errorData);
-        const errorMessage = errorData.details?.join('; ') || errorData.message || 'Failed to submit the request.';
-        throw new Error(errorMessage);
+        const errorData = await response.json().catch(() => ({}));
+        console.error('Backend error:', errorData);
+        throw new Error(errorData.message || errorData.details?.join('; ') || 'Failed to submit quote request');
       }
-
       data = await response.json();
       setSuccessMessage('Comprehensive quote request submitted successfully!');
       setErrorMessage('');
-
       navigate(`/quote-details?status=created&Id=${data._id}`, {
         state: {
           quoteData: data,
           hasVendors: data.matchedVendors && data.matchedVendors.length > 0,
         },
       });
-
       // Reset form
       setFormData({
-        companyName: '', industryType: '', subSector: '', annualRevenue: '', numEmployees: '', 
+        companyName: '', industryType: '', subSector: '', annualRevenue: '', numEmployees: '',
         officeBasedEmployees: '', numLocations: '', primaryBusinessActivity: '', organizationStructure: '',
         multiFloor: 'No', postcode: '', primaryChallenges: [], currentPainPoints: '', impactOnProductivity: '',
         urgencyLevel: '', implementationTimeline: '', budgetCycle: '', monthlyPrintVolume: '',
@@ -668,7 +641,7 @@ const EnhancedQuoteRequest = () => {
       setStep(1);
     } catch (error) {
       console.error('Error submitting quote request:', error.message);
-      setErrorMessage(error.message);
+      setErrorMessage(`Failed to submit: ${error.message}`);
       setSuccessMessage('');
     } finally {
       setIsSubmitting(false);
@@ -688,7 +661,6 @@ const EnhancedQuoteRequest = () => {
     'Security concerns',
     'Integration problems'
   ];
-
   const documentTypeOptions = [
     'Standard office documents',
     'Marketing materials',
@@ -701,7 +673,6 @@ const EnhancedQuoteRequest = () => {
     'Presentations',
     'Graphics/Images'
   ];
-
   const finishingOptions = [
     'Stapling',
     'Hole punching',
@@ -712,7 +683,6 @@ const EnhancedQuoteRequest = () => {
     'Laminating',
     'Sorting/Collating'
   ];
-
   const securityRequirementOptions = [
     'User authentication',
     'Document encryption',
@@ -723,7 +693,6 @@ const EnhancedQuoteRequest = () => {
     'Compliance (GDPR, HIPAA, etc.)',
     'Access controls'
   ];
-
   const integrationOptions = [
     'Email systems',
     'Cloud storage (Google Drive, OneDrive, etc.)',
@@ -734,7 +703,6 @@ const EnhancedQuoteRequest = () => {
     'Workflow automation',
     'Mobile apps'
   ];
-
   const additionalServicesOptions = [
     'Automatic toner replenishment',
     'On-site service & repairs',
@@ -747,7 +715,6 @@ const EnhancedQuoteRequest = () => {
     'User training',
     'Help desk support'
   ];
-
   const securityFeatureOptions = [
     'PIN/Card authentication',
     'Biometric access',
@@ -758,7 +725,6 @@ const EnhancedQuoteRequest = () => {
     'Access logging',
     'Network isolation'
   ];
-
   const reportingOptions = [
     'Usage analytics',
     'Cost tracking',
@@ -769,7 +735,6 @@ const EnhancedQuoteRequest = () => {
     'Service history',
     'Compliance reports'
   ];
-
   const decisionMakerOptions = [
     'IT Manager/Director',
     'Finance Manager/CFO',
@@ -780,7 +745,6 @@ const EnhancedQuoteRequest = () => {
     'Department Heads',
     'End Users'
   ];
-
   const evaluationCriteriaOptions = [
     'Total cost of ownership',
     'Print quality',
@@ -862,7 +826,7 @@ const EnhancedQuoteRequest = () => {
                 </select>
               </label>
             </div>
-            
+           
             <div className="form-section">
               <h4>Organization Structure</h4>
               <label>
@@ -926,7 +890,6 @@ const EnhancedQuoteRequest = () => {
             <button onClick={handleNext}>Next</button>
           </motion.div>
         );
-
       case 2:
         return (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
@@ -948,7 +911,7 @@ const EnhancedQuoteRequest = () => {
                   </label>
                 ))}
               </fieldset>
-              
+             
               <label>
                 Urgency Level: <span className="required">*</span>
                 <select name="urgencyLevel" value={formData.urgencyLevel} onChange={handleChange} required>
@@ -959,7 +922,7 @@ const EnhancedQuoteRequest = () => {
                   <option value="Low">Low (6+ months)</option>
                 </select>
               </label>
-              
+             
               <label>
                 Implementation Timeline: <span className="required">*</span>
                 <select name="implementationTimeline" value={formData.implementationTimeline} onChange={handleChange} required>
@@ -972,12 +935,11 @@ const EnhancedQuoteRequest = () => {
                 </select>
               </label>
             </div>
-            
+           
             <button onClick={handleBack}>Back</button>
             <button onClick={handleNext}>Next</button>
           </motion.div>
         );
-
       case 3:
         return (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
@@ -1007,12 +969,11 @@ const EnhancedQuoteRequest = () => {
                 />
               </label>
             </div>
-            
+           
             <button onClick={handleBack}>Back</button>
             <button onClick={handleNext}>Next</button>
           </motion.div>
         );
-
       case 4:
         return (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
@@ -1029,7 +990,7 @@ const EnhancedQuoteRequest = () => {
                   <option value="Cloud-based">Cloud-based infrastructure</option>
                 </select>
               </label>
-              
+             
               <label>
                 IT Support Structure: <span className="required">*</span>
                 <select name="itSupportStructure" value={formData.itSupportStructure} onChange={handleChange} required>
@@ -1042,12 +1003,11 @@ const EnhancedQuoteRequest = () => {
                 </select>
               </label>
             </div>
-            
+           
             <button onClick={handleBack}>Back</button>
             <button onClick={handleNext}>Next</button>
           </motion.div>
         );
-
       case 5:
         return (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
@@ -1067,12 +1027,11 @@ const EnhancedQuoteRequest = () => {
                 </select>
               </label>
             </div>
-            
+           
             <button onClick={handleBack}>Back</button>
             <button onClick={handleNext}>Next</button>
           </motion.div>
         );
-
       case 6:
         return (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
@@ -1111,7 +1070,7 @@ const EnhancedQuoteRequest = () => {
                 </label>
               )}
             </div>
-            
+           
             <div className="form-section">
               <h4>Document Upload</h4>
               <div {...getRootProps()} className="dropzone">
@@ -1133,7 +1092,7 @@ const EnhancedQuoteRequest = () => {
                 </div>
               )}
             </div>
-            
+           
             {suggestedMachines.length > 0 && (
               <div className="form-section">
                 <h4>AI-Powered Equipment Suggestions</h4>
@@ -1144,12 +1103,11 @@ const EnhancedQuoteRequest = () => {
                 </ul>
               </div>
             )}
-            
+           
             <button onClick={handleBack}>Back</button>
             <button onClick={handleNext}>Next</button>
           </motion.div>
         );
-
       case 7:
         return (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
@@ -1167,7 +1125,7 @@ const EnhancedQuoteRequest = () => {
                   <option value="Flexible">Flexible</option>
                 </select>
               </label>
-              
+             
               <label>
                 Maintenance Preference: <span className="required">*</span>
                 <select name="maintenancePreference" value={formData.maintenancePreference} onChange={handleChange} required>
@@ -1179,12 +1137,11 @@ const EnhancedQuoteRequest = () => {
                 </select>
               </label>
             </div>
-            
+           
             <button onClick={handleBack}>Back</button>
             <button onClick={handleNext}>Next</button>
           </motion.div>
         );
-
       case 8:
         return (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
@@ -1206,7 +1163,7 @@ const EnhancedQuoteRequest = () => {
                   </label>
                 ))}
               </fieldset>
-              
+             
               <label>
                 What is most important to you? <span className="required">*</span>
                 <select name="preference" value={formData.preference} onChange={handleChange} required>
@@ -1218,7 +1175,7 @@ const EnhancedQuoteRequest = () => {
                   <option value="balanced">Balanced approach</option>
                 </select>
               </label>
-              
+             
               <label>
                 Maximum Monthly Investment (£): <span className="required">*</span>
                 <input
@@ -1231,12 +1188,11 @@ const EnhancedQuoteRequest = () => {
                 />
               </label>
             </div>
-            
+           
             <button onClick={handleBack}>Back</button>
             <button onClick={handleNext}>Next</button>
           </motion.div>
         );
-
       case 9:
         return (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
@@ -1255,7 +1211,7 @@ const EnhancedQuoteRequest = () => {
                   <option value="Uncertain">Uncertain</option>
                 </select>
               </label>
-              
+             
               <label>
                 3-Year Vision: <span className="required">*</span>
                 <textarea
@@ -1268,7 +1224,7 @@ const EnhancedQuoteRequest = () => {
                 />
               </label>
             </div>
-            
+           
             <div className="form-section">
               <h4>Final Review Summary</h4>
               <div className="review-section">
@@ -1283,14 +1239,13 @@ const EnhancedQuoteRequest = () => {
                 </ul>
               </div>
             </div>
-            
+           
             <button onClick={handleBack}>Back</button>
             <button type="submit" onClick={handleSubmit} disabled={isSubmitting}>
               {isSubmitting ? 'Submitting Comprehensive Assessment...' : 'Submit Complete Assessment'}
             </button>
           </motion.div>
         );
-
       default:
         return null;
     }
@@ -1300,7 +1255,7 @@ const EnhancedQuoteRequest = () => {
     <div className="request-quote-container">
       <h2>Comprehensive Equipment Assessment</h2>
       <p className="text-center text-muted">Professional procurement analysis - 15-20 minutes</p>
-      
+     
       {errorMessage && (
         <p className="error-message" role="alert">
           {errorMessage}
@@ -1311,12 +1266,12 @@ const EnhancedQuoteRequest = () => {
           {successMessage}
         </p>
       )}
-      
+     
       <div className="progress-bar">
         <span>Step {step} of 9 - {Math.round((step / 9) * 100)}% Complete</span>
         <div style={{ width: `${(step / 9) * 100}%` }} className="progress" />
       </div>
-      
+     
       <form onSubmit={(e) => e.preventDefault()}>
         {renderStep()}
       </form>

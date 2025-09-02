@@ -10,14 +10,12 @@ const PRODUCTION_API_URL = 'https://ai-procurement-backend-q35u.onrender.com';
 
 // AI-driven copier suggestion function using an external API
 const suggestCopiers = async (data) => {
-  // ✅ FIXED: Use hard-coded production URL
   const API_KEY = process.env.REACT_APP_AI_API_KEY;
   if (!API_KEY) {
     console.warn('AI API KEY is missing in .env - skipping AI suggestions');
     return [];
   }
   try {
-    // ✅ FIXED: Use the hard-coded production URL
     const response = await fetch(`${PRODUCTION_API_URL}/api/suggest-copiers`, {
       method: 'POST',
       headers: {
@@ -27,7 +25,6 @@ const suggestCopiers = async (data) => {
       body: JSON.stringify(data),
     });
     if (!response.ok) {
-      // Don't throw error for missing AI endpoint, just return empty array
       console.warn('AI suggestions endpoint not available');
       return [];
     }
@@ -35,118 +32,53 @@ const suggestCopiers = async (data) => {
     return result.suggestions || [];
   } catch (error) {
     console.warn('AI suggestions not available:', error.message);
-    return []; // Return empty array instead of throwing error
+    return [];
   }
 };
 
-// Transform frontend data to match backend schema
-const transformQuoteData = (formData, userProfile) => {
-  console.log('🔍 Starting transformation with formData:', formData);
-  console.log('🔍 UserProfile:', userProfile);
- 
-  // Map frontend industry types to backend enum values
-  const industryMapping = {
-    'Technology': 'Other',
-    'Real Estate': 'Other',
-    'Non-profit': 'Other',
-    'Healthcare': 'Healthcare',
-    'Legal': 'Legal',
-    'Education': 'Education',
-    'Finance': 'Finance',
-    'Manufacturing': 'Manufacturing',
-    'Retail': 'Retail',
-    'Government': 'Government',
-    'Other': 'Other'
-  };
-  // Map frontend timeframes to backend enum values
-  const timeframeMapping = {
-    'ASAP': 'ASAP',
-    'As soon as possible': 'ASAP',
-    '1-2 months': '1-2 months',
-    '3-6 months': '3-6 months',
-    '6-12 months': '6-12 months',
-    '12+ months': '12+ months'
-  };
-  // Map frontend equipment age to backend enum values
-  const ageMapping = {
-    'Less than 1 year': '0-2 years',
-    '1-2 years': '0-2 years',
-    '3-4 years': '2-5 years',
-    '5-6 years': '5+ years',
-    'Over 6 years': '5+ years',
-    'Mixed ages': '5+ years',
-    '': 'No current machine'
-  };
-  // Calculate total monthly volume
-  const monthlyColour = parseInt(formData.monthlyVolume?.colour) || 0;
-  const monthlyMono = parseInt(formData.monthlyVolume?.mono) || 0;
-  const totalVolume = monthlyColour + monthlyMono;
- 
-  // Ensure we have valid values for required fields
-  const transformedData = {
-    // Required fields - with fallbacks
+// Map form data to backend Quote schema
+const mapFormDataToBackend = (formData, userProfile) => {
+  return {
     companyName: formData.companyName || 'Unknown Company',
     contactName: userProfile?.name || userProfile?.username || formData.contactName || 'Unknown Contact',
     email: userProfile?.email || formData.email || 'unknown@example.com',
-   
-    // Industry type with proper mapping
-    industryType: industryMapping[formData.industryType] || 'Other',
-   
-    // Required numbers with validation
+    industryType: formData.industryType || 'Other',
     numEmployees: Math.max(1, parseInt(formData.numEmployees) || 1),
     numLocations: Math.max(1, parseInt(formData.numLocations) || 1),
-   
-    // Monthly volume - required object with minimum values
-    monthlyVolume: {
-      mono: Math.max(0, monthlyMono),
-      colour: Math.max(0, monthlyColour),
-      total: Math.max(1, totalVolume) // Backend requires at least 1
+    userRequirements: {
+      monthlyVolume: {
+        mono: parseInt(formData.monthlyVolume?.mono) || 0,
+        colour: parseInt(formData.monthlyVolume?.colour) || 0,
+        total: (parseInt(formData.monthlyVolume?.mono) || 0) + (parseInt(formData.monthlyVolume?.colour) || 0) || 1
+      },
+      paperSize: formData.type || formData.paperSize || 'A4',
+      priority: mapPriority(formData.preference),
+      maxBudget: parseInt(formData.max_lease_price) || 100,
+      urgency: formData.implementationTimeline || 'ASAP',
+      features: formData.primaryChallenges || []
     },
-   
-    // Paper requirements - required object
-    paperRequirements: {
-      primarySize: formData.type || formData.paperSize || 'A4'
-    },
-   
-    // Current setup - required object
     currentSetup: {
-      machineAge: ageMapping[formData.currentEquipmentAge] || 'No current machine'
+      machineAge: mapEquipmentAge(formData.currentEquipmentAge) || 'No current machine'
     },
-   
-    // Requirements - required object
-    requirements: {
-      priority: formData.preference || 'balanced'
-    },
-   
-    // Budget - required object with minimum value
-    budget: {
-      maxLeasePrice: Math.max(1, parseInt(formData.max_lease_price) || 100)
-    },
-   
-    // Urgency - required object
-    urgency: {
-      timeframe: timeframeMapping[formData.implementationTimeline] || 'ASAP'
-    },
-   
-    // Location - required object
-    location: {
-      postcode: formData.postcode || 'Unknown'
-    },
-   
-    // System fields - CRITICAL: Must have valid IDs
-    submittedBy: userProfile?.id || userProfile?.userId || userProfile?._id || 'temp_user_id',
-    userId: userProfile?.id || userProfile?.userId || userProfile?._id, // Add userId for backend
-    status: 'pending', // FIXED: Use lowercase 'pending'
+    networkSetup: formData.networkSetup || 'Unknown',
+    itSupportStructure: formData.itSupportStructure || 'Unknown',
+    serviceType: formData.serviceType || 'Photocopiers',
+    responseTimeExpectation: formData.responseTimeExpectation || 'Standard',
+    maintenancePreference: formData.maintenancePreference || 'Standard',
+    decisionMakers: formData.decisionMakers || [],
+    expectedGrowth: formData.expectedGrowth || 'Stable',
+    submittedBy: userProfile?._id || userProfile?.userId || userProfile?.id || 'temp_user_id',
+    userId: userProfile?._id || userProfile?.userId || userProfile?.id,
+    status: 'pending',
     submissionSource: 'web_form',
-   
-    // Optional fields - only include if they have values
+    // Optional fields
     ...(formData.subSector && { subSector: formData.subSector }),
     ...(formData.annualRevenue && { annualRevenue: formData.annualRevenue }),
     ...(formData.officeBasedEmployees && { officeBasedEmployees: parseInt(formData.officeBasedEmployees) }),
     ...(formData.primaryBusinessActivity && { primaryBusinessActivity: formData.primaryBusinessActivity }),
     ...(formData.organizationStructure && { organizationStructure: formData.organizationStructure }),
     ...(formData.multiFloor && { multiFloor: formData.multiFloor === 'Yes' }),
-    ...(formData.primaryChallenges?.length > 0 && { primaryChallenges: formData.primaryChallenges }),
+    ...(formData.postcode && { postcode: formData.postcode }),
     ...(formData.currentPainPoints && { currentPainPoints: formData.currentPainPoints }),
     ...(formData.impactOnProductivity && { impactOnProductivity: formData.impactOnProductivity }),
     ...(formData.urgencyLevel && { urgencyLevel: formData.urgencyLevel }),
@@ -157,8 +89,6 @@ const transformQuoteData = (formData, userProfile) => {
     ...(formData.averagePageCount && { averagePageCount: formData.averagePageCount }),
     ...(formData.finishingRequirements?.length > 0 && { finishingRequirements: formData.finishingRequirements }),
     ...(formData.departmentBreakdown?.length > 0 && { departmentBreakdown: formData.departmentBreakdown }),
-    ...(formData.networkSetup && { networkSetup: formData.networkSetup }),
-    ...(formData.itSupportStructure && { itSupportStructure: formData.itSupportStructure }),
     ...(formData.securityRequirements?.length > 0 && { securityRequirements: formData.securityRequirements }),
     ...(formData.currentSoftwareEnvironment && { currentSoftwareEnvironment: formData.currentSoftwareEnvironment }),
     ...(formData.cloudPreference && { cloudPreference: formData.cloudPreference }),
@@ -172,35 +102,80 @@ const transformQuoteData = (formData, userProfile) => {
     ...(formData.maintenanceIssues && { maintenanceIssues: formData.maintenanceIssues }),
     ...(formData.additionalServices?.length > 0 && { additionalServices: formData.additionalServices }),
     ...(formData.paysForScanning && { paysForScanning: formData.paysForScanning === 'Yes' }),
-    ...(formData.serviceType && { serviceType: formData.serviceType }),
     ...(formData.colour && { colour: formData.colour }),
     ...(formData.min_speed && { min_speed: parseInt(formData.min_speed) }),
     ...(formData.securityFeatures?.length > 0 && { securityFeatures: formData.securityFeatures }),
     ...(formData.accessibilityNeeds && { accessibilityNeeds: formData.accessibilityNeeds === 'Yes' }),
     ...(formData.sustainabilityGoals && { sustainabilityGoals: formData.sustainabilityGoals }),
-    ...(formData.responseTimeExpectation && { responseTimeExpectation: formData.responseTimeExpectation }),
-    ...(formData.maintenancePreference && { maintenancePreference: formData.maintenancePreference }),
     ...(formData.trainingNeeds && { trainingNeeds: formData.trainingNeeds }),
     ...(formData.supplyManagement && { supplyManagement: formData.supplyManagement }),
     ...(formData.reportingNeeds?.length > 0 && { reportingNeeds: formData.reportingNeeds }),
     ...(formData.vendorRelationshipType && { vendorRelationshipType: formData.vendorRelationshipType }),
-    ...(formData.decisionMakers?.length > 0 && { decisionMakers: formData.decisionMakers }),
     ...(formData.evaluationCriteria?.length > 0 && { evaluationCriteria: formData.evaluationCriteria }),
     ...(formData.contractLengthPreference && { contractLengthPreference: formData.contractLengthPreference }),
     ...(formData.pricingModelPreference && { pricingModelPreference: formData.pricingModelPreference }),
     ...(formData.roiExpectations && { roiExpectations: formData.roiExpectations }),
-    ...(formData.expectedGrowth && { expectedGrowth: formData.expectedGrowth }),
     ...(formData.expansionPlans && { expansionPlans: formData.expansionPlans }),
     ...(formData.technologyRoadmap && { technologyRoadmap: formData.technologyRoadmap }),
     ...(formData.digitalTransformation && { digitalTransformation: formData.digitalTransformation }),
     ...(formData.threeYearVision && { threeYearVision: formData.threeYearVision })
   };
- 
-  // Force the correct status and remove any incorrect fields
-  transformedData.status = 'pending'; // Force lowercase
- 
-  console.log('✅ Transformation complete. Result:', transformedData);
-  return transformedData;
+};
+
+// Helper function: map frontend priority to backend enum
+const mapPriority = (priority) => {
+  switch (priority?.toLowerCase()) {
+    case 'cost':
+    case 'quality':
+    case 'speed':
+    case 'reliability':
+      return priority.toLowerCase();
+    case 'balanced':
+      return 'cost'; // fallback mapping
+    default:
+      return 'cost';
+  }
+};
+
+// Helper function: map equipment age to backend enum
+const mapEquipmentAge = (age) => {
+  const ageMapping = {
+    'Less than 1 year': '0-2 years',
+    '1-2 years': '0-2 years',
+    '3-4 years': '2-5 years',
+    '5-6 years': '5+ years',
+    'Over 6 years': '5+ years',
+    'Mixed ages': '5+ years',
+    '': 'No current machine'
+  };
+  return ageMapping[age] || 'No current machine';
+};
+
+// Submission function
+const submitQuoteRequest = async (formData, userProfile) => {
+  try {
+    const payload = mapFormDataToBackend(formData, userProfile);
+    console.log('🚀 Submitting payload:', JSON.stringify(payload, null, 2));
+    const response = await fetch(`${PRODUCTION_API_URL}/api/quotes/request`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${userProfile.token}`,
+      },
+      body: JSON.stringify(payload),
+    });
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error('❌ Backend validation error:', errorData);
+      throw new Error(errorData.message || 'Validation failed');
+    }
+    const result = await response.json();
+    console.log('✅ Quote request submitted successfully:', result);
+    return result;
+  } catch (error) {
+    console.error('⚠️ Error submitting quote request:', error);
+    throw error;
+  }
 };
 
 const EnhancedQuoteRequest = () => {
@@ -209,7 +184,6 @@ const EnhancedQuoteRequest = () => {
   const isLoggedIn = auth?.isAuthenticated;
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
-    // Step 1: Company Profile & Context
     companyName: '',
     industryType: '',
     subSector: '',
@@ -220,17 +194,13 @@ const EnhancedQuoteRequest = () => {
     primaryBusinessActivity: '',
     organizationStructure: '',
     multiFloor: 'No',
-    postcode: '', // Added missing field
-   
-    // Step 2: Current Challenges & Timeline
+    postcode: '',
     primaryChallenges: [],
     currentPainPoints: '',
     impactOnProductivity: '',
     urgencyLevel: '',
     implementationTimeline: '',
     budgetCycle: '',
-   
-    // Step 3: Usage Patterns & Document Workflow
     monthlyPrintVolume: '',
     annualPrintVolume: '',
     monthlyVolume: { colour: '', mono: '' },
@@ -239,8 +209,6 @@ const EnhancedQuoteRequest = () => {
     averagePageCount: '',
     finishingRequirements: [],
     departmentBreakdown: [],
-   
-    // Step 4: Technical Environment & Integration
     networkSetup: '',
     itSupportStructure: '',
     securityRequirements: [],
@@ -249,8 +217,6 @@ const EnhancedQuoteRequest = () => {
     integrationNeeds: [],
     mobileRequirements: 'No',
     remoteWorkImpact: '',
-   
-    // Step 5: Current Setup & Costs
     currentColorCPC: '',
     currentMonoCPC: '',
     quarterlyLeaseCost: '',
@@ -262,8 +228,6 @@ const EnhancedQuoteRequest = () => {
     contractEndDate: '',
     currentEquipmentAge: '',
     maintenanceIssues: '',
-   
-    // Step 6: Requirements & Specifications
     additionalServices: [],
     paysForScanning: 'No',
     serviceType: 'Photocopiers',
@@ -273,16 +237,12 @@ const EnhancedQuoteRequest = () => {
     securityFeatures: [],
     accessibilityNeeds: 'No',
     sustainabilityGoals: '',
-   
-    // Step 7: Service & Support Expectations
     responseTimeExpectation: '',
     maintenancePreference: '',
     trainingNeeds: '',
     supplyManagement: '',
     reportingNeeds: [],
     vendorRelationshipType: '',
-   
-    // Step 8: Decision Process & Commercial
     decisionMakers: [],
     evaluationCriteria: [],
     contractLengthPreference: '',
@@ -291,8 +251,6 @@ const EnhancedQuoteRequest = () => {
     preference: '',
     max_lease_price: '',
     roiExpectations: '',
-   
-    // Step 9: Future Planning
     expectedGrowth: '',
     expansionPlans: '',
     technologyRoadmap: '',
@@ -308,7 +266,7 @@ const EnhancedQuoteRequest = () => {
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     let updatedData;
-   
+
     if (type === 'checkbox') {
       if (['primaryChallenges', 'documentTypes', 'finishingRequirements', 'securityRequirements',
            'integrationNeeds', 'additionalServices', 'securityFeatures', 'reportingNeeds',
@@ -333,7 +291,6 @@ const EnhancedQuoteRequest = () => {
       };
     }
     setFormData(updatedData);
-    // Fetch AI suggestions when key fields are updated (only if AI endpoint exists)
     if (['monthlyPrintVolume', 'min_speed', 'type', 'colour', 'required_functions', 'industryType'].includes(name)) {
       suggestCopiers(updatedData).then((suggestions) => {
         setSuggestedMachines(suggestions);
@@ -365,89 +322,6 @@ const EnhancedQuoteRequest = () => {
     const quarterlyCost = parseFloat(quarterlyLeaseCost) || 0;
     const buyout = (quarterlyCost / 3) * monthsRemaining;
     return buyout.toFixed(2);
-  };
-
-  const formatFormData = (data) => {
-    return {
-      // Only include specific fields we want, don't spread the original data
-      companyName: data.companyName,
-      industryType: data.industryType,
-      subSector: data.subSector,
-      annualRevenue: data.annualRevenue,
-      numEmployees: data.numEmployees ? parseInt(data.numEmployees, 10) : undefined,
-      officeBasedEmployees: data.officeBasedEmployees ? parseInt(data.officeBasedEmployees, 10) : undefined,
-      numLocations: data.numLocations ? Math.abs(parseInt(data.numLocations, 10)) || 1 : 1,
-      primaryBusinessActivity: data.primaryBusinessActivity,
-      organizationStructure: data.organizationStructure,
-      multiFloor: data.multiFloor && data.multiFloor.toLowerCase() === 'yes',
-      postcode: data.postcode,
-      primaryChallenges: data.primaryChallenges,
-      currentPainPoints: data.currentPainPoints,
-      impactOnProductivity: data.impactOnProductivity,
-      urgencyLevel: data.urgencyLevel,
-      implementationTimeline: data.implementationTimeline,
-      budgetCycle: data.budgetCycle,
-      monthlyPrintVolume: data.monthlyPrintVolume ? parseInt(data.monthlyPrintVolume, 10) : undefined,
-      annualPrintVolume: data.annualPrintVolume ? parseInt(data.annualPrintVolume, 10) : undefined,
-      monthlyVolume: {
-        colour: data.monthlyVolume.colour ? parseInt(data.monthlyVolume.colour, 10) : 0,
-        mono: data.monthlyVolume.mono ? parseInt(data.monthlyVolume.mono, 10) : 0,
-      },
-      peakUsagePeriods: data.peakUsagePeriods,
-      documentTypes: data.documentTypes,
-      averagePageCount: data.averagePageCount,
-      finishingRequirements: data.finishingRequirements,
-      departmentBreakdown: data.departmentBreakdown,
-      networkSetup: data.networkSetup,
-      itSupportStructure: data.itSupportStructure,
-      securityRequirements: data.securityRequirements,
-      currentSoftwareEnvironment: data.currentSoftwareEnvironment,
-      cloudPreference: data.cloudPreference,
-      integrationNeeds: data.integrationNeeds,
-      mobileRequirements: data.mobileRequirements && data.mobileRequirements.toLowerCase() === 'yes',
-      remoteWorkImpact: data.remoteWorkImpact,
-      currentColorCPC: data.currentColorCPC ? parseFloat(data.currentColorCPC) : undefined,
-      currentMonoCPC: data.currentMonoCPC ? parseFloat(data.currentMonoCPC) : undefined,
-      quarterlyLeaseCost: data.quarterlyLeaseCost ? parseFloat(data.quarterlyLeaseCost) : undefined,
-      totalAnnualCosts: data.totalAnnualCosts ? parseFloat(data.totalAnnualCosts) : undefined,
-      hiddenCosts: data.hiddenCosts,
-      leasingCompany: data.leasingCompany,
-      serviceProvider: data.serviceProvider,
-      contractStartDate: data.contractStartDate,
-      contractEndDate: data.contractEndDate,
-      currentEquipmentAge: data.currentEquipmentAge,
-      maintenanceIssues: data.maintenanceIssues,
-      additionalServices: data.additionalServices,
-      paysForScanning: data.paysForScanning && data.paysForScanning.toLowerCase() === 'yes',
-      serviceType: data.serviceType,
-      colour: data.colour,
-      type: data.type,
-      min_speed: data.min_speed ? parseInt(data.min_speed, 10) : undefined,
-      securityFeatures: data.securityFeatures,
-      accessibilityNeeds: data.accessibilityNeeds && data.accessibilityNeeds.toLowerCase() === 'yes',
-      sustainabilityGoals: data.sustainabilityGoals,
-      responseTimeExpectation: data.responseTimeExpectation,
-      maintenancePreference: data.maintenancePreference,
-      trainingNeeds: data.trainingNeeds,
-      supplyManagement: data.supplyManagement,
-      reportingNeeds: data.reportingNeeds,
-      vendorRelationshipType: data.vendorRelationshipType,
-      decisionMakers: data.decisionMakers,
-      evaluationCriteria: data.evaluationCriteria,
-      contractLengthPreference: data.contractLengthPreference,
-      pricingModelPreference: data.pricingModelPreference,
-      required_functions: data.required_functions,
-      preference: data.preference,
-      max_lease_price: data.max_lease_price ? parseInt(data.max_lease_price, 10) : undefined,
-      roiExpectations: data.roiExpectations,
-      expectedGrowth: data.expectedGrowth,
-      expansionPlans: data.expansionPlans,
-      technologyRoadmap: data.technologyRoadmap,
-      digitalTransformation: data.digitalTransformation,
-      threeYearVision: data.threeYearVision
-      // Do NOT include status here - let transformation handle it
-      // Do NOT use ...data to avoid copying unwanted fields
-    };
   };
 
   const validateStep = (currentStep) => {
@@ -488,9 +362,6 @@ const EnhancedQuoteRequest = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('🔍 FILE VERSION CHECK: Updated transformation file is being used');
-    console.log('🔍 Original formData before formatting:', formData);
-   
     if (!validateStep(9)) {
       setErrorMessage('Please fill out all required fields before submitting.');
       return;
@@ -507,10 +378,10 @@ const EnhancedQuoteRequest = () => {
     const token = auth?.token;
     const userId = auth?.user?.userId || auth?.user?.id;
     const userProfile = {
-      id: userId,
+      _id: userId,
       name: auth?.user?.name || auth?.user?.username,
       email: auth?.user?.email,
-      userId: userId
+      token: token
     };
     if (!token || !userId) {
       alert('Authentication failed. Please log in again.');
@@ -518,103 +389,22 @@ const EnhancedQuoteRequest = () => {
       setIsSubmitting(false);
       return;
     }
-    const formattedData = formatFormData(formData);
-    console.log('📝 Formatted data:', formattedData);
-   
-    const transformedData = transformQuoteData(formattedData, userProfile);
-   
-    // FORCE CORRECT VALUES AFTER TRANSFORMATION
-    transformedData.status = 'pending'; // Force lowercase
-   
-    console.log('🔄 Final transformed data (after fixes):', transformedData);
-   
-    // Add validation to catch transformation issues
-    const validateTransformedData = (data) => {
-      const errors = [];
-     
-      // Check required fields exist and have values
-      const requiredChecks = [
-        { field: 'companyName', value: data.companyName },
-        { field: 'contactName', value: data.contactName },
-        { field: 'email', value: data.email },
-        { field: 'location.postcode', value: data.location?.postcode },
-        { field: 'urgency.timeframe', value: data.urgency?.timeframe },
-        { field: 'budget.maxLeasePrice', value: data.budget?.maxLeasePrice },
-        { field: 'requirements.priority', value: data.requirements?.priority },
-        { field: 'currentSetup.machineAge', value: data.currentSetup?.machineAge },
-        { field: 'paperRequirements.primarySize', value: data.paperRequirements?.primarySize },
-        { field: 'monthlyVolume.total', value: data.monthlyVolume?.total },
-        { field: 'numLocations', value: data.numLocations },
-        { field: 'submittedBy', value: data.submittedBy }
-      ];
-     
-      requiredChecks.forEach(check => {
-        if (!check.value || check.value === '' || check.value === 0) {
-          errors.push(`${check.field} is missing or empty (value: ${check.value})`);
-        }
-      });
-     
-      // Check enum values
-      const validIndustryTypes = ["Healthcare", "Legal", "Education", "Finance", "Government", "Manufacturing", "Retail", "Other"];
-      const validStatusValues = ["pending", "processing", "quotes_generated", "quotes_sent", "completed", "cancelled"];
-     
-      if (data.industryType && !validIndustryTypes.includes(data.industryType)) {
-        errors.push(`Invalid industryType: ${data.industryType}. Valid: ${validIndustryTypes.join(', ')}`);
-      }
-     
-      if (data.status && !validStatusValues.includes(data.status)) {
-        errors.push(`Invalid status: ${data.status}. Valid: ${validStatusValues.join(', ')}`);
-      }
-     
-      return errors;
-    };
-   
-    // Validate transformed data
-    const validationErrors = validateTransformedData(transformedData);
-    if (validationErrors.length > 0) {
-      console.error('Validation errors in transformed data:', validationErrors);
-      setErrorMessage(`Data transformation errors: ${validationErrors.join('; ')}`);
-      setIsSubmitting(false);
-      return;
-    }
-   
-    console.log('🚨 EXACTLY WHAT WE ARE SENDING:', JSON.stringify(transformedData, null, 2));
-    
     try {
-      // ✅ FIXED: Use hard-coded production URL to avoid CSP issues
-      const finalUrl = `${PRODUCTION_API_URL}/api/quotes/request`;
-      
-      console.log('🔍 API URL DEBUG:', {
-        productionUrl: PRODUCTION_API_URL,
-        envVar: process.env.REACT_APP_API_BASE_URL,
-        finalUrl: finalUrl,
-        nodeEnv: process.env.NODE_ENV
-      });
-      
-      console.log('🔗 Submitting to URL:', finalUrl);
-      
       let response, data;
       if (uploadedFiles.length > 0) {
         console.log('📁 Submitting with files');
         const requestData = new FormData();
-        requestData.append('userRequirements', JSON.stringify(transformedData));
+        const payload = mapFormDataToBackend(formData, userProfile);
+        requestData.append('userRequirements', JSON.stringify(payload));
         uploadedFiles.forEach((file, index) => requestData.append(`documents[${index}]`, file));
-       
-        response = await fetch(finalUrl, {
+        response = await fetch(`${PRODUCTION_API_URL}/api/quotes/request`, {
           method: 'POST',
           headers: { Authorization: `Bearer ${token}` },
           body: requestData,
         });
       } else {
         console.log('📄 Submitting JSON only');
-        response = await fetch(finalUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(transformedData),
-        });
+        response = await submitQuoteRequest(formData, userProfile);
       }
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
@@ -630,7 +420,6 @@ const EnhancedQuoteRequest = () => {
           hasVendors: data.matchedVendors && data.matchedVendors.length > 0,
         },
       });
-      // Reset form
       setFormData({
         companyName: '', industryType: '', subSector: '', annualRevenue: '', numEmployees: '',
         officeBasedEmployees: '', numLocations: '', primaryBusinessActivity: '', organizationStructure: '',
@@ -662,7 +451,6 @@ const EnhancedQuoteRequest = () => {
     }
   };
 
-  // Option arrays
   const challengeOptions = [
     'High printing costs',
     'Frequent equipment breakdowns',
@@ -840,7 +628,6 @@ const EnhancedQuoteRequest = () => {
                 </select>
               </label>
             </div>
-           
             <div className="form-section">
               <h4>Organization Structure</h4>
               <label>
@@ -925,7 +712,6 @@ const EnhancedQuoteRequest = () => {
                   </label>
                 ))}
               </fieldset>
-             
               <label>
                 Urgency Level: <span className="required">*</span>
                 <select name="urgencyLevel" value={formData.urgencyLevel} onChange={handleChange} required>
@@ -936,7 +722,6 @@ const EnhancedQuoteRequest = () => {
                   <option value="Low">Low (6+ months)</option>
                 </select>
               </label>
-             
               <label>
                 Implementation Timeline: <span className="required">*</span>
                 <select name="implementationTimeline" value={formData.implementationTimeline} onChange={handleChange} required>
@@ -949,7 +734,6 @@ const EnhancedQuoteRequest = () => {
                 </select>
               </label>
             </div>
-           
             <button onClick={handleBack}>Back</button>
             <button onClick={handleNext}>Next</button>
           </motion.div>
@@ -983,7 +767,6 @@ const EnhancedQuoteRequest = () => {
                 />
               </label>
             </div>
-           
             <button onClick={handleBack}>Back</button>
             <button onClick={handleNext}>Next</button>
           </motion.div>
@@ -1004,7 +787,6 @@ const EnhancedQuoteRequest = () => {
                   <option value="Cloud-based">Cloud-based infrastructure</option>
                 </select>
               </label>
-             
               <label>
                 IT Support Structure: <span className="required">*</span>
                 <select name="itSupportStructure" value={formData.itSupportStructure} onChange={handleChange} required>
@@ -1017,7 +799,6 @@ const EnhancedQuoteRequest = () => {
                 </select>
               </label>
             </div>
-           
             <button onClick={handleBack}>Back</button>
             <button onClick={handleNext}>Next</button>
           </motion.div>
@@ -1041,7 +822,6 @@ const EnhancedQuoteRequest = () => {
                 </select>
               </label>
             </div>
-           
             <button onClick={handleBack}>Back</button>
             <button onClick={handleNext}>Next</button>
           </motion.div>
@@ -1084,7 +864,6 @@ const EnhancedQuoteRequest = () => {
                 </label>
               )}
             </div>
-           
             <div className="form-section">
               <h4>Document Upload</h4>
               <div {...getRootProps()} className="dropzone">
@@ -1106,7 +885,6 @@ const EnhancedQuoteRequest = () => {
                 </div>
               )}
             </div>
-           
             {suggestedMachines.length > 0 && (
               <div className="form-section">
                 <h4>AI-Powered Equipment Suggestions</h4>
@@ -1117,7 +895,6 @@ const EnhancedQuoteRequest = () => {
                 </ul>
               </div>
             )}
-           
             <button onClick={handleBack}>Back</button>
             <button onClick={handleNext}>Next</button>
           </motion.div>
@@ -1139,7 +916,6 @@ const EnhancedQuoteRequest = () => {
                   <option value="Flexible">Flexible</option>
                 </select>
               </label>
-             
               <label>
                 Maintenance Preference: <span className="required">*</span>
                 <select name="maintenancePreference" value={formData.maintenancePreference} onChange={handleChange} required>
@@ -1151,7 +927,6 @@ const EnhancedQuoteRequest = () => {
                 </select>
               </label>
             </div>
-           
             <button onClick={handleBack}>Back</button>
             <button onClick={handleNext}>Next</button>
           </motion.div>
@@ -1177,7 +952,6 @@ const EnhancedQuoteRequest = () => {
                   </label>
                 ))}
               </fieldset>
-             
               <label>
                 What is most important to you? <span className="required">*</span>
                 <select name="preference" value={formData.preference} onChange={handleChange} required>
@@ -1189,7 +963,6 @@ const EnhancedQuoteRequest = () => {
                   <option value="balanced">Balanced approach</option>
                 </select>
               </label>
-             
               <label>
                 Maximum Monthly Investment (£): <span className="required">*</span>
                 <input
@@ -1202,7 +975,6 @@ const EnhancedQuoteRequest = () => {
                 />
               </label>
             </div>
-           
             <button onClick={handleBack}>Back</button>
             <button onClick={handleNext}>Next</button>
           </motion.div>
@@ -1225,7 +997,6 @@ const EnhancedQuoteRequest = () => {
                   <option value="Uncertain">Uncertain</option>
                 </select>
               </label>
-             
               <label>
                 3-Year Vision: <span className="required">*</span>
                 <textarea
@@ -1238,7 +1009,6 @@ const EnhancedQuoteRequest = () => {
                 />
               </label>
             </div>
-           
             <div className="form-section">
               <h4>Final Review Summary</h4>
               <div className="review-section">
@@ -1253,7 +1023,6 @@ const EnhancedQuoteRequest = () => {
                 </ul>
               </div>
             </div>
-           
             <button onClick={handleBack}>Back</button>
             <button type="submit" onClick={handleSubmit} disabled={isSubmitting}>
               {isSubmitting ? 'Submitting Comprehensive Assessment...' : 'Submit Complete Assessment'}
@@ -1269,7 +1038,6 @@ const EnhancedQuoteRequest = () => {
     <div className="request-quote-container">
       <h2>Comprehensive Equipment Assessment</h2>
       <p className="text-center text-muted">Professional procurement analysis - 15-20 minutes</p>
-     
       {errorMessage && (
         <p className="error-message" role="alert">
           {errorMessage}
@@ -1280,12 +1048,10 @@ const EnhancedQuoteRequest = () => {
           {successMessage}
         </p>
       )}
-     
       <div className="progress-bar">
         <span>Step {step} of 9 - {Math.round((step / 9) * 100)}% Complete</span>
         <div style={{ width: `${(step / 9) * 100}%` }} className="progress" />
       </div>
-     
       <form onSubmit={(e) => e.preventDefault()}>
         {renderStep()}
       </form>

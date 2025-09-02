@@ -5,18 +5,20 @@ import './EnhancedQuoteRequest.css';
 import { useAuth } from '../context/AuthContext';
 import { motion } from 'framer-motion';
 
+// FIXED: Hard-coded production URL
+const PRODUCTION_API_URL = 'https://ai-procurement-backend-q35u.onrender.com';
+
 // AI-driven copier suggestion function using an external API
 const suggestCopiers = async (data) => {
-  // ✅ FIXED: Use the correct API base URL for AI suggestions
-  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://ai-procurement-backend-q35u.onrender.com';
+  // ✅ FIXED: Use hard-coded production URL
   const API_KEY = process.env.REACT_APP_AI_API_KEY;
   if (!API_KEY) {
     console.warn('AI API KEY is missing in .env - skipping AI suggestions');
     return [];
   }
   try {
-    // ✅ FIXED: Use the main API base URL instead of separate AI API URL
-    const response = await fetch(`${API_BASE_URL}/api/suggest-copiers`, {
+    // ✅ FIXED: Use the hard-coded production URL
+    const response = await fetch(`${PRODUCTION_API_URL}/api/suggest-copiers`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -577,23 +579,35 @@ const EnhancedQuoteRequest = () => {
     }
    
     console.log('🚨 EXACTLY WHAT WE ARE SENDING:', JSON.stringify(transformedData, null, 2));
+    
     try {
-      // ✅ Use the production URL consistently
-      const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://ai-procurement-backend-q35u.onrender.com';
-      console.log('🔗 Submitting to URL:', `${API_BASE_URL}/api/quotes/request`); // Debug log
+      // ✅ FIXED: Use hard-coded production URL to avoid CSP issues
+      const finalUrl = `${PRODUCTION_API_URL}/api/quotes/request`;
+      
+      console.log('🔍 API URL DEBUG:', {
+        productionUrl: PRODUCTION_API_URL,
+        envVar: process.env.REACT_APP_API_BASE_URL,
+        finalUrl: finalUrl,
+        nodeEnv: process.env.NODE_ENV
+      });
+      
+      console.log('🔗 Submitting to URL:', finalUrl);
+      
       let response, data;
       if (uploadedFiles.length > 0) {
+        console.log('📁 Submitting with files');
         const requestData = new FormData();
         requestData.append('userRequirements', JSON.stringify(transformedData));
         uploadedFiles.forEach((file, index) => requestData.append(`documents[${index}]`, file));
        
-        response = await fetch(`${API_BASE_URL}/api/quotes/request`, {
+        response = await fetch(finalUrl, {
           method: 'POST',
           headers: { Authorization: `Bearer ${token}` },
           body: requestData,
         });
       } else {
-        response = await fetch(`${API_BASE_URL}/api/quotes/request`, {
+        console.log('📄 Submitting JSON only');
+        response = await fetch(finalUrl, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

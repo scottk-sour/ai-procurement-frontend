@@ -36,49 +36,109 @@ const suggestCopiers = async (data) => {
   }
 };
 
-// Map form data to backend Quote schema
+// FIXED: Map form data to backend Quote schema
 const mapFormDataToBackend = (formData, userProfile) => {
   return {
+    // Basic Company Details (✅ Required fields)
     companyName: formData.companyName || 'Unknown Company',
     contactName: userProfile?.name || userProfile?.username || formData.contactName || 'Unknown Contact',
     email: userProfile?.email || formData.email || 'unknown@example.com',
-    industryType: formData.industryType || 'Other',
+    
+    // ✅ FIXED: Use valid enum values only
+    industryType: mapIndustryType(formData.industryType),
+    
     numEmployees: Math.max(1, parseInt(formData.numEmployees) || 1),
     numLocations: Math.max(1, parseInt(formData.numLocations) || 1),
-    userRequirements: {
-      monthlyVolume: {
-        mono: parseInt(formData.monthlyVolume?.mono) || 0,
-        colour: parseInt(formData.monthlyVolume?.colour) || 0,
-        total: (parseInt(formData.monthlyVolume?.mono) || 0) + (parseInt(formData.monthlyVolume?.colour) || 0) || 1
-      },
-      paperSize: formData.type || formData.paperSize || 'A4',
-      priority: mapPriority(formData.preference),
-      maxBudget: parseInt(formData.max_lease_price) || 100,
-      urgency: formData.implementationTimeline || 'ASAP',
-      features: formData.primaryChallenges || []
+
+    // ✅ FIXED: Monthly Volume (Required structure)
+    monthlyVolume: {
+      mono: parseInt(formData.monthlyVolume?.mono) || 0,
+      colour: parseInt(formData.monthlyVolume?.colour) || 0,
+      total: (parseInt(formData.monthlyVolume?.mono) || 0) + (parseInt(formData.monthlyVolume?.colour) || 0) || 1
     },
+
+    // ✅ FIXED: Paper Requirements (Required structure)
+    paperRequirements: {
+      primarySize: mapPaperSize(formData.type || formData.paperSize),
+      additionalSizes: [],
+      specialPaper: false,
+      specialPaperTypes: []
+    },
+
+    // ✅ FIXED: Current Setup (Required structure) 
     currentSetup: {
-      machineAge: mapEquipmentAge(formData.currentEquipmentAge) || 'No current machine'
+      machineAge: mapEquipmentAge(formData.currentEquipmentAge),
+      currentSupplier: formData.serviceProvider || undefined,
+      contractEndDate: formData.contractEndDate ? new Date(formData.contractEndDate) : undefined,
+      currentCosts: {
+        monoRate: parseFloat(formData.currentMonoCPC) || undefined,
+        colourRate: parseFloat(formData.currentColorCPC) || undefined,
+        quarterlyLeaseCost: parseFloat(formData.quarterlyLeaseCost) || undefined,
+        quarterlyService: undefined
+      },
+      painPoints: formData.primaryChallenges || [],
+      satisfactionLevel: undefined
     },
-    networkSetup: formData.networkSetup || 'Unknown',
-    itSupportStructure: formData.itSupportStructure || 'Unknown',
-    serviceType: formData.serviceType || 'Photocopiers',
-    responseTimeExpectation: formData.responseTimeExpectation || 'Standard',
-    maintenancePreference: formData.maintenancePreference || 'Standard',
-    decisionMakers: formData.decisionMakers || [],
-    expectedGrowth: formData.expectedGrowth || 'Stable',
-    submittedBy: userProfile?._id || userProfile?.userId || userProfile?.id || 'temp_user_id',
-    userId: userProfile?._id || userProfile?.userId || userProfile?.id,
-    status: 'pending',
+
+    // ✅ FIXED: Requirements (Required structure)
+    requirements: {
+      priority: mapPriority(formData.preference),
+      essentialFeatures: mapFeatures(formData.required_functions || []),
+      niceToHaveFeatures: [],
+      minSpeed: parseInt(formData.min_speed) || undefined,
+      maxNoisLevel: undefined,
+      environmentalConcerns: formData.sustainabilityGoals ? true : false
+    },
+
+    // ✅ FIXED: Budget (Required structure)
+    budget: {
+      maxLeasePrice: parseInt(formData.max_lease_price) || 100,
+      preferredTerm: formData.contractLengthPreference || '36 months',
+      includeService: true,
+      includeConsumables: true
+    },
+
+    // ✅ FIXED: Urgency (Required structure)
+    urgency: {
+      timeframe: mapTimeframe(formData.implementationTimeline),
+      reason: formData.currentPainPoints || undefined
+    },
+
+    // ✅ FIXED: Location (Required structure)
+    location: {
+      postcode: formData.postcode || 'Unknown',
+      city: undefined,
+      region: undefined,
+      installationRequirements: undefined
+    },
+
+    // AI Analysis (optional, will be populated by backend)
+    aiAnalysis: {
+      processed: false,
+      suggestedCategories: [],
+      volumeCategory: undefined,
+      riskFactors: [],
+      recommendations: [],
+      processedAt: undefined
+    },
+
+    // System Fields (✅ Required)
+    submittedBy: userProfile?._id || userProfile?.userId || userProfile?.id,
+    status: 'pending', // ✅ Use valid enum value
     submissionSource: 'web_form',
-    // Optional fields
+    
+    // Optional fields with safe defaults
+    phone: undefined,
+    quotes: [],
+    internalNotes: [],
+
+    // Additional optional fields from original mapping
     ...(formData.subSector && { subSector: formData.subSector }),
     ...(formData.annualRevenue && { annualRevenue: formData.annualRevenue }),
     ...(formData.officeBasedEmployees && { officeBasedEmployees: parseInt(formData.officeBasedEmployees) }),
     ...(formData.primaryBusinessActivity && { primaryBusinessActivity: formData.primaryBusinessActivity }),
     ...(formData.organizationStructure && { organizationStructure: formData.organizationStructure }),
     ...(formData.multiFloor && { multiFloor: formData.multiFloor === 'Yes' }),
-    ...(formData.postcode && { postcode: formData.postcode }),
     ...(formData.currentPainPoints && { currentPainPoints: formData.currentPainPoints }),
     ...(formData.impactOnProductivity && { impactOnProductivity: formData.impactOnProductivity }),
     ...(formData.urgencyLevel && { urgencyLevel: formData.urgencyLevel }),
@@ -122,33 +182,106 @@ const mapFormDataToBackend = (formData, userProfile) => {
   };
 };
 
-// Helper function: map frontend priority to backend enum
-const mapPriority = (priority) => {
-  switch (priority?.toLowerCase()) {
-    case 'cost':
-    case 'quality':
-    case 'speed':
-    case 'reliability':
-      return priority.toLowerCase();
-    case 'balanced':
-      return 'cost'; // fallback mapping
-    default:
-      return 'cost';
-  }
+// Helper function: map frontend industry to valid backend enum
+const mapIndustryType = (industry) => {
+  // Valid enum values from schema: 'Healthcare', 'Legal', 'Education', 'Finance', 'Government', 'Manufacturing', 'Retail', 'Other'
+  const industryMapping = {
+    'Technology': 'Other', // ✅ Map invalid "Technology" to "Other"
+    'Healthcare': 'Healthcare',
+    'Legal': 'Legal', 
+    'Education': 'Education',
+    'Finance': 'Finance',
+    'Government': 'Government',
+    'Manufacturing': 'Manufacturing',
+    'Retail': 'Retail',
+    'Real Estate': 'Other',
+    'Non-profit': 'Other'
+  };
+  return industryMapping[industry] || 'Other';
 };
 
-// Helper function: map equipment age to backend enum
+// Helper function: map frontend paper size to valid backend enum  
+const mapPaperSize = (size) => {
+  // Valid enum values: 'A4', 'A3', 'SRA3'
+  const sizeMapping = {
+    'A4': 'A4',
+    'A3': 'A3', 
+    'A2': 'A3', // Map A2 to A3 as fallback
+    'SRA3': 'SRA3'
+  };
+  return sizeMapping[size] || 'A4'; // Default to A4
+};
+
+// Helper function: map frontend priority to valid backend enum
+const mapPriority = (priority) => {
+  // Valid enum values: 'speed', 'quality', 'reliability', 'cost', 'balanced'
+  const priorityMapping = {
+    'cost': 'cost',
+    'quality': 'quality', 
+    'speed': 'speed',
+    'reliability': 'reliability',
+    'balanced': 'balanced'
+  };
+  return priorityMapping[priority?.toLowerCase()] || 'cost';
+};
+
+// Helper function: map equipment age to valid backend enum
 const mapEquipmentAge = (age) => {
+  // Valid enum values: 'Under 2 years', '2-5 years', '5+ years', 'No current machine'
   const ageMapping = {
-    'Less than 1 year': '0-2 years',
-    '1-2 years': '0-2 years',
-    '3-4 years': '2-5 years',
+    'Less than 1 year': 'Under 2 years',
+    '1-2 years': 'Under 2 years',
+    '2-5 years': '2-5 years',
+    '3-4 years': '2-5 years', 
     '5-6 years': '5+ years',
     'Over 6 years': '5+ years',
     'Mixed ages': '5+ years',
     '': 'No current machine'
   };
   return ageMapping[age] || 'No current machine';
+};
+
+// Helper function: map timeframe to valid backend enum
+const mapTimeframe = (timeline) => {
+  // Valid enum values: 'Immediately', 'Within 1 month', '1-3 months', '3+ months'
+  const timelineMapping = {
+    'ASAP': 'Immediately',
+    'As soon as possible': 'Immediately',
+    '1-2 months': 'Within 1 month',
+    '3-6 months': '1-3 months',
+    '6-12 months': '3+ months',
+    '12+ months': '3+ months'
+  };
+  return timelineMapping[timeline] || 'Within 1 month';
+};
+
+// Helper function: map features to valid backend enum values
+const mapFeatures = (features) => {
+  // Valid enum values from schema
+  const validFeatures = [
+    'Duplex Printing', 'Wireless Printing', 'Mobile Printing', 'Cloud Integration',
+    'Advanced Security', 'Large Paper Trays', 'High Capacity Toner',
+    'Color Printing', 'Scanning', 'Fax', 'Copying', 'Email Integration',
+    'Stapling', 'Hole Punch', 'Booklet Making', 'Large Capacity Trays',
+    'Touch Screen', 'Auto Document Feeder', 'ID Card Copying'
+  ];
+  
+  // Map common frontend values to backend enum values
+  const featureMapping = {
+    'High printing costs': 'Advanced Security', // Map problems to solutions
+    'Frequent equipment breakdowns': 'High Capacity Toner',
+    'Poor print quality': 'Color Printing',
+    'Slow printing speeds': 'Duplex Printing',
+    'Limited functionality': 'Mobile Printing',
+    'Complex user interface': 'Touch Screen',
+    'Poor vendor support': 'Cloud Integration',
+    'Supply chain issues': 'Large Paper Trays',
+    'Security concerns': 'Advanced Security',
+    'Integration problems': 'Email Integration'
+  };
+  
+  return features.map(feature => featureMapping[feature] || feature)
+                 .filter(feature => validFeatures.includes(feature));
 };
 
 // Submission function
@@ -463,6 +596,7 @@ const EnhancedQuoteRequest = () => {
     'Security concerns',
     'Integration problems'
   ];
+
   const documentTypeOptions = [
     'Standard office documents',
     'Marketing materials',
@@ -475,6 +609,7 @@ const EnhancedQuoteRequest = () => {
     'Presentations',
     'Graphics/Images'
   ];
+
   const finishingOptions = [
     'Stapling',
     'Hole punching',
@@ -485,6 +620,7 @@ const EnhancedQuoteRequest = () => {
     'Laminating',
     'Sorting/Collating'
   ];
+
   const securityRequirementOptions = [
     'User authentication',
     'Document encryption',
@@ -495,6 +631,7 @@ const EnhancedQuoteRequest = () => {
     'Compliance (GDPR, HIPAA, etc.)',
     'Access controls'
   ];
+
   const integrationOptions = [
     'Email systems',
     'Cloud storage (Google Drive, OneDrive, etc.)',
@@ -505,6 +642,7 @@ const EnhancedQuoteRequest = () => {
     'Workflow automation',
     'Mobile apps'
   ];
+
   const additionalServicesOptions = [
     'Automatic toner replenishment',
     'On-site service & repairs',
@@ -517,6 +655,7 @@ const EnhancedQuoteRequest = () => {
     'User training',
     'Help desk support'
   ];
+
   const securityFeatureOptions = [
     'PIN/Card authentication',
     'Biometric access',
@@ -527,6 +666,7 @@ const EnhancedQuoteRequest = () => {
     'Access logging',
     'Network isolation'
   ];
+
   const reportingOptions = [
     'Usage analytics',
     'Cost tracking',
@@ -537,6 +677,7 @@ const EnhancedQuoteRequest = () => {
     'Service history',
     'Compliance reports'
   ];
+
   const decisionMakerOptions = [
     'IT Manager/Director',
     'Finance Manager/CFO',
@@ -547,6 +688,7 @@ const EnhancedQuoteRequest = () => {
     'Department Heads',
     'End Users'
   ];
+
   const evaluationCriteriaOptions = [
     'Total cost of ownership',
     'Print quality',

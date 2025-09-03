@@ -7,6 +7,11 @@ const capitaliseFirstLetter = (str) => {
   return str.charAt(0).toUpperCase() + str.slice(1);
 };
 
+// Helper function to get user ID from either field name
+const getUserId = (record) => {
+  return record.userId || record.submittedBy;
+};
+
 const QuoteDetails = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -40,16 +45,19 @@ const QuoteDetails = () => {
         }
 
         const userData = await userResponse.json();
-        const userId = userData._id || userData.id;
+        
+        // FIXED: Correctly extract userId from the nested user object structure
+        const userId = userData.user?.userId || userData.userId || userData._id || userData.id;
         
         if (!userId) {
+          console.error('❌ User data structure:', userData);
           throw new Error('User ID not found in profile. Please log in again.');
         }
 
         console.log('✅ Got userId:', userId);
 
-        // Use the correct endpoint from backend logs: /api/quotes/requests
-        const endpoint = `/api/quotes/requests?userId=${userId}&page=1&limit=100`;
+        // FIXED: Updated API call to handle both userId and submittedBy fields
+        const endpoint = `/api/quotes/requests?userId=${userId}&submittedBy=${userId}&page=1&limit=100`;
         console.log(`🔍 Fetching quotes from: ${API_URL}${endpoint}`);
 
         const response = await fetch(`${API_URL}${endpoint}`, {
@@ -70,16 +78,23 @@ const QuoteDetails = () => {
         // Handle the response structure from your backend
         let quotesData = data.quotes || data.data || data || [];
         
+        // FIXED: Filter quotes to only show user's own requests
+        const userQuotes = quotesData.filter(quote => {
+          const quoteUserId = getUserId(quote);
+          return quoteUserId === userId;
+        });
+        
         // Filter by status if not 'all'
+        let filteredQuotes = userQuotes;
         if (status && status !== 'all') {
-          quotesData = quotesData.filter(quote => quote.status === status);
+          filteredQuotes = userQuotes.filter(quote => quote.status === status);
         }
         
-        console.log(`✅ Filtered quotes (status: ${status}):`, quotesData);
-        setQuotes(Array.isArray(quotesData) ? quotesData : []);
+        console.log(`✅ Filtered quotes (status: ${status}):`, filteredQuotes);
+        setQuotes(Array.isArray(filteredQuotes) ? filteredQuotes : []);
 
       } catch (err) {
-        console.error('Error fetching quotes:', err);
+        console.error('❌ Error fetching quotes:', err);
         setError(err.message || 'An error occurred while fetching quotes.');
       } finally {
         setLoading(false);
@@ -122,6 +137,13 @@ const QuoteDetails = () => {
         <div className="quote-details-body">
           <p>No quotes found {status !== 'all' ? `with status "${status}"` : ''}.</p>
           <button 
+            onClick={() => navigate('/request-quote')}
+            className="primary-button"
+            style={{ marginRight: '10px' }}
+          >
+            Create New Quote Request
+          </button>
+          <button 
             onClick={() => navigate('/dashboard')}
             className="back-button"
           >
@@ -147,6 +169,7 @@ const QuoteDetails = () => {
               <p><strong>Email:</strong> {quote.email}</p>
               <p><strong>Service:</strong> {quote.serviceType}</p>
               <p><strong>Industry:</strong> {quote.industryType}</p>
+              <p><strong>Employees:</strong> {quote.numEmployees || 'N/A'}</p>
               <p><strong>Monthly Volume:</strong> {quote.monthlyVolume?.total || 'N/A'} pages</p>
               <p><strong>Budget:</strong> £{quote.budget?.maxLeasePrice || 'N/A'}/month</p>
               <p><strong>Location:</strong> {quote.location?.postcode}</p>
@@ -154,6 +177,8 @@ const QuoteDetails = () => {
               {quote.quotes && quote.quotes.length > 0 && (
                 <p><strong>Vendor Quotes:</strong> {quote.quotes.length}</p>
               )}
+              {/* Show submission source for debugging */}
+              <p><strong>User ID:</strong> {getUserId(quote)} {quote.userId && quote.submittedBy ? '(both fields)' : quote.userId ? '(userId only)' : '(submittedBy only)'}</p>
             </div>
           </li>
         ))}
@@ -214,7 +239,7 @@ const QuoteDetails = () => {
           <br />
           Status Parameter: {status}
           <br />
-          Correct Endpoint: {API_URL}/api/quotes/requests?userId=...
+          Correct Endpoint: {API_URL}/api/quotes/requests?userId=...&submittedBy=...
           <br />
           Total Quotes Found: {quotes.length}
         </div>

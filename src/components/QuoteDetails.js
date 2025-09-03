@@ -15,10 +15,10 @@ const QuoteDetails = () => {
   const [error, setError] = useState(null);
 
   // ✅ Define API URL based on environment
-  const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000";
+  const API_URL = process.env.REACT_APP_API_URL || "https://ai-procurement-backend-q35u.onrender.com";
 
-  // Extract the status from the query parameters, e.g. ?status=created
-  const status = searchParams.get('status');
+  // Extract the status from the query parameters, e.g. ?status=pending
+  const status = searchParams.get('status') || 'all';
 
   useEffect(() => {
     const fetchQuotes = async () => {
@@ -26,15 +26,19 @@ const QuoteDetails = () => {
         setLoading(true);
         setError(null);
         
-        if (!status) {
-          // ✅ Instead of throwing an error, redirect to dashboard with helpful message
-          console.warn('No status parameter provided, redirecting to dashboard');
-          navigate('/dashboard?message=Please select a quote status to view quotes');
-          return;
+        // Get user information from localStorage
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        const userId = user._id || user.id;
+        
+        if (!userId) {
+          throw new Error('User not authenticated. Please log in again.');
         }
 
-        // ✅ Use environment variable for API URL
-        const response = await fetch(`${API_URL}/api/quotes?status=${status}`, {
+        // ✅ Use the correct endpoint from backend logs: /api/quotes/requests
+        const endpoint = `/api/quotes/requests?userId=${userId}&page=1&limit=100`;
+        console.log(`🔍 Fetching quotes from: ${API_URL}${endpoint}`);
+
+        const response = await fetch(`${API_URL}${endpoint}`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -43,11 +47,23 @@ const QuoteDetails = () => {
         });
 
         if (!response.ok) {
-          throw new Error(`Failed to fetch quotes with status: ${status}`);
+          throw new Error(`Failed to fetch quotes: ${response.status} ${response.statusText}`);
         }
 
         const data = await response.json();
-        setQuotes(data);
+        console.log('✅ Raw response data:', data);
+
+        // ✅ Handle the response structure from your backend
+        let quotesData = data.quotes || data.data || data || [];
+        
+        // ✅ Filter by status if not 'all'
+        if (status && status !== 'all') {
+          quotesData = quotesData.filter(quote => quote.status === status);
+        }
+        
+        console.log(`✅ Filtered quotes (status: ${status}):`, quotesData);
+        setQuotes(Array.isArray(quotesData) ? quotesData : []);
+
       } catch (err) {
         console.error('Error fetching quotes:', err);
         setError(err.message || 'An error occurred while fetching quotes.');
@@ -58,6 +74,10 @@ const QuoteDetails = () => {
 
     fetchQuotes();
   }, [status, API_URL, navigate]);
+
+  const handleStatusFilter = (newStatus) => {
+    navigate(`/quote-details?status=${newStatus}`);
+  };
 
   const renderContent = () => {
     if (loading) {
@@ -86,7 +106,7 @@ const QuoteDetails = () => {
     if (quotes.length === 0) {
       return (
         <div className="quote-details-body">
-          <p>No quotes found for this status.</p>
+          <p>No quotes found {status !== 'all' ? `with status "${status}"` : ''}.</p>
           <button 
             onClick={() => navigate('/dashboard')}
             className="back-button"
@@ -100,10 +120,27 @@ const QuoteDetails = () => {
     return (
       <ul className="quote-details-list">
         {quotes.map((quote) => (
-          <li key={quote.id} className="quote-details-item">
-            <p><strong>ID:</strong> {quote.id}</p>
-            <p><strong>Vendor:</strong> {quote.vendorName}</p>
-            <p><strong>Value:</strong> £{quote.value.toFixed(2)}</p>
+          <li key={quote._id || quote.id} className="quote-details-item">
+            <div className="quote-header">
+              <h3>{quote.companyName || 'Unknown Company'}</h3>
+              <span className={`status-badge ${quote.status}`}>
+                {capitaliseFirstLetter(quote.status)}
+              </span>
+            </div>
+            <div className="quote-details">
+              <p><strong>ID:</strong> {quote._id || quote.id}</p>
+              <p><strong>Contact:</strong> {quote.contactName}</p>
+              <p><strong>Email:</strong> {quote.email}</p>
+              <p><strong>Service:</strong> {quote.serviceType}</p>
+              <p><strong>Industry:</strong> {quote.industryType}</p>
+              <p><strong>Monthly Volume:</strong> {quote.monthlyVolume?.total || 'N/A'} pages</p>
+              <p><strong>Budget:</strong> £{quote.budget?.maxLeasePrice || 'N/A'}/month</p>
+              <p><strong>Location:</strong> {quote.location?.postcode}</p>
+              <p><strong>Submitted:</strong> {new Date(quote.createdAt).toLocaleDateString()}</p>
+              {quote.quotes && quote.quotes.length > 0 && (
+                <p><strong>Vendor Quotes:</strong> {quote.quotes.length}</p>
+              )}
+            </div>
           </li>
         ))}
       </ul>
@@ -113,8 +150,37 @@ const QuoteDetails = () => {
   return (
     <div className="quote-details-container">
       <h1 className="quote-details-header">
-        Quotes: {capitaliseFirstLetter(status) || 'Loading...'}
+        Quote Requests: {capitaliseFirstLetter(status) || 'Loading...'}
       </h1>
+      
+      {/* Status Filter Buttons */}
+      <div className="status-filters" style={{ marginBottom: '20px' }}>
+        <button 
+          onClick={() => handleStatusFilter('all')}
+          className={status === 'all' ? 'active' : ''}
+        >
+          All
+        </button>
+        <button 
+          onClick={() => handleStatusFilter('pending')}
+          className={status === 'pending' ? 'active' : ''}
+        >
+          Pending
+        </button>
+        <button 
+          onClick={() => handleStatusFilter('created')}
+          className={status === 'created' ? 'active' : ''}
+        >
+          Created
+        </button>
+        <button 
+          onClick={() => handleStatusFilter('completed')}
+          className={status === 'completed' ? 'active' : ''}
+        >
+          Completed
+        </button>
+      </div>
+
       {renderContent()}
       
       {/* ✅ Debug info in development */}
@@ -132,9 +198,11 @@ const QuoteDetails = () => {
           <br />
           API_URL: {API_URL}
           <br />
-          Status Parameter: {status || 'Missing'}
+          Status Parameter: {status}
           <br />
-          Quotes Endpoint: {API_URL}/api/quotes?status={status}
+          Correct Endpoint: {API_URL}/api/quotes/requests?userId=...
+          <br />
+          Total Quotes Found: {quotes.length}
         </div>
       )}
     </div>

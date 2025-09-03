@@ -14,7 +14,7 @@ const QuoteDetails = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // ✅ Define API URL based on environment
+  // Define API URL based on environment
   const API_URL = process.env.REACT_APP_API_URL || "https://ai-procurement-backend-q35u.onrender.com";
 
   // Extract the status from the query parameters, e.g. ?status=pending
@@ -26,15 +26,29 @@ const QuoteDetails = () => {
         setLoading(true);
         setError(null);
         
-        // Get user information from localStorage
-        const user = JSON.parse(localStorage.getItem('user') || '{}');
-        const userId = user._id || user.id;
-        
-        if (!userId) {
-          throw new Error('User not authenticated. Please log in again.');
+        // Get user ID by calling the profile API like UserDashboard does
+        console.log('🔍 Getting user profile...');
+        const userResponse = await fetch(`${API_URL}/api/users/profile`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (!userResponse.ok) {
+          throw new Error('Failed to get user profile. Please log in again.');
         }
 
-        // ✅ Use the correct endpoint from backend logs: /api/quotes/requests
+        const userData = await userResponse.json();
+        const userId = userData._id || userData.id;
+        
+        if (!userId) {
+          throw new Error('User ID not found in profile. Please log in again.');
+        }
+
+        console.log('✅ Got userId:', userId);
+
+        // Use the correct endpoint from backend logs: /api/quotes/requests
         const endpoint = `/api/quotes/requests?userId=${userId}&page=1&limit=100`;
         console.log(`🔍 Fetching quotes from: ${API_URL}${endpoint}`);
 
@@ -53,10 +67,10 @@ const QuoteDetails = () => {
         const data = await response.json();
         console.log('✅ Raw response data:', data);
 
-        // ✅ Handle the response structure from your backend
+        // Handle the response structure from your backend
         let quotesData = data.quotes || data.data || data || [];
         
-        // ✅ Filter by status if not 'all'
+        // Filter by status if not 'all'
         if (status && status !== 'all') {
           quotesData = quotesData.filter(quote => quote.status === status);
         }
@@ -183,7 +197,7 @@ const QuoteDetails = () => {
 
       {renderContent()}
       
-      {/* ✅ Debug info in development */}
+      {/* Debug info in development */}
       {process.env.NODE_ENV === "development" && (
         <div
           style={{

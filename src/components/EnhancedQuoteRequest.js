@@ -530,11 +530,14 @@ const EnhancedQuoteRequest = () => {
       let data;
       
       if (uploadedFiles.length > 0) {
-        // Path for file uploads
+        // ✅ FIXED: Path for file uploads - removed userRequirements wrapper
         console.log('📁 Submitting with files');
         const requestData = new FormData();
         const payload = mapFormDataToBackend(formData, userProfile);
-        requestData.append('userRequirements', JSON.stringify(payload));
+        
+        // Append the payload directly without userRequirements wrapper
+        requestData.append('quoteRequest', JSON.stringify(payload));
+        
         uploadedFiles.forEach((file, index) => requestData.append(`documents[${index}]`, file));
         
         const response = await fetch(`${PRODUCTION_API_URL}/api/quotes/request`, {

@@ -124,6 +124,7 @@ const mapFormDataToBackend = (formData, userProfile) => {
 
     // System Fields (✅ Required)
     submittedBy: userProfile?._id || userProfile?.userId || userProfile?.id,
+    userId: userProfile?._id || userProfile?.userId || userProfile?.id, // ✅ ADDED: Backend expects userId
     status: 'pending', // ✅ Use valid enum value
     submissionSource: 'web_form',
     

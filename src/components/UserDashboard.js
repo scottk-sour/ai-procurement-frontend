@@ -193,7 +193,7 @@ const UserDashboard = () => {
           fallback: []
         },
         {
-          url: `${API_BASE_URL}/api/quotes/requests?userId=${auth.user?.userId}&page=${requestPage}&limit=${ITEMS_PER_PAGE}`,
+          url: `${API_BASE_URL}/api/quotes/requests?userId=${auth.user?.userId}&submittedBy=${auth.user?.userId}&page=${requestPage}&limit=${ITEMS_PER_PAGE}`,
           key: "requests",
           fallback: []
         },

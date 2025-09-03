@@ -87,6 +87,11 @@ const validateFile = (file) => {
   return { isValid: true, error: null };
 };
 
+// Helper function to get user ID from either field name
+const getUserId = (record) => {
+  return record.userId || record.submittedBy;
+};
+
 const UserDashboard = () => {
   console.log("✅ UserDashboard component initialized");
   console.log("🔧 API_BASE_URL:", API_BASE_URL);
@@ -181,6 +186,7 @@ const UserDashboard = () => {
     setGlobalError(null);
 
     try {
+      const currentUserId = auth.user?.userId;
       const endpoints = [
         {
           url: `${API_BASE_URL}/api/users/recent-activity?page=${activityPage}&limit=${ITEMS_PER_PAGE}`,
@@ -193,7 +199,8 @@ const UserDashboard = () => {
           fallback: []
         },
         {
-          url: `${API_BASE_URL}/api/quotes/requests?userId=${auth.user?.userId}&submittedBy=${auth.user?.userId}&page=${requestPage}&limit=${ITEMS_PER_PAGE}`,
+          // FIXED: Updated to handle both userId and submittedBy fields
+          url: `${API_BASE_URL}/api/quotes/requests?userId=${currentUserId}&submittedBy=${currentUserId}&page=${requestPage}&limit=${ITEMS_PER_PAGE}`,
           key: "requests",
           fallback: []
         },
@@ -242,20 +249,27 @@ const UserDashboard = () => {
         }
       });
 
+      // FIXED: Filter quote requests to only show user's own requests
+      const currentUserId = auth.user?.userId;
+      const userQuoteRequests = newData.requests.filter(request => {
+        const requestUserId = getUserId(request);
+        return requestUserId === currentUserId;
+      });
+
       // Update state with fetched or fallback data
       setRecentActivity(newData.activities);
       setUploadedFiles(newData.files);
-      setQuoteRequests(newData.requests);
+      setQuoteRequests(userQuoteRequests); // Use filtered requests
       setNotifications(newData.notifications);
 
-      // Calculate KPIs
-      const totalQuotes = newData.requests.reduce((sum, r) => sum + (r.matches?.length || 0), 0);
-      const totalSavings = newData.requests.reduce((sum, r) => {
+      // Calculate KPIs using filtered requests
+      const totalQuotes = userQuoteRequests.reduce((sum, r) => sum + (r.matches?.length || 0), 0);
+      const totalSavings = userQuoteRequests.reduce((sum, r) => {
         const bestMatch = r.matches?.[0];
         return sum + (bestMatch?.savings || 0);
       }, 0);
       const pendingNotifications = newData.notifications.filter((n) => n.status === "unread").length;
-      const activeRequests = newData.requests.filter((r) =>
+      const activeRequests = userQuoteRequests.filter((r) =>
         ["pending", "matched"].includes(r.status?.toLowerCase())
       ).length;
 
@@ -266,13 +280,13 @@ const UserDashboard = () => {
         activeRequests,
       });
 
-      // Calculate quote funnel
+      // Calculate quote funnel using filtered requests
       const funnelData = {
-        created: newData.requests.length,
-        pending: newData.requests.filter((r) => r.status?.toLowerCase() === "pending").length,
-        matched: newData.requests.filter((r) => r.status?.toLowerCase() === "matched").length,
-        accepted: newData.requests.filter((r) => r.status?.toLowerCase() === "accepted").length,
-        declined: newData.requests.filter((r) => r.status?.toLowerCase() === "declined").length,
+        created: userQuoteRequests.length,
+        pending: userQuoteRequests.filter((r) => r.status?.toLowerCase() === "pending").length,
+        matched: userQuoteRequests.filter((r) => r.status?.toLowerCase() === "matched").length,
+        accepted: userQuoteRequests.filter((r) => r.status?.toLowerCase() === "accepted").length,
+        declined: userQuoteRequests.filter((r) => r.status?.toLowerCase() === "declined").length,
       };
 
       setQuoteFunnelData(funnelData);
@@ -551,9 +565,15 @@ const UserDashboard = () => {
     [auth?.token]
   );
 
-  // Filtered quote requests
+  // FIXED: Filtered quote requests with proper user ownership check
   const filteredQuoteRequests = useMemo(() => {
+    const currentUserId = auth.user?.userId;
+    
     return quoteRequests.filter((request) => {
+      // Ensure the request belongs to the current user
+      const requestUserId = getUserId(request);
+      const belongsToUser = requestUserId === currentUserId;
+      
       const matchesSearch =
         !searchTerm ||
         request.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -563,9 +583,9 @@ const UserDashboard = () => {
       const matchesStatus =
         statusFilter === "all" || request.status?.toLowerCase() === statusFilter.toLowerCase();
 
-      return matchesSearch && matchesStatus;
+      return belongsToUser && matchesSearch && matchesStatus;
     });
-  }, [quoteRequests, searchTerm, statusFilter]);
+  }, [quoteRequests, searchTerm, statusFilter, auth.user?.userId]);
 
   // Pagination handlers
   const handleNextPage = useCallback((setPage, currentPage) => {

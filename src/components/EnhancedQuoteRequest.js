@@ -502,12 +502,14 @@ const EnhancedQuoteRequest = () => {
     setIsSubmitting(true);
     setErrorMessage('');
     setSuccessMessage('');
+    
     if (!isLoggedIn) {
       alert('You must be logged in to submit a quote request.');
       navigate('/login');
       setIsSubmitting(false);
       return;
     }
+    
     const token = auth?.token;
     const userId = auth?.user?.userId || auth?.user?.id;
     const userProfile = {
@@ -516,43 +518,55 @@ const EnhancedQuoteRequest = () => {
       email: auth?.user?.email,
       token: token
     };
+    
     if (!token || !userId) {
       alert('Authentication failed. Please log in again.');
       navigate('/login');
       setIsSubmitting(false);
       return;
     }
+    
     try {
-      let response, data;
+      let data;
+      
       if (uploadedFiles.length > 0) {
+        // Path for file uploads
         console.log('📁 Submitting with files');
         const requestData = new FormData();
         const payload = mapFormDataToBackend(formData, userProfile);
         requestData.append('userRequirements', JSON.stringify(payload));
         uploadedFiles.forEach((file, index) => requestData.append(`documents[${index}]`, file));
-        response = await fetch(`${PRODUCTION_API_URL}/api/quotes/request`, {
+        
+        const response = await fetch(`${PRODUCTION_API_URL}/api/quotes/request`, {
           method: 'POST',
           headers: { Authorization: `Bearer ${token}` },
           body: requestData,
         });
+        
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          console.error('Backend error:', errorData);
+          throw new Error(errorData.message || errorData.details?.join('; ') || 'Failed to submit quote request');
+        }
+        
+        data = await response.json();
       } else {
+        // ✅ FIXED: Path for JSON-only submissions
         console.log('📄 Submitting JSON only');
-        response = await submitQuoteRequest(formData, userProfile);
+        data = await submitQuoteRequest(formData, userProfile);
       }
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        console.error('Backend error:', errorData);
-        throw new Error(errorData.message || errorData.details?.join('; ') || 'Failed to submit quote request');
-      }
-      data = await response.json();
+      
       setSuccessMessage('Comprehensive quote request submitted successfully!');
       setErrorMessage('');
+      
       navigate(`/quote-details?status=created&Id=${data._id}`, {
         state: {
           quoteData: data,
           hasVendors: data.matchedVendors && data.matchedVendors.length > 0,
         },
       });
+      
+      // Reset form
       setFormData({
         companyName: '', industryType: '', subSector: '', annualRevenue: '', numEmployees: '',
         officeBasedEmployees: '', numLocations: '', primaryBusinessActivity: '', organizationStructure: '',

@@ -49,6 +49,14 @@ const mapFormDataToBackend = (formData, userProfile) => {
     
     numEmployees: Math.max(1, parseInt(formData.numEmployees) || 1),
     numLocations: Math.max(1, parseInt(formData.numLocations) || 1),
+    
+    // ✅ ADDED: Backend expected fields
+    serviceType: formData.serviceType || 'Photocopiers',
+    numOfficeLocations: Math.max(1, parseInt(formData.numLocations) || 1),
+    multipleFloors: formData.multiFloor === 'Yes',
+    price: parseInt(formData.max_lease_price) || 100,
+    minSpeed: parseInt(formData.min_speed) || undefined,
+    type: formData.type || undefined,
 
     // ✅ FIXED: Monthly Volume (Required structure)
     monthlyVolume: {

@@ -568,13 +568,21 @@ const EnhancedQuoteRequest = () => {
         data = await submitQuoteRequest(formData, userProfile);
       }
       
+      console.log('Full backend response:', JSON.stringify(data, null, 2));
+      
       setSuccessMessage('Comprehensive quote request submitted successfully!');
       setErrorMessage('');
       
-      navigate(`/quote-details?status=created&Id=${data._id}`, {
+      // FIXED: Use correct response structure for navigation
+      const quoteRequestId = data.quoteRequest?._id || data._id;
+      
+      navigate(`/quote-details?status=created&Id=${quoteRequestId}`, {
         state: {
-          quoteData: data,
-          hasVendors: data.matchedVendors && data.matchedVendors.length > 0,
+          quoteData: data.quoteRequest || data,
+          quotes: data.quotes || [],
+          aiMatching: data.aiMatching || {},
+          userProfile: userProfile,
+          hasVendors: (data.quotes && data.quotes.length > 0) || (data.matchedVendors && data.matchedVendors.length > 0),
         },
       });
       

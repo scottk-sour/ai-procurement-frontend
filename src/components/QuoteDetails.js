@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import './QuoteDetails.css';
 
 const capitaliseFirstLetter = (str) => {
@@ -15,6 +16,7 @@ const getUserId = (record) => {
 const QuoteDetails = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { auth } = useAuth();
   const [quotes, setQuotes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -31,40 +33,50 @@ const QuoteDetails = () => {
         setLoading(true);
         setError(null);
         
-        // Get user ID by calling the profile API like UserDashboard does
-        console.log('🔍 Getting user profile...');
-        const userResponse = await fetch(`${API_URL}/api/users/profile`, {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`,
-            'Content-Type': 'application/json',
-          },
-        });
+        // FIXED: Use the same approach as UserDashboard - get userId from auth context first
+        const currentUserId = auth?.user?.userId;
+        
+        if (!currentUserId) {
+          console.log('🔍 No userId in auth context, getting user profile...');
+          
+          // Fallback: Get user profile like UserDashboard does
+          const userResponse = await fetch(`${API_URL}/api/users/profile`, {
+            headers: {
+              'Authorization': `Bearer ${auth?.token || localStorage.getItem('token')}`,
+              'Content-Type': 'application/json',
+            },
+          });
 
-        if (!userResponse.ok) {
-          throw new Error('Failed to get user profile. Please log in again.');
+          if (!userResponse.ok) {
+            throw new Error('Failed to get user profile. Please log in again.');
+          }
+
+          const userData = await userResponse.json();
+          console.log('🔍 Complete userData structure:', JSON.stringify(userData, null, 2));
+          
+          // FIXED: Use the same extraction logic as UserDashboard
+          const profileUserId = userData.user?.userId || userData.user?._id || userData.userId || userData._id || userData.id;
+          
+          if (!profileUserId) {
+            console.error('❌ User data structure:', userData);
+            throw new Error('User ID not found in profile. Please log in again.');
+          }
+          
+          console.log('✅ Got userId from profile:', profileUserId);
+          currentUserId = profileUserId;
+        } else {
+          console.log('✅ Got userId from auth context:', currentUserId);
         }
 
-        const userData = await userResponse.json();
-        
-        // FIXED: Correctly extract userId from the nested user object structure
-        const userId = userData.user?.userId || userData.userId || userData._id || userData.id;
-        
-        if (!userId) {
-          console.error('❌ User data structure:', userData);
-          throw new Error('User ID not found in profile. Please log in again.');
-        }
-
-        console.log('✅ Got userId:', userId);
-
-        // FIXED: Updated API call to handle both userId and submittedBy fields
-        const endpoint = `/api/quotes/requests?userId=${userId}&submittedBy=${userId}&page=1&limit=100`;
+        // FIXED: Use the same API endpoint structure as UserDashboard
+        const endpoint = `/api/quotes/requests?userId=${currentUserId}&submittedBy=${currentUserId}&page=1&limit=100`;
         console.log(`🔍 Fetching quotes from: ${API_URL}${endpoint}`);
 
         const response = await fetch(`${API_URL}${endpoint}`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('token')}`,
+            'Authorization': `Bearer ${auth?.token || localStorage.getItem('token')}`,
           },
         });
 
@@ -75,13 +87,13 @@ const QuoteDetails = () => {
         const data = await response.json();
         console.log('✅ Raw response data:', data);
 
-        // Handle the response structure from your backend
-        let quotesData = data.quotes || data.data || data || [];
+        // FIXED: Handle the response structure like UserDashboard does
+        let quotesData = data.requests || data.data || data.quotes || data || [];
         
-        // FIXED: Filter quotes to only show user's own requests
+        // FIXED: Filter quotes to only show user's own requests (same as UserDashboard)
         const userQuotes = quotesData.filter(quote => {
           const quoteUserId = getUserId(quote);
-          return quoteUserId === userId;
+          return quoteUserId === currentUserId;
         });
         
         // Filter by status if not 'all'
@@ -101,8 +113,13 @@ const QuoteDetails = () => {
       }
     };
 
-    fetchQuotes();
-  }, [status, API_URL, navigate]);
+    // Only fetch if authenticated
+    if (auth?.isAuthenticated) {
+      fetchQuotes();
+    } else {
+      navigate('/login', { replace: true });
+    }
+  }, [status, API_URL, navigate, auth]);
 
   const handleStatusFilter = (newStatus) => {
     navigate(`/quote-details?status=${newStatus}`);
@@ -239,7 +256,7 @@ const QuoteDetails = () => {
           <br />
           Status Parameter: {status}
           <br />
-          Correct Endpoint: {API_URL}/api/quotes/requests?userId=...&submittedBy=...
+          Auth User ID: {auth?.user?.userId || 'Not found'}
           <br />
           Total Quotes Found: {quotes.length}
         </div>

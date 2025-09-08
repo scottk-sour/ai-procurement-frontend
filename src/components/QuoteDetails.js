@@ -33,8 +33,8 @@ const QuoteDetails = () => {
         setLoading(true);
         setError(null);
         
-        // FIXED: Use the same approach as UserDashboard - get userId from auth context first
-        const currentUserId = auth?.user?.userId;
+        // FIXED: Use let instead of const to allow reassignment
+        let currentUserId = auth?.user?.userId;
         
         if (!currentUserId) {
           console.log('🔍 No userId in auth context, getting user profile...');
@@ -63,7 +63,7 @@ const QuoteDetails = () => {
           }
           
           console.log('✅ Got userId from profile:', profileUserId);
-          currentUserId = profileUserId;
+          currentUserId = profileUserId; // ✅ Now this works because currentUserId is let, not const
         } else {
           console.log('✅ Got userId from auth context:', currentUserId);
         }

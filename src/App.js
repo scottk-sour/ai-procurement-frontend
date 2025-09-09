@@ -117,6 +117,20 @@ const RequestQuote = loadWithFallback(
   )
 );
 
+// ✅ NEW: Added QuotesResults component for /quotes route
+const QuotesResults = loadWithFallback(
+  () => import("./components/QuotesResults"),
+  () => (
+    <div style={{ padding: '2rem', textAlign: 'center' }}>
+      <h1>Quotes Results</h1>
+      <p>Quotes results page is currently unavailable.</p>
+      <button onClick={() => window.location.href = '/dashboard'}>
+        Return to Dashboard
+      </button>
+    </div>
+  )
+);
+
 const CompareVendors = loadWithFallback(
   () => import("./components/CompareVendors"),
   () => <div style={errorStyle}>Failed to load CompareVendors</div>
@@ -287,6 +301,8 @@ const router = createBrowserRouter(
             { path: "/compare-vendors", element: <CompareVendors /> },
             { path: "/manage-account", element: <AccountSettings /> },
             { path: "/quotes-requested", element: <QuotesRequested /> },
+            // ✅ NEW: Added the missing /quotes route for QuotesResults
+            { path: "/quotes", element: <QuotesResults /> },
             { path: "/quotes/:id", element: <QuoteDetails /> },
             // ✅ ADDED: Missing quote-details route that your form navigates to
             { path: "/quote-details", element: <QuoteDetails /> },

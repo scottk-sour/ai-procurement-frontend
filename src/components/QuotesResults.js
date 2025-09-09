@@ -7,7 +7,6 @@ const QuotesResults = () => {
   const [quotes, setQuotes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [debugInfo, setDebugInfo] = useState({});
   
   const status = searchParams.get('status') || 'all';
   
@@ -20,40 +19,25 @@ const QuotesResults = () => {
       setLoading(true);
       setError(null);
       
-      // Debug info
       const token = localStorage.getItem('token');
       const userId = localStorage.getItem('userId');
       
-      console.log('🔍 QuotesResults Debug Info:');
-      console.log('Token exists:', !!token);
-      console.log('Token length:', token?.length);
-      console.log('UserId:', userId);
-      console.log('Status param:', status);
-      
-      setDebugInfo({
-        hasToken: !!token,
-        tokenLength: token?.length,
-        userId,
-        status
-      });
+      console.log('🔍 QuotesResults fetching with:', { userId, status });
       
       if (!token || !userId) {
         throw new Error('Missing authentication credentials');
       }
 
-      const url = `https://ai-procurement-backend-q35u.onrender.com/api/quotes/requests?userId=${userId}&submittedBy=${userId}&page=1&limit=50`;
-      console.log('🌐 Fetching URL:', url);
-      
-      const response = await fetch(url, {
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+      const response = await fetch(
+        `https://ai-procurement-backend-q35u.onrender.com/api/quotes/requests?userId=${userId}&submittedBy=${userId}&page=1&limit=50`,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          }
         }
-      });
+      );
 
-      console.log('📊 Response status:', response.status);
-      console.log('📊 Response ok:', response.ok);
-      
       if (response.status === 401) {
         localStorage.removeItem('token');
         localStorage.removeItem('userId');
@@ -66,12 +50,12 @@ const QuotesResults = () => {
       }
 
       const data = await response.json();
-      console.log('📄 Raw API Response:', data);
+      console.log('📄 API Response:', data);
       
-      // Try different possible response structures
-      const quotesData = data.requests || data.quotes || data.data || data || [];
+      // Based on your API test results, the data structure is:
+      // { success: true, requests: Array(2), data: Array(2), pagination: {...} }
+      const quotesData = data.requests || data.data || [];
       console.log('📋 Extracted quotes:', quotesData);
-      console.log('📋 Quotes count:', quotesData.length);
       
       setQuotes(quotesData);
       
@@ -83,31 +67,64 @@ const QuotesResults = () => {
     }
   };
 
-  // Debug rendering
+  const getStatusBadge = (quoteStatus) => {
+    const statusColors = {
+      'pending': '#f59e0b',
+      'matched': '#10b981',
+      'completed': '#3b82f6',
+      'rejected': '#ef4444'
+    };
+    
+    return (
+      <span 
+        style={{ 
+          backgroundColor: statusColors[quoteStatus] || '#6b7280',
+          color: 'white',
+          padding: '4px 8px',
+          borderRadius: '12px',
+          fontSize: '12px',
+          fontWeight: 'bold'
+        }}
+      >
+        {quoteStatus?.toUpperCase() || 'UNKNOWN'}
+      </span>
+    );
+  };
+
+  const filterTabs = [
+    { key: 'all', label: 'All Quotes' },
+    { key: 'pending', label: 'Pending' },
+    { key: 'matched', label: 'Matched' },
+    { key: 'completed', label: 'Completed' }
+  ];
+
   if (loading) {
     return (
-      <div style={{ padding: '20px', fontFamily: 'Arial, sans-serif' }}>
-        <h1>Loading Quotes...</h1>
-        <div style={{ background: '#f0f0f0', padding: '10px', marginTop: '10px' }}>
-          <h3>Debug Info:</h3>
-          <pre>{JSON.stringify(debugInfo, null, 2)}</pre>
-        </div>
+      <div style={{ padding: '20px', textAlign: 'center' }}>
+        <h2>Loading quotes...</h2>
+        <p>Fetching your quote requests...</p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div style={{ padding: '20px', fontFamily: 'Arial, sans-serif' }}>
-        <h1>Error Loading Quotes</h1>
-        <div style={{ background: '#ffebee', padding: '10px', color: 'red' }}>
+      <div style={{ padding: '20px' }}>
+        <h2>Error Loading Quotes</h2>
+        <div style={{ background: '#ffebee', padding: '15px', borderRadius: '5px', marginBottom: '15px' }}>
           <p><strong>Error:</strong> {error}</p>
         </div>
-        <div style={{ background: '#f0f0f0', padding: '10px', marginTop: '10px' }}>
-          <h3>Debug Info:</h3>
-          <pre>{JSON.stringify(debugInfo, null, 2)}</pre>
-        </div>
-        <button onClick={fetchQuotes} style={{ marginTop: '10px', padding: '10px 20px' }}>
+        <button 
+          onClick={fetchQuotes}
+          style={{ 
+            background: '#dc3545', 
+            color: 'white', 
+            border: 'none', 
+            padding: '10px 20px', 
+            borderRadius: '5px',
+            cursor: 'pointer'
+          }}
+        >
           Try Again
         </button>
       </div>
@@ -116,48 +133,154 @@ const QuotesResults = () => {
 
   return (
     <div style={{ padding: '20px', fontFamily: 'Arial, sans-serif' }}>
-      <h1>Quotes Results</h1>
-      <p>Status filter: <strong>{status}</strong></p>
-      
-      <div style={{ background: '#f0f0f0', padding: '10px', marginBottom: '20px' }}>
-        <h3>Debug Info:</h3>
-        <pre>{JSON.stringify(debugInfo, null, 2)}</pre>
-        <p><strong>Quotes found:</strong> {quotes.length}</p>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
+        <h1>Quote Requests</h1>
+        <button 
+          onClick={() => navigate('/request-quote')}
+          style={{
+            background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
+            color: 'white',
+            border: 'none',
+            padding: '12px 24px',
+            borderRadius: '8px',
+            fontWeight: '600',
+            cursor: 'pointer'
+          }}
+        >
+          + New Quote Request
+        </button>
+      </div>
+
+      {/* Filter Tabs */}
+      <div style={{ display: 'flex', gap: '8px', marginBottom: '30px', borderBottom: '1px solid #e5e7eb' }}>
+        {filterTabs.map(tab => (
+          <button
+            key={tab.key}
+            onClick={() => navigate(`/quotes?status=${tab.key}`)}
+            style={{
+              padding: '12px 20px',
+              border: 'none',
+              background: status === tab.key ? '#3b82f6' : 'none',
+              color: status === tab.key ? 'white' : '#6b7280',
+              fontWeight: '500',
+              cursor: 'pointer',
+              borderBottom: status === tab.key ? '3px solid #3b82f6' : '3px solid transparent'
+            }}
+          >
+            {tab.label}
+          </button>
+        ))}
       </div>
 
       {quotes.length === 0 ? (
-        <div style={{ background: '#fff3cd', padding: '20px', border: '1px solid #ffeaa7' }}>
+        <div style={{ textAlign: 'center', padding: '60px 20px', background: '#f9fafb', borderRadius: '12px' }}>
           <h3>No quotes found</h3>
-          <p>The API returned {quotes.length} quotes.</p>
-          <p>Check the debug info above to see what data was returned.</p>
+          <p>
+            {status === 'all' 
+              ? "You haven't submitted any quote requests yet." 
+              : `No ${status} quotes found.`
+            }
+          </p>
+          <button 
+            onClick={() => navigate('/request-quote')}
+            style={{
+              background: 'linear-gradient(135deg, #10b981, #059669)',
+              color: 'white',
+              border: 'none',
+              padding: '12px 24px',
+              borderRadius: '8px',
+              fontWeight: '600',
+              cursor: 'pointer'
+            }}
+          >
+            Submit Your First Quote Request
+          </button>
         </div>
       ) : (
-        <div>
-          <h2>Found {quotes.length} quotes:</h2>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: '20px' }}>
           {quotes.map((quote, index) => (
-            <div key={index} style={{ 
-              border: '1px solid #ddd', 
-              padding: '15px', 
-              marginBottom: '10px',
-              background: 'white'
+            <div key={quote._id || index} style={{
+              background: 'white',
+              border: '1px solid #e5e7eb',
+              borderRadius: '12px',
+              padding: '20px',
+              boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
             }}>
-              <h3>Quote #{index + 1}</h3>
-              <div style={{ background: '#f9f9f9', padding: '10px' }}>
-                <pre>{JSON.stringify(quote, null, 2)}</pre>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
+                <h3 style={{ margin: 0, flexGrow: 1, marginRight: '10px' }}>
+                  {quote.companyName || quote.title || 'Quote Request'}
+                </h3>
+                {getStatusBadge(quote.status)}
+              </div>
+              
+              <div style={{ marginBottom: '20px' }}>
+                <p><strong>Company:</strong> {quote.companyName || 'N/A'}</p>
+                <p><strong>Service:</strong> {quote.serviceType || quote.category || 'N/A'}</p>
+                {quote.estimatedPrice && (
+                  <p><strong>Estimated Price:</strong> £{quote.estimatedPrice}</p>
+                )}
+                <p><strong>Submitted:</strong> {
+                  quote.createdAt 
+                    ? new Date(quote.createdAt).toLocaleDateString()
+                    : 'Unknown'
+                }</p>
+                
+                {quote.matchedVendors && quote.matchedVendors.length > 0 && (
+                  <div style={{ 
+                    marginTop: '12px', 
+                    padding: '12px', 
+                    background: '#f0fdf4', 
+                    borderRadius: '6px',
+                    borderLeft: '4px solid #10b981'
+                  }}>
+                    <strong>Matched Vendors:</strong>
+                    <ul style={{ margin: '8px 0 0 0', paddingLeft: '20px' }}>
+                      {quote.matchedVendors.map((vendor, idx) => (
+                        <li key={idx} style={{ margin: '4px 0', color: '#065f46', fontSize: '0.9rem' }}>
+                          {vendor.vendorName} - £{vendor.price}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <button 
+                  onClick={() => navigate(`/quotes/${quote._id}`)}
+                  style={{
+                    flex: 1,
+                    padding: '8px 16px',
+                    background: '#f3f4f6',
+                    color: '#374151',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '6px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  View Details
+                </button>
+                {quote.status === 'matched' && (
+                  <button 
+                    onClick={() => navigate('/compare-vendors', { state: { quote } })}
+                    style={{
+                      flex: 1,
+                      padding: '8px 16px',
+                      background: '#3b82f6',
+                      color: 'white',
+                      border: '1px solid #3b82f6',
+                      borderRadius: '6px',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Compare Vendors
+                  </button>
+                )}
               </div>
             </div>
           ))}
         </div>
       )}
-      
-      <div style={{ marginTop: '20px' }}>
-        <button onClick={() => navigate('/dashboard')} style={{ padding: '10px 20px' }}>
-          Back to Dashboard
-        </button>
-        <button onClick={fetchQuotes} style={{ padding: '10px 20px', marginLeft: '10px' }}>
-          Refresh
-        </button>
-      </div>
     </div>
   );
 };

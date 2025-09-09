@@ -72,9 +72,9 @@ const QuotesResults = () => {
 
       const queryParams = new URLSearchParams({
         userId,
+        submittedBy: userId, // Match your backend parameter
         page: page.toString(),
-        limit: '50',
-        ...(status !== 'all' && { status })
+        limit: '50'
       });
 
       const response = await fetch(

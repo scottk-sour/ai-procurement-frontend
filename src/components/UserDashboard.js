@@ -146,6 +146,11 @@ const UserDashboard = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
 
+  // Get current user ID - FIXED: Single declaration
+  const currentUserId = useMemo(() => {
+    return auth?.user?.userId || auth?.user?.id;
+  }, [auth?.user?.userId, auth?.user?.id]);
+
   // Authentication check
   useEffect(() => {
     if (!auth?.isAuthenticated || auth.user?.role !== "user") {
@@ -180,13 +185,12 @@ const UserDashboard = () => {
 
   // Fetch dashboard data with improved error handling
   const fetchDashboardData = useCallback(async () => {
-    if (!auth?.isAuthenticated || !auth?.token) return;
+    if (!auth?.isAuthenticated || !auth?.token || !currentUserId) return;
 
     setGlobalLoading(true);
     setGlobalError(null);
 
     try {
-      const currentUserId = auth.user?.userId;
       const endpoints = [
         {
           url: `${API_BASE_URL}/api/users/recent-activity?page=${activityPage}&limit=${ITEMS_PER_PAGE}`,
@@ -250,7 +254,6 @@ const UserDashboard = () => {
       });
 
       // FIXED: Filter quote requests to only show user's own requests
-      const currentUserId = auth.user?.userId;
       const userQuoteRequests = newData.requests.filter(request => {
         const requestUserId = getUserId(request);
         return requestUserId === currentUserId;
@@ -298,18 +301,18 @@ const UserDashboard = () => {
     } finally {
       setGlobalLoading(false);
     }
-  }, [auth?.isAuthenticated, auth?.token, auth.user?.userId, requestPage, filePage, activityPage]);
+  }, [auth?.isAuthenticated, auth?.token, currentUserId, requestPage, filePage, activityPage]);
 
   // Initial data fetch and periodic refresh
   useEffect(() => {
-    if (auth?.isAuthenticated && auth.user?.role === "user") {
+    if (auth?.isAuthenticated && auth.user?.role === "user" && currentUserId) {
       fetchUserProfile();
       fetchDashboardData();
 
       const intervalId = setInterval(fetchDashboardData, REFRESH_INTERVAL);
       return () => clearInterval(intervalId);
     }
-  }, [auth?.isAuthenticated, auth.user?.role, fetchUserProfile, fetchDashboardData]);
+  }, [auth?.isAuthenticated, auth.user?.role, currentUserId, fetchUserProfile, fetchDashboardData]);
 
   // File upload handlers
   const handleFileChange = useCallback(
@@ -478,8 +481,14 @@ const UserDashboard = () => {
 
   // ✅ FIXED: Navigation handlers - Updated to use correct route
   const handleNewQuoteRequest = useCallback(() => {
-    navigate("/request-quote"); // ✅ Changed from "/quotes/new" to "/request-quote"
+    navigate("/request-quote");
     console.log("🚀 Navigating to quote request form");
+  }, [navigate]);
+
+  // FIXED: Navigate to quotes with status filter
+  const handleQuotesNavigation = useCallback((status = 'all') => {
+    navigate(`/quotes?status=${status}`);
+    console.log("🚀 Navigating to quotes with status:", status);
   }, [navigate]);
 
   const handleLogout = useCallback(() => {
@@ -567,8 +576,6 @@ const UserDashboard = () => {
 
   // FIXED: Filtered quote requests with proper user ownership check
   const filteredQuoteRequests = useMemo(() => {
-    const currentUserId = auth.user?.userId;
-    
     return quoteRequests.filter((request) => {
       // Ensure the request belongs to the current user
       const requestUserId = getUserId(request);
@@ -585,7 +592,7 @@ const UserDashboard = () => {
 
       return belongsToUser && matchesSearch && matchesStatus;
     });
-  }, [quoteRequests, searchTerm, statusFilter, auth.user?.userId]);
+  }, [quoteRequests, searchTerm, statusFilter, currentUserId]);
 
   // Pagination handlers
   const handleNextPage = useCallback((setPage, currentPage) => {
@@ -840,7 +847,6 @@ const UserDashboard = () => {
                     <FaSpinner />
                   </div>
                   <div className="kpi-content">
-                    <h3>Active Requests</h3>
                     <p className="kpi-value">{kpiData.activeRequests}</p>
                     <span className="kpi-label">In Progress</span>
                   </div>
@@ -865,7 +871,7 @@ const UserDashboard = () => {
               <QuoteFunnel
                 data={quoteFunnelData}
                 isLoading={globalLoading}
-                onStatusClick={(status) => console.log("📊 QuoteFunnel clicked:", status)}
+                onStatusClick={handleQuotesNavigation}
                 data-testid="quote-funnel"
               />
             </section>

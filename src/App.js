@@ -102,7 +102,7 @@ const UserDashboard = loadWithFallback(
   () => <div style={errorStyle}>Failed to load UserDashboard</div>
 );
 
-// ✅ FIXED: Simplified RequestQuote to use EnhancedQuoteRequest directly
+// FIXED: Simplified RequestQuote to use EnhancedQuoteRequest directly
 const RequestQuote = loadWithFallback(
   () => import("./components/EnhancedQuoteRequest"),
   () => (
@@ -117,7 +117,7 @@ const RequestQuote = loadWithFallback(
   )
 );
 
-// ✅ NEW: Added QuotesResults component for /quotes route
+// FIXED: QuotesResults component for /quotes route
 const QuotesResults = loadWithFallback(
   () => import("./components/QuotesResults"),
   () => (
@@ -144,19 +144,8 @@ const QuotesRequested = loadWithFallback(
   () => <div style={errorStyle}>Failed to load QuotesRequested</div>
 );
 
-// ✅ FIXED: QuoteDetails with better fallback
-const QuoteDetails = loadWithFallback(
-  () => import("./components/QuoteDetails"),
-  () => (
-    <div style={{ padding: '2rem', textAlign: 'center' }}>
-      <h1>Quote Details</h1>
-      <p>Quote details page is currently unavailable.</p>
-      <button onClick={() => window.location.href = '/dashboard'}>
-        Return to Dashboard
-      </button>
-    </div>
-  )
-);
+// REMOVED: QuoteDetails component - using QuotesResults for individual quote viewing
+// This eliminates the conflicting navigation paths
 
 // Vendor Dashboard
 const VendorDashboard = loadWithFallback(
@@ -270,7 +259,7 @@ const Layout = () => (
   </AuthProvider>
 );
 
-// App Routes
+// FIXED: App Routes - Removed conflicting routes
 const router = createBrowserRouter(
   [
     {
@@ -301,11 +290,10 @@ const router = createBrowserRouter(
             { path: "/compare-vendors", element: <CompareVendors /> },
             { path: "/manage-account", element: <AccountSettings /> },
             { path: "/quotes-requested", element: <QuotesRequested /> },
-            // ✅ NEW: Added the missing /quotes route for QuotesResults
+            // FIXED: Single quotes route for all quote viewing
             { path: "/quotes", element: <QuotesResults /> },
-            { path: "/quotes/:id", element: <QuoteDetails /> },
-            // ✅ ADDED: Missing quote-details route that your form navigates to
-            { path: "/quote-details", element: <QuoteDetails /> },
+            { path: "/quotes/:id", element: <QuotesResults /> },
+            // REMOVED: Conflicting /quote-details route
           ],
         },
         {

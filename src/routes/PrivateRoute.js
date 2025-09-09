@@ -1,61 +1,45 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
-import { getAuthToken } from '../utils/auth'; // Must return user token
-
-const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:5000";
+import { useAuth } from '../context/AuthContext';
 
 const PrivateRoute = () => {
-  const [isLoggedIn, setLoggedIn] = useState(null); // null = loading, false = not logged in, true = logged in
-  const [error, setError] = useState(null);
+  const { auth } = useAuth();
 
-  useEffect(() => {
-    const checkAuth = async () => {
-      const token = getAuthToken();
-      console.log("🔐 Stored Token from localStorage =", token);
-      if (!token) {
-        setLoggedIn(false);
-        return;
-      }
-      try {
-        const res = await fetch(`${API_BASE}/api/auth/verify`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        // Optionally check for role here if you want
-        if (res.ok) {
-          setLoggedIn(true);
-        } else {
-          setLoggedIn(false);
-        }
-      } catch (error) {
-        setError('Authentication failed. Please log in again.');
-        setLoggedIn(false);
-      }
-    };
-    checkAuth();
-  }, []);
-
-  if (isLoggedIn === null) {
-    // Loading state
+  // Show loading while auth is being verified
+  if (auth.isLoading) {
     return (
-      <div className="loading-spinner" style={{ textAlign: "center", marginTop: "3rem" }}>
-        Loading User Dashboard...
+      <div className="loading-spinner" style={{ 
+        textAlign: "center", 
+        marginTop: "3rem",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        minHeight: "50vh"
+      }}>
+        <div style={{
+          width: "40px",
+          height: "40px",
+          border: "4px solid #f3f3f3",
+          borderTop: "4px solid #3498db",
+          borderRadius: "50%",
+          animation: "spin 1s linear infinite",
+          marginBottom: "1rem"
+        }}></div>
+        <p>Verifying authentication...</p>
       </div>
     );
   }
 
-  if (error) {
-    // Error state
-    return (
-      <div className="error-message" style={{ color: "red", textAlign: "center", marginTop: "2rem" }}>
-        <p>{error}</p>
-        <button onClick={() => window.location.reload()}>Retry</button>
-      </div>
-    );
+  // Redirect to login if not authenticated
+  if (!auth.isAuthenticated) {
+    console.log('🔒 User not authenticated, redirecting to login');
+    return <Navigate to="/login" replace />;
   }
 
-  // Authenticated: render child route
-  // Not authenticated: redirect to /login
-  return isLoggedIn ? <Outlet /> : <Navigate to="/login" replace />;
+  // User is authenticated, render the protected route
+  console.log('✅ User authenticated, rendering protected route');
+  return <Outlet />;
 };
 
 export default PrivateRoute;

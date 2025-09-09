@@ -32,64 +32,49 @@ const QuotesResults = () => {
         throw new Error('Missing authentication credentials');
       }
 
-      // If viewing individual quote
-      if (id) {
-        const response = await fetch(`${API_URL}/api/quotes/requests/${id}`, {
+      // FIXED: Always fetch all quotes, then filter client-side for individual quote viewing
+      const response = await fetch(
+        `${API_URL}/api/quotes/requests?userId=${userId}&submittedBy=${userId}&page=1&limit=50`,
+        {
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`
           }
-        });
-
-        if (response.status === 401) {
-          localStorage.removeItem('token');
-          localStorage.removeItem('userId');
-          navigate('/login');
-          return;
         }
+      );
 
-        if (!response.ok) {
-          throw new Error(`API Error: ${response.status} ${response.statusText}`);
+      if (response.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('userId');
+        navigate('/login');
+        return;
+      }
+
+      if (!response.ok) {
+        throw new Error(`API Error: ${response.status} ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      console.log('📄 API Response:', data);
+      
+      const quotesData = data.requests || data.data || [];
+      console.log('📋 Extracted quotes:', quotesData);
+      
+      // If viewing individual quote, filter by ID
+      if (id) {
+        const individualQuote = quotesData.find(quote => quote._id === id);
+        if (individualQuote) {
+          setQuotes([individualQuote]);
+        } else {
+          setError('Quote not found or you do not have access to it.');
+          setQuotes([]);
         }
-
-        const data = await response.json();
-        console.log('📄 Individual quote response:', data);
-        setQuotes([data]);
       } else {
-        // Fetch all quotes for user
-        const response = await fetch(
-          `${API_URL}/api/quotes/requests?userId=${userId}&submittedBy=${userId}&page=1&limit=50`,
-          {
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${token}`
-            }
-          }
-        );
-
-        if (response.status === 401) {
-          localStorage.removeItem('token');
-          localStorage.removeItem('userId');
-          navigate('/login');
-          return;
-        }
-
-        if (!response.ok) {
-          throw new Error(`API Error: ${response.status} ${response.statusText}`);
-        }
-
-        const data = await response.json();
-        console.log('📄 API Response:', data);
-        
-        const quotesData = data.requests || data.data || [];
-        console.log('📋 Extracted quotes:', quotesData);
-        
         // Filter by status if not 'all'
         let filteredQuotes = quotesData;
         if (status && status !== 'all') {
           filteredQuotes = quotesData.filter(quote => quote.status === status);
         }
-        
         setQuotes(filteredQuotes);
       }
       

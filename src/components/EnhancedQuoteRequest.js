@@ -401,6 +401,7 @@ const EnhancedQuoteRequest = () => {
   });
   const [uploadedFiles, setUploadedFiles] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submissionStatus, setSubmissionStatus] = useState('idle'); // idle, success, error
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   const [suggestedMachines, setSuggestedMachines] = useState([]);
@@ -509,6 +510,7 @@ const EnhancedQuoteRequest = () => {
       return;
     }
     setIsSubmitting(true);
+    setSubmissionStatus('idle');
     setErrorMessage('');
     setSuccessMessage('');
     
@@ -568,23 +570,32 @@ const EnhancedQuoteRequest = () => {
         data = await submitQuoteRequest(formData, userProfile);
       }
       
+      console.log('✅ Quote request submitted successfully:', data);
       console.log('Full backend response:', JSON.stringify(data, null, 2));
       
-      setSuccessMessage('Comprehensive quote request submitted successfully!');
+      // Show success status
+      setSubmissionStatus('success');
+      setSuccessMessage('Quote request submitted successfully! AI matching generated quotes. Redirecting to your quotes page...');
       setErrorMessage('');
       
-      // FIXED: Use correct response structure for navigation
-      const quoteRequestId = data.quoteRequest?._id || data._id;
+      // ✅ FIXED: Navigate to quotes page instead of quote-details
+      // Check if quotes were generated and navigate accordingly
+      const hasQuotes = data.aiMatching?.status === 'matched' || 
+                       (data.quotes && data.quotes.length > 0) || 
+                       data.aiMatching?.quotesGenerated > 0;
       
-      navigate(`/quote-details?status=created&Id=${quoteRequestId}`, {
-        state: {
-          quoteData: data.quoteRequest || data,
-          quotes: data.quotes || [],
-          aiMatching: data.aiMatching || {},
-          userProfile: userProfile,
-          hasVendors: (data.quotes && data.quotes.length > 0) || (data.matchedVendors && data.matchedVendors.length > 0),
-        },
-      });
+      // Wait 2 seconds to show success message, then navigate
+      setTimeout(() => {
+        if (hasQuotes) {
+          // Navigate to quotes with matched status to show the new quotes
+          console.log('🎯 Navigating to quotes page with matched status');
+          navigate('/quotes?status=matched');
+        } else {
+          // Navigate to all quotes if no matches yet
+          console.log('🎯 Navigating to quotes page with all status');
+          navigate('/quotes?status=all');
+        }
+      }, 2000);
       
       // Reset form
       setFormData({
@@ -610,7 +621,8 @@ const EnhancedQuoteRequest = () => {
       setUploadedFiles([]);
       setStep(1);
     } catch (error) {
-      console.error('Error submitting quote request:', error.message);
+      console.error('❌ Error submitting quote request:', error.message);
+      setSubmissionStatus('error');
       setErrorMessage(`Failed to submit: ${error.message}`);
       setSuccessMessage('');
     } finally {
@@ -1214,16 +1226,42 @@ const EnhancedQuoteRequest = () => {
     <div className="request-quote-container">
       <h2>Comprehensive Equipment Assessment</h2>
       <p className="text-center text-muted">Professional procurement analysis - 15-20 minutes</p>
-      {errorMessage && (
+      
+      {/* Success/Error Messages */}
+      {submissionStatus === 'success' && (
+        <div className="success-message" role="alert" style={{
+          background: 'linear-gradient(135deg, #10b981, #059669)',
+          color: 'white',
+          padding: '16px',
+          borderRadius: '8px',
+          marginBottom: '20px',
+          textAlign: 'center',
+          fontWeight: '600'
+        }}>
+          ✅ {successMessage}
+        </div>
+      )}
+      
+      {submissionStatus === 'error' && errorMessage && (
+        <div className="error-message" role="alert" style={{
+          background: 'linear-gradient(135deg, #ef4444, #dc2626)',
+          color: 'white',
+          padding: '16px',
+          borderRadius: '8px',
+          marginBottom: '20px',
+          textAlign: 'center',
+          fontWeight: '600'
+        }}>
+          ❌ {errorMessage}
+        </div>
+      )}
+      
+      {submissionStatus === 'idle' && errorMessage && (
         <p className="error-message" role="alert">
           {errorMessage}
         </p>
       )}
-      {successMessage && (
-        <p className="success-message" role="alert">
-          {successMessage}
-        </p>
-      )}
+      
       <div className="progress-bar">
         <span>Step {step} of 9 - {Math.round((step / 9) * 100)}% Complete</span>
         <div style={{ width: `${(step / 9) * 100}%` }} className="progress" />

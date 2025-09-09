@@ -3,6 +3,10 @@
     {
       "source": "/api/(.*)",
       "destination": "https://ai-procurement-backend-q35u.onrender.com/api/$1"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ],
   "headers": [

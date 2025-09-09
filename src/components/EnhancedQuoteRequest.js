@@ -5,7 +5,7 @@ import './EnhancedQuoteRequest.css';
 import { useAuth } from '../context/AuthContext';
 import { motion } from 'framer-motion';
 
-// FIXED: Hard-coded production URL
+// Hard-coded production URL
 const PRODUCTION_API_URL = 'https://ai-procurement-backend-q35u.onrender.com';
 
 // AI-driven copier suggestion function using an external API
@@ -36,21 +36,111 @@ const suggestCopiers = async (data) => {
   }
 };
 
-// FIXED: Map form data to backend Quote schema
+// Helper functions for data mapping
+const mapIndustryType = (industry) => {
+  const industryMapping = {
+    'Technology': 'Other',
+    'Healthcare': 'Healthcare',
+    'Legal': 'Legal', 
+    'Education': 'Education',
+    'Finance': 'Finance',
+    'Government': 'Government',
+    'Manufacturing': 'Manufacturing',
+    'Retail': 'Retail',
+    'Real Estate': 'Other',
+    'Non-profit': 'Other'
+  };
+  return industryMapping[industry] || 'Other';
+};
+
+const mapPaperSize = (size) => {
+  const sizeMapping = {
+    'A4': 'A4',
+    'A3': 'A3', 
+    'A2': 'A3',
+    'SRA3': 'SRA3'
+  };
+  return sizeMapping[size] || 'A4';
+};
+
+const mapPriority = (priority) => {
+  const priorityMapping = {
+    'cost': 'cost',
+    'quality': 'quality', 
+    'speed': 'speed',
+    'reliability': 'reliability',
+    'balanced': 'balanced'
+  };
+  return priorityMapping[priority?.toLowerCase()] || 'cost';
+};
+
+const mapEquipmentAge = (age) => {
+  const ageMapping = {
+    'Less than 1 year': 'Under 2 years',
+    '1-2 years': 'Under 2 years',
+    '2-5 years': '2-5 years',
+    '3-4 years': '2-5 years', 
+    '5-6 years': '5+ years',
+    'Over 6 years': '5+ years',
+    'Mixed ages': '5+ years',
+    '': 'No current machine'
+  };
+  return ageMapping[age] || 'No current machine';
+};
+
+const mapTimeframe = (timeline) => {
+  const timelineMapping = {
+    'ASAP': 'Immediately',
+    'As soon as possible': 'Immediately',
+    '1-2 months': 'Within 1 month',
+    '3-6 months': '1-3 months',
+    '6-12 months': '3+ months',
+    '12+ months': '3+ months'
+  };
+  return timelineMapping[timeline] || 'Within 1 month';
+};
+
+const mapFeatures = (features) => {
+  const validFeatures = [
+    'Duplex Printing', 'Wireless Printing', 'Mobile Printing', 'Cloud Integration',
+    'Advanced Security', 'Large Paper Trays', 'High Capacity Toner',
+    'Color Printing', 'Scanning', 'Fax', 'Copying', 'Email Integration',
+    'Stapling', 'Hole Punch', 'Booklet Making', 'Large Capacity Trays',
+    'Touch Screen', 'Auto Document Feeder', 'ID Card Copying'
+  ];
+  
+  const featureMapping = {
+    'High printing costs': 'Advanced Security',
+    'Frequent equipment breakdowns': 'High Capacity Toner',
+    'Poor print quality': 'Color Printing',
+    'Slow printing speeds': 'Duplex Printing',
+    'Limited functionality': 'Mobile Printing',
+    'Complex user interface': 'Touch Screen',
+    'Poor vendor support': 'Cloud Integration',
+    'Supply chain issues': 'Large Paper Trays',
+    'Security concerns': 'Advanced Security',
+    'Integration problems': 'Email Integration'
+  };
+  
+  return features.map(feature => featureMapping[feature] || feature)
+                 .filter(feature => validFeatures.includes(feature));
+};
+
+// Map form data to backend Quote schema
 const mapFormDataToBackend = (formData, userProfile) => {
   return {
-    // Basic Company Details (✅ Required fields)
+    // Basic Company Details (Required fields)
     companyName: formData.companyName || 'Unknown Company',
     contactName: userProfile?.name || userProfile?.username || formData.contactName || 'Unknown Contact',
     email: userProfile?.email || formData.email || 'unknown@example.com',
     
-    // ✅ FIXED: Use valid enum values only
+    // Use valid enum values only
     industryType: mapIndustryType(formData.industryType),
     
     numEmployees: Math.max(1, parseInt(formData.numEmployees) || 1),
     numLocations: Math.max(1, parseInt(formData.numLocations) || 1),
     
-    // ✅ ADDED: Backend expected fields
+    // Backend expected fields
     serviceType: formData.serviceType || 'Photocopiers',
     numOfficeLocations: Math.max(1, parseInt(formData.numLocations) || 1),
     multipleFloors: formData.multiFloor === 'Yes',
@@ -58,14 +148,14 @@ const mapFormDataToBackend = (formData, userProfile) => {
     minSpeed: parseInt(formData.min_speed) || undefined,
     type: formData.type || undefined,
 
-    // ✅ FIXED: Monthly Volume (Required structure)
+    // Monthly Volume (Required structure)
     monthlyVolume: {
       mono: parseInt(formData.monthlyVolume?.mono) || 0,
       colour: parseInt(formData.monthlyVolume?.colour) || 0,
       total: (parseInt(formData.monthlyVolume?.mono) || 0) + (parseInt(formData.monthlyVolume?.colour) || 0) || 1
     },
 
-    // ✅ FIXED: Paper Requirements (Required structure)
+    // Paper Requirements (Required structure)
     paperRequirements: {
       primarySize: mapPaperSize(formData.type || formData.paperSize),
       additionalSizes: [],
@@ -73,7 +163,7 @@ const mapFormDataToBackend = (formData, userProfile) => {
       specialPaperTypes: []
     },
 
-    // ✅ FIXED: Current Setup (Required structure) 
+    // Current Setup (Required structure) 
     currentSetup: {
       machineAge: mapEquipmentAge(formData.currentEquipmentAge),
       currentSupplier: formData.serviceProvider || undefined,
@@ -88,7 +178,7 @@ const mapFormDataToBackend = (formData, userProfile) => {
       satisfactionLevel: undefined
     },
 
-    // ✅ FIXED: Requirements (Required structure)
+    // Requirements (Required structure)
     requirements: {
       priority: mapPriority(formData.preference),
       essentialFeatures: mapFeatures(formData.required_functions || []),
@@ -98,7 +188,7 @@ const mapFormDataToBackend = (formData, userProfile) => {
       environmentalConcerns: formData.sustainabilityGoals ? true : false
     },
 
-    // ✅ FIXED: Budget (Required structure)
+    // Budget (Required structure)
     budget: {
       maxLeasePrice: parseInt(formData.max_lease_price) || 100,
       preferredTerm: formData.contractLengthPreference || '36 months',
@@ -106,13 +196,13 @@ const mapFormDataToBackend = (formData, userProfile) => {
       includeConsumables: true
     },
 
-    // ✅ FIXED: Urgency (Required structure)
+    // Urgency (Required structure)
     urgency: {
       timeframe: mapTimeframe(formData.implementationTimeline),
       reason: formData.currentPainPoints || undefined
     },
 
-    // ✅ FIXED: Location (Required structure)
+    // Location (Required structure)
     location: {
       postcode: formData.postcode || 'Unknown',
       city: undefined,
@@ -130,10 +220,10 @@ const mapFormDataToBackend = (formData, userProfile) => {
       processedAt: undefined
     },
 
-    // System Fields (✅ Required)
+    // System Fields (Required)
     submittedBy: userProfile?._id || userProfile?.userId || userProfile?.id,
-    userId: userProfile?._id || userProfile?.userId || userProfile?.id, // ✅ ADDED: Backend expects userId
-    status: 'pending', // ✅ Use valid enum value
+    userId: userProfile?._id || userProfile?.userId || userProfile?.id,
+    status: 'pending',
     submissionSource: 'web_form',
     
     // Optional fields with safe defaults
@@ -191,113 +281,12 @@ const mapFormDataToBackend = (formData, userProfile) => {
   };
 };
 
-// Helper function: map frontend industry to valid backend enum
-const mapIndustryType = (industry) => {
-  // Valid enum values from schema: 'Healthcare', 'Legal', 'Education', 'Finance', 'Government', 'Manufacturing', 'Retail', 'Other'
-  const industryMapping = {
-    'Technology': 'Other', // ✅ Map invalid "Technology" to "Other"
-    'Healthcare': 'Healthcare',
-    'Legal': 'Legal', 
-    'Education': 'Education',
-    'Finance': 'Finance',
-    'Government': 'Government',
-    'Manufacturing': 'Manufacturing',
-    'Retail': 'Retail',
-    'Real Estate': 'Other',
-    'Non-profit': 'Other'
-  };
-  return industryMapping[industry] || 'Other';
-};
-
-// Helper function: map frontend paper size to valid backend enum  
-const mapPaperSize = (size) => {
-  // Valid enum values: 'A4', 'A3', 'SRA3'
-  const sizeMapping = {
-    'A4': 'A4',
-    'A3': 'A3', 
-    'A2': 'A3', // Map A2 to A3 as fallback
-    'SRA3': 'SRA3'
-  };
-  return sizeMapping[size] || 'A4'; // Default to A4
-};
-
-// Helper function: map frontend priority to valid backend enum
-const mapPriority = (priority) => {
-  // Valid enum values: 'speed', 'quality', 'reliability', 'cost', 'balanced'
-  const priorityMapping = {
-    'cost': 'cost',
-    'quality': 'quality', 
-    'speed': 'speed',
-    'reliability': 'reliability',
-    'balanced': 'balanced'
-  };
-  return priorityMapping[priority?.toLowerCase()] || 'cost';
-};
-
-// Helper function: map equipment age to valid backend enum
-const mapEquipmentAge = (age) => {
-  // Valid enum values: 'Under 2 years', '2-5 years', '5+ years', 'No current machine'
-  const ageMapping = {
-    'Less than 1 year': 'Under 2 years',
-    '1-2 years': 'Under 2 years',
-    '2-5 years': '2-5 years',
-    '3-4 years': '2-5 years', 
-    '5-6 years': '5+ years',
-    'Over 6 years': '5+ years',
-    'Mixed ages': '5+ years',
-    '': 'No current machine'
-  };
-  return ageMapping[age] || 'No current machine';
-};
-
-// Helper function: map timeframe to valid backend enum
-const mapTimeframe = (timeline) => {
-  // Valid enum values: 'Immediately', 'Within 1 month', '1-3 months', '3+ months'
-  const timelineMapping = {
-    'ASAP': 'Immediately',
-    'As soon as possible': 'Immediately',
-    '1-2 months': 'Within 1 month',
-    '3-6 months': '1-3 months',
-    '6-12 months': '3+ months',
-    '12+ months': '3+ months'
-  };
-  return timelineMapping[timeline] || 'Within 1 month';
-};
-
-// Helper function: map features to valid backend enum values
-const mapFeatures = (features) => {
-  // Valid enum values from schema
-  const validFeatures = [
-    'Duplex Printing', 'Wireless Printing', 'Mobile Printing', 'Cloud Integration',
-    'Advanced Security', 'Large Paper Trays', 'High Capacity Toner',
-    'Color Printing', 'Scanning', 'Fax', 'Copying', 'Email Integration',
-    'Stapling', 'Hole Punch', 'Booklet Making', 'Large Capacity Trays',
-    'Touch Screen', 'Auto Document Feeder', 'ID Card Copying'
-  ];
-  
-  // Map common frontend values to backend enum values
-  const featureMapping = {
-    'High printing costs': 'Advanced Security', // Map problems to solutions
-    'Frequent equipment breakdowns': 'High Capacity Toner',
-    'Poor print quality': 'Color Printing',
-    'Slow printing speeds': 'Duplex Printing',
-    'Limited functionality': 'Mobile Printing',
-    'Complex user interface': 'Touch Screen',
-    'Poor vendor support': 'Cloud Integration',
-    'Supply chain issues': 'Large Paper Trays',
-    'Security concerns': 'Advanced Security',
-    'Integration problems': 'Email Integration'
-  };
-  
-  return features.map(feature => featureMapping[feature] || feature)
-                 .filter(feature => validFeatures.includes(feature));
-};
-
-// Submission function
+// FIXED: Submission function - NO NAVIGATION LOGIC
 const submitQuoteRequest = async (formData, userProfile) => {
   try {
     const payload = mapFormDataToBackend(formData, userProfile);
     console.log('🚀 Submitting payload:', JSON.stringify(payload, null, 2));
+    
     const response = await fetch(`${PRODUCTION_API_URL}/api/quotes/request`, {
       method: 'POST',
       headers: {
@@ -306,14 +295,16 @@ const submitQuoteRequest = async (formData, userProfile) => {
       },
       body: JSON.stringify(payload),
     });
+    
     if (!response.ok) {
       const errorData = await response.json();
       console.error('❌ Backend validation error:', errorData);
       throw new Error(errorData.message || 'Validation failed');
     }
+    
     const result = await response.json();
     console.log('✅ Quote request submitted successfully:', result);
-    return result;
+    return result; // ONLY return data, no navigation
   } catch (error) {
     console.error('⚠️ Error submitting quote request:', error);
     throw error;
@@ -503,6 +494,7 @@ const EnhancedQuoteRequest = () => {
 
   const handleBack = () => setStep((prev) => prev - 1);
 
+  // FIXED: Unified handleSubmit function with single navigation path
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateStep(9)) {
@@ -541,14 +533,12 @@ const EnhancedQuoteRequest = () => {
       let data;
       
       if (uploadedFiles.length > 0) {
-        // ✅ FIXED: Path for file uploads - removed userRequirements wrapper
+        // File upload path
         console.log('📁 Submitting with files');
         const requestData = new FormData();
         const payload = mapFormDataToBackend(formData, userProfile);
         
-        // Append the payload directly without userRequirements wrapper
         requestData.append('quoteRequest', JSON.stringify(payload));
-        
         uploadedFiles.forEach((file, index) => requestData.append(`documents[${index}]`, file));
         
         const response = await fetch(`${PRODUCTION_API_URL}/api/quotes/request`, {
@@ -565,36 +555,22 @@ const EnhancedQuoteRequest = () => {
         
         data = await response.json();
       } else {
-        // ✅ FIXED: Path for JSON-only submissions
+        // JSON-only path
         console.log('📄 Submitting JSON only');
         data = await submitQuoteRequest(formData, userProfile);
       }
       
       console.log('✅ Quote request submitted successfully:', data);
-      console.log('Full backend response:', JSON.stringify(data, null, 2));
       
       // Show success status
       setSubmissionStatus('success');
-      setSuccessMessage('Quote request submitted successfully! AI matching generated quotes. Redirecting to your quotes page...');
+      setSuccessMessage('Quote request submitted successfully! AI matching in progress. Redirecting to your quotes page...');
       setErrorMessage('');
       
-      // ✅ FIXED: Navigate to quotes page instead of quote-details
-      // Check if quotes were generated and navigate accordingly
-      const hasQuotes = data.aiMatching?.status === 'matched' || 
-                       (data.quotes && data.quotes.length > 0) || 
-                       data.aiMatching?.quotesGenerated > 0;
-      
-      // Wait 2 seconds to show success message, then navigate
+      // FIXED: Single navigation path - always go to /quotes
       setTimeout(() => {
-        if (hasQuotes) {
-          // Navigate to quotes with matched status to show the new quotes
-          console.log('🎯 Navigating to quotes page with matched status');
-          navigate('/quotes?status=matched');
-        } else {
-          // Navigate to all quotes if no matches yet
-          console.log('🎯 Navigating to quotes page with all status');
-          navigate('/quotes?status=all');
-        }
+        console.log('🎯 Navigating to quotes page');
+        navigate('/quotes');
       }, 2000);
       
       // Reset form

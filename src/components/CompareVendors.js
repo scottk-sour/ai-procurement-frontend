@@ -50,6 +50,8 @@ const CompareVendors = () => {
   const [quoteCompanyName, setQuoteCompanyName] = useState("");
   const [hasFetched, setHasFetched] = useState(false);
   const [isSubmittingQuotes, setIsSubmittingQuotes] = useState(false);
+  const [recommendationType, setRecommendationType] = useState('unknown');
+  const [aiPowered, setAiPowered] = useState(false);
 
   // Authentication check
   useEffect(() => {
@@ -65,7 +67,7 @@ const CompareVendors = () => {
     }
   }, [quote, navigate, auth?.isAuthenticated]);
 
-  // Fetch vendors with improved error handling
+  // Fetch vendors with improved error handling and debugging
   const fetchVendors = useCallback(async () => {
     if (hasFetched || !auth?.token || !auth?.user?.userId) return;
     
@@ -77,11 +79,15 @@ const CompareVendors = () => {
       
       console.log('🔍 Fetching vendor recommendations for user:', userId);
       
-      const vendorsResponse = await fetch(`${API_BASE_URL}/api/vendors/recommend?userId=${userId}`, {
+      // Add cache busting and additional headers
+      const vendorsResponse = await fetch(`${API_BASE_URL}/api/vendors/recommend?userId=${userId}&t=${Date.now()}`, {
         method: 'GET',
         headers: { 
           "Content-Type": "application/json", 
-          Authorization: `Bearer ${auth.token}` 
+          Authorization: `Bearer ${auth.token}`,
+          "Cache-Control": "no-cache, no-store, must-revalidate",
+          "Pragma": "no-cache",
+          "Expires": "0"
         },
       });
 
@@ -94,39 +100,111 @@ const CompareVendors = () => {
       }
       
       const responseData = await vendorsResponse.json();
-      console.log('📋 Vendor recommendations response:', responseData);
+      console.log('📋 Full vendor response structure:', JSON.stringify(responseData, null, 2));
       
-      const recommendations = responseData.recommendations || responseData.data || [];
+      // Enhanced data extraction with better error handling
+      let recommendations = [];
+      let responseType = 'unknown';
+      let isPoweredByAI = false;
       
-      if (!Array.isArray(recommendations)) {
-        throw new Error('Invalid recommendations data format');
+      // Check for different response formats
+      if (responseData.data && Array.isArray(responseData.data)) {
+        recommendations = responseData.data;
+        responseType = responseData.metadata?.recommendationType || 'array_data';
+        isPoweredByAI = responseData.metadata?.aiPowered || false;
+      } else if (responseData.recommendations && Array.isArray(responseData.recommendations)) {
+        recommendations = responseData.recommendations;
+        responseType = responseData.metadata?.recommendationType || 'array_recommendations';
+        isPoweredByAI = responseData.metadata?.aiPowered || false;
+      } else if (Array.isArray(responseData)) {
+        recommendations = responseData;
+        responseType = 'direct_array';
+        isPoweredByAI = false;
+      } else if (responseData.data && typeof responseData.data === 'object') {
+        // Handle case where data is an object instead of array
+        console.warn('⚠️ Response data is object, not array:', responseData.data);
+        // Try to extract array from object properties
+        const possibleArrays = Object.values(responseData.data).filter(val => Array.isArray(val));
+        if (possibleArrays.length > 0) {
+          recommendations = possibleArrays[0];
+          responseType = 'extracted_from_object';
+        } else {
+          throw new Error('Response data is not in expected array format');
+        }
+      } else {
+        console.error('❌ Unexpected response format:', responseData);
+        throw new Error('Invalid response format - expected array of recommendations');
       }
 
-      const formattedVendors = recommendations.map((rec, index) => ({
-        id: rec.id || `vendor-${index}`,
-        vendor: rec.vendorName || rec.name || `Vendor ${index + 1}`,
-        price: typeof rec.price === 'number' ? rec.price : parseFloat(rec.price) || 0,
-        speed: typeof rec.speed === 'number' ? rec.speed : parseFloat(rec.speed) || 0,
-        rating: rec.score ? Math.min(5, Math.max(0, (rec.score / 20))) : 0, // Score 0-100 mapped to 0-5 stars
-        website: rec.website || '#',
-        aiRecommendation: rec.aiRecommendation || "AI Recommended",
-        savingsInfo: rec.savingsInfo || null,
-        description: rec.description || '',
-        features: rec.features || [],
-        contactInfo: rec.contactInfo || {}
-      }));
+      console.log(`✅ Extracted ${recommendations.length} recommendations of type: ${responseType}`);
+      
+      if (!Array.isArray(recommendations)) {
+        throw new Error('Could not extract valid recommendations array from response');
+      }
+
+      // Format vendors with enhanced error handling
+      const formattedVendors = recommendations.map((rec, index) => {
+        try {
+          return {
+            id: rec.id || rec._id || `vendor-${index}`,
+            vendor: rec.vendorName || rec.name || rec.vendor || `Vendor ${index + 1}`,
+            price: typeof rec.price === 'number' ? rec.price : parseFloat(rec.price) || 0,
+            speed: typeof rec.speed === 'number' ? rec.speed : parseFloat(rec.speed) || 0,
+            rating: rec.score ? Math.min(5, Math.max(0, (rec.score / 20))) : 
+                   rec.rating ? Math.min(5, Math.max(0, rec.rating)) : 0,
+            website: rec.website || '#',
+            aiRecommendation: rec.aiRecommendation || rec.recommendation || "Recommended",
+            savingsInfo: rec.savingsInfo || null,
+            description: rec.description || `Professional ${quote?.serviceType || 'equipment'} solution`,
+            features: rec.features || ['Professional grade'],
+            contactInfo: rec.contactInfo || {},
+            
+            // Additional AI-specific fields if available
+            aiMatchScore: rec.aiMatchScore || null,
+            aiConfidence: rec.aiConfidence || rec.confidence || null,
+            aiReasoning: rec.aiReasoning || [],
+            quoteId: rec.quoteId || null,
+            ranking: rec.ranking || rec.rank || index + 1,
+            recommendationType: responseType,
+            isAiPowered: isPoweredByAI
+          };
+        } catch (formatError) {
+          console.warn(`⚠️ Error formatting vendor ${index}:`, formatError, rec);
+          return {
+            id: `error-vendor-${index}`,
+            vendor: `Vendor ${index + 1}`,
+            price: 0,
+            speed: 0,
+            rating: 0,
+            website: '#',
+            aiRecommendation: "Error in data",
+            savingsInfo: null,
+            description: "Data formatting error",
+            features: [],
+            contactInfo: {},
+            ranking: index + 1,
+            recommendationType: 'error',
+            isAiPowered: false
+          };
+        }
+      });
 
       setVendors(formattedVendors);
       setQuoteCompanyName(quote?.companyName || 'Your Company');
+      setRecommendationType(responseType);
+      setAiPowered(isPoweredByAI);
       setHasFetched(true);
       
       console.log('✅ Successfully loaded', formattedVendors.length, 'vendor recommendations');
+      console.log('🤖 AI-powered:', isPoweredByAI, '| Type:', responseType);
       
     } catch (error) {
       console.error("❌ Error fetching vendor recommendations:", error);
       setError(error.message);
-      setVendors([]); // No fallback - just empty array
+      setVendors([]);
       setQuoteCompanyName(quote?.companyName || 'Your Company');
+      setRecommendationType('error');
+      setAiPowered(false);
     } finally {
       setIsLoading(false);
     }
@@ -177,11 +255,14 @@ const CompareVendors = () => {
         selectedVendors: selectedVendorData.map(v => ({
           vendorId: v.id,
           vendorName: v.vendor,
-          price: v.price
+          price: v.price,
+          quoteId: v.quoteId || null
         })),
         companyName: quoteCompanyName,
         serviceType: quote?.serviceType,
-        requestSource: 'vendor_comparison'
+        requestSource: 'vendor_comparison',
+        aiPowered: aiPowered,
+        recommendationType: recommendationType
       };
 
       console.log('📤 Submitting quote requests:', requestData);
@@ -220,7 +301,7 @@ const CompareVendors = () => {
     } finally {
       setIsSubmittingQuotes(false);
     }
-  }, [selectedVendors, vendors, quote, quoteCompanyName, auth?.token, auth?.user, navigate]);
+  }, [selectedVendors, vendors, quote, quoteCompanyName, auth?.token, auth?.user, navigate, aiPowered, recommendationType]);
 
   // Filter and sort vendors
   const filteredVendors = useMemo(() => {
@@ -325,6 +406,7 @@ const CompareVendors = () => {
             <p>
               We found {filteredVendors.length} vendor{filteredVendors.length !== 1 ? 's' : ''} 
               {quote?.serviceType && ` for ${quote.serviceType}`}.
+              {aiPowered && <span className="ai-badge"> 🤖 AI-Powered</span>}
             </p>
             {error && (
               <div className="warning-message">
@@ -332,18 +414,36 @@ const CompareVendors = () => {
                 <span>Error loading vendor data: {error}</span>
               </div>
             )}
+            {recommendationType && recommendationType !== 'unknown' && (
+              <div className="recommendation-type-info">
+                <small>Recommendation type: {recommendationType.replace(/_/g, ' ')}</small>
+              </div>
+            )}
           </div>
 
           {vendors.length === 0 ? (
             <div className="no-vendors-message">
               <h3>No vendors available</h3>
-              <p>There are currently no vendor listings in the system. Please check back later or contact support.</p>
-              <button 
-                className="secondary-button"
-                onClick={() => navigate('/request-quote')}
-              >
-                Submit New Quote Request
-              </button>
+              <p>
+                {error ? 
+                  'There was an error loading vendor recommendations. Please try again or contact support.' :
+                  'There are currently no vendor listings available. Please submit a quote request to get AI-powered recommendations.'
+                }
+              </p>
+              <div className="no-vendors-actions">
+                <button 
+                  className="secondary-button"
+                  onClick={() => navigate('/request-quote')}
+                >
+                  Submit New Quote Request
+                </button>
+                <button 
+                  className="secondary-button"
+                  onClick={() => window.location.reload()}
+                >
+                  Retry Loading
+                </button>
+              </div>
             </div>
           ) : (
             <>
@@ -436,7 +536,10 @@ const CompareVendors = () => {
                                   onChange={() => handleVendorSelect(vendor.id)}
                                   aria-label={`Select ${vendor.vendor}`}
                                 />
-                                <span className="vendor-name">{vendor.vendor}</span>
+                                <span className="vendor-name">
+                                  {vendor.vendor}
+                                  {vendor.isAiPowered && <span className="ai-indicator">🤖</span>}
+                                </span>
                               </div>
                             </th>
                           ))}
@@ -472,6 +575,11 @@ const CompareVendors = () => {
                           {filteredVendors.map((vendor) => (
                             <td key={`${vendor.id}-ai`} className="ai-recommendation">
                               {vendor.aiRecommendation || 'N/A'}
+                              {vendor.aiConfidence && (
+                                <div className="ai-confidence">
+                                  <small>Confidence: {vendor.aiConfidence}</small>
+                                </div>
+                              )}
                             </td>
                           ))}
                         </tr>

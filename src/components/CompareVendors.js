@@ -107,7 +107,7 @@ const CompareVendors = () => {
         vendor: rec.vendorName || rec.name || `Vendor ${index + 1}`,
         price: typeof rec.price === 'number' ? rec.price : parseFloat(rec.price) || 0,
         speed: typeof rec.speed === 'number' ? rec.speed : parseFloat(rec.speed) || 0,
-        rating: rec.score ? Math.min(5, Math.max(0, (rec.score / 20))) : Math.random() * 2 + 3, // Score 0-100 mapped to 0-5 stars
+        rating: rec.score ? Math.min(5, Math.max(0, (rec.score / 20))) : 0, // Score 0-100 mapped to 0-5 stars
         website: rec.website || '#',
         aiRecommendation: rec.aiRecommendation || "AI Recommended",
         savingsInfo: rec.savingsInfo || null,
@@ -125,55 +125,12 @@ const CompareVendors = () => {
     } catch (error) {
       console.error("❌ Error fetching vendor recommendations:", error);
       setError(error.message);
-      
-      // Fallback: Create mock vendors based on quote data
-      const mockVendors = createMockVendors(quote);
-      setVendors(mockVendors);
+      setVendors([]); // No fallback - just empty array
       setQuoteCompanyName(quote?.companyName || 'Your Company');
-      
     } finally {
       setIsLoading(false);
     }
   }, [hasFetched, quote, auth?.token, auth?.user?.userId, navigate]);
-
-  // Create mock vendors as fallback
-  const createMockVendors = (quoteData) => {
-    const basePrice = quoteData?.budget?.maxLeasePrice || 500;
-    const serviceType = quoteData?.serviceType || 'Photocopiers';
-    
-    return [
-      {
-        id: 'mock-1',
-        vendor: `${serviceType} Pro Solutions`,
-        price: basePrice * 0.9,
-        speed: 45,
-        rating: 4.5,
-        website: '#',
-        aiRecommendation: "Best Value",
-        savingsInfo: `Save £${Math.round(basePrice * 0.1)}/month`
-      },
-      {
-        id: 'mock-2',
-        vendor: `Premium ${serviceType} Services`,
-        price: basePrice * 1.1,
-        speed: 60,
-        rating: 4.8,
-        website: '#',
-        aiRecommendation: "Premium Quality",
-        savingsInfo: "Enterprise Grade"
-      },
-      {
-        id: 'mock-3',
-        vendor: `Budget ${serviceType} Solutions`,
-        price: basePrice * 0.7,
-        speed: 30,
-        rating: 4.0,
-        website: '#',
-        aiRecommendation: "Budget Friendly",
-        savingsInfo: `Save £${Math.round(basePrice * 0.3)}/month`
-      }
-    ];
-  };
 
   useEffect(() => {
     if (auth?.isAuthenticated && quote) {
@@ -366,184 +323,199 @@ const CompareVendors = () => {
 
           <div className="vendors-info">
             <p>
-              We analyzed {vendors.length} vendors and found {filteredVendors.length} matches 
+              We found {filteredVendors.length} vendor{filteredVendors.length !== 1 ? 's' : ''} 
               {quote?.serviceType && ` for ${quote.serviceType}`}.
             </p>
             {error && (
               <div className="warning-message">
                 <FaExclamationTriangle />
-                <span>Using demo data due to API unavailability</span>
+                <span>Error loading vendor data: {error}</span>
               </div>
             )}
           </div>
 
-          <div className="filters-section">
-            <input 
-              type="text" 
-              className="search-input"
-              placeholder="Search vendors..." 
-              onChange={(e) => handleSearch(e.target.value)} 
-            />
-            
-            <select 
-              className="sort-select"
-              value={sortBy} 
-              onChange={(e) => setSortBy(e.target.value)}
-            >
-              <option value="price">Sort by Price (Low to High)</option>
-              <option value="speed">Sort by Speed (High to Low)</option>
-              <option value="rating">Sort by Rating (High to Low)</option>
-            </select>
-            
-            <div className="price-filter">
-              <label>Max Price: £{filters.priceRange[1]}</label>
-              <input 
-                type="range" 
-                className="price-range"
-                min="0" 
-                max="10000" 
-                value={filters.priceRange[1]} 
-                onChange={(e) => setFilters({ 
-                  ...filters, 
-                  priceRange: [0, parseInt(e.target.value)] 
-                })} 
-              />
-            </div>
-            
-            <select 
-              className="rating-filter"
-              value={filters.rating} 
-              onChange={(e) => setFilters({ 
-                ...filters, 
-                rating: parseInt(e.target.value) 
-              })}
-            >
-              <option value="0">All Ratings</option>
-              <option value="3">3 Stars & Up</option>
-              <option value="4">4 Stars & Up</option>
-              <option value="5">5 Stars Only</option>
-            </select>
-            
-            <input 
-              type="number" 
-              className="speed-filter"
-              placeholder="Min Speed (PPM)" 
-              value={filters.minSpeed} 
-              onChange={(e) => setFilters({ 
-                ...filters, 
-                minSpeed: e.target.value 
-              })} 
-            />
-          </div>
-
-          {filteredVendors.length === 0 ? (
+          {vendors.length === 0 ? (
             <div className="no-vendors-message">
-              <h3>No vendors match your current filters</h3>
-              <p>Try adjusting your search criteria or submit a new quote request.</p>
+              <h3>No vendors available</h3>
+              <p>There are currently no vendor listings in the system. Please check back later or contact support.</p>
               <button 
                 className="secondary-button"
-                onClick={() => {
-                  setFilters({ priceRange: [0, 10000], rating: 0, type: "", minSpeed: "" });
-                  setSearchQuery("");
-                }}
+                onClick={() => navigate('/request-quote')}
               >
-                Clear All Filters
+                Submit New Quote Request
               </button>
             </div>
           ) : (
             <>
-              <div className="comparison-table">
-                <table>
-                  <thead>
-                    <tr>
-                      <th className="spec-column">Specification</th>
-                      {filteredVendors.map((vendor) => (
-                        <th key={vendor.id} className="vendor-column">
-                          <div className="vendor-header">
-                            <input
-                              type="checkbox"
-                              checked={selectedVendors.includes(vendor.id)}
-                              onChange={() => handleVendorSelect(vendor.id)}
-                              aria-label={`Select ${vendor.vendor}`}
-                            />
-                            <span className="vendor-name">{vendor.vendor}</span>
-                          </div>
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td className="spec-label">Monthly Price</td>
-                      {filteredVendors.map((vendor) => (
-                        <td key={`${vendor.id}-price`} className="price-cell">
-                          £{vendor.price?.toFixed(2) || 'N/A'}
-                        </td>
-                      ))}
-                    </tr>
-                    <tr>
-                      <td className="spec-label">Speed (PPM)</td>
-                      {filteredVendors.map((vendor) => (
-                        <td key={`${vendor.id}-speed`}>
-                          {vendor.speed || 'N/A'}
-                        </td>
-                      ))}
-                    </tr>
-                    <tr>
-                      <td className="spec-label">Rating</td>
-                      {filteredVendors.map((vendor) => (
-                        <td key={`${vendor.id}-rating`}>
-                          {renderStars(vendor.rating)}
-                        </td>
-                      ))}
-                    </tr>
-                    <tr>
-                      <td className="spec-label">AI Recommendation</td>
-                      {filteredVendors.map((vendor) => (
-                        <td key={`${vendor.id}-ai`} className="ai-recommendation">
-                          {vendor.aiRecommendation || 'N/A'}
-                        </td>
-                      ))}
-                    </tr>
-                    <tr>
-                      <td className="spec-label">Savings Info</td>
-                      {filteredVendors.map((vendor) => (
-                        <td key={`${vendor.id}-savings`} className="savings-info">
-                          {vendor.savingsInfo || 'Standard pricing'}
-                        </td>
-                      ))}
-                    </tr>
-                  </tbody>
-                </table>
+              <div className="filters-section">
+                <input 
+                  type="text" 
+                  className="search-input"
+                  placeholder="Search vendors..." 
+                  onChange={(e) => handleSearch(e.target.value)} 
+                />
+                
+                <select 
+                  className="sort-select"
+                  value={sortBy} 
+                  onChange={(e) => setSortBy(e.target.value)}
+                >
+                  <option value="price">Sort by Price (Low to High)</option>
+                  <option value="speed">Sort by Speed (High to Low)</option>
+                  <option value="rating">Sort by Rating (High to Low)</option>
+                </select>
+                
+                <div className="price-filter">
+                  <label>Max Price: £{filters.priceRange[1]}</label>
+                  <input 
+                    type="range" 
+                    className="price-range"
+                    min="0" 
+                    max="10000" 
+                    value={filters.priceRange[1]} 
+                    onChange={(e) => setFilters({ 
+                      ...filters, 
+                      priceRange: [0, parseInt(e.target.value)] 
+                    })} 
+                  />
+                </div>
+                
+                <select 
+                  className="rating-filter"
+                  value={filters.rating} 
+                  onChange={(e) => setFilters({ 
+                    ...filters, 
+                    rating: parseInt(e.target.value) 
+                  })}
+                >
+                  <option value="0">All Ratings</option>
+                  <option value="3">3 Stars & Up</option>
+                  <option value="4">4 Stars & Up</option>
+                  <option value="5">5 Stars Only</option>
+                </select>
+                
+                <input 
+                  type="number" 
+                  className="speed-filter"
+                  placeholder="Min Speed (PPM)" 
+                  value={filters.minSpeed} 
+                  onChange={(e) => setFilters({ 
+                    ...filters, 
+                    minSpeed: e.target.value 
+                  })} 
+                />
               </div>
 
-              <motion.button
-                className="request-quote-button"
-                onClick={handleRequestQuotes}
-                disabled={selectedVendors.length === 0 || isSubmittingQuotes}
-                whileHover={{ scale: selectedVendors.length > 0 ? 1.02 : 1 }}
-                whileTap={{ scale: selectedVendors.length > 0 ? 0.98 : 1 }}
-              >
-                {isSubmittingQuotes ? (
-                  <>
-                    <FaSpinner className="fa-spin button-icon" />
-                    Submitting Requests...
-                  </>
-                ) : (
-                  <>
-                    Request Quotes from Selected ({selectedVendors.length})
-                  </>
-                )}
-              </motion.button>
-
-              {selectedVendors.length > 0 && (
-                <div className="selected-vendors-info">
-                  <p>
-                    Selected: {selectedVendors.map(id => 
-                      vendors.find(v => v.id === id)?.vendor
-                    ).join(', ')}
-                  </p>
+              {filteredVendors.length === 0 ? (
+                <div className="no-vendors-message">
+                  <h3>No vendors match your current filters</h3>
+                  <p>Try adjusting your search criteria.</p>
+                  <button 
+                    className="secondary-button"
+                    onClick={() => {
+                      setFilters({ priceRange: [0, 10000], rating: 0, type: "", minSpeed: "" });
+                      setSearchQuery("");
+                    }}
+                  >
+                    Clear All Filters
+                  </button>
                 </div>
+              ) : (
+                <>
+                  <div className="comparison-table">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th className="spec-column">Specification</th>
+                          {filteredVendors.map((vendor) => (
+                            <th key={vendor.id} className="vendor-column">
+                              <div className="vendor-header">
+                                <input
+                                  type="checkbox"
+                                  checked={selectedVendors.includes(vendor.id)}
+                                  onChange={() => handleVendorSelect(vendor.id)}
+                                  aria-label={`Select ${vendor.vendor}`}
+                                />
+                                <span className="vendor-name">{vendor.vendor}</span>
+                              </div>
+                            </th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td className="spec-label">Monthly Price</td>
+                          {filteredVendors.map((vendor) => (
+                            <td key={`${vendor.id}-price`} className="price-cell">
+                              £{vendor.price?.toFixed(2) || 'N/A'}
+                            </td>
+                          ))}
+                        </tr>
+                        <tr>
+                          <td className="spec-label">Speed (PPM)</td>
+                          {filteredVendors.map((vendor) => (
+                            <td key={`${vendor.id}-speed`}>
+                              {vendor.speed || 'N/A'}
+                            </td>
+                          ))}
+                        </tr>
+                        <tr>
+                          <td className="spec-label">Rating</td>
+                          {filteredVendors.map((vendor) => (
+                            <td key={`${vendor.id}-rating`}>
+                              {renderStars(vendor.rating)}
+                            </td>
+                          ))}
+                        </tr>
+                        <tr>
+                          <td className="spec-label">AI Recommendation</td>
+                          {filteredVendors.map((vendor) => (
+                            <td key={`${vendor.id}-ai`} className="ai-recommendation">
+                              {vendor.aiRecommendation || 'N/A'}
+                            </td>
+                          ))}
+                        </tr>
+                        <tr>
+                          <td className="spec-label">Savings Info</td>
+                          {filteredVendors.map((vendor) => (
+                            <td key={`${vendor.id}-savings`} className="savings-info">
+                              {vendor.savingsInfo || 'Standard pricing'}
+                            </td>
+                          ))}
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+
+                  <motion.button
+                    className="request-quote-button"
+                    onClick={handleRequestQuotes}
+                    disabled={selectedVendors.length === 0 || isSubmittingQuotes}
+                    whileHover={{ scale: selectedVendors.length > 0 ? 1.02 : 1 }}
+                    whileTap={{ scale: selectedVendors.length > 0 ? 0.98 : 1 }}
+                  >
+                    {isSubmittingQuotes ? (
+                      <>
+                        <FaSpinner className="fa-spin button-icon" />
+                        Submitting Requests...
+                      </>
+                    ) : (
+                      <>
+                        Request Quotes from Selected ({selectedVendors.length})
+                      </>
+                    )}
+                  </motion.button>
+
+                  {selectedVendors.length > 0 && (
+                    <div className="selected-vendors-info">
+                      <p>
+                        Selected: {selectedVendors.map(id => 
+                          vendors.find(v => v.id === id)?.vendor
+                        ).join(', ')}
+                      </p>
+                    </div>
+                  )}
+                </>
               )}
             </>
           )}

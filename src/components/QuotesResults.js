@@ -1,11 +1,11 @@
 // components/QuoteResults.js - Production-ready version with enhanced features
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { useNavigate, Link, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { useAnalytics } from '../hooks/useAnalytics';
 import { debounce } from '../utils/debounce';
-import { formatCurrency, formatDate, formatRelativeTime } from '../utils/formatters';
+import { formatCurrency } from '../utils/formatters';
 import { validateQuoteAction } from '../utils/validators';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import ErrorBoundary from '../components/common/ErrorBoundary';
@@ -156,34 +156,46 @@ const QuoteResults = () => {
         throw new Error('Invalid response format');
       }
 
+      // Log raw response for debugging
+      console.log('📄 Raw API Response:', JSON.stringify(data, null, 2));
+
       // Extract quotes from quote requests
       const quotesData = [];
       const quoteRequests = data.quoteRequests || [];
+      console.log('📋 Total quote requests:', quoteRequests.length);
       quoteRequests.forEach(request => {
-        if (request.quotes && Array.isArray(request.quotes)) {
+        if (request.quotes && Array.isArray(request.quotes) && request.quotes.length > 0) {
+          console.log(`📋 Processing quote request ${request._id} with ${request.quotes.length} quotes`);
           request.quotes.forEach(quote => {
-            quotesData.push({
-              ...quote,
-              quoteRequestId: request._id,
-              companyName: request.companyName,
-              monthlyVolume: request.monthlyVolume,
-              requestBudget: request.budget,
-              isActionable: quote.status === 'generated' // Add actionable flag based on quote status
-            });
+            if (quote && quote._id) {
+              console.log('📋 Quote:', JSON.stringify(quote, null, 2));
+              quotesData.push({
+                ...quote,
+                quoteRequestId: request._id,
+                companyName: request.companyName,
+                monthlyVolume: request.monthlyVolume,
+                requestBudget: request.budget,
+                isActionable: ['generated', 'pending'].includes(quote.status) // Relaxed condition
+              });
+            } else {
+              console.warn(`⚠️ Invalid quote structure in request ${request._id}:`, quote);
+            }
           });
+        } else {
+          console.log(`📋 No quotes found for request ${request._id}`);
         }
       });
 
-      console.log('📋 Extracted quotes:', quotesData); // Debug log
+      console.log('📋 Extracted quotes:', JSON.stringify(quotesData, null, 2));
 
       const paginationData = data.pagination || {};
       setQuotes(quotesData);
       setPagination(prev => ({
         ...prev,
-        totalPages: paginationData.totalPages || Math.ceil((paginationData.totalItems || quoteRequests.length) / QUOTES_PER_PAGE),
-        totalItems: paginationData.totalItems || quoteRequests.length,
-        hasNextPage: paginationData.hasNextPage || false,
-        hasPrevPage: paginationData.hasPrevPage || false
+        totalPages: paginationData.totalPages || Math.ceil((paginationData.totalItems || quotesData.length) / QUOTES_PER_PAGE),
+        totalItems: paginationData.totalItems || quotesData.length,
+        hasNextPage: paginationData.currentPage < paginationData.totalPages,
+        hasPrevPage: paginationData.currentPage > 1
       }));
       setRetryCount(0);
 
@@ -240,16 +252,16 @@ const QuoteResults = () => {
     if (filters.search) {
       const searchLower = filters.search.toLowerCase();
       filtered = filtered.filter(quote =>
-        quote.vendor?.name?.toLowerCase().includes(searchLower) ||
-        quote.productSummary?.manufacturer?.toLowerCase().includes(searchLower) ||
-        quote.productSummary?.model?.toLowerCase().includes(searchLower) ||
-        quote._id.toLowerCase().includes(searchLower)
+        (quote.vendor?.name?.toLowerCase() || '').includes(searchLower) ||
+        (quote.productSummary?.manufacturer?.toLowerCase() || '').includes(searchLower) ||
+        (quote.productSummary?.model?.toLowerCase() || '').includes(searchLower) ||
+        (quote._id?.toString().toLowerCase() || '').includes(searchLower)
       );
     }
 
     // Apply vendor filter
     if (filters.vendor && filters.vendor !== 'all') {
-      filtered = filtered.filter(quote => quote.vendor?.name === filters.vendor);
+      filtered = filtered.filter(quote => (quote.vendor?.name || '') === filters.vendor);
     }
 
     // Apply price range filter
@@ -264,7 +276,7 @@ const QuoteResults = () => {
 
     // Apply urgency filter
     if (filters.urgency && filters.urgency !== 'all') {
-      filtered = filtered.filter(quote => quote.quoteRequest?.urgency?.timeframe === filters.urgency);
+      filtered = filtered.filter(quote => (quote.quoteRequest?.urgency?.timeframe || '') === filters.urgency);
     }
 
     // Apply sorting
@@ -274,12 +286,13 @@ const QuoteResults = () => {
         case 'price':
           return sortOrder * ((a.costs?.monthlyCosts?.totalMonthlyCost || 0) - (b.costs?.monthlyCosts?.totalMonthlyCost || 0));
         case 'createdAt':
-          return sortOrder * (new Date(a.createdAt) - new Date(b.createdAt));
+          return sortOrder * ((new Date(a.createdAt || 0) - new Date(b.createdAt || 0)));
         default:
           return 0;
       }
     });
 
+    console.log('📋 Filtered quotes:', JSON.stringify(filtered, null, 2));
     setFilteredQuotes(filtered);
   }, [quotes, filters]);
 
@@ -326,7 +339,7 @@ const QuoteResults = () => {
       isOpen: true,
       type: 'accept',
       quote,
-      message: `Accept quote from ${quote.vendor?.name || 'this vendor'}?\n\nMonthly Cost: ${formatCurrency(quote.costs?.monthlyCosts?.totalMonthlyCost)}\nProduct: ${quote.productSummary?.manufacturer} ${quote.productSummary?.model}\n\nAn order will be created and the vendor will contact you.`,
+      message: `Accept quote from ${quote.vendor?.name || 'this vendor'}?\n\nMonthly Cost: ${formatCurrency(quote.costs?.monthlyCosts?.totalMonthlyCost || 0)}\nProduct: ${quote.productSummary?.manufacturer || ''} ${quote.productSummary?.model || ''}\n\nAn order will be created and the vendor will contact you.`,
       onConfirm: () => executeQuoteAction(quote, 'accept')
     });
   }, [showToast]);

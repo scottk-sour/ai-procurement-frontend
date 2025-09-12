@@ -20,13 +20,13 @@ const suggestCopiers = async (data, token) => {
       body: JSON.stringify(data),
     });
     if (!response.ok) {
-      console.warn('AI suggestions endpoint not available:', response.status);
+      console.warn(`AI suggestions failed: ${response.status} ${response.statusText}`);
       return [];
     }
     const result = await response.json();
     return result.suggestions || [];
   } catch (error) {
-    console.warn('AI suggestions not available:', error.message);
+    console.warn('AI suggestions error:', error.message);
     return [];
   }
 };
@@ -124,41 +124,29 @@ const mapFeatures = (features) => {
 // Map form data to backend Quote schema
 const mapFormDataToBackend = (formData, userProfile) => {
   return {
-    // Basic Company Details (Required fields)
     companyName: formData.companyName || 'Unknown Company',
     contactName: userProfile?.name || userProfile?.username || formData.contactName || 'Unknown Contact',
     email: userProfile?.email || formData.email || 'unknown@example.com',
-
-    // Use valid enum values only
     industryType: mapIndustryType(formData.industryType),
-
     numEmployees: Math.max(1, parseInt(formData.numEmployees) || 1),
     numLocations: Math.max(1, parseInt(formData.numLocations) || 1),
-
-    // Backend expected fields
     serviceType: formData.serviceType || 'Photocopiers',
     numOfficeLocations: Math.max(1, parseInt(formData.numLocations) || 1),
     multipleFloors: formData.multiFloor === 'Yes',
     price: parseInt(formData.max_lease_price) || 100,
     minSpeed: parseInt(formData.min_speed) || undefined,
     type: formData.type || undefined,
-
-    // Monthly Volume (Required structure)
     monthlyVolume: {
       mono: parseInt(formData.monthlyVolume?.mono) || 0,
       colour: parseInt(formData.monthlyVolume?.colour) || 0,
       total: (parseInt(formData.monthlyVolume?.mono) || 0) + (parseInt(formData.monthlyVolume?.colour) || 0) || 1
     },
-
-    // Paper Requirements (Required structure)
     paperRequirements: {
       primarySize: mapPaperSize(formData.type || formData.paperSize),
       additionalSizes: [],
       specialPaper: false,
       specialPaperTypes: []
     },
-
-    // Current Setup (Required structure)
     currentSetup: {
       machineAge: mapEquipmentAge(formData.currentEquipmentAge),
       currentSupplier: formData.currentSetup.currentSupplier || undefined,
@@ -179,8 +167,6 @@ const mapFormDataToBackend = (formData, userProfile) => {
       buyoutCost: formData.currentSetup.buyoutCost || undefined,
       includeBuyoutInCosts: formData.currentSetup.includeBuyoutInCosts || false
     },
-
-    // Requirements (Required structure)
     requirements: {
       priority: mapPriority(formData.preference),
       essentialFeatures: mapFeatures(formData.required_functions || []),
@@ -189,30 +175,22 @@ const mapFormDataToBackend = (formData, userProfile) => {
       maxNoisLevel: undefined,
       environmentalConcerns: formData.sustainabilityGoals ? true : false
     },
-
-    // Budget (Required structure)
     budget: {
       maxLeasePrice: parseInt(formData.max_lease_price) || 100,
       preferredTerm: formData.contractLengthPreference || '36 months',
       includeService: true,
       includeConsumables: true
     },
-
-    // Urgency (Required structure)
     urgency: {
       timeframe: mapTimeframe(formData.implementationTimeline),
       reason: formData.currentPainPoints || undefined
     },
-
-    // Location (Required structure)
     location: {
       postcode: formData.postcode || 'Unknown',
       city: undefined,
       region: undefined,
       installationRequirements: undefined
     },
-
-    // AI Analysis (optional, will be populated by backend)
     aiAnalysis: {
       processed: false,
       suggestedCategories: [],
@@ -221,25 +199,18 @@ const mapFormDataToBackend = (formData, userProfile) => {
       recommendations: [],
       processedAt: undefined
     },
-
-    // System Fields (Required)
     submittedBy: userProfile?._id || userProfile?.userId || userProfile?.id,
     userId: userProfile?._id || userProfile?.userId || userProfile?.id,
     status: 'pending',
     submissionSource: 'web_form',
-
-    // Optional fields with safe defaults
     phone: undefined,
     quotes: [],
     internalNotes: [],
-
-    // Additional optional fields
     ...(formData.subSector && { subSector: formData.subSector }),
     ...(formData.annualRevenue && { annualRevenue: formData.annualRevenue }),
     ...(formData.officeBasedEmployees && { officeBasedEmployees: parseInt(formData.officeBasedEmployees) }),
     ...(formData.primaryBusinessActivity && { primaryBusinessActivity: formData.primaryBusinessActivity }),
     ...(formData.organizationStructure && { organizationStructure: formData.organizationStructure }),
-    ...(formData.multiFloor && { multiFloor: formData.multiFloor === 'Yes' }),
     ...(formData.currentPainPoints && { currentPainPoints: formData.currentPainPoints }),
     ...(formData.impactOnProductivity && { impactOnProductivity: formData.impactOnProductivity }),
     ...(formData.urgencyLevel && { urgencyLevel: formData.urgencyLevel }),
@@ -259,7 +230,6 @@ const mapFormDataToBackend = (formData, userProfile) => {
     ...(formData.totalAnnualCosts && { totalAnnualCosts: parseFloat(formData.totalAnnualCosts) }),
     ...(formData.hiddenCosts && { hiddenCosts: formData.hiddenCosts }),
     ...(formData.serviceProvider && { serviceProvider: formData.serviceProvider }),
-    ...(formData.contractStartDate && { contractStartDate: new Date(formData.contractStartDate) }),
     ...(formData.maintenanceIssues && { maintenanceIssues: formData.maintenanceIssues }),
     ...(formData.additionalServices?.length > 0 && { additionalServices: formData.additionalServices }),
     ...(formData.paysForScanning && { paysForScanning: formData.paysForScanning === 'Yes' }),
@@ -302,7 +272,7 @@ const submitQuoteRequest = async (formData, userProfile) => {
     if (!response.ok) {
       const errorData = await response.json();
       console.error('❌ Backend validation error:', errorData);
-      throw new Error(errorData.message || 'Validation failed');
+      throw new Error(errorData.message || errorData.details?.join('; ') || 'Failed to submit quote request');
     }
 
     const result = await response.json();
@@ -370,11 +340,7 @@ const EnhancedQuoteRequest = () => {
     reasonsForQuote: [],
     totalAnnualCosts: '',
     hiddenCosts: '',
-    leasingCompany: '',
     serviceProvider: '',
-    contractStartDate: '',
-    contractEndDate: '',
-    currentEquipmentAge: '',
     maintenanceIssues: '',
     additionalServices: [],
     paysForScanning: 'No',
@@ -407,21 +373,38 @@ const EnhancedQuoteRequest = () => {
   });
   const [uploadedFiles, setUploadedFiles] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submissionStatus, setSubmissionStatus] = useState('idle'); // idle, success, error
+  const [submissionStatus, setSubmissionStatus] = useState('idle');
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   const [suggestedMachines, setSuggestedMachines] = useState([]);
 
   // Auto-update suggested machines
   useEffect(() => {
-    if (auth?.token && (formData.monthlyVolume.mono || formData.monthlyVolume.colour || formData.type || formData.industryType)) {
+    if (auth?.token && (
+      formData.monthlyVolume.mono ||
+      formData.monthlyVolume.colour ||
+      formData.type ||
+      formData.industryType ||
+      formData.currentSetup.currentSupplier ||
+      formData.currentSetup.currentModel ||
+      formData.currentSetup.currentFeatures.length > 0
+    )) {
       suggestCopiers(formData, auth.token).then((suggestions) => {
         setSuggestedMachines(suggestions);
       }).catch(error => {
-        console.warn('AI suggestions not available:', error);
+        console.warn('AI suggestions error:', error);
       });
     }
-  }, [formData.monthlyVolume.mono, formData.monthlyVolume.colour, formData.type, formData.industryType, auth?.token]);
+  }, [
+    formData.monthlyVolume.mono,
+    formData.monthlyVolume.colour,
+    formData.type,
+    formData.industryType,
+    formData.currentSetup.currentSupplier,
+    formData.currentSetup.currentModel,
+    formData.currentSetup.currentFeatures,
+    auth?.token
+  ]);
 
   // Calculate buyout cost
   const calculateBuyout = () => {
@@ -452,10 +435,21 @@ const EnhancedQuoteRequest = () => {
     const { name, value, type, checked } = e.target;
     let updatedData;
     if (type === 'checkbox') {
-      if (['primaryChallenges', 'documentTypes', 'finishingRequirements', 'securityRequirements',
-           'integrationNeeds', 'additionalServices', 'securityFeatures', 'reportingNeeds',
-           'decisionMakers', 'evaluationCriteria', 'required_functions', 'reasonsForQuote',
-           'currentSetup.currentFeatures'].includes(name)) {
+      if ([
+        'primaryChallenges',
+        'documentTypes',
+        'finishingRequirements',
+        'securityRequirements',
+        'integrationNeeds',
+        'additionalServices',
+        'securityFeatures',
+        'reportingNeeds',
+        'decisionMakers',
+        'evaluationCriteria',
+        'required_functions',
+        'reasonsForQuote',
+        'currentSetup.currentFeatures'
+      ].includes(name)) {
         updatedData = {
           ...formData,
           [name]: checked
@@ -489,6 +483,7 @@ const EnhancedQuoteRequest = () => {
       };
     }
     setFormData(updatedData);
+    setErrorMessage(''); // Clear errors on change
   };
 
   const { getRootProps, getInputProps } = useDropzone({
@@ -535,7 +530,8 @@ const EnhancedQuoteRequest = () => {
           !formData.currentSetup.contractEndDate ||
           !formData.currentSetup.currentMonoCPC ||
           !formData.currentSetup.currentColorCPC ||
-          !formData.currentSetup.quarterlyLeaseCost
+          !formData.currentSetup.quarterlyLeaseCost ||
+          formData.currentSetup.currentFeatures.length === 0
         )) {
           errors.currentSetup = 'All current setup fields are required if a supplier is specified';
         }
@@ -661,8 +657,7 @@ const EnhancedQuoteRequest = () => {
           currentFeatures: [], buyoutRequired: false, buyoutCost: '', includeBuyoutInCosts: false
         },
         reasonsForQuote: [],
-        totalAnnualCosts: '', hiddenCosts: '', leasingCompany: '', serviceProvider: '',
-        contractStartDate: '', contractEndDate: '', currentEquipmentAge: '', maintenanceIssues: '',
+        totalAnnualCosts: '', hiddenCosts: '', serviceProvider: '', maintenanceIssues: '',
         additionalServices: [], paysForScanning: 'No', serviceType: 'Photocopiers', colour: '',
         type: '', min_speed: '', securityFeatures: [], accessibilityNeeds: 'No', sustainabilityGoals: '',
         responseTimeExpectation: '', maintenancePreference: '', trainingNeeds: '', supplyManagement: '',
@@ -835,7 +830,9 @@ const EnhancedQuoteRequest = () => {
                   onChange={handleChange}
                   required
                   className={errorMessage.includes('companyName') ? 'error' : ''}
+                  aria-describedby={errorMessage.includes('companyName') ? 'companyName-error' : undefined}
                 />
+                {errorMessage.includes('companyName') && <span id="companyName-error" className="error-text">Company name is required</span>}
               </label>
               <label>
                 Postcode: <span className="required">*</span>
@@ -847,11 +844,20 @@ const EnhancedQuoteRequest = () => {
                   placeholder="e.g., SW1A 1AA"
                   required
                   className={errorMessage.includes('postcode') ? 'error' : ''}
+                  aria-describedby={errorMessage.includes('postcode') ? 'postcode-error' : undefined}
                 />
+                {errorMessage.includes('postcode') && <span id="postcode-error" className="error-text">Postcode is required</span>}
               </label>
               <label>
                 Industry Type: <span className="required">*</span>
-                <select name="industryType" value={formData.industryType} onChange={handleChange} required className={errorMessage.includes('industryType') ? 'error' : ''}>
+                <select
+                  name="industryType"
+                  value={formData.industryType}
+                  onChange={handleChange}
+                  required
+                  className={errorMessage.includes('industryType') ? 'error' : ''}
+                  aria-describedby={errorMessage.includes('industryType') ? 'industryType-error' : undefined}
+                >
                   <option value="">Select Industry</option>
                   <option value="Healthcare">Healthcare</option>
                   <option value="Legal">Legal</option>
@@ -865,6 +871,7 @@ const EnhancedQuoteRequest = () => {
                   <option value="Non-profit">Non-profit</option>
                   <option value="Other">Other</option>
                 </select>
+                {errorMessage.includes('industryType') && <span id="industryType-error" className="error-text">Industry type is required</span>}
               </label>
               <label>
                 Sub-sector/Specialization:
@@ -899,7 +906,9 @@ const EnhancedQuoteRequest = () => {
                   onChange={handleChange}
                   required
                   className={errorMessage.includes('numEmployees') ? 'error' : ''}
+                  aria-describedby={errorMessage.includes('numEmployees') ? 'numEmployees-error' : undefined}
                 />
+                {errorMessage.includes('numEmployees') && <span id="numEmployees-error" className="error-text">Number of employees is required</span>}
               </label>
               <label>
                 Office-Based Employees:
@@ -921,7 +930,9 @@ const EnhancedQuoteRequest = () => {
                   min="1"
                   required
                   className={errorMessage.includes('numLocations') ? 'error' : ''}
+                  aria-describedby={errorMessage.includes('numLocations') ? 'numLocations-error' : undefined}
                 />
+                {errorMessage.includes('numLocations') && <span id="numLocations-error" className="error-text">Number of locations is required</span>}
               </label>
               <label>
                 Primary Business Activity:
@@ -950,7 +961,9 @@ const EnhancedQuoteRequest = () => {
                 </select>
               </label>
             </div>
-            <button onClick={handleNext}>Next</button>
+            <div className="button-group">
+              <button onClick={handleNext}>Next</button>
+            </div>
           </motion.div>
         );
       case 2:
@@ -969,11 +982,12 @@ const EnhancedQuoteRequest = () => {
                       value={reason}
                       checked={formData.reasonsForQuote.includes(reason)}
                       onChange={handleChange}
+                      aria-describedby={errorMessage.includes('reasonsForQuote') ? 'reasonsForQuote-error' : undefined}
                     />
                     {reason}
                   </label>
                 ))}
-                {errorMessage.includes('reasonsForQuote') && <span className="error-text">At least one reason is required</span>}
+                {errorMessage.includes('reasonsForQuote') && <span id="reasonsForQuote-error" className="error-text">At least one reason is required</span>}
               </fieldset>
               <label>
                 Additional Pain Points:
@@ -987,17 +1001,32 @@ const EnhancedQuoteRequest = () => {
               </label>
               <label>
                 Urgency Level: <span className="required">*</span>
-                <select name="urgencyLevel" value={formData.urgencyLevel} onChange={handleChange} required className={errorMessage.includes('urgencyLevel') ? 'error' : ''}>
+                <select
+                  name="urgencyLevel"
+                  value={formData.urgencyLevel}
+                  onChange={handleChange}
+                  required
+                  className={errorMessage.includes('urgencyLevel') ? 'error' : ''}
+                  aria-describedby={errorMessage.includes('urgencyLevel') ? 'urgencyLevel-error' : undefined}
+                >
                   <option value="">Select Urgency</option>
                   <option value="Critical">Critical (Immediate)</option>
                   <option value="High">High (1-2 months)</option>
                   <option value="Medium">Medium (3-6 months)</option>
                   <option value="Low">Low (6+ months)</option>
                 </select>
+                {errorMessage.includes('urgencyLevel') && <span id="urgencyLevel-error" className="error-text">Urgency level is required</span>}
               </label>
               <label>
                 Implementation Timeline: <span className="required">*</span>
-                <select name="implementationTimeline" value={formData.implementationTimeline} onChange={handleChange} required className={errorMessage.includes('implementationTimeline') ? 'error' : ''}>
+                <select
+                  name="implementationTimeline"
+                  value={formData.implementationTimeline}
+                  onChange={handleChange}
+                  required
+                  className={errorMessage.includes('implementationTimeline') ? 'error' : ''}
+                  aria-describedby={errorMessage.includes('implementationTimeline') ? 'implementationTimeline-error' : undefined}
+                >
                   <option value="">Select Timeline</option>
                   <option value="ASAP">As soon as possible</option>
                   <option value="1-2 months">1-2 months</option>
@@ -1005,10 +1034,13 @@ const EnhancedQuoteRequest = () => {
                   <option value="6-12 months">6-12 months</option>
                   <option value="12+ months">12+ months</option>
                 </select>
+                {errorMessage.includes('implementationTimeline') && <span id="implementationTimeline-error" className="error-text">Implementation timeline is required</span>}
               </label>
             </div>
-            <button onClick={handleBack}>Back</button>
-            <button onClick={handleNext}>Next</button>
+            <div className="button-group">
+              <button onClick={handleBack}>Back</button>
+              <button onClick={handleNext}>Next</button>
+            </div>
           </motion.div>
         );
       case 3:
@@ -1027,7 +1059,9 @@ const EnhancedQuoteRequest = () => {
                   placeholder="Color pages per month"
                   required
                   className={errorMessage.includes('monthlyVolume') ? 'error' : ''}
+                  aria-describedby={errorMessage.includes('monthlyVolume') ? 'monthlyVolume-error' : undefined}
                 />
+                {errorMessage.includes('monthlyVolume') && <span id="monthlyVolume-error" className="error-text">Color volume is required</span>}
               </label>
               <label>
                 Monthly Mono Volume (pages): <span className="required">*</span>
@@ -1039,7 +1073,9 @@ const EnhancedQuoteRequest = () => {
                   placeholder="Black & white pages per month"
                   required
                   className={errorMessage.includes('monthlyVolume') ? 'error' : ''}
+                  aria-describedby={errorMessage.includes('monthlyVolume') ? 'monthlyVolume-error' : undefined}
                 />
+                {errorMessage.includes('monthlyVolume') && <span id="monthlyVolume-error" className="error-text">Mono volume is required</span>}
               </label>
               <label>
                 Peak Usage Periods:
@@ -1052,8 +1088,10 @@ const EnhancedQuoteRequest = () => {
                 </select>
               </label>
             </div>
-            <button onClick={handleBack}>Back</button>
-            <button onClick={handleNext}>Next</button>
+            <div className="button-group">
+              <button onClick={handleBack}>Back</button>
+              <button onClick={handleNext}>Next</button>
+            </div>
           </motion.div>
         );
       case 4:
@@ -1064,17 +1102,32 @@ const EnhancedQuoteRequest = () => {
               <h4>IT Infrastructure</h4>
               <label>
                 Network Setup: <span className="required">*</span>
-                <select name="networkSetup" value={formData.networkSetup} onChange={handleChange} required className={errorMessage.includes('networkSetup') ? 'error' : ''}>
+                <select
+                  name="networkSetup"
+                  value={formData.networkSetup}
+                  onChange={handleChange}
+                  required
+                  className={errorMessage.includes('networkSetup') ? 'error' : ''}
+                  aria-describedby={errorMessage.includes('networkSetup') ? 'networkSetup-error' : undefined}
+                >
                   <option value="">Select Network Type</option>
                   <option value="Wired only">Wired network only</option>
                   <option value="Wireless only">Wireless network only</option>
                   <option value="Mixed">Mixed (both wired and wireless)</option>
                   <option value="Cloud-based">Cloud-based infrastructure</option>
                 </select>
+                {errorMessage.includes('networkSetup') && <span id="networkSetup-error" className="error-text">Network setup is required</span>}
               </label>
               <label>
                 IT Support Structure: <span className="required">*</span>
-                <select name="itSupportStructure" value={formData.itSupportStructure} onChange={handleChange} required className={errorMessage.includes('itSupportStructure') ? 'error' : ''}>
+                <select
+                  name="itSupportStructure"
+                  value={formData.itSupportStructure}
+                  onChange={handleChange}
+                  required
+                  className={errorMessage.includes('itSupportStructure') ? 'error' : ''}
+                  aria-describedby={errorMessage.includes('itSupportStructure') ? 'itSupportStructure-error' : undefined}
+                >
                   <option value="">Select IT Support</option>
                   <option value="Internal IT team">Internal IT team</option>
                   <option value="Outsourced IT">Outsourced IT support</option>
@@ -1082,10 +1135,13 @@ const EnhancedQuoteRequest = () => {
                   <option value="Minimal IT support">Minimal IT support</option>
                   <option value="No dedicated IT">No dedicated IT support</option>
                 </select>
+                {errorMessage.includes('itSupportStructure') && <span id="itSupportStructure-error" className="error-text">IT support structure is required</span>}
               </label>
             </div>
-            <button onClick={handleBack}>Back</button>
-            <button onClick={handleNext}>Next</button>
+            <div className="button-group">
+              <button onClick={handleBack}>Back</button>
+              <button onClick={handleNext}>Next</button>
+            </div>
           </motion.div>
         );
       case 5:
@@ -1103,6 +1159,7 @@ const EnhancedQuoteRequest = () => {
                   onChange={handleChange}
                   placeholder="e.g., Xerox, Canon"
                   className={errorMessage.includes('currentSetup') ? 'error' : ''}
+                  aria-describedby={errorMessage.includes('currentSetup') ? 'currentSetup-error' : undefined}
                 />
               </label>
               <label>
@@ -1114,6 +1171,7 @@ const EnhancedQuoteRequest = () => {
                   onChange={handleChange}
                   placeholder="e.g., AltaLink C8030"
                   className={errorMessage.includes('currentSetup') ? 'error' : ''}
+                  aria-describedby={errorMessage.includes('currentSetup') ? 'currentSetup-error' : undefined}
                 />
               </label>
               <label>
@@ -1126,6 +1184,7 @@ const EnhancedQuoteRequest = () => {
                   min="0"
                   placeholder="e.g., 30"
                   className={errorMessage.includes('currentSetup') ? 'error' : ''}
+                  aria-describedby={errorMessage.includes('currentSetup') ? 'currentSetup-error' : undefined}
                 />
               </label>
               <label>
@@ -1136,6 +1195,7 @@ const EnhancedQuoteRequest = () => {
                   value={formData.currentSetup.contractStartDate}
                   onChange={handleChange}
                   className={errorMessage.includes('currentSetup') ? 'error' : ''}
+                  aria-describedby={errorMessage.includes('currentSetup') ? 'currentSetup-error' : undefined}
                 />
               </label>
               <label>
@@ -1146,6 +1206,7 @@ const EnhancedQuoteRequest = () => {
                   value={formData.currentSetup.contractEndDate}
                   onChange={handleChange}
                   className={errorMessage.includes('currentSetup') ? 'error' : ''}
+                  aria-describedby={errorMessage.includes('currentSetup') ? 'currentSetup-error' : undefined}
                 />
               </label>
               <label>
@@ -1159,6 +1220,7 @@ const EnhancedQuoteRequest = () => {
                   step="0.01"
                   placeholder="e.g., 1.2"
                   className={errorMessage.includes('currentSetup') ? 'error' : ''}
+                  aria-describedby={errorMessage.includes('currentSetup') ? 'currentSetup-error' : undefined}
                 />
               </label>
               <label>
@@ -1172,6 +1234,7 @@ const EnhancedQuoteRequest = () => {
                   step="0.01"
                   placeholder="e.g., 6.5"
                   className={errorMessage.includes('currentSetup') ? 'error' : ''}
+                  aria-describedby={errorMessage.includes('currentSetup') ? 'currentSetup-error' : undefined}
                 />
               </label>
               <label>
@@ -1185,10 +1248,11 @@ const EnhancedQuoteRequest = () => {
                   step="0.01"
                   placeholder="e.g., 450.00"
                   className={errorMessage.includes('currentSetup') ? 'error' : ''}
+                  aria-describedby={errorMessage.includes('currentSetup') ? 'currentSetup-error' : undefined}
                 />
               </label>
               <fieldset>
-                <legend>Current Copier Features:</legend>
+                <legend>Current Copier Features: <span className="required">*</span></legend>
                 {currentFeatureOptions.map((feature) => (
                   <label key={feature}>
                     <input
@@ -1197,10 +1261,12 @@ const EnhancedQuoteRequest = () => {
                       value={feature}
                       checked={formData.currentSetup.currentFeatures.includes(feature)}
                       onChange={handleChange}
+                      aria-describedby={errorMessage.includes('currentSetup') ? 'currentSetup-error' : undefined}
                     />
                     {feature}
                   </label>
                 ))}
+                {errorMessage.includes('currentSetup') && <span id="currentSetup-error" className="error-text">{errorMessage}</span>}
               </fieldset>
               <label className="checkbox-group">
                 <input
@@ -1228,10 +1294,11 @@ const EnhancedQuoteRequest = () => {
                   </label>
                 </>
               )}
-              {errorMessage.includes('currentSetup') && <span className="error-text">{errorMessage}</span>}
             </div>
-            <button onClick={handleBack}>Back</button>
-            <button onClick={handleNext}>Next</button>
+            <div className="button-group">
+              <button onClick={handleBack}>Back</button>
+              <button onClick={handleNext}>Next</button>
+            </div>
           </motion.div>
         );
       case 6:
@@ -1242,40 +1309,64 @@ const EnhancedQuoteRequest = () => {
               <h4>Basic Requirements</h4>
               <label>
                 Service Type: <span className="required">*</span>
-                <select name="serviceType" value={formData.serviceType} onChange={handleChange} required className={errorMessage.includes('serviceType') ? 'error' : ''}>
+                <select
+                  name="serviceType"
+                  value={formData.serviceType}
+                  onChange={handleChange}
+                  required
+                  className={errorMessage.includes('serviceType') ? 'error' : ''}
+                  aria-describedby={errorMessage.includes('serviceType') ? 'serviceType-error' : undefined}
+                >
                   <option value="Photocopiers">Multifunction Photocopiers</option>
                   <option value="Printers">Desktop Printers</option>
                   <option value="Production">Production Printing</option>
                   <option value="Scanners">Standalone Scanners</option>
                   <option value="Mixed">Mixed Solution</option>
                 </select>
+                {errorMessage.includes('serviceType') && <span id="serviceType-error" className="error-text">Service type is required</span>}
               </label>
               <label>
                 Colour Preference: <span className="required">*</span>
-                <select name="colour" value={formData.colour} onChange={handleChange} required className={errorMessage.includes('colour') ? 'error' : ''}>
+                <select
+                  name="colour"
+                  value={formData.colour}
+                  onChange={handleChange}
+                  required
+                  className={errorMessage.includes('colour') ? 'error' : ''}
+                  aria-describedby={errorMessage.includes('colour') ? 'colour-error' : undefined}
+                >
                   <option value="">Select Preference</option>
                   <option value="Black & White">Black & White Only</option>
                   <option value="Color">Color Required</option>
                   <option value="Both">Both (separate devices)</option>
                 </select>
+                {errorMessage.includes('colour') && <span id="colour-error" className="error-text">Colour preference is required</span>}
               </label>
               {formData.colour && (
                 <label>
                   Maximum Paper Size: <span className="required">*</span>
-                  <select name="type" value={formData.type} onChange={handleChange} required className={errorMessage.includes('type') ? 'error' : ''}>
+                  <select
+                    name="type"
+                    value={formData.type}
+                    onChange={handleChange}
+                    required
+                    className={errorMessage.includes('type') ? 'error' : ''}
+                    aria-describedby={errorMessage.includes('type') ? 'type-error' : undefined}
+                  >
                     <option value="">Select Size</option>
                     <option value="A4">A4 (Standard)</option>
                     <option value="A3">A3 (Larger format)</option>
                     <option value="A2">A2 (Wide format)</option>
                     <option value="SRA3">SRA3 (Oversized A3)</option>
                   </select>
+                  {errorMessage.includes('type') && <span id="type-error" className="error-text">Maximum paper size is required</span>}
                 </label>
               )}
             </div>
             <div className="form-section">
               <h4>Document Upload</h4>
               <div {...getRootProps()} className="dropzone">
-                <input {...getInputProps()} />
+                <input {...getInputProps()} aria-label="Upload invoices, floor plans, or equipment photos" />
                 <p>Drag & drop recent invoices, floor plans, or equipment photos</p>
                 <p className="text-muted">Accepted: PDF, Excel, Images</p>
               </div>
@@ -1290,6 +1381,7 @@ const EnhancedQuoteRequest = () => {
                         <button
                           onClick={() => setUploadedFiles(prev => prev.filter((_, i) => i !== index))}
                           className="remove-file"
+                          aria-label={`Remove ${file.name}`}
                         >
                           ✕
                         </button>
@@ -1309,8 +1401,10 @@ const EnhancedQuoteRequest = () => {
                 </ul>
               </div>
             )}
-            <button onClick={handleBack}>Back</button>
-            <button onClick={handleNext}>Next</button>
+            <div className="button-group">
+              <button onClick={handleBack}>Back</button>
+              <button onClick={handleNext}>Next</button>
+            </div>
           </motion.div>
         );
       case 7:
@@ -1321,7 +1415,14 @@ const EnhancedQuoteRequest = () => {
               <h4>Service Level Requirements</h4>
               <label>
                 Response Time Expectation: <span className="required">*</span>
-                <select name="responseTimeExpectation" value={formData.responseTimeExpectation} onChange={handleChange} required className={errorMessage.includes('responseTimeExpectation') ? 'error' : ''}>
+                <select
+                  name="responseTimeExpectation"
+                  value={formData.responseTimeExpectation}
+                  onChange={handleChange}
+                  required
+                  className={errorMessage.includes('responseTimeExpectation') ? 'error' : ''}
+                  aria-describedby={errorMessage.includes('responseTimeExpectation') ? 'responseTimeExpectation-error' : undefined}
+                >
                   <option value="">Select Response Time</option>
                   <option value="Same day">Same day (4-8 hours)</option>
                   <option value="Next business day">Next business day</option>
@@ -1329,16 +1430,25 @@ const EnhancedQuoteRequest = () => {
                   <option value="3-5 days">3-5 business days</option>
                   <option value="Flexible">Flexible</option>
                 </select>
+                {errorMessage.includes('responseTimeExpectation') && <span id="responseTimeExpectation-error" className="error-text">Response time expectation is required</span>}
               </label>
               <label>
                 Maintenance Preference: <span className="required">*</span>
-                <select name="maintenancePreference" value={formData.maintenancePreference} onChange={handleChange} required className={errorMessage.includes('maintenancePreference') ? 'error' : ''}>
+                <select
+                  name="maintenancePreference"
+                  value={formData.maintenancePreference}
+                  onChange={handleChange}
+                  required
+                  className={errorMessage.includes('maintenancePreference') ? 'error' : ''}
+                  aria-describedby={errorMessage.includes('maintenancePreference') ? 'maintenancePreference-error' : undefined}
+                >
                   <option value="">Select Preference</option>
                   <option value="Proactive">Proactive (scheduled preventive maintenance)</option>
                   <option value="Reactive">Reactive (fix when broken)</option>
                   <option value="Hybrid">Hybrid approach</option>
                   <option value="Self-service">Self-service with remote support</option>
                 </select>
+                {errorMessage.includes('maintenancePreference') && <span id="maintenancePreference-error" className="error-text">Maintenance preference is required</span>}
               </label>
               <label>
                 Training Needs:
@@ -1359,8 +1469,10 @@ const EnhancedQuoteRequest = () => {
                 </select>
               </label>
             </div>
-            <button onClick={handleBack}>Back</button>
-            <button onClick={handleNext}>Next</button>
+            <div className="button-group">
+              <button onClick={handleBack}>Back</button>
+              <button onClick={handleNext}>Next</button>
+            </div>
           </motion.div>
         );
       case 8:
@@ -1379,15 +1491,23 @@ const EnhancedQuoteRequest = () => {
                       value={role}
                       checked={formData.decisionMakers.includes(role)}
                       onChange={handleChange}
+                      aria-describedby={errorMessage.includes('decisionMakers') ? 'decisionMakers-error' : undefined}
                     />
                     {role}
                   </label>
                 ))}
-                {errorMessage.includes('decisionMakers') && <span className="error-text">At least one decision maker is required</span>}
+                {errorMessage.includes('decisionMakers') && <span id="decisionMakers-error" className="error-text">At least one decision maker is required</span>}
               </fieldset>
               <label>
                 What is most important to you? <span className="required">*</span>
-                <select name="preference" value={formData.preference} onChange={handleChange} required className={errorMessage.includes('preference') ? 'error' : ''}>
+                <select
+                  name="preference"
+                  value={formData.preference}
+                  onChange={handleChange}
+                  required
+                  className={errorMessage.includes('preference') ? 'error' : ''}
+                  aria-describedby={errorMessage.includes('preference') ? 'preference-error' : undefined}
+                >
                   <option value="">Select Priority</option>
                   <option value="cost">Lowest total cost</option>
                   <option value="quality">Best print quality</option>
@@ -1395,6 +1515,7 @@ const EnhancedQuoteRequest = () => {
                   <option value="reliability">Maximum uptime/reliability</option>
                   <option value="balanced">Balanced approach</option>
                 </select>
+                {errorMessage.includes('preference') && <span id="preference-error" className="error-text">Priority is required</span>}
               </label>
               <label>
                 Maximum Monthly Investment (£): <span className="required">*</span>
@@ -1406,7 +1527,9 @@ const EnhancedQuoteRequest = () => {
                   placeholder="Total monthly budget for all equipment/services"
                   required
                   className={errorMessage.includes('max_lease_price') ? 'error' : ''}
+                  aria-describedby={errorMessage.includes('max_lease_price') ? 'max_lease_price-error' : undefined}
                 />
+                {errorMessage.includes('max_lease_price') && <span id="max_lease_price-error" className="error-text">Maximum monthly investment is required</span>}
               </label>
               <label>
                 Contract Length Preference:
@@ -1429,8 +1552,10 @@ const EnhancedQuoteRequest = () => {
                 </select>
               </label>
             </div>
-            <button onClick={handleBack}>Back</button>
-            <button onClick={handleNext}>Next</button>
+            <div className="button-group">
+              <button onClick={handleBack}>Back</button>
+              <button onClick={handleNext}>Next</button>
+            </div>
           </motion.div>
         );
       case 9:
@@ -1441,7 +1566,14 @@ const EnhancedQuoteRequest = () => {
               <h4>Growth & Expansion</h4>
               <label>
                 Expected Business Growth: <span className="required">*</span>
-                <select name="expectedGrowth" value={formData.expectedGrowth} onChange={handleChange} required className={errorMessage.includes('expectedGrowth') ? 'error' : ''}>
+                <select
+                  name="expectedGrowth"
+                  value={formData.expectedGrowth}
+                  onChange={handleChange}
+                  required
+                  className={errorMessage.includes('expectedGrowth') ? 'error' : ''}
+                  aria-describedby={errorMessage.includes('expectedGrowth') ? 'expectedGrowth-error' : undefined}
+                >
                   <option value="">Select Growth Expectation</option>
                   <option value="Decline">Decline/Downsizing</option>
                   <option value="Stable">Stable (no significant change)</option>
@@ -1450,6 +1582,7 @@ const EnhancedQuoteRequest = () => {
                   <option value="Rapid growth">Rapid growth (50%+)</option>
                   <option value="Uncertain">Uncertain</option>
                 </select>
+                {errorMessage.includes('expectedGrowth') && <span id="expectedGrowth-error" className="error-text">Expected growth is required</span>}
               </label>
               <label>
                 3-Year Vision: <span className="required">*</span>
@@ -1461,7 +1594,9 @@ const EnhancedQuoteRequest = () => {
                   rows="4"
                   required
                   className={errorMessage.includes('threeYearVision') ? 'error' : ''}
+                  aria-describedby={errorMessage.includes('threeYearVision') ? 'threeYearVision-error' : undefined}
                 />
+                {errorMessage.includes('threeYearVision') && <span id="threeYearVision-error" className="error-text">Three-year vision is required</span>}
               </label>
               <label>
                 Expansion Plans:
@@ -1504,10 +1639,12 @@ const EnhancedQuoteRequest = () => {
                 </ul>
               </div>
             </div>
-            <button onClick={handleBack}>Back</button>
-            <button type="submit" onClick={handleSubmit} disabled={isSubmitting}>
-              {isSubmitting ? 'Submitting Comprehensive Assessment...' : 'Submit Complete Assessment'}
-            </button>
+            <div className="button-group">
+              <button onClick={handleBack}>Back</button>
+              <button type="submit" onClick={handleSubmit} disabled={isSubmitting}>
+                {isSubmitting ? 'Submitting Comprehensive Assessment...' : 'Submit Complete Assessment'}
+              </button>
+            </div>
           </motion.div>
         );
       default:
@@ -1521,29 +1658,13 @@ const EnhancedQuoteRequest = () => {
       <p className="text-center text-muted">Professional procurement analysis - 15-20 minutes</p>
 
       {submissionStatus === 'success' && (
-        <div className="success-message" role="alert" style={{
-          background: 'linear-gradient(135deg, #10b981, #059669)',
-          color: 'white',
-          padding: '16px',
-          borderRadius: '8px',
-          marginBottom: '20px',
-          textAlign: 'center',
-          fontWeight: '600'
-        }}>
+        <div className="success-message" role="alert">
           ✅ {successMessage}
         </div>
       )}
 
       {submissionStatus === 'error' && errorMessage && (
-        <div className="error-message" role="alert" style={{
-          background: 'linear-gradient(135deg, #ef4444, #dc2626)',
-          color: 'white',
-          padding: '16px',
-          borderRadius: '8px',
-          marginBottom: '20px',
-          textAlign: 'center',
-          fontWeight: '600'
-        }}>
+        <div className="error-message" role="alert">
           ❌ {errorMessage}
         </div>
       )}

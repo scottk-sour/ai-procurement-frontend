@@ -1,31 +1,26 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDropzone } from 'react-dropzone';
-import './EnhancedQuoteRequest.css';
-import { useAuth } from '../context/AuthContext';
 import { motion } from 'framer-motion';
+import { useAuth } from '../context/AuthContext';
+import './EnhancedQuoteRequest.css';
 
 // Hard-coded production URL
 const PRODUCTION_API_URL = 'https://ai-procurement-backend-q35u.onrender.com';
 
-// AI-driven copier suggestion function using an external API
-const suggestCopiers = async (data) => {
-  const API_KEY = process.env.REACT_APP_AI_API_KEY;
-  if (!API_KEY) {
-    console.warn('AI API KEY is missing in .env - skipping AI suggestions');
-    return [];
-  }
+// AI-driven copier suggestion function using user token
+const suggestCopiers = async (data, token) => {
   try {
     const response = await fetch(`${PRODUCTION_API_URL}/api/suggest-copiers`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${API_KEY}`,
+        'Authorization': `Bearer ${token}`,
       },
       body: JSON.stringify(data),
     });
     if (!response.ok) {
-      console.warn('AI suggestions endpoint not available');
+      console.warn('AI suggestions endpoint not available:', response.status);
       return [];
     }
     const result = await response.json();
@@ -41,7 +36,7 @@ const mapIndustryType = (industry) => {
   const industryMapping = {
     'Technology': 'Other',
     'Healthcare': 'Healthcare',
-    'Legal': 'Legal', 
+    'Legal': 'Legal',
     'Education': 'Education',
     'Finance': 'Finance',
     'Government': 'Government',
@@ -56,7 +51,7 @@ const mapIndustryType = (industry) => {
 const mapPaperSize = (size) => {
   const sizeMapping = {
     'A4': 'A4',
-    'A3': 'A3', 
+    'A3': 'A3',
     'A2': 'A3',
     'SRA3': 'SRA3'
   };
@@ -66,7 +61,7 @@ const mapPaperSize = (size) => {
 const mapPriority = (priority) => {
   const priorityMapping = {
     'cost': 'cost',
-    'quality': 'quality', 
+    'quality': 'quality',
     'speed': 'speed',
     'reliability': 'reliability',
     'balanced': 'balanced'
@@ -79,7 +74,7 @@ const mapEquipmentAge = (age) => {
     'Less than 1 year': 'Under 2 years',
     '1-2 years': 'Under 2 years',
     '2-5 years': '2-5 years',
-    '3-4 years': '2-5 years', 
+    '3-4 years': '2-5 years',
     '5-6 years': '5+ years',
     'Over 6 years': '5+ years',
     'Mixed ages': '5+ years',
@@ -106,9 +101,9 @@ const mapFeatures = (features) => {
     'Advanced Security', 'Large Paper Trays', 'High Capacity Toner',
     'Color Printing', 'Scanning', 'Fax', 'Copying', 'Email Integration',
     'Stapling', 'Hole Punch', 'Booklet Making', 'Large Capacity Trays',
-    'Touch Screen', 'Auto Document Feeder', 'ID Card Copying'
+    'Touch Screen', 'Auto Document Feeder', 'ID Card Copying', 'Follow-Me Print'
   ];
-  
+
   const featureMapping = {
     'High printing costs': 'Advanced Security',
     'Frequent equipment breakdowns': 'High Capacity Toner',
@@ -121,7 +116,7 @@ const mapFeatures = (features) => {
     'Security concerns': 'Advanced Security',
     'Integration problems': 'Email Integration'
   };
-  
+
   return features.map(feature => featureMapping[feature] || feature)
                  .filter(feature => validFeatures.includes(feature));
 };
@@ -133,13 +128,13 @@ const mapFormDataToBackend = (formData, userProfile) => {
     companyName: formData.companyName || 'Unknown Company',
     contactName: userProfile?.name || userProfile?.username || formData.contactName || 'Unknown Contact',
     email: userProfile?.email || formData.email || 'unknown@example.com',
-    
+
     // Use valid enum values only
     industryType: mapIndustryType(formData.industryType),
-    
+
     numEmployees: Math.max(1, parseInt(formData.numEmployees) || 1),
     numLocations: Math.max(1, parseInt(formData.numLocations) || 1),
-    
+
     // Backend expected fields
     serviceType: formData.serviceType || 'Photocopiers',
     numOfficeLocations: Math.max(1, parseInt(formData.numLocations) || 1),
@@ -163,19 +158,26 @@ const mapFormDataToBackend = (formData, userProfile) => {
       specialPaperTypes: []
     },
 
-    // Current Setup (Required structure) 
+    // Current Setup (Required structure)
     currentSetup: {
       machineAge: mapEquipmentAge(formData.currentEquipmentAge),
-      currentSupplier: formData.serviceProvider || undefined,
-      contractEndDate: formData.contractEndDate ? new Date(formData.contractEndDate) : undefined,
+      currentSupplier: formData.currentSetup.currentSupplier || undefined,
+      currentModel: formData.currentSetup.currentModel || undefined,
+      currentSpeed: parseInt(formData.currentSetup.currentSpeed) || undefined,
+      contractStartDate: formData.currentSetup.contractStartDate ? new Date(formData.currentSetup.contractStartDate) : undefined,
+      contractEndDate: formData.currentSetup.contractEndDate ? new Date(formData.currentSetup.contractEndDate) : undefined,
       currentCosts: {
-        monoRate: parseFloat(formData.currentMonoCPC) || undefined,
-        colourRate: parseFloat(formData.currentColorCPC) || undefined,
-        quarterlyLeaseCost: parseFloat(formData.quarterlyLeaseCost) || undefined,
+        monoRate: parseFloat(formData.currentSetup.currentMonoCPC) || undefined,
+        colourRate: parseFloat(formData.currentSetup.currentColorCPC) || undefined,
+        quarterlyLeaseCost: parseFloat(formData.currentSetup.quarterlyLeaseCost) || undefined,
         quarterlyService: undefined
       },
-      painPoints: formData.primaryChallenges || [],
-      satisfactionLevel: undefined
+      painPoints: formData.reasonsForQuote || [],
+      satisfactionLevel: undefined,
+      currentFeatures: formData.currentSetup.currentFeatures || [],
+      buyoutRequired: formData.currentSetup.buyoutRequired || false,
+      buyoutCost: formData.currentSetup.buyoutCost || undefined,
+      includeBuyoutInCosts: formData.currentSetup.includeBuyoutInCosts || false
     },
 
     // Requirements (Required structure)
@@ -225,13 +227,13 @@ const mapFormDataToBackend = (formData, userProfile) => {
     userId: userProfile?._id || userProfile?.userId || userProfile?.id,
     status: 'pending',
     submissionSource: 'web_form',
-    
+
     // Optional fields with safe defaults
     phone: undefined,
     quotes: [],
     internalNotes: [],
 
-    // Additional optional fields from original mapping
+    // Additional optional fields
     ...(formData.subSector && { subSector: formData.subSector }),
     ...(formData.annualRevenue && { annualRevenue: formData.annualRevenue }),
     ...(formData.officeBasedEmployees && { officeBasedEmployees: parseInt(formData.officeBasedEmployees) }),
@@ -277,34 +279,35 @@ const mapFormDataToBackend = (formData, userProfile) => {
     ...(formData.expansionPlans && { expansionPlans: formData.expansionPlans }),
     ...(formData.technologyRoadmap && { technologyRoadmap: formData.technologyRoadmap }),
     ...(formData.digitalTransformation && { digitalTransformation: formData.digitalTransformation }),
-    ...(formData.threeYearVision && { threeYearVision: formData.threeYearVision })
+    ...(formData.threeYearVision && { threeYearVision: formData.threeYearVision }),
+    ...(formData.reasonsForQuote?.length > 0 && { reasonsForQuote: formData.reasonsForQuote })
   };
 };
 
-// FIXED: Submission function - NO NAVIGATION LOGIC
+// Submission function
 const submitQuoteRequest = async (formData, userProfile) => {
   try {
     const payload = mapFormDataToBackend(formData, userProfile);
     console.log('🚀 Submitting payload:', JSON.stringify(payload, null, 2));
-    
+
     const response = await fetch(`${PRODUCTION_API_URL}/api/quotes/request`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${userProfile.token}`,
+        'Authorization': `Bearer ${userProfile.token}`,
       },
       body: JSON.stringify(payload),
     });
-    
+
     if (!response.ok) {
       const errorData = await response.json();
       console.error('❌ Backend validation error:', errorData);
       throw new Error(errorData.message || 'Validation failed');
     }
-    
+
     const result = await response.json();
     console.log('✅ Quote request submitted successfully:', result);
-    return result; // ONLY return data, no navigation
+    return result;
   } catch (error) {
     console.error('⚠️ Error submitting quote request:', error);
     throw error;
@@ -350,9 +353,21 @@ const EnhancedQuoteRequest = () => {
     integrationNeeds: [],
     mobileRequirements: 'No',
     remoteWorkImpact: '',
-    currentColorCPC: '',
-    currentMonoCPC: '',
-    quarterlyLeaseCost: '',
+    currentSetup: {
+      currentSupplier: '',
+      currentModel: '',
+      currentSpeed: '',
+      contractStartDate: '',
+      contractEndDate: '',
+      currentMonoCPC: '',
+      currentColorCPC: '',
+      quarterlyLeaseCost: '',
+      currentFeatures: [],
+      buyoutRequired: false,
+      buyoutCost: '',
+      includeBuyoutInCosts: false
+    },
+    reasonsForQuote: [],
     totalAnnualCosts: '',
     hiddenCosts: '',
     leasingCompany: '',
@@ -397,41 +412,83 @@ const EnhancedQuoteRequest = () => {
   const [successMessage, setSuccessMessage] = useState('');
   const [suggestedMachines, setSuggestedMachines] = useState([]);
 
+  // Auto-update suggested machines
+  useEffect(() => {
+    if (auth?.token && (formData.monthlyVolume.mono || formData.monthlyVolume.colour || formData.type || formData.industryType)) {
+      suggestCopiers(formData, auth.token).then((suggestions) => {
+        setSuggestedMachines(suggestions);
+      }).catch(error => {
+        console.warn('AI suggestions not available:', error);
+      });
+    }
+  }, [formData.monthlyVolume.mono, formData.monthlyVolume.colour, formData.type, formData.industryType, auth?.token]);
+
+  // Calculate buyout cost
+  const calculateBuyout = () => {
+    const { quarterlyLeaseCost, contractEndDate } = formData.currentSetup;
+    if (!quarterlyLeaseCost || !contractEndDate) return 'N/A';
+    const end = new Date(contractEndDate);
+    const today = new Date();
+    if (today > end) return 'Contract Ended';
+    const monthsRemaining = (end - today) / (1000 * 60 * 60 * 24 * 30);
+    const quarterlyCost = parseFloat(quarterlyLeaseCost) || 0;
+    const buyout = (quarterlyCost / 3) * monthsRemaining;
+    return buyout.toFixed(2);
+  };
+
+  // Update buyout cost in formData
+  useEffect(() => {
+    const buyoutCost = calculateBuyout();
+    setFormData(prev => ({
+      ...prev,
+      currentSetup: {
+        ...prev.currentSetup,
+        buyoutCost: buyoutCost !== 'N/A' && buyoutCost !== 'Contract Ended' ? parseFloat(buyoutCost) : undefined
+      }
+    }));
+  }, [formData.currentSetup.quarterlyLeaseCost, formData.currentSetup.contractEndDate]);
+
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     let updatedData;
-
     if (type === 'checkbox') {
       if (['primaryChallenges', 'documentTypes', 'finishingRequirements', 'securityRequirements',
            'integrationNeeds', 'additionalServices', 'securityFeatures', 'reportingNeeds',
-           'decisionMakers', 'evaluationCriteria', 'required_functions'].includes(name)) {
+           'decisionMakers', 'evaluationCriteria', 'required_functions', 'reasonsForQuote',
+           'currentSetup.currentFeatures'].includes(name)) {
         updatedData = {
           ...formData,
           [name]: checked
             ? [...formData[name], value]
             : formData[name].filter((item) => item !== value),
         };
+      } else if (name.startsWith('currentSetup.')) {
+        const field = name.split('.')[1];
+        updatedData = {
+          ...formData,
+          currentSetup: {
+            ...formData.currentSetup,
+            [field]: checked
+          }
+        };
       }
-    } else if (name.startsWith('monthlyVolume.')) {
-      const field = name.split('.')[1];
+    } else if (name.startsWith('monthlyVolume.') || name.startsWith('currentSetup.')) {
+      const keys = name.split('.');
+      const field = keys[1];
       updatedData = {
         ...formData,
-        monthlyVolume: { ...formData.monthlyVolume, [field]: value },
+        [keys[0]]: {
+          ...formData[keys[0]],
+          [field]: type === 'number' ? (value === '' ? '' : parseFloat(value)) : value
+        }
       };
     } else {
       updatedData = {
         ...formData,
-        [name]: type === 'number' ? (value === '' ? '' : parseFloat(value)) : value,
+        [name]: type === 'number' ? (value === '' ? '' : parseFloat(value)) : value
       };
     }
     setFormData(updatedData);
-    if (['monthlyPrintVolume', 'min_speed', 'type', 'colour', 'required_functions', 'industryType'].includes(name)) {
-      suggestCopiers(updatedData).then((suggestions) => {
-        setSuggestedMachines(suggestions);
-      }).catch(error => {
-        console.warn('AI suggestions not available:', error);
-      });
-    }
   };
 
   const { getRootProps, getInputProps } = useDropzone({
@@ -446,73 +503,94 @@ const EnhancedQuoteRequest = () => {
     },
   });
 
-  const calculateBuyout = () => {
-    const { quarterlyLeaseCost, contractEndDate } = formData;
-    if (!quarterlyLeaseCost || !contractEndDate) return 'N/A';
-    const end = new Date(contractEndDate);
-    const today = new Date();
-    if (today > end) return 'Contract Ended';
-    const monthsRemaining = (end - today) / (1000 * 60 * 60 * 24 * 30);
-    const quarterlyCost = parseFloat(quarterlyLeaseCost) || 0;
-    const buyout = (quarterlyCost / 3) * monthsRemaining;
-    return buyout.toFixed(2);
-  };
-
   const validateStep = (currentStep) => {
+    const errors = {};
     switch (currentStep) {
       case 1:
-        return formData.companyName && formData.industryType && formData.numEmployees && formData.numLocations && formData.postcode;
+        if (!formData.companyName) errors.companyName = 'Company name is required';
+        if (!formData.industryType) errors.industryType = 'Industry type is required';
+        if (!formData.numEmployees) errors.numEmployees = 'Number of employees is required';
+        if (!formData.numLocations) errors.numLocations = 'Number of locations is required';
+        if (!formData.postcode) errors.postcode = 'Postcode is required';
+        break;
       case 2:
-        return formData.primaryChallenges.length > 0 && formData.urgencyLevel && formData.implementationTimeline;
+        if (formData.reasonsForQuote.length === 0) errors.reasonsForQuote = 'At least one reason for requesting a quote is required';
+        if (!formData.urgencyLevel) errors.urgencyLevel = 'Urgency level is required';
+        if (!formData.implementationTimeline) errors.implementationTimeline = 'Implementation timeline is required';
+        break;
       case 3:
-        return formData.monthlyVolume.colour !== '' && formData.monthlyVolume.mono !== '';
+        if (formData.monthlyVolume.colour === '' || formData.monthlyVolume.mono === '') {
+          errors.monthlyVolume = 'Both color and mono volume are required';
+        }
+        break;
       case 4:
-        return formData.networkSetup && formData.itSupportStructure;
+        if (!formData.networkSetup) errors.networkSetup = 'Network setup is required';
+        if (!formData.itSupportStructure) errors.itSupportStructure = 'IT support structure is required';
+        break;
       case 5:
-        return true; // Optional financial fields
+        if (formData.currentSetup.currentSupplier && (
+          !formData.currentSetup.currentModel ||
+          !formData.currentSetup.currentSpeed ||
+          !formData.currentSetup.contractStartDate ||
+          !formData.currentSetup.contractEndDate ||
+          !formData.currentSetup.currentMonoCPC ||
+          !formData.currentSetup.currentColorCPC ||
+          !formData.currentSetup.quarterlyLeaseCost
+        )) {
+          errors.currentSetup = 'All current setup fields are required if a supplier is specified';
+        }
+        break;
       case 6:
-        return formData.serviceType && formData.colour && formData.type;
+        if (!formData.serviceType) errors.serviceType = 'Service type is required';
+        if (!formData.colour) errors.colour = 'Colour preference is required';
+        if (!formData.type) errors.type = 'Maximum paper size is required';
+        break;
       case 7:
-        return formData.responseTimeExpectation && formData.maintenancePreference;
+        if (!formData.responseTimeExpectation) errors.responseTimeExpectation = 'Response time expectation is required';
+        if (!formData.maintenancePreference) errors.maintenancePreference = 'Maintenance preference is required';
+        break;
       case 8:
-        return formData.decisionMakers.length > 0 && formData.preference && formData.max_lease_price;
+        if (formData.decisionMakers.length === 0) errors.decisionMakers = 'At least one decision maker is required';
+        if (!formData.preference) errors.preference = 'Priority is required';
+        if (!formData.max_lease_price) errors.max_lease_price = 'Maximum monthly investment is required';
+        break;
       case 9:
-        return formData.expectedGrowth && formData.threeYearVision;
+        if (!formData.expectedGrowth) errors.expectedGrowth = 'Expected growth is required';
+        if (!formData.threeYearVision) errors.threeYearVision = 'Three-year vision is required';
+        break;
       default:
         return true;
     }
+    setErrorMessage(Object.values(errors).join('; '));
+    return Object.keys(errors).length === 0;
   };
 
   const handleNext = () => {
     if (validateStep(step)) {
       setStep((prev) => prev + 1);
       setErrorMessage('');
-    } else {
-      setErrorMessage('Please fill out all required fields before proceeding.');
     }
   };
 
   const handleBack = () => setStep((prev) => prev - 1);
 
-  // FIXED: Unified handleSubmit function with single navigation path
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateStep(9)) {
-      setErrorMessage('Please fill out all required fields before submitting.');
       return;
     }
     setIsSubmitting(true);
     setSubmissionStatus('idle');
     setErrorMessage('');
     setSuccessMessage('');
-    
+
     if (!isLoggedIn) {
       alert('You must be logged in to submit a quote request.');
       navigate('/login');
       setIsSubmitting(false);
       return;
     }
-    
+
     const token = auth?.token;
     const userId = auth?.user?.userId || auth?.user?.id;
     const userProfile = {
@@ -521,59 +599,53 @@ const EnhancedQuoteRequest = () => {
       email: auth?.user?.email,
       token: token
     };
-    
+
     if (!token || !userId) {
       alert('Authentication failed. Please log in again.');
       navigate('/login');
       setIsSubmitting(false);
       return;
     }
-    
+
     try {
       let data;
-      
+
       if (uploadedFiles.length > 0) {
-        // File upload path
         console.log('📁 Submitting with files');
         const requestData = new FormData();
         const payload = mapFormDataToBackend(formData, userProfile);
-        
         requestData.append('quoteRequest', JSON.stringify(payload));
         uploadedFiles.forEach((file, index) => requestData.append(`documents[${index}]`, file));
-        
+
         const response = await fetch(`${PRODUCTION_API_URL}/api/quotes/request`, {
           method: 'POST',
           headers: { Authorization: `Bearer ${token}` },
           body: requestData,
         });
-        
+
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}));
           console.error('Backend error:', errorData);
           throw new Error(errorData.message || errorData.details?.join('; ') || 'Failed to submit quote request');
         }
-        
+
         data = await response.json();
       } else {
-        // JSON-only path
         console.log('📄 Submitting JSON only');
         data = await submitQuoteRequest(formData, userProfile);
       }
-      
+
       console.log('✅ Quote request submitted successfully:', data);
-      
-      // Show success status
+
       setSubmissionStatus('success');
       setSuccessMessage('Quote request submitted successfully! AI matching in progress. Redirecting to your quotes page...');
       setErrorMessage('');
-      
-      // FIXED: Single navigation path - always go to /quotes
+
       setTimeout(() => {
         console.log('🎯 Navigating to quotes page');
         navigate('/quotes');
       }, 2000);
-      
-      // Reset form
+
       setFormData({
         companyName: '', industryType: '', subSector: '', annualRevenue: '', numEmployees: '',
         officeBasedEmployees: '', numLocations: '', primaryBusinessActivity: '', organizationStructure: '',
@@ -583,16 +655,21 @@ const EnhancedQuoteRequest = () => {
         documentTypes: [], averagePageCount: '', finishingRequirements: [], departmentBreakdown: [],
         networkSetup: '', itSupportStructure: '', securityRequirements: [], currentSoftwareEnvironment: '',
         cloudPreference: '', integrationNeeds: [], mobileRequirements: 'No', remoteWorkImpact: '',
-        currentColorCPC: '', currentMonoCPC: '', quarterlyLeaseCost: '', totalAnnualCosts: '',
-        hiddenCosts: '', leasingCompany: '', serviceProvider: '', contractStartDate: '',
-        contractEndDate: '', currentEquipmentAge: '', maintenanceIssues: '', additionalServices: [],
-        paysForScanning: 'No', serviceType: 'Photocopiers', colour: '', type: '', min_speed: '',
-        securityFeatures: [], accessibilityNeeds: 'No', sustainabilityGoals: '', responseTimeExpectation: '',
-        maintenancePreference: '', trainingNeeds: '', supplyManagement: '', reportingNeeds: [],
-        vendorRelationshipType: '', decisionMakers: [], evaluationCriteria: [], contractLengthPreference: '',
-        pricingModelPreference: '', required_functions: [], preference: '', max_lease_price: '',
-        roiExpectations: '', expectedGrowth: '', expansionPlans: '', technologyRoadmap: '',
-        digitalTransformation: '', threeYearVision: ''
+        currentSetup: {
+          currentSupplier: '', currentModel: '', currentSpeed: '', contractStartDate: '',
+          contractEndDate: '', currentMonoCPC: '', currentColorCPC: '', quarterlyLeaseCost: '',
+          currentFeatures: [], buyoutRequired: false, buyoutCost: '', includeBuyoutInCosts: false
+        },
+        reasonsForQuote: [],
+        totalAnnualCosts: '', hiddenCosts: '', leasingCompany: '', serviceProvider: '',
+        contractStartDate: '', contractEndDate: '', currentEquipmentAge: '', maintenanceIssues: '',
+        additionalServices: [], paysForScanning: 'No', serviceType: 'Photocopiers', colour: '',
+        type: '', min_speed: '', securityFeatures: [], accessibilityNeeds: 'No', sustainabilityGoals: '',
+        responseTimeExpectation: '', maintenancePreference: '', trainingNeeds: '', supplyManagement: '',
+        reportingNeeds: [], vendorRelationshipType: '', decisionMakers: [], evaluationCriteria: [],
+        contractLengthPreference: '', pricingModelPreference: '', required_functions: [],
+        preference: '', max_lease_price: '', roiExpectations: '', expectedGrowth: '',
+        expansionPlans: '', technologyRoadmap: '', digitalTransformation: '', threeYearVision: ''
       });
       setUploadedFiles([]);
       setStep(1);
@@ -605,6 +682,23 @@ const EnhancedQuoteRequest = () => {
       setIsSubmitting(false);
     }
   };
+
+  const reasonsForQuoteOptions = [
+    'Not happy with current supplier',
+    'Too expensive',
+    'Poor service quality',
+    'Outdated equipment',
+    'Need additional features',
+    'Contract nearing end',
+    'Business expansion',
+    'Cost optimization'
+  ];
+
+  const currentFeatureOptions = [
+    'Stapling',
+    'Duplex Printing',
+    'Follow-Me Print'
+  ];
 
   const challengeOptions = [
     'High printing costs',
@@ -740,6 +834,7 @@ const EnhancedQuoteRequest = () => {
                   value={formData.companyName}
                   onChange={handleChange}
                   required
+                  className={errorMessage.includes('companyName') ? 'error' : ''}
                 />
               </label>
               <label>
@@ -751,11 +846,12 @@ const EnhancedQuoteRequest = () => {
                   onChange={handleChange}
                   placeholder="e.g., SW1A 1AA"
                   required
+                  className={errorMessage.includes('postcode') ? 'error' : ''}
                 />
               </label>
               <label>
                 Industry Type: <span className="required">*</span>
-                <select name="industryType" value={formData.industryType} onChange={handleChange} required>
+                <select name="industryType" value={formData.industryType} onChange={handleChange} required className={errorMessage.includes('industryType') ? 'error' : ''}>
                   <option value="">Select Industry</option>
                   <option value="Healthcare">Healthcare</option>
                   <option value="Legal">Legal</option>
@@ -802,6 +898,7 @@ const EnhancedQuoteRequest = () => {
                   value={formData.numEmployees}
                   onChange={handleChange}
                   required
+                  className={errorMessage.includes('numEmployees') ? 'error' : ''}
                 />
               </label>
               <label>
@@ -823,6 +920,7 @@ const EnhancedQuoteRequest = () => {
                   onChange={handleChange}
                   min="1"
                   required
+                  className={errorMessage.includes('numLocations') ? 'error' : ''}
                 />
               </label>
               <label>
@@ -860,25 +958,36 @@ const EnhancedQuoteRequest = () => {
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
             <h3>Current Challenges & Timeline</h3>
             <div className="form-section">
-              <h4>What's Driving This Decision?</h4>
+              <h4>Why Are You Requesting a Quote?</h4>
               <fieldset>
-                <legend>Primary Challenges (Select all that apply): <span className="required">*</span></legend>
-                {challengeOptions.map((challenge) => (
-                  <label key={challenge}>
+                <legend>Reasons for Quote (Select all that apply): <span className="required">*</span></legend>
+                {reasonsForQuoteOptions.map((reason) => (
+                  <label key={reason}>
                     <input
                       type="checkbox"
-                      name="primaryChallenges"
-                      value={challenge}
-                      checked={formData.primaryChallenges.includes(challenge)}
+                      name="reasonsForQuote"
+                      value={reason}
+                      checked={formData.reasonsForQuote.includes(reason)}
                       onChange={handleChange}
                     />
-                    {challenge}
+                    {reason}
                   </label>
                 ))}
+                {errorMessage.includes('reasonsForQuote') && <span className="error-text">At least one reason is required</span>}
               </fieldset>
               <label>
+                Additional Pain Points:
+                <textarea
+                  name="currentPainPoints"
+                  value={formData.currentPainPoints}
+                  onChange={handleChange}
+                  placeholder="Describe any specific issues with your current setup"
+                  rows="3"
+                />
+              </label>
+              <label>
                 Urgency Level: <span className="required">*</span>
-                <select name="urgencyLevel" value={formData.urgencyLevel} onChange={handleChange} required>
+                <select name="urgencyLevel" value={formData.urgencyLevel} onChange={handleChange} required className={errorMessage.includes('urgencyLevel') ? 'error' : ''}>
                   <option value="">Select Urgency</option>
                   <option value="Critical">Critical (Immediate)</option>
                   <option value="High">High (1-2 months)</option>
@@ -888,7 +997,7 @@ const EnhancedQuoteRequest = () => {
               </label>
               <label>
                 Implementation Timeline: <span className="required">*</span>
-                <select name="implementationTimeline" value={formData.implementationTimeline} onChange={handleChange} required>
+                <select name="implementationTimeline" value={formData.implementationTimeline} onChange={handleChange} required className={errorMessage.includes('implementationTimeline') ? 'error' : ''}>
                   <option value="">Select Timeline</option>
                   <option value="ASAP">As soon as possible</option>
                   <option value="1-2 months">1-2 months</option>
@@ -917,6 +1026,7 @@ const EnhancedQuoteRequest = () => {
                   onChange={handleChange}
                   placeholder="Color pages per month"
                   required
+                  className={errorMessage.includes('monthlyVolume') ? 'error' : ''}
                 />
               </label>
               <label>
@@ -928,7 +1038,18 @@ const EnhancedQuoteRequest = () => {
                   onChange={handleChange}
                   placeholder="Black & white pages per month"
                   required
+                  className={errorMessage.includes('monthlyVolume') ? 'error' : ''}
                 />
+              </label>
+              <label>
+                Peak Usage Periods:
+                <select name="peakUsagePeriods" value={formData.peakUsagePeriods} onChange={handleChange}>
+                  <option value="">Select Pattern</option>
+                  <option value="Monday-Friday">Monday-Friday</option>
+                  <option value="Weekends">Weekends Included</option>
+                  <option value="Daily">Daily Consistent</option>
+                  <option value="Month-end">Month-end Heavy</option>
+                </select>
               </label>
             </div>
             <button onClick={handleBack}>Back</button>
@@ -943,7 +1064,7 @@ const EnhancedQuoteRequest = () => {
               <h4>IT Infrastructure</h4>
               <label>
                 Network Setup: <span className="required">*</span>
-                <select name="networkSetup" value={formData.networkSetup} onChange={handleChange} required>
+                <select name="networkSetup" value={formData.networkSetup} onChange={handleChange} required className={errorMessage.includes('networkSetup') ? 'error' : ''}>
                   <option value="">Select Network Type</option>
                   <option value="Wired only">Wired network only</option>
                   <option value="Wireless only">Wireless network only</option>
@@ -953,7 +1074,7 @@ const EnhancedQuoteRequest = () => {
               </label>
               <label>
                 IT Support Structure: <span className="required">*</span>
-                <select name="itSupportStructure" value={formData.itSupportStructure} onChange={handleChange} required>
+                <select name="itSupportStructure" value={formData.itSupportStructure} onChange={handleChange} required className={errorMessage.includes('itSupportStructure') ? 'error' : ''}>
                   <option value="">Select IT Support</option>
                   <option value="Internal IT team">Internal IT team</option>
                   <option value="Outsourced IT">Outsourced IT support</option>
@@ -972,19 +1093,142 @@ const EnhancedQuoteRequest = () => {
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
             <h3>Current Setup & Financial Analysis</h3>
             <div className="form-section">
-              <h4>Current Equipment & Costs</h4>
+              <h4>Current Copier Setup</h4>
               <label>
-                Current Equipment Age:
-                <select name="currentEquipmentAge" value={formData.currentEquipmentAge} onChange={handleChange}>
-                  <option value="">Select Age Range</option>
-                  <option value="Less than 1 year">Less than 1 year</option>
-                  <option value="1-2 years">1-2 years</option>
-                  <option value="3-4 years">3-4 years</option>
-                  <option value="5-6 years">5-6 years</option>
-                  <option value="Over 6 years">Over 6 years</option>
-                  <option value="Mixed ages">Mixed ages</option>
-                </select>
+                Current Supplier:
+                <input
+                  type="text"
+                  name="currentSetup.currentSupplier"
+                  value={formData.currentSetup.currentSupplier}
+                  onChange={handleChange}
+                  placeholder="e.g., Xerox, Canon"
+                  className={errorMessage.includes('currentSetup') ? 'error' : ''}
+                />
               </label>
+              <label>
+                Current Copier Model:
+                <input
+                  type="text"
+                  name="currentSetup.currentModel"
+                  value={formData.currentSetup.currentModel}
+                  onChange={handleChange}
+                  placeholder="e.g., AltaLink C8030"
+                  className={errorMessage.includes('currentSetup') ? 'error' : ''}
+                />
+              </label>
+              <label>
+                Current Copier Speed (PPM):
+                <input
+                  type="number"
+                  name="currentSetup.currentSpeed"
+                  value={formData.currentSetup.currentSpeed}
+                  onChange={handleChange}
+                  min="0"
+                  placeholder="e.g., 30"
+                  className={errorMessage.includes('currentSetup') ? 'error' : ''}
+                />
+              </label>
+              <label>
+                Contract Start Date:
+                <input
+                  type="date"
+                  name="currentSetup.contractStartDate"
+                  value={formData.currentSetup.contractStartDate}
+                  onChange={handleChange}
+                  className={errorMessage.includes('currentSetup') ? 'error' : ''}
+                />
+              </label>
+              <label>
+                Contract End Date:
+                <input
+                  type="date"
+                  name="currentSetup.contractEndDate"
+                  value={formData.currentSetup.contractEndDate}
+                  onChange={handleChange}
+                  className={errorMessage.includes('currentSetup') ? 'error' : ''}
+                />
+              </label>
+              <label>
+                Current Mono CPC (pence per page):
+                <input
+                  type="number"
+                  name="currentSetup.currentMonoCPC"
+                  value={formData.currentSetup.currentMonoCPC}
+                  onChange={handleChange}
+                  min="0"
+                  step="0.01"
+                  placeholder="e.g., 1.2"
+                  className={errorMessage.includes('currentSetup') ? 'error' : ''}
+                />
+              </label>
+              <label>
+                Current Color CPC (pence per page):
+                <input
+                  type="number"
+                  name="currentSetup.currentColorCPC"
+                  value={formData.currentSetup.currentColorCPC}
+                  onChange={handleChange}
+                  min="0"
+                  step="0.01"
+                  placeholder="e.g., 6.5"
+                  className={errorMessage.includes('currentSetup') ? 'error' : ''}
+                />
+              </label>
+              <label>
+                Current Quarterly Lease Cost (£):
+                <input
+                  type="number"
+                  name="currentSetup.quarterlyLeaseCost"
+                  value={formData.currentSetup.quarterlyLeaseCost}
+                  onChange={handleChange}
+                  min="0"
+                  step="0.01"
+                  placeholder="e.g., 450.00"
+                  className={errorMessage.includes('currentSetup') ? 'error' : ''}
+                />
+              </label>
+              <fieldset>
+                <legend>Current Copier Features:</legend>
+                {currentFeatureOptions.map((feature) => (
+                  <label key={feature}>
+                    <input
+                      type="checkbox"
+                      name="currentSetup.currentFeatures"
+                      value={feature}
+                      checked={formData.currentSetup.currentFeatures.includes(feature)}
+                      onChange={handleChange}
+                    />
+                    {feature}
+                  </label>
+                ))}
+              </fieldset>
+              <label className="checkbox-group">
+                <input
+                  type="checkbox"
+                  name="currentSetup.buyoutRequired"
+                  checked={formData.currentSetup.buyoutRequired}
+                  onChange={handleChange}
+                />
+                Buyout of current contract required
+              </label>
+              {formData.currentSetup.buyoutRequired && (
+                <>
+                  <div className="buyout-info">
+                    <h4>Estimated Buyout Cost</h4>
+                    <p>£{calculateBuyout()}</p>
+                  </div>
+                  <label className="checkbox-group">
+                    <input
+                      type="checkbox"
+                      name="currentSetup.includeBuyoutInCosts"
+                      checked={formData.currentSetup.includeBuyoutInCosts}
+                      onChange={handleChange}
+                    />
+                    Include buyout cost in new quote costs
+                  </label>
+                </>
+              )}
+              {errorMessage.includes('currentSetup') && <span className="error-text">{errorMessage}</span>}
             </div>
             <button onClick={handleBack}>Back</button>
             <button onClick={handleNext}>Next</button>
@@ -998,7 +1242,7 @@ const EnhancedQuoteRequest = () => {
               <h4>Basic Requirements</h4>
               <label>
                 Service Type: <span className="required">*</span>
-                <select name="serviceType" value={formData.serviceType} onChange={handleChange} required>
+                <select name="serviceType" value={formData.serviceType} onChange={handleChange} required className={errorMessage.includes('serviceType') ? 'error' : ''}>
                   <option value="Photocopiers">Multifunction Photocopiers</option>
                   <option value="Printers">Desktop Printers</option>
                   <option value="Production">Production Printing</option>
@@ -1008,7 +1252,7 @@ const EnhancedQuoteRequest = () => {
               </label>
               <label>
                 Colour Preference: <span className="required">*</span>
-                <select name="colour" value={formData.colour} onChange={handleChange} required>
+                <select name="colour" value={formData.colour} onChange={handleChange} required className={errorMessage.includes('colour') ? 'error' : ''}>
                   <option value="">Select Preference</option>
                   <option value="Black & White">Black & White Only</option>
                   <option value="Color">Color Required</option>
@@ -1018,7 +1262,7 @@ const EnhancedQuoteRequest = () => {
               {formData.colour && (
                 <label>
                   Maximum Paper Size: <span className="required">*</span>
-                  <select name="type" value={formData.type} onChange={handleChange} required>
+                  <select name="type" value={formData.type} onChange={handleChange} required className={errorMessage.includes('type') ? 'error' : ''}>
                     <option value="">Select Size</option>
                     <option value="A4">A4 (Standard)</option>
                     <option value="A3">A3 (Larger format)</option>
@@ -1043,6 +1287,12 @@ const EnhancedQuoteRequest = () => {
                       <div className="file-info">
                         <span className="file-name">{file.name}</span>
                         <span className="file-size">({(file.size / 1024).toFixed(1)} KB)</span>
+                        <button
+                          onClick={() => setUploadedFiles(prev => prev.filter((_, i) => i !== index))}
+                          className="remove-file"
+                        >
+                          ✕
+                        </button>
                       </div>
                     </div>
                   ))}
@@ -1071,7 +1321,7 @@ const EnhancedQuoteRequest = () => {
               <h4>Service Level Requirements</h4>
               <label>
                 Response Time Expectation: <span className="required">*</span>
-                <select name="responseTimeExpectation" value={formData.responseTimeExpectation} onChange={handleChange} required>
+                <select name="responseTimeExpectation" value={formData.responseTimeExpectation} onChange={handleChange} required className={errorMessage.includes('responseTimeExpectation') ? 'error' : ''}>
                   <option value="">Select Response Time</option>
                   <option value="Same day">Same day (4-8 hours)</option>
                   <option value="Next business day">Next business day</option>
@@ -1082,12 +1332,30 @@ const EnhancedQuoteRequest = () => {
               </label>
               <label>
                 Maintenance Preference: <span className="required">*</span>
-                <select name="maintenancePreference" value={formData.maintenancePreference} onChange={handleChange} required>
+                <select name="maintenancePreference" value={formData.maintenancePreference} onChange={handleChange} required className={errorMessage.includes('maintenancePreference') ? 'error' : ''}>
                   <option value="">Select Preference</option>
                   <option value="Proactive">Proactive (scheduled preventive maintenance)</option>
                   <option value="Reactive">Reactive (fix when broken)</option>
                   <option value="Hybrid">Hybrid approach</option>
                   <option value="Self-service">Self-service with remote support</option>
+                </select>
+              </label>
+              <label>
+                Training Needs:
+                <select name="trainingNeeds" value={formData.trainingNeeds} onChange={handleChange}>
+                  <option value="">Select Training Needs</option>
+                  <option value="Basic">Basic user training</option>
+                  <option value="Advanced">Advanced admin training</option>
+                  <option value="None">No training required</option>
+                </select>
+              </label>
+              <label>
+                Supply Management:
+                <select name="supplyManagement" value={formData.supplyManagement} onChange={handleChange}>
+                  <option value="">Select Supply Management</option>
+                  <option value="Automatic">Automatic toner/supply replenishment</option>
+                  <option value="Manual">Manual ordering</option>
+                  <option value="Vendor-managed">Vendor-managed inventory</option>
                 </select>
               </label>
             </div>
@@ -1115,10 +1383,11 @@ const EnhancedQuoteRequest = () => {
                     {role}
                   </label>
                 ))}
+                {errorMessage.includes('decisionMakers') && <span className="error-text">At least one decision maker is required</span>}
               </fieldset>
               <label>
                 What is most important to you? <span className="required">*</span>
-                <select name="preference" value={formData.preference} onChange={handleChange} required>
+                <select name="preference" value={formData.preference} onChange={handleChange} required className={errorMessage.includes('preference') ? 'error' : ''}>
                   <option value="">Select Priority</option>
                   <option value="cost">Lowest total cost</option>
                   <option value="quality">Best print quality</option>
@@ -1136,7 +1405,28 @@ const EnhancedQuoteRequest = () => {
                   onChange={handleChange}
                   placeholder="Total monthly budget for all equipment/services"
                   required
+                  className={errorMessage.includes('max_lease_price') ? 'error' : ''}
                 />
+              </label>
+              <label>
+                Contract Length Preference:
+                <select name="contractLengthPreference" value={formData.contractLengthPreference} onChange={handleChange}>
+                  <option value="">Select Term</option>
+                  <option value="12 months">12 months</option>
+                  <option value="24 months">24 months</option>
+                  <option value="36 months">36 months</option>
+                  <option value="48 months">48 months</option>
+                  <option value="60 months">60 months</option>
+                </select>
+              </label>
+              <label>
+                Pricing Model Preference:
+                <select name="pricingModelPreference" value={formData.pricingModelPreference} onChange={handleChange}>
+                  <option value="">Select Model</option>
+                  <option value="Lease">Lease (fixed monthly)</option>
+                  <option value="CPC">Cost per copy</option>
+                  <option value="Hybrid">Hybrid (lease + CPC)</option>
+                </select>
               </label>
             </div>
             <button onClick={handleBack}>Back</button>
@@ -1151,7 +1441,7 @@ const EnhancedQuoteRequest = () => {
               <h4>Growth & Expansion</h4>
               <label>
                 Expected Business Growth: <span className="required">*</span>
-                <select name="expectedGrowth" value={formData.expectedGrowth} onChange={handleChange} required>
+                <select name="expectedGrowth" value={formData.expectedGrowth} onChange={handleChange} required className={errorMessage.includes('expectedGrowth') ? 'error' : ''}>
                   <option value="">Select Growth Expectation</option>
                   <option value="Decline">Decline/Downsizing</option>
                   <option value="Stable">Stable (no significant change)</option>
@@ -1170,6 +1460,27 @@ const EnhancedQuoteRequest = () => {
                   placeholder="Where do you see your document/printing needs in 3 years?"
                   rows="4"
                   required
+                  className={errorMessage.includes('threeYearVision') ? 'error' : ''}
+                />
+              </label>
+              <label>
+                Expansion Plans:
+                <textarea
+                  name="expansionPlans"
+                  value={formData.expansionPlans}
+                  onChange={handleChange}
+                  placeholder="Any planned office expansions or new locations?"
+                  rows="3"
+                />
+              </label>
+              <label>
+                Technology Roadmap:
+                <textarea
+                  name="technologyRoadmap"
+                  value={formData.technologyRoadmap}
+                  onChange={handleChange}
+                  placeholder="How do you plan to integrate new technology?"
+                  rows="3"
                 />
               </label>
             </div>
@@ -1179,11 +1490,17 @@ const EnhancedQuoteRequest = () => {
                 <p><strong>Assessment Completion:</strong> 95% complete</p>
                 <p><strong>Key Requirements Summary:</strong></p>
                 <ul>
-                  <li>Industry: {formData.industryType}</li>
+                  <li>Industry: {formData.industryType || 'Not specified'}</li>
                   <li>Monthly Volume: {(parseInt(formData.monthlyVolume.colour) || 0) + (parseInt(formData.monthlyVolume.mono) || 0)} pages</li>
-                  <li>Priority: {formData.preference}</li>
-                  <li>Budget: £{formData.max_lease_price}/month</li>
-                  <li>Timeline: {formData.implementationTimeline}</li>
+                  <li>Current Supplier: {formData.currentSetup.currentSupplier || 'Not specified'}</li>
+                  <li>Current Model: {formData.currentSetup.currentModel || 'Not specified'}</li>
+                  <li>Reasons for Quote: {formData.reasonsForQuote.join(', ') || 'Not specified'}</li>
+                  <li>Priority: {formData.preference || 'Not specified'}</li>
+                  <li>Budget: £{formData.max_lease_price || 'Not specified'}/month</li>
+                  <li>Timeline: {formData.implementationTimeline || 'Not specified'}</li>
+                  {formData.currentSetup.buyoutRequired && (
+                    <li>Buyout Cost: £{formData.currentSetup.buyoutCost || 'N/A'}</li>
+                  )}
                 </ul>
               </div>
             </div>
@@ -1202,8 +1519,7 @@ const EnhancedQuoteRequest = () => {
     <div className="request-quote-container">
       <h2>Comprehensive Equipment Assessment</h2>
       <p className="text-center text-muted">Professional procurement analysis - 15-20 minutes</p>
-      
-      {/* Success/Error Messages */}
+
       {submissionStatus === 'success' && (
         <div className="success-message" role="alert" style={{
           background: 'linear-gradient(135deg, #10b981, #059669)',
@@ -1217,7 +1533,7 @@ const EnhancedQuoteRequest = () => {
           ✅ {successMessage}
         </div>
       )}
-      
+
       {submissionStatus === 'error' && errorMessage && (
         <div className="error-message" role="alert" style={{
           background: 'linear-gradient(135deg, #ef4444, #dc2626)',
@@ -1231,13 +1547,13 @@ const EnhancedQuoteRequest = () => {
           ❌ {errorMessage}
         </div>
       )}
-      
+
       {submissionStatus === 'idle' && errorMessage && (
         <p className="error-message" role="alert">
           {errorMessage}
         </p>
       )}
-      
+
       <div className="progress-bar">
         <span>Step {step} of 9 - {Math.round((step / 9) * 100)}% Complete</span>
         <div style={{ width: `${(step / 9) * 100}%` }} className="progress" />

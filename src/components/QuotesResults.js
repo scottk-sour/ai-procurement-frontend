@@ -27,19 +27,19 @@ const QuoteResults = () => {
   const { user, token, isAuthenticated } = useAuth();
   const { showToast } = useToast();
   const { trackEvent } = useAnalytics();
-  
+
   // Core state
   const [quotes, setQuotes] = useState([]);
   const [filteredQuotes, setFilteredQuotes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [retryCount, setRetryCount] = useState(0);
-  
+
   // Action states
   const [actionLoading, setActionLoading] = useState({});
   const [selectedQuotes, setSelectedQuotes] = useState(new Set());
   const [bulkActionLoading, setBulkActionLoading] = useState(false);
-  
+
   // Filter and pagination state
   const [filters, setFilters] = useState({
     status: searchParams.get('status') || 'all',
@@ -53,7 +53,7 @@ const QuoteResults = () => {
     },
     urgency: searchParams.get('urgency') || 'all'
   });
-  
+
   const [pagination, setPagination] = useState({
     currentPage: parseInt(searchParams.get('page')) || 1,
     totalPages: 1,
@@ -61,7 +61,7 @@ const QuoteResults = () => {
     hasNextPage: false,
     hasPrevPage: false
   });
-  
+
   // Modal states
   const [confirmModal, setConfirmModal] = useState({
     isOpen: false,
@@ -70,7 +70,7 @@ const QuoteResults = () => {
     message: '',
     onConfirm: null
   });
-  
+
   // Refs
   const abortControllerRef = useRef(null);
   const autoRefreshRef = useRef(null);
@@ -108,9 +108,8 @@ const QuoteResults = () => {
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
     }
-    
-    abortControllerRef.current = new AbortController();
 
+    abortControllerRef.current = new AbortController();
     try {
       if (showLoadingState) {
         setLoading(true);
@@ -119,11 +118,11 @@ const QuoteResults = () => {
 
       // Build query parameters
       const queryParams = new URLSearchParams({
+        userId: user.id,
+        submittedBy: user.id,
         page: pagination.currentPage.toString(),
         limit: QUOTES_PER_PAGE.toString(),
-        ...filters,
-        minPrice: filters.priceRange.min || '',
-        maxPrice: filters.priceRange.max || ''
+        status: filters.status
       });
 
       // Remove empty params
@@ -133,7 +132,7 @@ const QuoteResults = () => {
         }
       }
 
-      const response = await fetch(`/api/quotes/user/${user.id}?${queryParams}`, {
+      const response = await fetch(`/api/quotes/requests?${queryParams}`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -147,57 +146,71 @@ const QuoteResults = () => {
           navigate('/login');
           return;
         }
-        throw new Error(`Failed to fetch quotes: ${response.status} ${response.statusText}`);
+        throw new Error(`Failed to fetch quote requests: ${response.status} ${response.statusText}`);
       }
 
       const data = await response.json();
-      
+
       // Validate response structure
       if (!data || typeof data !== 'object') {
         throw new Error('Invalid response format');
       }
 
-      const quotesData = data.quotes || data.data || [];
-      const paginationData = data.pagination || {};
+      // Extract quotes from quote requests
+      const quotesData = [];
+      const quoteRequests = data.quoteRequests || [];
+      quoteRequests.forEach(request => {
+        if (request.quotes && Array.isArray(request.quotes)) {
+          request.quotes.forEach(quote => {
+            quotesData.push({
+              ...quote,
+              quoteRequestId: request._id,
+              companyName: request.companyName,
+              monthlyVolume: request.monthlyVolume,
+              requestBudget: request.budget,
+              isActionable: quote.status === 'generated' // Add actionable flag based on quote status
+            });
+          });
+        }
+      });
 
+      console.log('📋 Extracted quotes:', quotesData); // Debug log
+
+      const paginationData = data.pagination || {};
       setQuotes(quotesData);
       setPagination(prev => ({
         ...prev,
-        totalPages: paginationData.totalPages || Math.ceil((paginationData.totalItems || quotesData.length) / QUOTES_PER_PAGE),
-        totalItems: paginationData.totalItems || quotesData.length,
+        totalPages: paginationData.totalPages || Math.ceil((paginationData.totalItems || quoteRequests.length) / QUOTES_PER_PAGE),
+        totalItems: paginationData.totalItems || quoteRequests.length,
         hasNextPage: paginationData.hasNextPage || false,
         hasPrevPage: paginationData.hasPrevPage || false
       }));
-
       setRetryCount(0);
-      
+
       // Track successful load
       trackEvent('quotes_loaded', {
         count: quotesData.length,
         filters: filters,
         page: pagination.currentPage
       });
-
     } catch (err) {
       if (err.name === 'AbortError') {
         return; // Request was cancelled
       }
-
       console.error('Error fetching quotes:', err);
       setError(err.message);
-      
+
       // Retry logic
       if (retryCount < MAX_RETRY_ATTEMPTS) {
         setRetryCount(prev => prev + 1);
         setTimeout(() => fetchQuotes(false), 1000 * Math.pow(2, retryCount));
       }
-      
+
       // Track error
       trackEvent('quotes_load_error', {
         error: err.message,
         retryCount: retryCount
       });
-
     } finally {
       if (showLoadingState) {
         setLoading(false);
@@ -218,15 +231,25 @@ const QuoteResults = () => {
   useEffect(() => {
     let filtered = [...quotes];
 
+    // Apply status filter
+    if (filters.status && filters.status !== 'all') {
+      filtered = filtered.filter(quote => quote.status === filters.status);
+    }
+
     // Apply search filter
     if (filters.search) {
       const searchLower = filters.search.toLowerCase();
-      filtered = filtered.filter(quote => 
+      filtered = filtered.filter(quote =>
         quote.vendor?.name?.toLowerCase().includes(searchLower) ||
         quote.productSummary?.manufacturer?.toLowerCase().includes(searchLower) ||
         quote.productSummary?.model?.toLowerCase().includes(searchLower) ||
         quote._id.toLowerCase().includes(searchLower)
       );
+    }
+
+    // Apply vendor filter
+    if (filters.vendor && filters.vendor !== 'all') {
+      filtered = filtered.filter(quote => quote.vendor?.name === filters.vendor);
     }
 
     // Apply price range filter
@@ -239,19 +262,35 @@ const QuoteResults = () => {
       });
     }
 
+    // Apply urgency filter
+    if (filters.urgency && filters.urgency !== 'all') {
+      filtered = filtered.filter(quote => quote.quoteRequest?.urgency?.timeframe === filters.urgency);
+    }
+
+    // Apply sorting
+    filtered.sort((a, b) => {
+      const sortOrder = filters.sortOrder === 'asc' ? 1 : -1;
+      switch (filters.sortBy) {
+        case 'price':
+          return sortOrder * ((a.costs?.monthlyCosts?.totalMonthlyCost || 0) - (b.costs?.monthlyCosts?.totalMonthlyCost || 0));
+        case 'createdAt':
+          return sortOrder * (new Date(a.createdAt) - new Date(b.createdAt));
+        default:
+          return 0;
+      }
+    });
+
     setFilteredQuotes(filtered);
-  }, [quotes, filters.search, filters.priceRange]);
+  }, [quotes, filters]);
 
   // Auto-refresh functionality
   useEffect(() => {
     if (autoRefreshRef.current) {
       clearInterval(autoRefreshRef.current);
     }
-
     autoRefreshRef.current = setInterval(() => {
       fetchQuotes(false); // Silent refresh
     }, AUTO_REFRESH_INTERVAL);
-
     return () => {
       if (autoRefreshRef.current) {
         clearInterval(autoRefreshRef.current);
@@ -283,7 +322,6 @@ const QuoteResults = () => {
       showToast(validation.message, 'error');
       return;
     }
-
     setConfirmModal({
       isOpen: true,
       type: 'accept',
@@ -299,7 +337,6 @@ const QuoteResults = () => {
       showToast(validation.message, 'error');
       return;
     }
-
     const reason = prompt(
       'Please let us know why you\'re declining this quote (optional):\n\n' +
       'Common reasons:\n' +
@@ -309,9 +346,8 @@ const QuoteResults = () => {
       '• Budget constraints\n' +
       '• Timing not right'
     );
-    
-    if (reason === null) return; // User cancelled
 
+    if (reason === null) return; // User cancelled
     setConfirmModal({
       isOpen: true,
       type: 'decline',
@@ -326,9 +362,8 @@ const QuoteResults = () => {
       `Send a message to ${quote.vendor?.name || 'the vendor'}:\n\n` +
       'You can ask questions about the product, request a demo, or discuss your requirements.'
     );
-    
-    if (!message?.trim()) return;
 
+    if (!message?.trim()) return;
     await executeQuoteAction(quote, 'contact', { message });
   }, []);
 
@@ -336,7 +371,6 @@ const QuoteResults = () => {
   const executeQuoteAction = useCallback(async (quote, action, payload = {}) => {
     const actionKey = quote._id;
     setActionLoading(prev => ({ ...prev, [actionKey]: action }));
-
     try {
       const response = await fetch(`/api/quotes/${action}`, {
         method: 'POST',
@@ -350,20 +384,18 @@ const QuoteResults = () => {
           ...payload
         })
       });
-
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || `Failed to ${action} quote`);
       }
-
       const data = await response.json();
-      
+
       // Update local state optimistically
       if (action === 'accept') {
-        setQuotes(prev => prev.map(q => 
-          q._id === quote._id 
-            ? { 
-                ...q, 
+        setQuotes(prev => prev.map(q =>
+          q._id === quote._id
+            ? {
+                ...q,
                 status: 'accepted',
                 statusDisplay: 'Accepted',
                 decisionDetails: {
@@ -375,10 +407,10 @@ const QuoteResults = () => {
         ));
         showToast(`Quote accepted! Order #${data.order?.id} created.`, 'success');
       } else if (action === 'decline') {
-        setQuotes(prev => prev.map(q => 
-          q._id === quote._id 
-            ? { 
-                ...q, 
+        setQuotes(prev => prev.map(q =>
+          q._id === quote._id
+            ? {
+                ...q,
                 status: 'rejected',
                 statusDisplay: 'Declined',
                 decisionDetails: {
@@ -400,7 +432,6 @@ const QuoteResults = () => {
         vendorName: quote.vendor?.name,
         cost: quote.costs?.monthlyCosts?.totalMonthlyCost
       });
-
     } catch (err) {
       console.error(`Error ${action} quote:`, err);
       showToast(`Failed to ${action} quote: ${err.message}`, 'error');
@@ -416,13 +447,11 @@ const QuoteResults = () => {
       showToast('Please select quotes first', 'warning');
       return;
     }
-
     setBulkActionLoading(true);
     const promises = Array.from(selectedQuotes).map(quoteId => {
       const quote = quotes.find(q => q._id === quoteId);
       return quote ? executeQuoteAction(quote, action) : null;
     }).filter(Boolean);
-
     try {
       await Promise.allSettled(promises);
       setSelectedQuotes(new Set());
@@ -447,7 +476,7 @@ const QuoteResults = () => {
   const handleSelectAll = useCallback(() => {
     const actionableQuotes = filteredQuotes.filter(q => q.isActionable);
     const allSelected = actionableQuotes.every(q => selectedQuotes.has(q._id));
-    
+
     if (allSelected) {
       setSelectedQuotes(new Set());
     } else {
@@ -530,15 +559,14 @@ const QuoteResults = () => {
             )}
           </div>
           <div className="header-actions">
-            <button 
-              onClick={() => navigate('/quote-request')} 
+            <button
+              onClick={() => navigate('/quote-request')}
               className="btn-primary"
             >
               Request New Quotes
             </button>
           </div>
         </div>
-
         {/* Filters */}
         <QuoteFilters
           filters={filters}
@@ -546,13 +574,12 @@ const QuoteResults = () => {
           totalQuotes={pagination.totalItems}
           loading={loading}
         />
-
         {/* Bulk Actions */}
         {selectedQuotesCount > 0 && (
           <div className="bulk-actions-bar">
             <div className="bulk-actions-info">
               <span>{selectedQuotesCount} quote{selectedQuotesCount !== 1 ? 's' : ''} selected</span>
-              <button 
+              <button
                 onClick={() => setSelectedQuotes(new Set())}
                 className="btn-clear-selection"
               >
@@ -577,19 +604,18 @@ const QuoteResults = () => {
             </div>
           </div>
         )}
-
         {/* Quote Cards */}
         {displayQuotes.length === 0 ? (
           <EmptyState
             title="No quotes found"
             description={
-              Object.values(filters).some(f => f && f !== 'all') 
+              Object.values(filters).some(f => f && f !== 'all')
                 ? "No quotes match your current filters. Try adjusting your search criteria."
                 : "You don't have any quotes yet. Request quotes from vendors to see them here."
             }
             actionLabel={
-              Object.values(filters).some(f => f && f !== 'all') 
-                ? "Clear Filters" 
+              Object.values(filters).some(f => f && f !== 'all')
+                ? "Clear Filters"
                 : "Request Your First Quotes"
             }
             onAction={() => {
@@ -625,7 +651,6 @@ const QuoteResults = () => {
                 />
               ))}
             </div>
-
             {/* Pagination */}
             {pagination.totalPages > 1 && (
               <div className="pagination-container">
@@ -642,22 +667,22 @@ const QuoteResults = () => {
                   >
                     Previous
                   </button>
-                  
+
                   {[...Array(pagination.totalPages)].map((_, index) => {
                     const page = index + 1;
                     const isCurrentPage = page === pagination.currentPage;
-                    const showPage = 
+                    const showPage =
                       page === 1 ||
                       page === pagination.totalPages ||
                       Math.abs(page - pagination.currentPage) <= 2;
-                    
+
                     if (!showPage) {
                       if (page === 2 || page === pagination.totalPages - 1) {
                         return <span key={page} className="pagination-ellipsis">...</span>;
                       }
                       return null;
                     }
-                    
+
                     return (
                       <button
                         key={page}
@@ -668,7 +693,7 @@ const QuoteResults = () => {
                       </button>
                     );
                   })}
-                  
+
                   <button
                     onClick={() => handlePageChange(pagination.currentPage + 1)}
                     disabled={!pagination.hasNextPage}
@@ -681,7 +706,6 @@ const QuoteResults = () => {
             )}
           </>
         )}
-
         {/* Confirmation Modal */}
         <ConfirmationModal
           isOpen={confirmModal.isOpen}
@@ -692,7 +716,6 @@ const QuoteResults = () => {
           onConfirm={confirmModal.onConfirm}
           onCancel={() => setConfirmModal({ isOpen: false, type: null, quote: null, message: '', onConfirm: null })}
         />
-
         {/* Loading overlay for actions */}
         {Object.values(actionLoading).some(Boolean) && (
           <div className="action-loading-overlay">

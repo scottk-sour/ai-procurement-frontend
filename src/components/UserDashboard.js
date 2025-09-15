@@ -183,7 +183,7 @@ const UserDashboard = () => {
     }
   }, [auth?.isAuthenticated, auth?.token]);
 
-  // Fetch dashboard data with improved error handling
+  // FIXED: Fetch dashboard data with proper array handling
   const fetchDashboardData = useCallback(async () => {
     if (!auth?.isAuthenticated || !auth?.token || !currentUserId) return;
 
@@ -203,7 +203,6 @@ const UserDashboard = () => {
           fallback: []
         },
         {
-          // FIXED: Updated to handle both userId and submittedBy fields
           url: `${API_BASE_URL}/api/quotes/requests?userId=${currentUserId}&submittedBy=${currentUserId}&page=${requestPage}&limit=${ITEMS_PER_PAGE}`,
           key: "requests",
           fallback: []
@@ -246,30 +245,42 @@ const UserDashboard = () => {
       responses.forEach((response, index) => {
         if (response.status === "fulfilled") {
           const { key, data } = response.value;
-          newData[key] = data[key] || data.data || data || [];
+          // FIXED: Handle multiple possible response structures and ensure arrays
+          let extractedData = data[key] || data.data || data.requests || data || [];
+          
+          // Ensure it's an array
+          if (!Array.isArray(extractedData)) {
+            console.warn(`⚠️ ${key} data is not an array:`, extractedData);
+            extractedData = [];
+          }
+          
+          newData[key] = extractedData;
         } else {
           console.warn(`❌ ${endpoints[index].key} completely failed:`, response.reason);
           newData[endpoints[index].key] = endpoints[index].fallback;
         }
       });
 
-      // FIXED: Filter quote requests to only show user's own requests
-      const userQuoteRequests = newData.requests.filter(request => {
+      // FIXED: Ensure requests is an array before filtering
+      const requestsArray = Array.isArray(newData.requests) ? newData.requests : [];
+      
+      // Filter quote requests to only show user's own requests
+      const userQuoteRequests = requestsArray.filter(request => {
         const requestUserId = getUserId(request);
         return requestUserId === currentUserId;
       });
 
       // Update state with fetched or fallback data
-      setRecentActivity(newData.activities);
-      setUploadedFiles(newData.files);
-      setQuoteRequests(userQuoteRequests); // Use filtered requests
-      setNotifications(newData.notifications);
+      setRecentActivity(Array.isArray(newData.activities) ? newData.activities : []);
+      setUploadedFiles(Array.isArray(newData.files) ? newData.files : []);
+      setQuoteRequests(userQuoteRequests);
+      setNotifications(Array.isArray(newData.notifications) ? newData.notifications : []);
 
       // Calculate KPIs using filtered requests
-      const totalQuotes = userQuoteRequests.reduce((sum, r) => sum + (r.matches?.length || 0), 0);
+      const totalQuotes = userQuoteRequests.reduce((sum, r) => sum + (r.quotes?.length || 0), 0);
       const totalSavings = userQuoteRequests.reduce((sum, r) => {
-        const bestMatch = r.matches?.[0];
-        return sum + (bestMatch?.savings || 0);
+        const bestQuote = r.quotes?.[0];
+        return sum + (bestQuote?.savings || 0);
       }, 0);
       const pendingNotifications = newData.notifications.filter((n) => n.status === "unread").length;
       const activeRequests = userQuoteRequests.filter((r) =>
@@ -479,7 +490,7 @@ const UserDashboard = () => {
     [auth?.token, fetchDashboardData]
   );
 
-  // ✅ FIXED: Navigation handlers - Updated to use correct route
+  // Navigation handlers
   const handleNewQuoteRequest = useCallback(() => {
     navigate("/request-quote");
     console.log("🚀 Navigating to quote request form");
@@ -847,6 +858,7 @@ const UserDashboard = () => {
                     <FaSpinner />
                   </div>
                   <div className="kpi-content">
+                    <h3>Active Requests</h3>
                     <p className="kpi-value">{kpiData.activeRequests}</p>
                     <span className="kpi-label">In Progress</span>
                   </div>
@@ -986,40 +998,40 @@ const UserDashboard = () => {
                         <strong>Created:</strong> {formatDate(request.createdAt)}
                       </p>
                       <p>
-                        <strong>Matches:</strong> {request.matches?.length || 0}
+                        <strong>Quotes:</strong> {request.quotes?.length || 0}
                       </p>
                     </div>
-                    {request.matches?.length > 0 && (
+                    {request.quotes?.length > 0 && (
                       <div className="quote-matches">
-                        <h4>Top Matches</h4>
-                        {request.matches.slice(0, 3).map((match, index) => (
+                        <h4>Vendor Quotes</h4>
+                        {request.quotes.slice(0, 3).map((quote, index) => (
                           <div
                             key={index}
                             className="match-item"
                             data-testid={`match-item-${index}`}
                           >
                             <div className="match-info">
-                              <span>{match.vendorName}</span>
-                              <span>{formatCurrency(match.price)}</span>
-                              {match.savings > 0 && (
+                              <span>{quote.vendorName || quote.vendor?.name}</span>
+                              <span>{formatCurrency(quote.monthlyPayment || 0)}</span>
+                              {quote.savings > 0 && (
                                 <span className="savings">
-                                  Save {formatCurrency(match.savings)}
+                                  Save {formatCurrency(quote.savings)}
                                 </span>
                               )}
                             </div>
                             <div className="match-actions">
                               <button
                                 className="action-btn view"
-                                onClick={() => navigate(`/quotes/${request._id}`)}
-                                aria-label={`View details for ${match.vendorName}`}
+                                onClick={() => navigate(`/quote-details?Id=${request._id}`)}
+                                aria-label={`View details for ${quote.vendorName}`}
                                 data-testid={`view-quote-${index}`}
                               >
                                 <FaEye />
                               </button>
                               <button
                                 className="action-btn contact"
-                                onClick={() => handleContactVendor(match._id, match.vendorName)}
-                                aria-label={`Contact ${match.vendorName}`}
+                                onClick={() => handleContactVendor(quote._id, quote.vendorName)}
+                                aria-label={`Contact ${quote.vendorName}`}
                                 data-testid={`contact-vendor-${index}`}
                               >
                                 <FaPhone />
@@ -1027,8 +1039,8 @@ const UserDashboard = () => {
                               {request.status?.toLowerCase() === "matched" && (
                                 <button
                                   className="action-btn accept"
-                                  onClick={() => handleAcceptQuote(match._id, match.vendorName)}
-                                  aria-label={`Accept quote from ${match.vendorName}`}
+                                  onClick={() => handleAcceptQuote(quote._id, quote.vendorName)}
+                                  aria-label={`Accept quote from ${quote.vendorName}`}
                                   data-testid={`accept-quote-${index}`}
                                 >
                                   <FaCheckCircle />

@@ -189,16 +189,23 @@ const UserDashboard = () => {
     }
   }, [auth?.isAuthenticated, auth?.token]);
 
-  // FIXED: Single dashboard data fetch with comprehensive error handling
+  // FIXED: Single dashboard data fetch with comprehensive error handling and DEBUG LOGS
   const fetchDashboardData = useCallback(async () => {
+    // DEBUG LOGS ADDED HERE
+    console.log("=== DASHBOARD FETCH DEBUG ===");
     console.log("DEBUG - Auth state:", {
       isAuthenticated: auth?.isAuthenticated,
       hasToken: !!auth?.token,
-      currentUserId: currentUserId
+      currentUserId: currentUserId,
+      userRole: auth?.user?.role
     });
 
     if (!auth?.isAuthenticated || !auth?.token || !currentUserId) {
-      console.log("Early return - missing auth data");
+      console.log("❌ Early return - missing auth data:", {
+        isAuthenticated: auth?.isAuthenticated,
+        hasToken: !!auth?.token,
+        currentUserId: currentUserId
+      });
       return;
     }
 
@@ -206,7 +213,8 @@ const UserDashboard = () => {
     setGlobalError(null);
 
     try {
-      console.log("About to call dashboard endpoint...");
+      console.log("🚀 About to call dashboard endpoint...");
+      console.log("🔗 API URL:", `${API_BASE_URL}/api/users/dashboard`);
       
       // Single dashboard API call
       const response = await fetch(`${API_BASE_URL}/api/users/dashboard`, {
@@ -216,15 +224,18 @@ const UserDashboard = () => {
         },
       });
 
-      console.log("Dashboard response status:", response.status);
-      console.log("Dashboard response ok:", response.ok);
+      console.log("📡 Dashboard response status:", response.status);
+      console.log("📡 Dashboard response ok:", response.ok);
+      console.log("📡 Dashboard response headers:", Object.fromEntries(response.headers.entries()));
 
       if (!response.ok) {
+        const errorText = await response.text();
+        console.error("❌ Dashboard API error response:", errorText);
         throw new Error(`Dashboard API returned ${response.status}: ${response.statusText}`);
       }
 
       const dashboardData = await response.json();
-      console.log("Dashboard data received:", dashboardData);
+      console.log("📊 Dashboard data received:", dashboardData);
 
       // Extract data with safe fallbacks - ensure all are arrays
       const requests = Array.isArray(dashboardData.requests) ? dashboardData.requests : [];
@@ -232,7 +243,7 @@ const UserDashboard = () => {
       const files = Array.isArray(dashboardData.uploadedFiles) ? dashboardData.uploadedFiles : [];
       const notifications = Array.isArray(dashboardData.notifications) ? dashboardData.notifications : [];
 
-      console.log("Extracted data:", {
+      console.log("🔍 Extracted data counts:", {
         requests: requests.length,
         activities: activities.length,
         files: files.length,
@@ -242,8 +253,12 @@ const UserDashboard = () => {
       // Filter requests to only show user's own
       const userRequests = requests.filter(request => {
         const requestUserId = getUserId(request);
-        return requestUserId === currentUserId;
+        const isUserRequest = requestUserId === currentUserId;
+        console.log(`Request ${request._id}: userId=${requestUserId}, currentUserId=${currentUserId}, isMatch=${isUserRequest}`);
+        return isUserRequest;
       });
+
+      console.log(`📋 Filtered to ${userRequests.length} user requests from ${requests.length} total`);
 
       // Update state with validated arrays
       setQuoteRequests(userRequests);
@@ -280,12 +295,14 @@ const UserDashboard = () => {
 
       setQuoteFunnelData(funnelData);
 
-      console.log("Dashboard data processed successfully");
-      console.log("KPIs:", { totalQuotes, totalSavings, pendingNotifications, activeRequests });
-      console.log("User requests:", userRequests.length);
+      console.log("✅ Dashboard data processed successfully");
+      console.log("📈 Final KPIs:", { totalQuotes, totalSavings, pendingNotifications, activeRequests });
+      console.log("🎯 Final funnel data:", funnelData);
+      console.log("=== DASHBOARD FETCH COMPLETE ===");
 
     } catch (error) {
-      console.error("Dashboard fetch error:", error);
+      console.error("❌ Dashboard fetch error:", error);
+      console.error("❌ Error stack:", error.stack);
       setGlobalError(`Failed to load dashboard: ${error.message}`);
       
       // Set safe fallback empty states to prevent .filter errors
@@ -610,7 +627,7 @@ const UserDashboard = () => {
       <header className="dashboard-header">
         <div className="header-content">
           <div className="welcome-section">
-            <h1 data-testid="welcome-header">Welcome back, {userName}</h1>
+            <h1 data-testid="welcome-header">Welcome back, {userName} 👋</h1>
             <p className="header-subtitle">
               {new Date().toLocaleDateString("en-US", {
                 weekday: "long",
@@ -771,30 +788,32 @@ const UserDashboard = () => {
 
       {/* Navigation Tabs */}
       <nav className="dashboard-nav" role="tablist" data-testid="dashboard-nav">
-        {[
-          { id: "overview", label: "Overview", icon: FaChartBar },
-          { id: "quotes", label: "Quote Results", icon: FaQuoteRight },
-          { id: "files", label: "Files", icon: FaFileAlt },
-          { id: "notifications", label: "Notifications", icon: FaBell, badge: kpiData.pendingNotifications },
-        ].map((tab) => (
-          <button
-            key={tab.id}
-            className={`tab-button ${activeTab === tab.id ? "active" : ""}`}
-            onClick={() => setActiveTab(tab.id)}
-            role="tab"
-            aria-selected={activeTab === tab.id}
-            aria-controls={`${tab.id}-panel`}
-            data-testid={`tab-${tab.id}`}
-          >
-            <tab.icon />
-            <span>{tab.label}</span>
-            {tab.badge > 0 && (
-              <span className="notification-badge" data-testid={`badge-${tab.id}`}>
-                {tab.badge}
-              </span>
-            )}
-          </button>
-        ))}
+        <div className="nav-container">
+          {[
+            { id: "overview", label: "Overview", icon: FaChartBar },
+            { id: "quotes", label: "Quote Results", icon: FaQuoteRight },
+            { id: "files", label: "Files", icon: FaFileAlt },
+            { id: "notifications", label: "Notifications", icon: FaBell, badge: kpiData.pendingNotifications },
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              className={`tab-button ${activeTab === tab.id ? "active" : ""}`}
+              onClick={() => setActiveTab(tab.id)}
+              role="tab"
+              aria-selected={activeTab === tab.id}
+              aria-controls={`${tab.id}-panel`}
+              data-testid={`tab-${tab.id}`}
+            >
+              <tab.icon />
+              <span>{tab.label}</span>
+              {tab.badge > 0 && (
+                <span className="notification-badge" data-testid={`badge-${tab.id}`}>
+                  {tab.badge}
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
       </nav>
 
       {/* Main Content */}

@@ -99,8 +99,8 @@ const getUserId = (record) => {
 };
 
 const UserDashboard = () => {
-  console.log("✅ UserDashboard component initialized");
-  console.log("🔧 API_BASE_URL:", API_BASE_URL);
+  console.log("UserDashboard component initialized");
+  console.log("API_BASE_URL:", API_BASE_URL);
 
   const navigate = useNavigate();
   const { auth, logout: authLogout } = useAuth();
@@ -160,7 +160,7 @@ const UserDashboard = () => {
   // Authentication check
   useEffect(() => {
     if (!auth?.isAuthenticated || auth.user?.role !== "user") {
-      console.log("❌ Authentication failed, redirecting to login");
+      console.log("Authentication failed, redirecting to login");
       navigate("/login", { replace: true, state: { from: "/dashboard" } });
     }
   }, [auth?.isAuthenticated, auth.user?.role, navigate]);
@@ -182,24 +182,33 @@ const UserDashboard = () => {
       const profileName = data.user?.name || data.name || "User";
       setUserName(profileName);
       localStorage.setItem("userName", profileName);
-      console.log("✅ User profile loaded:", profileName);
+      console.log("User profile loaded:", profileName);
     } catch (error) {
-      console.error("❌ Profile fetch error:", error);
+      console.error("Profile fetch error:", error);
       setGlobalError("Failed to load user profile. Please try again.");
     }
   }, [auth?.isAuthenticated, auth?.token]);
 
-  // FIXED: Comprehensive dashboard data fetch with proper error handling
+  // FIXED: Single dashboard data fetch with comprehensive error handling
   const fetchDashboardData = useCallback(async () => {
-    if (!auth?.isAuthenticated || !auth?.token || !currentUserId) return;
+    console.log("DEBUG - Auth state:", {
+      isAuthenticated: auth?.isAuthenticated,
+      hasToken: !!auth?.token,
+      currentUserId: currentUserId
+    });
+
+    if (!auth?.isAuthenticated || !auth?.token || !currentUserId) {
+      console.log("Early return - missing auth data");
+      return;
+    }
 
     setGlobalLoading(true);
     setGlobalError(null);
 
     try {
-      console.log("🔄 Fetching dashboard data...");
+      console.log("About to call dashboard endpoint...");
       
-      // Single comprehensive dashboard endpoint
+      // Single dashboard API call
       const response = await fetch(`${API_BASE_URL}/api/users/dashboard`, {
         headers: { 
           Authorization: `Bearer ${auth.token}`,
@@ -207,18 +216,28 @@ const UserDashboard = () => {
         },
       });
 
+      console.log("Dashboard response status:", response.status);
+      console.log("Dashboard response ok:", response.ok);
+
       if (!response.ok) {
         throw new Error(`Dashboard API returned ${response.status}: ${response.statusText}`);
       }
 
       const dashboardData = await response.json();
-      console.log("📊 Dashboard data received:", dashboardData);
+      console.log("Dashboard data received:", dashboardData);
 
-      // Extract data with safe fallbacks
-      const requests = safeArrayExtract(dashboardData, 'requests', []);
-      const activities = safeArrayExtract(dashboardData, 'recentActivity', []);
-      const files = safeArrayExtract(dashboardData, 'uploadedFiles', []);
-      const notifications = safeArrayExtract(dashboardData, 'notifications', []);
+      // Extract data with safe fallbacks - ensure all are arrays
+      const requests = Array.isArray(dashboardData.requests) ? dashboardData.requests : [];
+      const activities = Array.isArray(dashboardData.recentActivity) ? dashboardData.recentActivity : [];
+      const files = Array.isArray(dashboardData.uploadedFiles) ? dashboardData.uploadedFiles : [];
+      const notifications = Array.isArray(dashboardData.notifications) ? dashboardData.notifications : [];
+
+      console.log("Extracted data:", {
+        requests: requests.length,
+        activities: activities.length,
+        files: files.length,
+        notifications: notifications.length
+      });
 
       // Filter requests to only show user's own
       const userRequests = requests.filter(request => {
@@ -226,16 +245,16 @@ const UserDashboard = () => {
         return requestUserId === currentUserId;
       });
 
-      // Update state
+      // Update state with validated arrays
       setQuoteRequests(userRequests);
       setRecentActivity(activities);
       setUploadedFiles(files);
       setNotifications(notifications);
 
-      // Calculate KPIs
-      const totalQuotes = userRequests.reduce((sum, r) => sum + (r.quotes?.length || 0), 0);
+      // Calculate KPIs from validated data
+      const totalQuotes = userRequests.reduce((sum, r) => sum + (Array.isArray(r.quotes) ? r.quotes.length : 0), 0);
       const totalSavings = userRequests.reduce((sum, r) => {
-        const bestQuote = r.quotes?.[0];
+        const bestQuote = Array.isArray(r.quotes) && r.quotes.length > 0 ? r.quotes[0] : null;
         return sum + (bestQuote?.savings || 0);
       }, 0);
       const pendingNotifications = notifications.filter(n => n.status === "unread").length;
@@ -261,15 +280,15 @@ const UserDashboard = () => {
 
       setQuoteFunnelData(funnelData);
 
-      console.log("✅ Dashboard data processed successfully");
-      console.log("📈 KPIs:", { totalQuotes, totalSavings, pendingNotifications, activeRequests });
-      console.log("🎯 User requests:", userRequests.length);
+      console.log("Dashboard data processed successfully");
+      console.log("KPIs:", { totalQuotes, totalSavings, pendingNotifications, activeRequests });
+      console.log("User requests:", userRequests.length);
 
     } catch (error) {
-      console.error("❌ Dashboard fetch error:", error);
+      console.error("Dashboard fetch error:", error);
       setGlobalError(`Failed to load dashboard: ${error.message}`);
       
-      // Set fallback empty states to prevent further errors
+      // Set safe fallback empty states to prevent .filter errors
       setQuoteRequests([]);
       setRecentActivity([]);
       setUploadedFiles([]);
@@ -320,18 +339,18 @@ const UserDashboard = () => {
     }
 
     setFile(selectedFile);
-    setUploadMessage(`✅ Selected: ${selectedFile.name}`);
-    console.log("📁 File selected:", selectedFile.name);
+    setUploadMessage(`Selected: ${selectedFile.name}`);
+    console.log("File selected:", selectedFile.name);
   }, []);
 
   const handleUpload = useCallback(async () => {
     if (!file) {
-      setUploadMessage("⚠️ Please select a file to upload.");
+      setUploadMessage("Please select a file to upload.");
       return;
     }
 
     if (!auth?.token) {
-      setUploadMessage("⚠️ Authentication error. Please log in again.");
+      setUploadMessage("Authentication error. Please log in again.");
       return;
     }
 
@@ -375,11 +394,11 @@ const UserDashboard = () => {
 
       await uploadPromise;
 
-      setUploadMessage("✅ File uploaded successfully!");
+      setUploadMessage("File uploaded successfully!");
       setFile(null);
       setUploadProgress(100);
 
-      console.log("✅ File uploaded successfully:", file.name);
+      console.log("File uploaded successfully:", file.name);
 
       // Refresh dashboard data
       fetchDashboardData();
@@ -390,8 +409,8 @@ const UserDashboard = () => {
         setUploadMessage("");
       }, 3000);
     } catch (error) {
-      console.error("❌ Upload error:", error);
-      setUploadMessage(`⚠️ Upload failed: ${error.message}`);
+      console.error("Upload error:", error);
+      setUploadMessage(`Upload failed: ${error.message}`);
     } finally {
       setIsUploading(false);
     }
@@ -400,7 +419,7 @@ const UserDashboard = () => {
   // Quote action handlers
   const handleAcceptQuote = useCallback(async (quoteId, vendorName) => {
     if (!auth?.token) {
-      setUploadMessage("⚠️ Authentication error. Please log in again.");
+      setUploadMessage("Authentication error. Please log in again.");
       return;
     }
 
@@ -418,18 +437,18 @@ const UserDashboard = () => {
         throw new Error(`Failed to accept quote: ${response.status}`);
       }
 
-      setUploadMessage(`✅ Quote from ${vendorName} accepted successfully!`);
-      console.log("✅ Quote accepted:", { quoteId, vendorName });
+      setUploadMessage(`Quote from ${vendorName} accepted successfully!`);
+      console.log("Quote accepted:", { quoteId, vendorName });
       fetchDashboardData();
     } catch (error) {
-      console.error("❌ Accept quote error:", error);
-      setUploadMessage(`⚠️ Failed to accept quote: ${error.message}`);
+      console.error("Accept quote error:", error);
+      setUploadMessage(`Failed to accept quote: ${error.message}`);
     }
   }, [auth?.token, fetchDashboardData]);
 
   const handleContactVendor = useCallback(async (quoteId, vendorName) => {
     if (!auth?.token) {
-      setUploadMessage("⚠️ Authentication error. Please log in again.");
+      setUploadMessage("Authentication error. Please log in again.");
       return;
     }
 
@@ -447,24 +466,24 @@ const UserDashboard = () => {
         throw new Error(`Failed to contact vendor: ${response.status}`);
       }
 
-      setUploadMessage(`✅ Contact request sent to ${vendorName}!`);
-      console.log("✅ Vendor contacted:", { quoteId, vendorName });
+      setUploadMessage(`Contact request sent to ${vendorName}!`);
+      console.log("Vendor contacted:", { quoteId, vendorName });
       fetchDashboardData();
     } catch (error) {
-      console.error("❌ Contact vendor error:", error);
-      setUploadMessage(`⚠️ Failed to contact vendor: ${error.message}`);
+      console.error("Contact vendor error:", error);
+      setUploadMessage(`Failed to contact vendor: ${error.message}`);
     }
   }, [auth?.token, fetchDashboardData]);
 
   // Navigation handlers
   const handleNewQuoteRequest = useCallback(() => {
     navigate("/request-quote");
-    console.log("🚀 Navigating to quote request form");
+    console.log("Navigating to quote request form");
   }, [navigate]);
 
   const handleQuotesNavigation = useCallback((status = 'all') => {
     navigate(`/quotes?status=${status}`);
-    console.log("🚀 Navigating to quotes with status:", status);
+    console.log("Navigating to quotes with status:", status);
   }, [navigate]);
 
   const handleLogout = useCallback(() => {
@@ -473,9 +492,9 @@ const UserDashboard = () => {
       logout();
       localStorage.removeItem("userName");
       navigate("/login", { replace: true });
-      console.log("✅ User logged out successfully");
+      console.log("User logged out successfully");
     } catch (error) {
-      console.error("❌ Logout error:", error);
+      console.error("Logout error:", error);
       setGlobalError("Failed to logout. Please try again.");
     }
   }, [navigate, authLogout]);
@@ -500,13 +519,13 @@ const UserDashboard = () => {
       );
 
       if (response.ok) {
-        console.log("✅ Notification marked as read:", notificationId);
+        console.log("Notification marked as read:", notificationId);
         fetchDashboardData();
       } else {
         throw new Error(`Failed to mark notification as read: ${response.status}`);
       }
     } catch (error) {
-      console.error("❌ Mark notification error:", error);
+      console.error("Mark notification error:", error);
       setGlobalError("Failed to mark notification as read. Please try again.");
     }
   }, [auth?.token, fetchDashboardData]);
@@ -514,7 +533,7 @@ const UserDashboard = () => {
   // File download handler
   const handleDownloadFile = useCallback(async (fileId, fileName) => {
     if (!auth?.token) {
-      setUploadMessage("⚠️ Authentication error. Please log in again.");
+      setUploadMessage("Authentication error. Please log in again.");
       return;
     }
 
@@ -537,10 +556,10 @@ const UserDashboard = () => {
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
 
-      console.log("✅ File downloaded:", { fileId, fileName });
+      console.log("File downloaded:", { fileId, fileName });
     } catch (error) {
-      console.error("❌ Download error:", error);
-      setUploadMessage(`⚠️ Failed to download file: ${error.message}`);
+      console.error("Download error:", error);
+      setUploadMessage(`Failed to download file: ${error.message}`);
     }
   }, [auth?.token]);
 
@@ -563,13 +582,13 @@ const UserDashboard = () => {
   // Pagination handlers
   const handleNextPage = useCallback((setPage, currentPage) => {
     setPage(currentPage + 1);
-    console.log("📄 Next page:", currentPage + 1);
+    console.log("Next page:", currentPage + 1);
   }, []);
 
   const handlePrevPage = useCallback((setPage, currentPage) => {
     if (currentPage > 1) {
       setPage(currentPage - 1);
-      console.log("📄 Previous page:", currentPage - 1);
+      console.log("Previous page:", currentPage - 1);
     }
   }, []);
 
@@ -591,7 +610,7 @@ const UserDashboard = () => {
       <header className="dashboard-header">
         <div className="header-content">
           <div className="welcome-section">
-            <h1 data-testid="welcome-header">Welcome back, {userName} 👋</h1>
+            <h1 data-testid="welcome-header">Welcome back, {userName}</h1>
             <p className="header-subtitle">
               {new Date().toLocaleDateString("en-US", {
                 weekday: "long",
@@ -652,7 +671,7 @@ const UserDashboard = () => {
         {/* Upload Status */}
         {uploadMessage && (
           <div
-            className={`upload-status ${uploadMessage.includes("✅") ? "success" : "error"}`}
+            className={`upload-status ${uploadMessage.includes("successfully") ? "success" : "error"}`}
             data-testid="upload-status"
           >
             {uploadMessage}

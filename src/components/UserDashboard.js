@@ -87,6 +87,12 @@ const validateFile = (file) => {
   return { isValid: true, error: null };
 };
 
+// Helper function to safely get array from response
+const safeArrayExtract = (data, key, fallback = []) => {
+  const extracted = data?.[key] || data?.data?.[key] || data?.[key + 's'] || fallback;
+  return Array.isArray(extracted) ? extracted : fallback;
+};
+
 // Helper function to get user ID from either field name
 const getUserId = (record) => {
   return record.userId || record.submittedBy;
@@ -146,7 +152,7 @@ const UserDashboard = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
 
-  // Get current user ID - FIXED: Single declaration
+  // Get current user ID
   const currentUserId = useMemo(() => {
     return auth?.user?.userId || auth?.user?.id;
   }, [auth?.user?.userId, auth?.user?.id]);
@@ -183,7 +189,7 @@ const UserDashboard = () => {
     }
   }, [auth?.isAuthenticated, auth?.token]);
 
-  // FIXED: Fetch dashboard data with proper array handling
+  // FIXED: Comprehensive dashboard data fetch with proper error handling
   const fetchDashboardData = useCallback(async () => {
     if (!auth?.isAuthenticated || !auth?.token || !currentUserId) return;
 
@@ -191,99 +197,49 @@ const UserDashboard = () => {
     setGlobalError(null);
 
     try {
-      const endpoints = [
-        {
-          url: `${API_BASE_URL}/api/users/recent-activity?page=${activityPage}&limit=${ITEMS_PER_PAGE}`,
-          key: "activities",
-          fallback: []
+      console.log("🔄 Fetching dashboard data...");
+      
+      // Single comprehensive dashboard endpoint
+      const response = await fetch(`${API_BASE_URL}/api/users/dashboard`, {
+        headers: { 
+          Authorization: `Bearer ${auth.token}`,
+          'Content-Type': 'application/json'
         },
-        {
-          url: `${API_BASE_URL}/api/users/uploaded-files?page=${filePage}&limit=${ITEMS_PER_PAGE}`,
-          key: "files",
-          fallback: []
-        },
-        {
-          url: `${API_BASE_URL}/api/quotes/requests?userId=${currentUserId}&submittedBy=${currentUserId}&page=${requestPage}&limit=${ITEMS_PER_PAGE}`,
-          key: "requests",
-          fallback: []
-        },
-        {
-          url: `${API_BASE_URL}/api/users/notifications?page=1&limit=50`,
-          key: "notifications",
-          fallback: []
-        },
-      ];
-
-      const responses = await Promise.allSettled(
-        endpoints.map(async (endpoint) => {
-          try {
-            const response = await fetch(endpoint.url, {
-              headers: { Authorization: `Bearer ${auth.token}` },
-            });
-
-            if (!response.ok) {
-              console.warn(`⚠️ ${endpoint.key} endpoint returned ${response.status}, using fallback data`);
-              return { ...endpoint, data: { [endpoint.key]: endpoint.fallback } };
-            }
-
-            const data = await response.json();
-            return { ...endpoint, data };
-          } catch (error) {
-            console.warn(`⚠️ ${endpoint.key} fetch failed:`, error.message, "- using fallback data");
-            return { ...endpoint, data: { [endpoint.key]: endpoint.fallback } };
-          }
-        })
-      );
-
-      const newData = {
-        activities: [],
-        files: [],
-        requests: [],
-        notifications: [],
-      };
-
-      responses.forEach((response, index) => {
-        if (response.status === "fulfilled") {
-          const { key, data } = response.value;
-          // FIXED: Handle multiple possible response structures and ensure arrays
-          let extractedData = data[key] || data.data || data.requests || data || [];
-          
-          // Ensure it's an array
-          if (!Array.isArray(extractedData)) {
-            console.warn(`⚠️ ${key} data is not an array:`, extractedData);
-            extractedData = [];
-          }
-          
-          newData[key] = extractedData;
-        } else {
-          console.warn(`❌ ${endpoints[index].key} completely failed:`, response.reason);
-          newData[endpoints[index].key] = endpoints[index].fallback;
-        }
       });
 
-      // FIXED: Ensure requests is an array before filtering
-      const requestsArray = Array.isArray(newData.requests) ? newData.requests : [];
-      
-      // Filter quote requests to only show user's own requests
-      const userQuoteRequests = requestsArray.filter(request => {
+      if (!response.ok) {
+        throw new Error(`Dashboard API returned ${response.status}: ${response.statusText}`);
+      }
+
+      const dashboardData = await response.json();
+      console.log("📊 Dashboard data received:", dashboardData);
+
+      // Extract data with safe fallbacks
+      const requests = safeArrayExtract(dashboardData, 'requests', []);
+      const activities = safeArrayExtract(dashboardData, 'recentActivity', []);
+      const files = safeArrayExtract(dashboardData, 'uploadedFiles', []);
+      const notifications = safeArrayExtract(dashboardData, 'notifications', []);
+
+      // Filter requests to only show user's own
+      const userRequests = requests.filter(request => {
         const requestUserId = getUserId(request);
         return requestUserId === currentUserId;
       });
 
-      // Update state with fetched or fallback data
-      setRecentActivity(Array.isArray(newData.activities) ? newData.activities : []);
-      setUploadedFiles(Array.isArray(newData.files) ? newData.files : []);
-      setQuoteRequests(userQuoteRequests);
-      setNotifications(Array.isArray(newData.notifications) ? newData.notifications : []);
+      // Update state
+      setQuoteRequests(userRequests);
+      setRecentActivity(activities);
+      setUploadedFiles(files);
+      setNotifications(notifications);
 
-      // Calculate KPIs using filtered requests
-      const totalQuotes = userQuoteRequests.reduce((sum, r) => sum + (r.quotes?.length || 0), 0);
-      const totalSavings = userQuoteRequests.reduce((sum, r) => {
+      // Calculate KPIs
+      const totalQuotes = userRequests.reduce((sum, r) => sum + (r.quotes?.length || 0), 0);
+      const totalSavings = userRequests.reduce((sum, r) => {
         const bestQuote = r.quotes?.[0];
         return sum + (bestQuote?.savings || 0);
       }, 0);
-      const pendingNotifications = newData.notifications.filter((n) => n.status === "unread").length;
-      const activeRequests = userQuoteRequests.filter((r) =>
+      const pendingNotifications = notifications.filter(n => n.status === "unread").length;
+      const activeRequests = userRequests.filter(r =>
         ["pending", "matched"].includes(r.status?.toLowerCase())
       ).length;
 
@@ -294,25 +250,47 @@ const UserDashboard = () => {
         activeRequests,
       });
 
-      // Calculate quote funnel using filtered requests
+      // Calculate funnel data
       const funnelData = {
-        created: userQuoteRequests.length,
-        pending: userQuoteRequests.filter((r) => r.status?.toLowerCase() === "pending").length,
-        matched: userQuoteRequests.filter((r) => r.status?.toLowerCase() === "matched").length,
-        accepted: userQuoteRequests.filter((r) => r.status?.toLowerCase() === "accepted").length,
-        declined: userQuoteRequests.filter((r) => r.status?.toLowerCase() === "declined").length,
+        created: userRequests.length,
+        pending: userRequests.filter(r => r.status?.toLowerCase() === "pending").length,
+        matched: userRequests.filter(r => r.status?.toLowerCase() === "matched").length,
+        accepted: userRequests.filter(r => r.status?.toLowerCase() === "accepted").length,
+        declined: userRequests.filter(r => r.status?.toLowerCase() === "declined").length,
       };
 
       setQuoteFunnelData(funnelData);
 
-      console.log("✅ Dashboard data loaded successfully");
+      console.log("✅ Dashboard data processed successfully");
+      console.log("📈 KPIs:", { totalQuotes, totalSavings, pendingNotifications, activeRequests });
+      console.log("🎯 User requests:", userRequests.length);
+
     } catch (error) {
       console.error("❌ Dashboard fetch error:", error);
-      setGlobalError("Some data couldn't be loaded. Using available information.");
+      setGlobalError(`Failed to load dashboard: ${error.message}`);
+      
+      // Set fallback empty states to prevent further errors
+      setQuoteRequests([]);
+      setRecentActivity([]);
+      setUploadedFiles([]);
+      setNotifications([]);
+      setKpiData({
+        totalQuotesReceived: 0,
+        totalSavings: 0,
+        pendingNotifications: 0,
+        activeRequests: 0,
+      });
+      setQuoteFunnelData({
+        created: 0,
+        pending: 0,
+        matched: 0,
+        accepted: 0,
+        declined: 0,
+      });
     } finally {
       setGlobalLoading(false);
     }
-  }, [auth?.isAuthenticated, auth?.token, currentUserId, requestPage, filePage, activityPage]);
+  }, [auth?.isAuthenticated, auth?.token, currentUserId]);
 
   // Initial data fetch and periodic refresh
   useEffect(() => {
@@ -326,169 +304,157 @@ const UserDashboard = () => {
   }, [auth?.isAuthenticated, auth.user?.role, currentUserId, fetchUserProfile, fetchDashboardData]);
 
   // File upload handlers
-  const handleFileChange = useCallback(
-    (event) => {
-      const selectedFile = event.target.files[0];
-      if (!selectedFile) {
-        setFile(null);
-        setUploadMessage("");
-        return;
-      }
+  const handleFileChange = useCallback((event) => {
+    const selectedFile = event.target.files[0];
+    if (!selectedFile) {
+      setFile(null);
+      setUploadMessage("");
+      return;
+    }
 
-      const validation = validateFile(selectedFile);
-      if (!validation.isValid) {
-        setUploadMessage(validation.error);
-        setFile(null);
-        return;
-      }
+    const validation = validateFile(selectedFile);
+    if (!validation.isValid) {
+      setUploadMessage(validation.error);
+      setFile(null);
+      return;
+    }
 
-      setFile(selectedFile);
-      setUploadMessage(`✅ Selected: ${selectedFile.name}`);
-      console.log("📁 File selected:", selectedFile.name);
-    },
-    []
-  );
+    setFile(selectedFile);
+    setUploadMessage(`✅ Selected: ${selectedFile.name}`);
+    console.log("📁 File selected:", selectedFile.name);
+  }, []);
 
-  const handleUpload = useCallback(
-    async () => {
-      if (!file) {
-        setUploadMessage("⚠️ Please select a file to upload.");
-        return;
-      }
+  const handleUpload = useCallback(async () => {
+    if (!file) {
+      setUploadMessage("⚠️ Please select a file to upload.");
+      return;
+    }
 
-      if (!auth?.token) {
-        setUploadMessage("⚠️ Authentication error. Please log in again.");
-        return;
-      }
+    if (!auth?.token) {
+      setUploadMessage("⚠️ Authentication error. Please log in again.");
+      return;
+    }
 
-      const validation = validateFile(file);
-      if (!validation.isValid) {
-        setUploadMessage(validation.error);
-        return;
-      }
+    const validation = validateFile(file);
+    if (!validation.isValid) {
+      setUploadMessage(validation.error);
+      return;
+    }
 
-      setIsUploading(true);
-      setUploadProgress(0);
+    setIsUploading(true);
+    setUploadProgress(0);
 
-      try {
-        const formData = new FormData();
-        formData.append("file", file);
-        formData.append("documentType", documentType);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("documentType", documentType);
 
-        const xhr = new XMLHttpRequest();
+      const xhr = new XMLHttpRequest();
 
-        xhr.upload.onprogress = (event) => {
-          if (event.lengthComputable) {
-            const percentComplete = (event.loaded / event.total) * 100;
-            setUploadProgress(Math.round(percentComplete));
+      xhr.upload.onprogress = (event) => {
+        if (event.lengthComputable) {
+          const percentComplete = (event.loaded / event.total) * 100;
+          setUploadProgress(Math.round(percentComplete));
+        }
+      };
+
+      const uploadPromise = new Promise((resolve, reject) => {
+        xhr.onload = () => {
+          if (xhr.status === 200) {
+            resolve(JSON.parse(xhr.responseText));
+          } else {
+            reject(new Error(`Upload failed: ${xhr.status}`));
           }
         };
+        xhr.onerror = () => reject(new Error("Upload failed"));
+      });
 
-        const uploadPromise = new Promise((resolve, reject) => {
-          xhr.onload = () => {
-            if (xhr.status === 200) {
-              resolve(JSON.parse(xhr.responseText));
-            } else {
-              reject(new Error(`Upload failed: ${xhr.status}`));
-            }
-          };
-          xhr.onerror = () => reject(new Error("Upload failed"));
-        });
+      xhr.open("POST", `${API_BASE_URL}/api/users/upload`);
+      xhr.setRequestHeader("Authorization", `Bearer ${auth.token}`);
+      xhr.send(formData);
 
-        xhr.open("POST", `${API_BASE_URL}/api/users/upload`);
-        xhr.setRequestHeader("Authorization", `Bearer ${auth.token}`);
-        xhr.send(formData);
+      await uploadPromise;
 
-        await uploadPromise;
+      setUploadMessage("✅ File uploaded successfully!");
+      setFile(null);
+      setUploadProgress(100);
 
-        setUploadMessage("✅ File uploaded successfully!");
-        setFile(null);
-        setUploadProgress(100);
+      console.log("✅ File uploaded successfully:", file.name);
 
-        console.log("✅ File uploaded successfully:", file.name);
+      // Refresh dashboard data
+      fetchDashboardData();
 
-        // Refresh file list
-        fetchDashboardData();
-
-        // Reset upload UI after 3 seconds
-        setTimeout(() => {
-          setUploadProgress(0);
-          setUploadMessage("");
-        }, 3000);
-      } catch (error) {
-        console.error("❌ Upload error:", error);
-        setUploadMessage(`⚠️ Upload failed: ${error.message}`);
-      } finally {
-        setIsUploading(false);
-      }
-    },
-    [file, documentType, auth?.token, fetchDashboardData]
-  );
+      // Reset upload UI after 3 seconds
+      setTimeout(() => {
+        setUploadProgress(0);
+        setUploadMessage("");
+      }, 3000);
+    } catch (error) {
+      console.error("❌ Upload error:", error);
+      setUploadMessage(`⚠️ Upload failed: ${error.message}`);
+    } finally {
+      setIsUploading(false);
+    }
+  }, [file, documentType, auth?.token, fetchDashboardData]);
 
   // Quote action handlers
-  const handleAcceptQuote = useCallback(
-    async (quoteId, vendorName) => {
-      if (!auth?.token) {
-        setUploadMessage("⚠️ Authentication error. Please log in again.");
-        return;
+  const handleAcceptQuote = useCallback(async (quoteId, vendorName) => {
+    if (!auth?.token) {
+      setUploadMessage("⚠️ Authentication error. Please log in again.");
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/quotes/accept`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${auth.token}`,
+        },
+        body: JSON.stringify({ quoteId, vendorName }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to accept quote: ${response.status}`);
       }
 
-      try {
-        const response = await fetch(`${API_BASE_URL}/api/quotes/accept`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${auth.token}`,
-          },
-          body: JSON.stringify({ quoteId, vendorName }),
-        });
+      setUploadMessage(`✅ Quote from ${vendorName} accepted successfully!`);
+      console.log("✅ Quote accepted:", { quoteId, vendorName });
+      fetchDashboardData();
+    } catch (error) {
+      console.error("❌ Accept quote error:", error);
+      setUploadMessage(`⚠️ Failed to accept quote: ${error.message}`);
+    }
+  }, [auth?.token, fetchDashboardData]);
 
-        if (!response.ok) {
-          throw new Error(`Failed to accept quote: ${response.status}`);
-        }
+  const handleContactVendor = useCallback(async (quoteId, vendorName) => {
+    if (!auth?.token) {
+      setUploadMessage("⚠️ Authentication error. Please log in again.");
+      return;
+    }
 
-        setUploadMessage(`✅ Quote from ${vendorName} accepted successfully!`);
-        console.log("✅ Quote accepted:", { quoteId, vendorName });
-        fetchDashboardData();
-      } catch (error) {
-        console.error("❌ Accept quote error:", error);
-        setUploadMessage(`⚠️ Failed to accept quote: ${error.message}`);
-      }
-    },
-    [auth?.token, fetchDashboardData]
-  );
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/quotes/contact`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${auth.token}`,
+        },
+        body: JSON.stringify({ quoteId, vendorName }),
+      });
 
-  const handleContactVendor = useCallback(
-    async (quoteId, vendorName) => {
-      if (!auth?.token) {
-        setUploadMessage("⚠️ Authentication error. Please log in again.");
-        return;
+      if (!response.ok) {
+        throw new Error(`Failed to contact vendor: ${response.status}`);
       }
 
-      try {
-        const response = await fetch(`${API_BASE_URL}/api/quotes/contact`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${auth.token}`,
-          },
-          body: JSON.stringify({ quoteId, vendorName }),
-        });
-
-        if (!response.ok) {
-          throw new Error(`Failed to contact vendor: ${response.status}`);
-        }
-
-        setUploadMessage(`✅ Contact request sent to ${vendorName}!`);
-        console.log("✅ Vendor contacted:", { quoteId, vendorName });
-        fetchDashboardData();
-      } catch (error) {
-        console.error("❌ Contact vendor error:", error);
-        setUploadMessage(`⚠️ Failed to contact vendor: ${error.message}`);
-      }
-    },
-    [auth?.token, fetchDashboardData]
-  );
+      setUploadMessage(`✅ Contact request sent to ${vendorName}!`);
+      console.log("✅ Vendor contacted:", { quoteId, vendorName });
+      fetchDashboardData();
+    } catch (error) {
+      console.error("❌ Contact vendor error:", error);
+      setUploadMessage(`⚠️ Failed to contact vendor: ${error.message}`);
+    }
+  }, [auth?.token, fetchDashboardData]);
 
   // Navigation handlers
   const handleNewQuoteRequest = useCallback(() => {
@@ -496,7 +462,6 @@ const UserDashboard = () => {
     console.log("🚀 Navigating to quote request form");
   }, [navigate]);
 
-  // FIXED: Navigate to quotes with status filter
   const handleQuotesNavigation = useCallback((status = 'all') => {
     navigate(`/quotes?status=${status}`);
     console.log("🚀 Navigating to quotes with status:", status);
@@ -516,82 +481,72 @@ const UserDashboard = () => {
   }, [navigate, authLogout]);
 
   // Notification handlers
-  const markNotificationAsRead = useCallback(
-    async (notificationId) => {
-      if (!auth?.token) {
-        setGlobalError("Authentication error. Please log in again.");
-        return;
-      }
+  const markNotificationAsRead = useCallback(async (notificationId) => {
+    if (!auth?.token) {
+      setGlobalError("Authentication error. Please log in again.");
+      return;
+    }
 
-      try {
-        const response = await fetch(
-          `${API_BASE_URL}/api/users/notifications/${notificationId}/read`,
-          {
-            method: "PATCH",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${auth.token}`,
-            },
-          }
-        );
-
-        if (response.ok) {
-          console.log("✅ Notification marked as read:", notificationId);
-          fetchDashboardData();
-        } else {
-          throw new Error(`Failed to mark notification as read: ${response.status}`);
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/api/users/notifications/${notificationId}/read`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${auth.token}`,
+          },
         }
-      } catch (error) {
-        console.error("❌ Mark notification error:", error);
-        setGlobalError("Failed to mark notification as read. Please try again.");
+      );
+
+      if (response.ok) {
+        console.log("✅ Notification marked as read:", notificationId);
+        fetchDashboardData();
+      } else {
+        throw new Error(`Failed to mark notification as read: ${response.status}`);
       }
-    },
-    [auth?.token, fetchDashboardData]
-  );
+    } catch (error) {
+      console.error("❌ Mark notification error:", error);
+      setGlobalError("Failed to mark notification as read. Please try again.");
+    }
+  }, [auth?.token, fetchDashboardData]);
 
   // File download handler
-  const handleDownloadFile = useCallback(
-    async (fileId, fileName) => {
-      if (!auth?.token) {
-        setUploadMessage("⚠️ Authentication error. Please log in again.");
-        return;
+  const handleDownloadFile = useCallback(async (fileId, fileName) => {
+    if (!auth?.token) {
+      setUploadMessage("⚠️ Authentication error. Please log in again.");
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/users/files/${fileId}/download`, {
+        headers: { Authorization: `Bearer ${auth.token}` },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to download file: ${response.status}`);
       }
 
-      try {
-        const response = await fetch(`${API_BASE_URL}/api/users/files/${fileId}/download`, {
-          headers: { Authorization: `Bearer ${auth.token}` },
-        });
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
 
-        if (!response.ok) {
-          throw new Error(`Failed to download file: ${response.status}`);
-        }
+      console.log("✅ File downloaded:", { fileId, fileName });
+    } catch (error) {
+      console.error("❌ Download error:", error);
+      setUploadMessage(`⚠️ Failed to download file: ${error.message}`);
+    }
+  }, [auth?.token]);
 
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = fileName;
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(a);
-
-        console.log("✅ File downloaded:", { fileId, fileName });
-      } catch (error) {
-        console.error("❌ Download error:", error);
-        setUploadMessage(`⚠️ Failed to download file: ${error.message}`);
-      }
-    },
-    [auth?.token]
-  );
-
-  // FIXED: Filtered quote requests with proper user ownership check
+  // Filtered quote requests
   const filteredQuoteRequests = useMemo(() => {
     return quoteRequests.filter((request) => {
-      // Ensure the request belongs to the current user
-      const requestUserId = getUserId(request);
-      const belongsToUser = requestUserId === currentUserId;
-      
       const matchesSearch =
         !searchTerm ||
         request.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -601,9 +556,9 @@ const UserDashboard = () => {
       const matchesStatus =
         statusFilter === "all" || request.status?.toLowerCase() === statusFilter.toLowerCase();
 
-      return belongsToUser && matchesSearch && matchesStatus;
+      return matchesSearch && matchesStatus;
     });
-  }, [quoteRequests, searchTerm, statusFilter, currentUserId]);
+  }, [quoteRequests, searchTerm, statusFilter]);
 
   // Pagination handlers
   const handleNextPage = useCallback((setPage, currentPage) => {
@@ -1011,14 +966,28 @@ const UserDashboard = () => {
                             data-testid={`match-item-${index}`}
                           >
                             <div className="match-info">
-                              <span>{quote.vendorName || quote.vendor?.name}</span>
-                              <span>{formatCurrency(quote.monthlyPayment || 0)}</span>
+                              <span className="vendor-name">
+                                {quote.vendorName || quote.vendor?.name || "Unknown Vendor"}
+                              </span>
+                              <span className="quote-price">
+                                {formatCurrency(quote.monthlyPayment || quote.price || 0)}
+                              </span>
                               {quote.savings > 0 && (
                                 <span className="savings">
                                   Save {formatCurrency(quote.savings)}
                                 </span>
                               )}
+                              {quote.aiScore && (
+                                <span className="ai-score">
+                                  AI Score: {quote.aiScore}%
+                                </span>
+                              )}
                             </div>
+                            {quote.explanation && (
+                              <div className="ai-explanation">
+                                <p><strong>AI Recommendation:</strong> {quote.explanation}</p>
+                              </div>
+                            )}
                             <div className="match-actions">
                               <button
                                 className="action-btn view"
@@ -1027,6 +996,7 @@ const UserDashboard = () => {
                                 data-testid={`view-quote-${index}`}
                               >
                                 <FaEye />
+                                View
                               </button>
                               <button
                                 className="action-btn contact"
@@ -1035,6 +1005,7 @@ const UserDashboard = () => {
                                 data-testid={`contact-vendor-${index}`}
                               >
                                 <FaPhone />
+                                Contact
                               </button>
                               {request.status?.toLowerCase() === "matched" && (
                                 <button
@@ -1044,11 +1015,17 @@ const UserDashboard = () => {
                                   data-testid={`accept-quote-${index}`}
                                 >
                                   <FaCheckCircle />
+                                  Accept
                                 </button>
                               )}
                             </div>
                           </div>
                         ))}
+                        {request.quotes.length > 3 && (
+                          <p className="more-quotes">
+                            +{request.quotes.length - 3} more quotes available
+                          </p>
+                        )}
                       </div>
                     )}
                   </div>

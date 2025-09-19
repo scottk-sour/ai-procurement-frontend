@@ -1,79 +1,120 @@
-// components/QuoteResults.js - Production-ready version with enhanced features
-import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+// Simplified QuoteResults.js - Remove problematic dependencies
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { useToast } from '../context/ToastContext';
-import { useAnalytics } from '../hooks/useAnalytics';
-import { debounce } from '../utils/debounce';
-import { formatCurrency } from '../utils/formatters';
-import { validateQuoteAction } from '../utils/validators';
-import LoadingSpinner from '../components/common/LoadingSpinner';
-import ErrorBoundary from '../components/common/ErrorBoundary';
-import ConfirmationModal from '../components/common/ConfirmationModal';
-import QuoteCard from '../components/quotes/QuoteCard';
-import QuoteFilters from '../components/quotes/QuoteFilters';
-import EmptyState from '../components/common/EmptyState';
 import './QuoteResults.css';
+
+// Simple utility functions inline
+const formatCurrency = (amount) => {
+  if (typeof amount !== "number" || isNaN(amount)) return "£0.00";
+  return new Intl.NumberFormat("en-GB", {
+    style: "currency",
+    currency: "GBP",
+  }).format(amount);
+};
+
+const debounce = (func, wait) => {
+  let timeout;
+  return function executedFunction(...args) {
+    const later = () => {
+      clearTimeout(timeout);
+      func(...args);
+    };
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
+  };
+};
+
+const validateQuoteAction = (quote, action) => {
+  if (!quote || !quote._id) {
+    return { isValid: false, message: 'Invalid quote data' };
+  }
+  if (!['generated', 'pending'].includes(quote.status)) {
+    return { isValid: false, message: 'Quote is no longer actionable' };
+  }
+  return { isValid: true, message: '' };
+};
+
+// Simple Loading Spinner Component
+const LoadingSpinner = ({ message = "Loading..." }) => (
+  <div style={{ textAlign: 'center', padding: '2rem' }}>
+    <div style={{
+      width: '40px',
+      height: '40px',
+      border: '4px solid #f3f4f6',
+      borderTop: '4px solid #3b82f6',
+      borderRadius: '50%',
+      animation: 'spin 1s linear infinite',
+      margin: '0 auto 1rem'
+    }} />
+    <p>{message}</p>
+    <style jsx>{`
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+    `}</style>
+  </div>
+);
+
+// Simple Empty State Component
+const EmptyState = ({ title, description, actionLabel, onAction }) => (
+  <div style={{ textAlign: 'center', padding: '3rem', background: 'white', borderRadius: '8px' }}>
+    <div style={{ fontSize: '3rem', marginBottom: '1rem', opacity: 0.5 }}>📄</div>
+    <h3 style={{ marginBottom: '0.5rem' }}>{title}</h3>
+    <p style={{ color: '#6b7280', marginBottom: '2rem' }}>{description}</p>
+    {actionLabel && onAction && (
+      <button 
+        onClick={onAction}
+        style={{
+          background: '#3b82f6',
+          color: 'white',
+          border: 'none',
+          padding: '0.75rem 1.5rem',
+          borderRadius: '0.375rem',
+          cursor: 'pointer'
+        }}
+      >
+        {actionLabel}
+      </button>
+    )}
+  </div>
+);
 
 // Constants
 const QUOTES_PER_PAGE = 12;
 const FILTER_DEBOUNCE_DELAY = 300;
-const AUTO_REFRESH_INTERVAL = 30000; // 30 seconds
-const MAX_RETRY_ATTEMPTS = 3;
 
 const QuoteResults = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { user, token, isAuthenticated } = useAuth();
-  const { showToast } = useToast();
-  const { trackEvent } = useAnalytics();
 
   // Core state
   const [quotes, setQuotes] = useState([]);
-  const [filteredQuotes, setFilteredQuotes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [retryCount, setRetryCount] = useState(0);
 
   // Action states
   const [actionLoading, setActionLoading] = useState({});
-  const [selectedQuotes, setSelectedQuotes] = useState(new Set());
-  const [bulkActionLoading, setBulkActionLoading] = useState(false);
 
   // Filter and pagination state
   const [filters, setFilters] = useState({
     status: searchParams.get('status') || 'all',
-    sortBy: searchParams.get('sortBy') || 'createdAt',
-    sortOrder: searchParams.get('sortOrder') || 'desc',
     search: searchParams.get('search') || '',
-    vendor: searchParams.get('vendor') || 'all',
-    priceRange: {
-      min: searchParams.get('minPrice') || '',
-      max: searchParams.get('maxPrice') || ''
-    },
-    urgency: searchParams.get('urgency') || 'all'
   });
 
   const [pagination, setPagination] = useState({
-    currentPage: parseInt(searchParams.get('page')) || 1,
+    currentPage: 1,
     totalPages: 1,
     totalItems: 0,
-    hasNextPage: false,
-    hasPrevPage: false
   });
 
-  // Modal states
-  const [confirmModal, setConfirmModal] = useState({
-    isOpen: false,
-    type: null,
-    quote: null,
-    message: '',
-    onConfirm: null
-  });
-
-  // Refs
-  const abortControllerRef = useRef(null);
-  const autoRefreshRef = useRef(null);
+  // Simple toast function
+  const showToast = useCallback((message, type = 'info') => {
+    console.log(`${type.toUpperCase()}: ${message}`);
+    alert(`${message}`);
+  }, []);
 
   // Check authentication
   useEffect(() => {
@@ -83,62 +124,26 @@ const QuoteResults = () => {
     }
   }, [isAuthenticated, navigate]);
 
-  // Update URL params when filters change
-  useEffect(() => {
-    const params = new URLSearchParams();
-    Object.entries(filters).forEach(([key, value]) => {
-      if (key === 'priceRange') {
-        if (value.min) params.set('minPrice', value.min);
-        if (value.max) params.set('maxPrice', value.max);
-      } else if (value && value !== 'all' && value !== '') {
-        params.set(key, value);
-      }
-    });
-    if (pagination.currentPage > 1) {
-      params.set('page', pagination.currentPage.toString());
-    }
-    setSearchParams(params, { replace: true });
-  }, [filters, pagination.currentPage, setSearchParams]);
-
-  // Fetch quotes with error handling and retry logic
-  const fetchQuotes = useCallback(async (showLoadingState = true) => {
+  // Fetch quotes
+  const fetchQuotes = useCallback(async () => {
     if (!user?.id || !token) return;
 
-    // Cancel previous request
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-    }
-
-    abortControllerRef.current = new AbortController();
     try {
-      if (showLoadingState) {
-        setLoading(true);
-      }
+      setLoading(true);
       setError(null);
 
-      // Build query parameters
       const queryParams = new URLSearchParams({
         userId: user.id,
-        submittedBy: user.id,
         page: pagination.currentPage.toString(),
         limit: QUOTES_PER_PAGE.toString(),
-        status: filters.status
       });
-
-      // Remove empty params
-      for (const [key, value] of queryParams.entries()) {
-        if (!value || value === 'all' || value === '') {
-          queryParams.delete(key);
-        }
-      }
 
       const response = await fetch(`/api/quotes/requests?${queryParams}`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
-        },
-        signal: abortControllerRef.current.signal
+        }
       });
 
       if (!response.ok) {
@@ -146,244 +151,69 @@ const QuoteResults = () => {
           navigate('/login');
           return;
         }
-        throw new Error(`Failed to fetch quote requests: ${response.status} ${response.statusText}`);
+        throw new Error(`Failed to fetch quotes: ${response.status}`);
       }
 
       const data = await response.json();
-
-      // Validate response structure
-      if (!data || typeof data !== 'object') {
-        throw new Error('Invalid response format');
-      }
-
-      // Log raw response for debugging
-      console.log('📄 Raw API Response:', JSON.stringify(data, null, 2));
-
+      
       // Extract quotes from quote requests
       const quotesData = [];
       const quoteRequests = data.quoteRequests || [];
-      console.log('📋 Total quote requests:', quoteRequests.length);
+      
       quoteRequests.forEach(request => {
-        if (request.quotes && Array.isArray(request.quotes) && request.quotes.length > 0) {
-          console.log(`📋 Processing quote request ${request._id} with ${request.quotes.length} quotes`);
+        if (request.quotes && Array.isArray(request.quotes)) {
           request.quotes.forEach(quote => {
             if (quote && quote._id) {
-              console.log('📋 Quote:', JSON.stringify(quote, null, 2));
               quotesData.push({
                 ...quote,
                 quoteRequestId: request._id,
                 companyName: request.companyName,
-                monthlyVolume: request.monthlyVolume,
-                requestBudget: request.budget,
-                isActionable: ['generated', 'pending'].includes(quote.status) // Relaxed condition
+                isActionable: ['generated', 'pending'].includes(quote.status)
               });
-            } else {
-              console.warn(`⚠️ Invalid quote structure in request ${request._id}:`, quote);
             }
           });
-        } else {
-          console.log(`📋 No quotes found for request ${request._id}`);
         }
       });
 
-      console.log('📋 Extracted quotes:', JSON.stringify(quotesData, null, 2));
-
-      const paginationData = data.pagination || {};
       setQuotes(quotesData);
       setPagination(prev => ({
         ...prev,
-        totalPages: paginationData.totalPages || Math.ceil((paginationData.totalItems || quotesData.length) / QUOTES_PER_PAGE),
-        totalItems: paginationData.totalItems || quotesData.length,
-        hasNextPage: paginationData.currentPage < paginationData.totalPages,
-        hasPrevPage: paginationData.currentPage > 1
+        totalItems: quotesData.length,
+        totalPages: Math.ceil(quotesData.length / QUOTES_PER_PAGE)
       }));
-      setRetryCount(0);
 
-      // Track successful load
-      trackEvent('quotes_loaded', {
-        count: quotesData.length,
-        filters: filters,
-        page: pagination.currentPage
-      });
     } catch (err) {
-      if (err.name === 'AbortError') {
-        return; // Request was cancelled
-      }
       console.error('Error fetching quotes:', err);
       setError(err.message);
-
-      // Retry logic
-      if (retryCount < MAX_RETRY_ATTEMPTS) {
-        setRetryCount(prev => prev + 1);
-        setTimeout(() => fetchQuotes(false), 1000 * Math.pow(2, retryCount));
-      }
-
-      // Track error
-      trackEvent('quotes_load_error', {
-        error: err.message,
-        retryCount: retryCount
-      });
     } finally {
-      if (showLoadingState) {
-        setLoading(false);
-      }
+      setLoading(false);
     }
-  }, [user?.id, token, filters, pagination.currentPage, navigate, trackEvent, retryCount]);
+  }, [user?.id, token, pagination.currentPage, navigate]);
 
-  // Debounced filter change handler
-  const debouncedFilterChange = useMemo(
-    () => debounce((newFilters) => {
-      setFilters(newFilters);
-      setPagination(prev => ({ ...prev, currentPage: 1 }));
-    }, FILTER_DEBOUNCE_DELAY),
-    []
-  );
-
-  // Filter quotes client-side for better UX
-  useEffect(() => {
+  // Filter quotes
+  const filteredQuotes = useMemo(() => {
     let filtered = [...quotes];
 
-    // Apply status filter
     if (filters.status && filters.status !== 'all') {
       filtered = filtered.filter(quote => quote.status === filters.status);
     }
 
-    // Apply search filter
     if (filters.search) {
       const searchLower = filters.search.toLowerCase();
       filtered = filtered.filter(quote =>
         (quote.vendor?.name?.toLowerCase() || '').includes(searchLower) ||
-        (quote.productSummary?.manufacturer?.toLowerCase() || '').includes(searchLower) ||
-        (quote.productSummary?.model?.toLowerCase() || '').includes(searchLower) ||
-        (quote._id?.toString().toLowerCase() || '').includes(searchLower)
+        (quote.productSummary?.manufacturer?.toLowerCase() || '').includes(searchLower)
       );
     }
 
-    // Apply vendor filter
-    if (filters.vendor && filters.vendor !== 'all') {
-      filtered = filtered.filter(quote => (quote.vendor?.name || '') === filters.vendor);
-    }
-
-    // Apply price range filter
-    if (filters.priceRange.min || filters.priceRange.max) {
-      const min = parseFloat(filters.priceRange.min) || 0;
-      const max = parseFloat(filters.priceRange.max) || Infinity;
-      filtered = filtered.filter(quote => {
-        const price = quote.costs?.monthlyCosts?.totalMonthlyCost || 0;
-        return price >= min && price <= max;
-      });
-    }
-
-    // Apply urgency filter
-    if (filters.urgency && filters.urgency !== 'all') {
-      filtered = filtered.filter(quote => (quote.quoteRequest?.urgency?.timeframe || '') === filters.urgency);
-    }
-
-    // Apply sorting
-    filtered.sort((a, b) => {
-      const sortOrder = filters.sortOrder === 'asc' ? 1 : -1;
-      switch (filters.sortBy) {
-        case 'price':
-          return sortOrder * ((a.costs?.monthlyCosts?.totalMonthlyCost || 0) - (b.costs?.monthlyCosts?.totalMonthlyCost || 0));
-        case 'createdAt':
-          return sortOrder * ((new Date(a.createdAt || 0) - new Date(b.createdAt || 0)));
-        default:
-          return 0;
-      }
-    });
-
-    console.log('📋 Filtered quotes:', JSON.stringify(filtered, null, 2));
-    setFilteredQuotes(filtered);
+    return filtered;
   }, [quotes, filters]);
 
-  // Auto-refresh functionality
-  useEffect(() => {
-    if (autoRefreshRef.current) {
-      clearInterval(autoRefreshRef.current);
-    }
-    autoRefreshRef.current = setInterval(() => {
-      fetchQuotes(false); // Silent refresh
-    }, AUTO_REFRESH_INTERVAL);
-    return () => {
-      if (autoRefreshRef.current) {
-        clearInterval(autoRefreshRef.current);
-      }
-    };
-  }, [fetchQuotes]);
-
-  // Initial fetch
-  useEffect(() => {
-    fetchQuotes();
-  }, [fetchQuotes]);
-
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-      }
-      if (autoRefreshRef.current) {
-        clearInterval(autoRefreshRef.current);
-      }
-    };
-  }, []);
-
-  // Action handlers with improved error handling
-  const handleQuickAccept = useCallback(async (quote) => {
-    const validation = validateQuoteAction(quote, 'accept');
-    if (!validation.isValid) {
-      showToast(validation.message, 'error');
-      return;
-    }
-    setConfirmModal({
-      isOpen: true,
-      type: 'accept',
-      quote,
-      message: `Accept quote from ${quote.vendor?.name || 'this vendor'}?\n\nMonthly Cost: ${formatCurrency(quote.costs?.monthlyCosts?.totalMonthlyCost || 0)}\nProduct: ${quote.productSummary?.manufacturer || ''} ${quote.productSummary?.model || ''}\n\nAn order will be created and the vendor will contact you.`,
-      onConfirm: () => executeQuoteAction(quote, 'accept')
-    });
-  }, [showToast]);
-
-  const handleQuickDecline = useCallback(async (quote) => {
-    const validation = validateQuoteAction(quote, 'decline');
-    if (!validation.isValid) {
-      showToast(validation.message, 'error');
-      return;
-    }
-    const reason = prompt(
-      'Please let us know why you\'re declining this quote (optional):\n\n' +
-      'Common reasons:\n' +
-      '• Price too high\n' +
-      '• Found better alternative\n' +
-      '• Requirements changed\n' +
-      '• Budget constraints\n' +
-      '• Timing not right'
-    );
-
-    if (reason === null) return; // User cancelled
-    setConfirmModal({
-      isOpen: true,
-      type: 'decline',
-      quote,
-      message: `Decline quote from ${quote.vendor?.name || 'this vendor'}?`,
-      onConfirm: () => executeQuoteAction(quote, 'decline', { reason })
-    });
-  }, [showToast]);
-
-  const handleQuickContact = useCallback(async (quote) => {
-    const message = prompt(
-      `Send a message to ${quote.vendor?.name || 'the vendor'}:\n\n` +
-      'You can ask questions about the product, request a demo, or discuss your requirements.'
-    );
-
-    if (!message?.trim()) return;
-    await executeQuoteAction(quote, 'contact', { message });
-  }, []);
-
-  // Execute quote actions with proper error handling
+  // Execute quote actions
   const executeQuoteAction = useCallback(async (quote, action, payload = {}) => {
     const actionKey = quote._id;
     setActionLoading(prev => ({ ...prev, [actionKey]: action }));
+    
     try {
       const response = await fetch(`/api/quotes/${action}`, {
         method: 'POST',
@@ -397,127 +227,52 @@ const QuoteResults = () => {
           ...payload
         })
       });
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || `Failed to ${action} quote`);
       }
-      const data = await response.json();
 
-      // Update local state optimistically
-      if (action === 'accept') {
-        setQuotes(prev => prev.map(q =>
-          q._id === quote._id
-            ? {
-                ...q,
-                status: 'accepted',
-                statusDisplay: 'Accepted',
-                decisionDetails: {
-                  acceptedAt: new Date().toISOString(),
-                  acceptedBy: user.id
-                }
-              }
-            : q
-        ));
-        showToast(`Quote accepted! Order #${data.order?.id} created.`, 'success');
-      } else if (action === 'decline') {
-        setQuotes(prev => prev.map(q =>
-          q._id === quote._id
-            ? {
-                ...q,
-                status: 'rejected',
-                statusDisplay: 'Declined',
-                decisionDetails: {
-                  rejectedAt: new Date().toISOString(),
-                  rejectedBy: user.id,
-                  rejectionReason: payload.reason || 'No reason provided'
-                }
-              }
-            : q
-        ));
-        showToast('Quote declined successfully.', 'success');
-      } else if (action === 'contact') {
-        showToast('Message sent! The vendor will contact you within 2-4 hours.', 'success');
-      }
+      showToast(`Quote ${action}ed successfully!`, 'success');
+      fetchQuotes(); // Refresh quotes
 
-      // Track action
-      trackEvent(`quote_${action}`, {
-        quoteId: quote._id,
-        vendorName: quote.vendor?.name,
-        cost: quote.costs?.monthlyCosts?.totalMonthlyCost
-      });
     } catch (err) {
       console.error(`Error ${action} quote:`, err);
       showToast(`Failed to ${action} quote: ${err.message}`, 'error');
     } finally {
       setActionLoading(prev => ({ ...prev, [actionKey]: null }));
-      setConfirmModal({ isOpen: false, type: null, quote: null, message: '', onConfirm: null });
     }
-  }, [token, user.id, showToast, trackEvent]);
+  }, [token, showToast, fetchQuotes]);
 
-  // Bulk actions
-  const handleBulkAction = useCallback(async (action) => {
-    if (selectedQuotes.size === 0) {
-      showToast('Please select quotes first', 'warning');
+  // Action handlers
+  const handleQuickAccept = useCallback(async (quote) => {
+    const validation = validateQuoteAction(quote, 'accept');
+    if (!validation.isValid) {
+      showToast(validation.message, 'error');
       return;
     }
-    setBulkActionLoading(true);
-    const promises = Array.from(selectedQuotes).map(quoteId => {
-      const quote = quotes.find(q => q._id === quoteId);
-      return quote ? executeQuoteAction(quote, action) : null;
-    }).filter(Boolean);
-    try {
-      await Promise.allSettled(promises);
-      setSelectedQuotes(new Set());
-    } finally {
-      setBulkActionLoading(false);
+    
+    if (window.confirm(`Accept quote from ${quote.vendor?.name || 'this vendor'}?`)) {
+      await executeQuoteAction(quote, 'accept');
     }
-  }, [selectedQuotes, quotes, executeQuoteAction, showToast]);
+  }, [executeQuoteAction, showToast]);
 
-  // Selection handlers
-  const handleSelectQuote = useCallback((quoteId) => {
-    setSelectedQuotes(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(quoteId)) {
-        newSet.delete(quoteId);
-      } else {
-        newSet.add(quoteId);
-      }
-      return newSet;
-    });
-  }, []);
-
-  const handleSelectAll = useCallback(() => {
-    const actionableQuotes = filteredQuotes.filter(q => q.isActionable);
-    const allSelected = actionableQuotes.every(q => selectedQuotes.has(q._id));
-
-    if (allSelected) {
-      setSelectedQuotes(new Set());
-    } else {
-      setSelectedQuotes(new Set(actionableQuotes.map(q => q._id)));
+  const handleQuickDecline = useCallback(async (quote) => {
+    const validation = validateQuoteAction(quote, 'decline');
+    if (!validation.isValid) {
+      showToast(validation.message, 'error');
+      return;
     }
-  }, [filteredQuotes, selectedQuotes]);
+    
+    if (window.confirm(`Decline quote from ${quote.vendor?.name || 'this vendor'}?`)) {
+      await executeQuoteAction(quote, 'decline');
+    }
+  }, [executeQuoteAction, showToast]);
 
-  // Filter handler
-  const handleFilterChange = useCallback((newFilters) => {
-    debouncedFilterChange(newFilters);
-  }, [debouncedFilterChange]);
-
-  // Pagination handlers
-  const handlePageChange = useCallback((page) => {
-    setPagination(prev => ({ ...prev, currentPage: page }));
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, []);
-
-  // Memoized computed values
-  const displayQuotes = useMemo(() => {
-    return filteredQuotes.length > 0 ? filteredQuotes : quotes;
-  }, [filteredQuotes, quotes]);
-
-  const actionableQuotesCount = useMemo(() => {
-    return displayQuotes.filter(q => q.isActionable).length;
-  }, [displayQuotes]);
-
-  const selectedQuotesCount = selectedQuotes.size;
+  // Initial fetch
+  useEffect(() => {
+    fetchQuotes();
+  }, [fetchQuotes]);
 
   // Loading state
   if (loading && quotes.length === 0) {
@@ -535,208 +290,149 @@ const QuoteResults = () => {
         <div className="error-state">
           <h2>Error Loading Quotes</h2>
           <p>{error}</p>
-          <div className="error-actions">
-            <button onClick={() => fetchQuotes()} className="btn-primary">
-              Try Again
-            </button>
-            <button onClick={() => navigate('/dashboard')} className="btn-secondary">
-              Back to Dashboard
-            </button>
-          </div>
-          {retryCount > 0 && (
-            <p className="retry-info">Retry attempt {retryCount} of {MAX_RETRY_ATTEMPTS}</p>
-          )}
+          <button onClick={() => fetchQuotes()} className="btn-primary">
+            Try Again
+          </button>
         </div>
       </div>
     );
   }
 
   return (
-    <ErrorBoundary>
-      <div className="quote-results-container">
-        {/* Header */}
-        <div className="results-header">
-          <div className="header-content">
-            <h1>Your Quotes</h1>
-            <p>Review and manage your printer quotes</p>
-            {pagination.totalItems > 0 && (
-              <div className="results-summary">
-                <span className="total-count">{pagination.totalItems} total quotes</span>
-                {actionableQuotesCount > 0 && (
-                  <span className="actionable-count">{actionableQuotesCount} actionable</span>
-                )}
-                {selectedQuotesCount > 0 && (
-                  <span className="selected-count">{selectedQuotesCount} selected</span>
-                )}
-              </div>
-            )}
-          </div>
-          <div className="header-actions">
-            <button
-              onClick={() => navigate('/quote-request')}
-              className="btn-primary"
-            >
-              Request New Quotes
-            </button>
-          </div>
+    <div className="quote-results-container">
+      {/* Header */}
+      <div className="results-header">
+        <div className="header-content">
+          <h1>Your Quotes</h1>
+          <p>Review and manage your quotes</p>
         </div>
-        {/* Filters */}
-        <QuoteFilters
-          filters={filters}
-          onFilterChange={handleFilterChange}
-          totalQuotes={pagination.totalItems}
-          loading={loading}
-        />
-        {/* Bulk Actions */}
-        {selectedQuotesCount > 0 && (
-          <div className="bulk-actions-bar">
-            <div className="bulk-actions-info">
-              <span>{selectedQuotesCount} quote{selectedQuotesCount !== 1 ? 's' : ''} selected</span>
-              <button
-                onClick={() => setSelectedQuotes(new Set())}
-                className="btn-clear-selection"
-              >
-                Clear Selection
-              </button>
-            </div>
-            <div className="bulk-actions-buttons">
-              <button
-                onClick={() => handleBulkAction('accept')}
-                disabled={bulkActionLoading}
-                className="btn-bulk-accept"
-              >
-                {bulkActionLoading ? 'Processing...' : 'Accept Selected'}
-              </button>
-              <button
-                onClick={() => handleBulkAction('decline')}
-                disabled={bulkActionLoading}
-                className="btn-bulk-decline"
-              >
-                {bulkActionLoading ? 'Processing...' : 'Decline Selected'}
-              </button>
-            </div>
-          </div>
-        )}
-        {/* Quote Cards */}
-        {displayQuotes.length === 0 ? (
-          <EmptyState
-            title="No quotes found"
-            description={
-              Object.values(filters).some(f => f && f !== 'all')
-                ? "No quotes match your current filters. Try adjusting your search criteria."
-                : "You don't have any quotes yet. Request quotes from vendors to see them here."
-            }
-            actionLabel={
-              Object.values(filters).some(f => f && f !== 'all')
-                ? "Clear Filters"
-                : "Request Your First Quotes"
-            }
-            onAction={() => {
-              if (Object.values(filters).some(f => f && f !== 'all')) {
-                setFilters({
-                  status: 'all',
-                  sortBy: 'createdAt',
-                  sortOrder: 'desc',
-                  search: '',
-                  vendor: 'all',
-                  priceRange: { min: '', max: '' },
-                  urgency: 'all'
-                });
-              } else {
-                navigate('/quote-request');
-              }
-            }}
-          />
-        ) : (
-          <>
-            <div className="quotes-grid">
-              {displayQuotes.map((quote) => (
-                <QuoteCard
-                  key={quote._id}
-                  quote={quote}
-                  isSelected={selectedQuotes.has(quote._id)}
-                  onSelect={handleSelectQuote}
-                  onQuickAccept={handleQuickAccept}
-                  onQuickDecline={handleQuickDecline}
-                  onQuickContact={handleQuickContact}
-                  actionLoading={actionLoading[quote._id]}
-                  showSelection={actionableQuotesCount > 1}
-                />
-              ))}
-            </div>
-            {/* Pagination */}
-            {pagination.totalPages > 1 && (
-              <div className="pagination-container">
-                <div className="pagination-info">
-                  Showing {((pagination.currentPage - 1) * QUOTES_PER_PAGE) + 1} to{' '}
-                  {Math.min(pagination.currentPage * QUOTES_PER_PAGE, pagination.totalItems)} of{' '}
-                  {pagination.totalItems} quotes
-                </div>
-                <div className="pagination-controls">
-                  <button
-                    onClick={() => handlePageChange(pagination.currentPage - 1)}
-                    disabled={!pagination.hasPrevPage}
-                    className="btn-pagination"
-                  >
-                    Previous
-                  </button>
-
-                  {[...Array(pagination.totalPages)].map((_, index) => {
-                    const page = index + 1;
-                    const isCurrentPage = page === pagination.currentPage;
-                    const showPage =
-                      page === 1 ||
-                      page === pagination.totalPages ||
-                      Math.abs(page - pagination.currentPage) <= 2;
-
-                    if (!showPage) {
-                      if (page === 2 || page === pagination.totalPages - 1) {
-                        return <span key={page} className="pagination-ellipsis">...</span>;
-                      }
-                      return null;
-                    }
-
-                    return (
-                      <button
-                        key={page}
-                        onClick={() => handlePageChange(page)}
-                        className={`btn-pagination ${isCurrentPage ? 'active' : ''}`}
-                      >
-                        {page}
-                      </button>
-                    );
-                  })}
-
-                  <button
-                    onClick={() => handlePageChange(pagination.currentPage + 1)}
-                    disabled={!pagination.hasNextPage}
-                    className="btn-pagination"
-                  >
-                    Next
-                  </button>
-                </div>
-              </div>
-            )}
-          </>
-        )}
-        {/* Confirmation Modal */}
-        <ConfirmationModal
-          isOpen={confirmModal.isOpen}
-          title={`${confirmModal.type === 'accept' ? 'Accept' : 'Decline'} Quote`}
-          message={confirmModal.message}
-          confirmLabel={confirmModal.type === 'accept' ? 'Accept Quote' : 'Decline Quote'}
-          confirmVariant={confirmModal.type === 'accept' ? 'primary' : 'danger'}
-          onConfirm={confirmModal.onConfirm}
-          onCancel={() => setConfirmModal({ isOpen: false, type: null, quote: null, message: '', onConfirm: null })}
-        />
-        {/* Loading overlay for actions */}
-        {Object.values(actionLoading).some(Boolean) && (
-          <div className="action-loading-overlay">
-            <LoadingSpinner size="small" message="Processing..." />
-          </div>
-        )}
+        <div className="header-actions">
+          <button
+            onClick={() => navigate('/quote-request')}
+            className="btn-primary"
+          >
+            Request New Quotes
+          </button>
+        </div>
       </div>
-    </ErrorBoundary>
+
+      {/* Simple Filters */}
+      <div style={{ background: 'white', padding: '1rem', borderRadius: '8px', marginBottom: '1.5rem' }}>
+        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+          <select
+            value={filters.status}
+            onChange={(e) => setFilters(prev => ({ ...prev, status: e.target.value }))}
+            style={{ padding: '0.5rem', borderRadius: '4px', border: '1px solid #ddd' }}
+          >
+            <option value="all">All Statuses</option>
+            <option value="generated">Generated</option>
+            <option value="pending">Pending</option>
+            <option value="accepted">Accepted</option>
+            <option value="rejected">Rejected</option>
+          </select>
+          
+          <input
+            type="text"
+            placeholder="Search quotes..."
+            value={filters.search}
+            onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
+            style={{ padding: '0.5rem', borderRadius: '4px', border: '1px solid #ddd', flex: 1 }}
+          />
+        </div>
+      </div>
+
+      {/* Quote Cards */}
+      {filteredQuotes.length === 0 ? (
+        <EmptyState
+          title="No quotes found"
+          description="You don't have any quotes yet or none match your filters."
+          actionLabel="Request Your First Quotes"
+          onAction={() => navigate('/quote-request')}
+        />
+      ) : (
+        <div className="quotes-grid">
+          {filteredQuotes.map((quote) => (
+            <div key={quote._id} className="quote-card">
+              {/* Quote Header */}
+              <div className="quote-card-header">
+                <div className="vendor-info">
+                  <h3 className="vendor-name">
+                    {quote.vendor?.name || 'Unknown Vendor'}
+                  </h3>
+                  <div className="quote-meta">
+                    <span className={`status-badge status-${quote.status}`}>
+                      {quote.status || 'Unknown'}
+                    </span>
+                  </div>
+                </div>
+                
+                {quote.aiScore && (
+                  <div className="quote-score">
+                    <span className="score-value">{quote.aiScore}%</span>
+                    <span className="score-label">AI Score</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Product Summary */}
+              {quote.productSummary && (
+                <div className="product-summary">
+                  <h4 className="product-name">
+                    {quote.productSummary.manufacturer} {quote.productSummary.model}
+                  </h4>
+                </div>
+              )}
+
+              {/* Cost Summary */}
+              {quote.costs && (
+                <div className="cost-summary">
+                  <div className="monthly-cost">
+                    <span className="cost-amount">
+                      {formatCurrency(quote.costs.monthlyCosts?.totalMonthlyCost || 0)}
+                    </span>
+                    <span className="cost-period">/month</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Actions */}
+              <div className="quote-actions">
+                {quote.isActionable ? (
+                  <div className="action-buttons">
+                    <button
+                      onClick={() => handleQuickAccept(quote)}
+                      disabled={actionLoading[quote._id] === 'accept'}
+                      className="btn-accept-small"
+                    >
+                      {actionLoading[quote._id] === 'accept' ? 'Accepting...' : 'Accept'}
+                    </button>
+                    <button
+                      onClick={() => handleQuickDecline(quote)}
+                      disabled={actionLoading[quote._id] === 'decline'}
+                      className="btn-decline-small"
+                    >
+                      {actionLoading[quote._id] === 'decline' ? 'Declining...' : 'Decline'}
+                    </button>
+                    <button
+                      onClick={() => navigate(`/quote-details/${quote._id}`)}
+                      className="btn-contact-small"
+                    >
+                      View Details
+                    </button>
+                  </div>
+                ) : (
+                  <div className="status-info">
+                    <span className="status-text">
+                      Quote {quote.status === 'accepted' ? 'Accepted' : 'Declined'}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
   );
 };
 

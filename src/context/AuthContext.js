@@ -1,117 +1,65 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { createContext, useContext, useState, useCallback } from 'react';
 
-const AuthContext = createContext(null);
+const ToastContext = createContext();
 
-export const useAuth = () => {
-  const ctx = useContext(AuthContext);
-  if (ctx === null) {
-    throw new Error("useAuth must be used within an AuthProvider");
-  }
-  return ctx;
-};
+export const ToastProvider = ({ children }) => {
+  const [toasts, setToasts] = useState([]);
 
-export const AuthProvider = ({ children }) => {
-  const [auth, setAuth] = useState({
-    token: null,
-    user: null,
-    isAuthenticated: false,
-    isLoading: true,
-  });
-  const navigate = useNavigate();
-  const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000";
+  const showToast = useCallback((message, type = 'info') => {
+    const id = Date.now();
+    const toast = { id, message, type };
+    
+    setToasts(prev => [...prev, toast]);
+    
+    setTimeout(() => {
+      setToasts(prev => prev.filter(t => t.id !== id));
+    }, 5000);
+  }, []);
 
-  useEffect(() => {
-    const verifyToken = async () => {
-      console.log("🔄 Starting token verification at:", new Date().toISOString());
-      try {
-        const token = localStorage.getItem("token");
-        console.log("🔍 Token:", token ? `Exists (length: ${token.length})` : "Not found");
-
-        if (!token) {
-          setAuth({ token: null, user: null, isAuthenticated: false, isLoading: false });
-          return;
-        }
-
-        // Validate token format
-        if (typeof token !== "string" || token.length < 10) {
-          localStorage.removeItem("token");
-          localStorage.removeItem("role");
-          localStorage.removeItem("userName");
-          setAuth({ token: null, user: null, isAuthenticated: false, isLoading: false });
-          return;
-        }
-
-        // Call backend to verify token
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 5000);
-
-        const response = await fetch(`${API_URL}/api/auth/verify`, {
-          headers: { Authorization: `Bearer ${token}` },
-          signal: controller.signal,
-        });
-
-        clearTimeout(timeoutId);
-
-        if (!response.ok) {
-          const errorText = await response.text();
-          throw new Error(`HTTP ${response.status}: ${errorText || "Verification failed"}`);
-        }
-
-        let data;
-        try {
-          data = await response.json();
-          console.log("📄 Response data:", JSON.stringify(data));
-        } catch (jsonError) {
-          throw new Error(`Invalid JSON response: ${jsonError.message}`);
-        }
-
-        // Accept just data.user as a valid response
-        if (!data.user) {
-          throw new Error("Invalid verification response: Missing user data");
-        }
-
-        setAuth({
-          token,
-          user: data.user,
-          isAuthenticated: true,
-          isLoading: false,
-        });
-        console.log("✅ Auth verified:", data.user);
-      } catch (error) {
-        console.error("❌ Token verification error:", error.message);
-        localStorage.removeItem("token");
-        localStorage.removeItem("role");
-        localStorage.removeItem("userName");
-        setAuth({ token: null, user: null, isAuthenticated: false, isLoading: false });
-      } finally {
-        setAuth((prev) => ({ ...prev, isLoading: false }));
-      }
-    };
-
-    verifyToken();
-    // Only run on mount and when auth.isLoading changes from true
-    // eslint-disable-next-line
-  }, [auth.isLoading]);
-
-  const login = (token, userData) => {
-    localStorage.setItem("token", token);
-    setAuth({ token, user: userData, isAuthenticated: true, isLoading: false });
-    console.log("✅ Logged in:", userData);
-  };
-
-  const logout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("role");
-    localStorage.removeItem("userName");
-    setAuth({ token: null, user: null, isAuthenticated: false, isLoading: false });
-    console.log("✅ Logged out");
-    navigate("/login");
-  };
+  const removeToast = useCallback((id) => {
+    setToasts(prev => prev.filter(t => t.id !== id));
+  }, []);
 
   return (
-    <AuthContext.Provider value={{ auth, login, logout }}>
+    <ToastContext.Provider value={{ showToast, removeToast, toasts }}>
       {children}
-    </AuthContext.Provider>
+      <div style={{
+        position: 'fixed',
+        top: '1rem',
+        right: '1rem',
+        zIndex: 1000,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '0.5rem'
+      }}>
+        {toasts.map(toast => (
+          <div
+            key={toast.id}
+            onClick={() => removeToast(toast.id)}
+            style={{
+              padding: '0.75rem 1rem',
+              borderRadius: '0.5rem',
+              color: 'white',
+              cursor: 'pointer',
+              maxWidth: '300px',
+              background: toast.type === 'error' ? '#ef4444' : 
+                         toast.type === 'success' ? '#10b981' :
+                         toast.type === 'warning' ? '#f59e0b' : '#3b82f6',
+              boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+            }}
+          >
+            {toast.message}
+          </div>
+        ))}
+      </div>
+    </ToastContext.Provider>
   );
+};
+
+export const useToast = () => {
+  const context = useContext(ToastContext);
+  if (!context) {
+    throw new Error('useToast must be used within ToastProvider');
+  }
+  return context;
 };

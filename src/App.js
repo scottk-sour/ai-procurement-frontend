@@ -7,6 +7,7 @@ import {
 } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import { AuthProvider } from "./context/AuthContext";
+import { ToastProvider } from "./context/ToastContext";
 import NavigationBar from "./components/NavigationBar";
 import Footer from "./components/Footer";
 import PrivateRoute from "./routes/PrivateRoute";
@@ -245,17 +246,19 @@ const NavigationTracker = () => {
   return null;
 };
 
-// Layout
+// Layout - Updated with ToastProvider
 const Layout = () => (
   <AuthProvider>
-    <Suspense fallback={<LoadingSpinner />}>
-      <NavigationBar />
-      <main>
-        <NavigationTracker />
-        <Outlet />
-      </main>
-      <Footer />
-    </Suspense>
+    <ToastProvider>
+      <Suspense fallback={<LoadingSpinner />}>
+        <NavigationBar />
+        <main>
+          <NavigationTracker />
+          <Outlet />
+        </main>
+        <Footer />
+      </Suspense>
+    </ToastProvider>
   </AuthProvider>
 );
 
@@ -328,7 +331,7 @@ function App() {
           .catch((error) => {
             console.error('Service Worker registration failed:', error);
           });
-      });
+        });
     }
   }, []);
 

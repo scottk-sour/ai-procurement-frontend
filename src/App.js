@@ -145,9 +145,6 @@ const QuotesRequested = loadWithFallback(
   () => <div style={errorStyle}>Failed to load QuotesRequested</div>
 );
 
-// REMOVED: QuoteDetails component - using QuotesResults for individual quote viewing
-// This eliminates the conflicting navigation paths
-
 // Vendor Dashboard
 const VendorDashboard = loadWithFallback(
   () => import("./components/VendorDashboard"),
@@ -246,23 +243,21 @@ const NavigationTracker = () => {
   return null;
 };
 
-// Layout - Updated with ToastProvider
+// FIXED: Layout - Simplified, AuthProvider moved to App level
 const Layout = () => (
-  <AuthProvider>
-    <ToastProvider>
-      <Suspense fallback={<LoadingSpinner />}>
-        <NavigationBar />
-        <main>
-          <NavigationTracker />
-          <Outlet />
-        </main>
-        <Footer />
-      </Suspense>
-    </ToastProvider>
-  </AuthProvider>
+  <ToastProvider>
+    <Suspense fallback={<LoadingSpinner />}>
+      <NavigationBar />
+      <main>
+        <NavigationTracker />
+        <Outlet />
+      </main>
+      <Footer />
+    </Suspense>
+  </ToastProvider>
 );
 
-// FIXED: App Routes - Removed conflicting routes
+// App Routes
 const router = createBrowserRouter(
   [
     {
@@ -296,7 +291,6 @@ const router = createBrowserRouter(
             // FIXED: Single quotes route for all quote viewing
             { path: "/quotes", element: <QuotesResults /> },
             { path: "/quotes/:id", element: <QuotesResults /> },
-            // REMOVED: Conflicting /quote-details route
           ],
         },
         {
@@ -318,7 +312,7 @@ const router = createBrowserRouter(
   }
 );
 
-// App
+// FIXED: App - AuthProvider moved here to initialize before routing
 function App() {
   // Register Service Worker
   useEffect(() => {
@@ -338,7 +332,10 @@ function App() {
   return (
     <HelmetProvider>
       <ErrorBoundary>
-        <RouterProvider router={router} />
+        {/* FIXED: AuthProvider at app level for proper token initialization */}
+        <AuthProvider>
+          <RouterProvider router={router} />
+        </AuthProvider>
       </ErrorBoundary>
     </HelmetProvider>
   );

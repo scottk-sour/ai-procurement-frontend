@@ -1,65 +1,228 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
+// src/context/AuthContext.js
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 
-const ToastContext = createContext();
+const AuthContext = createContext();
 
-export const ToastProvider = ({ children }) => {
-  const [toasts, setToasts] = useState([]);
+export const AuthProvider = ({ children }) => {
+  const [auth, setAuth] = useState({
+    isAuthenticated: false,
+    user: null,
+    token: null,
+    isLoading: true
+  });
 
-  const showToast = useCallback((message, type = 'info') => {
-    const id = Date.now();
-    const toast = { id, message, type };
-    
-    setToasts(prev => [...prev, toast]);
-    
-    setTimeout(() => {
-      setToasts(prev => prev.filter(t => t.id !== id));
-    }, 5000);
+  // Initialize auth state from localStorage on app load
+  useEffect(() => {
+    const initializeAuth = async () => {
+      console.log('🔍 Starting token verification at:', new Date().toISOString());
+      
+      // Check for vendor token first
+      const vendorToken = localStorage.getItem('vendorToken');
+      const role = localStorage.getItem('role');
+      const vendorId = localStorage.getItem('vendorId');
+      const userName = localStorage.getItem('userName');
+
+      // Check for regular user token
+      const userToken = localStorage.getItem('token');
+      const userId = localStorage.getItem('userId');
+
+      if (vendorToken && role === 'vendor') {
+        console.log('🔍 Found vendor token, verifying...');
+        await verifyVendorToken(vendorToken, vendorId, userName);
+      } else if (userToken) {
+        console.log('🔍 Found user token, verifying...');
+        await verifyUserToken(userToken, userId);
+      } else {
+        console.log('🔍 Token: Not found');
+        setAuth(prev => ({ ...prev, isLoading: false }));
+      }
+    };
+
+    initializeAuth();
   }, []);
 
-  const removeToast = useCallback((id) => {
-    setToasts(prev => prev.filter(t => t.id !== id));
+  // Verify vendor token
+  const verifyVendorToken = async (token, vendorId, userName) => {
+    try {
+      const response = await fetch(`${process.env.REACT_APP_API_URL || "http://localhost:5000"}/api/vendors/verify`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log('✅ Vendor token verified successfully');
+        
+        setAuth({
+          isAuthenticated: true,
+          user: {
+            userId: vendorId || data.vendor?.vendorId,
+            name: userName || data.vendor?.vendorName,
+            email: data.vendor?.email,
+            role: 'vendor'
+          },
+          token: token,
+          isLoading: false
+        });
+      } else {
+        console.log('❌ Vendor token verification failed');
+        // Clear invalid tokens
+        localStorage.removeItem('vendorToken');
+        localStorage.removeItem('role');
+        localStorage.removeItem('vendorId');
+        localStorage.removeItem('userName');
+        
+        setAuth({
+          isAuthenticated: false,
+          user: null,
+          token: null,
+          isLoading: false
+        });
+      }
+    } catch (error) {
+      console.error('❌ Vendor token verification error:', error);
+      setAuth({
+        isAuthenticated: false,
+        user: null,
+        token: null,
+        isLoading: false
+      });
+    }
+  };
+
+  // Verify user token
+  const verifyUserToken = async (token, userId) => {
+    try {
+      const response = await fetch(`${process.env.REACT_APP_API_URL || "http://localhost:5000"}/api/auth/verify`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log('✅ User token verified successfully');
+        
+        setAuth({
+          isAuthenticated: true,
+          user: {
+            userId: userId || data.user?.userId,
+            name: data.user?.name,
+            email: data.user?.email,
+            role: 'user'
+          },
+          token: token,
+          isLoading: false
+        });
+      } else {
+        console.log('❌ User token verification failed');
+        // Clear invalid tokens
+        localStorage.removeItem('token');
+        localStorage.removeItem('userId');
+        
+        setAuth({
+          isAuthenticated: false,
+          user: null,
+          token: null,
+          isLoading: false
+        });
+      }
+    } catch (error) {
+      console.error('❌ User token verification error:', error);
+      setAuth({
+        isAuthenticated: false,
+        user: null,
+        token: null,
+        isLoading: false
+      });
+    }
+  };
+
+  // Login function (works for both users and vendors)
+  const login = useCallback((token, userData) => {
+    console.log('🔐 Login called with:', { hasToken: !!token, userRole: userData?.role });
+    
+    setAuth({
+      isAuthenticated: true,
+      user: userData,
+      token: token,
+      isLoading: false
+    });
+
+    // Store in localStorage based on role
+    if (userData?.role === 'vendor') {
+      localStorage.setItem('vendorToken', token);
+      localStorage.setItem('role', 'vendor');
+      localStorage.setItem('vendorId', userData.userId);
+      localStorage.setItem('userName', userData.name);
+    } else {
+      localStorage.setItem('token', token);
+      localStorage.setItem('userId', userData.userId);
+      localStorage.setItem('userName', userData.name);
+    }
   }, []);
+
+  // Logout function
+  const logout = useCallback(() => {
+    console.log('🚪 Logging out...');
+    
+    // Clear all auth-related localStorage items
+    localStorage.removeItem('token');
+    localStorage.removeItem('vendorToken');
+    localStorage.removeItem('userId');
+    localStorage.removeItem('vendorId');
+    localStorage.removeItem('userName');
+    localStorage.removeItem('role');
+
+    setAuth({
+      isAuthenticated: false,
+      user: null,
+      token: null,
+      isLoading: false
+    });
+  }, []);
+
+  // Check if user has specific role
+  const hasRole = useCallback((role) => {
+    return auth.user?.role === role;
+  }, [auth.user?.role]);
+
+  // Get current token (vendor or user)
+  const getCurrentToken = useCallback(() => {
+    if (auth.user?.role === 'vendor') {
+      return localStorage.getItem('vendorToken') || auth.token;
+    }
+    return localStorage.getItem('token') || auth.token;
+  }, [auth.token, auth.user?.role]);
+
+  const contextValue = {
+    auth,
+    login,
+    logout,
+    hasRole,
+    getCurrentToken,
+    isVendor: auth.user?.role === 'vendor',
+    isUser: auth.user?.role === 'user'
+  };
 
   return (
-    <ToastContext.Provider value={{ showToast, removeToast, toasts }}>
+    <AuthContext.Provider value={contextValue}>
       {children}
-      <div style={{
-        position: 'fixed',
-        top: '1rem',
-        right: '1rem',
-        zIndex: 1000,
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '0.5rem'
-      }}>
-        {toasts.map(toast => (
-          <div
-            key={toast.id}
-            onClick={() => removeToast(toast.id)}
-            style={{
-              padding: '0.75rem 1rem',
-              borderRadius: '0.5rem',
-              color: 'white',
-              cursor: 'pointer',
-              maxWidth: '300px',
-              background: toast.type === 'error' ? '#ef4444' : 
-                         toast.type === 'success' ? '#10b981' :
-                         toast.type === 'warning' ? '#f59e0b' : '#3b82f6',
-              boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
-            }}
-          >
-            {toast.message}
-          </div>
-        ))}
-      </div>
-    </ToastContext.Provider>
+    </AuthContext.Provider>
   );
 };
 
-export const useToast = () => {
-  const context = useContext(ToastContext);
+export const useAuth = () => {
+  const context = useContext(AuthContext);
   if (!context) {
-    throw new Error('useToast must be used within ToastProvider');
+    throw new Error('useAuth must be used within AuthProvider');
   }
   return context;
 };
+
+export default AuthContext;

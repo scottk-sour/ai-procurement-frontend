@@ -1,9 +1,10 @@
-// Simplified QuoteResults.js - Remove problematic dependencies
+// src/components/QuoteResults.js
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import '../styles/QuotesResults.css';
-// Simple utility functions inline
+import '../styles/QuotesResults.css'; // ✅ Corrected path for Vercel/Linux
+
+// Utility function to format currency
 const formatCurrency = (amount) => {
   if (typeof amount !== "number" || isNaN(amount)) return "£0.00";
   return new Intl.NumberFormat("en-GB", {
@@ -11,6 +12,8 @@ const formatCurrency = (amount) => {
     currency: "GBP",
   }).format(amount);
 };
+
+// Debounce function
 const debounce = (func, wait) => {
   let timeout;
   return function executedFunction(...args) {
@@ -22,6 +25,8 @@ const debounce = (func, wait) => {
     timeout = setTimeout(later, wait);
   };
 };
+
+// Validate quote actions
 const validateQuoteAction = (quote, action) => {
   if (!quote || !quote._id) {
     return { isValid: false, message: 'Invalid quote data' };
@@ -31,7 +36,8 @@ const validateQuoteAction = (quote, action) => {
   }
   return { isValid: true, message: '' };
 };
-// Simple Loading Spinner Component
+
+// Loading spinner component
 const LoadingSpinner = ({ message = "Loading..." }) => (
   <div style={{ textAlign: 'center', padding: '2rem' }}>
     <div style={{
@@ -52,14 +58,15 @@ const LoadingSpinner = ({ message = "Loading..." }) => (
     `}</style>
   </div>
 );
-// Simple Empty State Component
+
+// Empty state component
 const EmptyState = ({ title, description, actionLabel, onAction }) => (
   <div style={{ textAlign: 'center', padding: '3rem', background: 'white', borderRadius: '8px' }}>
     <div style={{ fontSize: '3rem', marginBottom: '1rem', opacity: 0.5 }}>📄</div>
     <h3 style={{ marginBottom: '0.5rem' }}>{title}</h3>
     <p style={{ color: '#6b7280', marginBottom: '2rem' }}>{description}</p>
     {actionLabel && onAction && (
-      <button
+      <button 
         onClick={onAction}
         style={{
           background: '#3b82f6',
@@ -75,20 +82,19 @@ const EmptyState = ({ title, description, actionLabel, onAction }) => (
     )}
   </div>
 );
+
 // Constants
 const QUOTES_PER_PAGE = 12;
-const FILTER_DEBOUNCE_DELAY = 300;
+
 const QuoteResults = () => {
   const navigate = useNavigate();
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
   const { user, token, isAuthenticated } = useAuth();
-  // Core state
+
   const [quotes, setQuotes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  // Action states
   const [actionLoading, setActionLoading] = useState({});
-  // Filter and pagination state
   const [filters, setFilters] = useState({
     status: searchParams.get('status') || 'all',
     search: searchParams.get('search') || '',
@@ -98,29 +104,33 @@ const QuoteResults = () => {
     totalPages: 1,
     totalItems: 0,
   });
-  // Simple toast function
+
   const showToast = useCallback((message, type = 'info') => {
     console.log(`${type.toUpperCase()}: ${message}`);
     alert(`${message}`);
   }, []);
-  // Check authentication
+
+  // Redirect if not authenticated
   useEffect(() => {
     if (!isAuthenticated) {
       navigate('/login', { state: { from: '/quotes' } });
-      return;
     }
   }, [isAuthenticated, navigate]);
+
   // Fetch quotes
   const fetchQuotes = useCallback(async () => {
     if (!user?.id || !token) return;
+
     try {
       setLoading(true);
       setError(null);
+
       const queryParams = new URLSearchParams({
         userId: user.id,
         page: pagination.currentPage.toString(),
         limit: QUOTES_PER_PAGE.toString(),
       });
+
       const response = await fetch(`/api/quotes/requests?${queryParams}`, {
         method: 'GET',
         headers: {
@@ -128,6 +138,7 @@ const QuoteResults = () => {
           'Content-Type': 'application/json'
         }
       });
+
       if (!response.ok) {
         if (response.status === 401) {
           navigate('/login');
@@ -135,12 +146,12 @@ const QuoteResults = () => {
         }
         throw new Error(`Failed to fetch quotes: ${response.status}`);
       }
+
       const data = await response.json();
-     
-      // Extract quotes from quote requests
+
       const quotesData = [];
       const quoteRequests = data.quoteRequests || [];
-     
+
       quoteRequests.forEach(request => {
         if (request.quotes && Array.isArray(request.quotes)) {
           request.quotes.forEach(quote => {
@@ -155,12 +166,14 @@ const QuoteResults = () => {
           });
         }
       });
+
       setQuotes(quotesData);
       setPagination(prev => ({
         ...prev,
         totalItems: quotesData.length,
         totalPages: Math.ceil(quotesData.length / QUOTES_PER_PAGE)
       }));
+
     } catch (err) {
       console.error('Error fetching quotes:', err);
       setError(err.message);
@@ -168,12 +181,15 @@ const QuoteResults = () => {
       setLoading(false);
     }
   }, [user?.id, token, pagination.currentPage, navigate]);
+
   // Filter quotes
   const filteredQuotes = useMemo(() => {
     let filtered = [...quotes];
+
     if (filters.status && filters.status !== 'all') {
       filtered = filtered.filter(quote => quote.status === filters.status);
     }
+
     if (filters.search) {
       const searchLower = filters.search.toLowerCase();
       filtered = filtered.filter(quote =>
@@ -181,13 +197,15 @@ const QuoteResults = () => {
         (quote.productSummary?.manufacturer?.toLowerCase() || '').includes(searchLower)
       );
     }
+
     return filtered;
   }, [quotes, filters]);
+
   // Execute quote actions
   const executeQuoteAction = useCallback(async (quote, action, payload = {}) => {
     const actionKey = quote._id;
     setActionLoading(prev => ({ ...prev, [actionKey]: action }));
-   
+
     try {
       const response = await fetch(`/api/quotes/${action}`, {
         method: 'POST',
@@ -201,12 +219,15 @@ const QuoteResults = () => {
           ...payload
         })
       });
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || `Failed to ${action} quote`);
       }
+
       showToast(`Quote ${action}ed successfully!`, 'success');
-      fetchQuotes(); // Refresh quotes
+      fetchQuotes();
+
     } catch (err) {
       console.error(`Error ${action} quote:`, err);
       showToast(`Failed to ${action} quote: ${err.message}`, 'error');
@@ -214,34 +235,35 @@ const QuoteResults = () => {
       setActionLoading(prev => ({ ...prev, [actionKey]: null }));
     }
   }, [token, showToast, fetchQuotes]);
-  // Action handlers
+
   const handleQuickAccept = useCallback(async (quote) => {
     const validation = validateQuoteAction(quote, 'accept');
     if (!validation.isValid) {
       showToast(validation.message, 'error');
       return;
     }
-   
+
     if (window.confirm(`Accept quote from ${quote.vendor?.name || 'this vendor'}?`)) {
       await executeQuoteAction(quote, 'accept');
     }
   }, [executeQuoteAction, showToast]);
+
   const handleQuickDecline = useCallback(async (quote) => {
     const validation = validateQuoteAction(quote, 'decline');
     if (!validation.isValid) {
       showToast(validation.message, 'error');
       return;
     }
-   
+
     if (window.confirm(`Decline quote from ${quote.vendor?.name || 'this vendor'}?`)) {
       await executeQuoteAction(quote, 'decline');
     }
   }, [executeQuoteAction, showToast]);
-  // Initial fetch
+
   useEffect(() => {
     fetchQuotes();
   }, [fetchQuotes]);
-  // Loading state
+
   if (loading && quotes.length === 0) {
     return (
       <div className="quote-results-container">
@@ -249,7 +271,7 @@ const QuoteResults = () => {
       </div>
     );
   }
-  // Error state
+
   if (error && quotes.length === 0) {
     return (
       <div className="quote-results-container">
@@ -263,6 +285,7 @@ const QuoteResults = () => {
       </div>
     );
   }
+
   return (
     <div className="quote-results-container">
       {/* Header */}
@@ -272,15 +295,13 @@ const QuoteResults = () => {
           <p>Review and manage your quotes</p>
         </div>
         <div className="header-actions">
-          <button
-            onClick={() => navigate('/quote-request')}
-            className="btn-primary"
-          >
+          <button onClick={() => navigate('/quote-request')} className="btn-primary">
             Request New Quotes
           </button>
         </div>
       </div>
-      {/* Simple Filters */}
+
+      {/* Filters */}
       <div style={{ background: 'white', padding: '1rem', borderRadius: '8px', marginBottom: '1.5rem' }}>
         <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
           <select
@@ -294,7 +315,7 @@ const QuoteResults = () => {
             <option value="accepted">Accepted</option>
             <option value="rejected">Rejected</option>
           </select>
-         
+
           <input
             type="text"
             placeholder="Search quotes..."
@@ -304,7 +325,8 @@ const QuoteResults = () => {
           />
         </div>
       </div>
-      {/* Quote Cards */}
+
+      {/* Quote cards or empty state */}
       {filteredQuotes.length === 0 ? (
         <EmptyState
           title="No quotes found"
@@ -314,21 +336,15 @@ const QuoteResults = () => {
         />
       ) : (
         <div className="quotes-grid">
-          {filteredQuotes.map((quote) => (
+          {filteredQuotes.map(quote => (
             <div key={quote._id} className="quote-card">
-              {/* Quote Header */}
               <div className="quote-card-header">
                 <div className="vendor-info">
-                  <h3 className="vendor-name">
-                    {quote.vendor?.name || 'Unknown Vendor'}
-                  </h3>
+                  <h3 className="vendor-name">{quote.vendor?.name || 'Unknown Vendor'}</h3>
                   <div className="quote-meta">
-                    <span className={`status-badge status-${quote.status}`}>
-                      {quote.status || 'Unknown'}
-                    </span>
+                    <span className={`status-badge status-${quote.status}`}>{quote.status || 'Unknown'}</span>
                   </div>
                 </div>
-               
                 {quote.aiScore && (
                   <div className="quote-score">
                     <span className="score-value">{quote.aiScore}%</span>
@@ -336,26 +352,22 @@ const QuoteResults = () => {
                   </div>
                 )}
               </div>
-              {/* Product Summary */}
+
               {quote.productSummary && (
                 <div className="product-summary">
-                  <h4 className="product-name">
-                    {quote.productSummary.manufacturer} {quote.productSummary.model}
-                  </h4>
+                  <h4 className="product-name">{quote.productSummary.manufacturer} {quote.productSummary.model}</h4>
                 </div>
               )}
-              {/* Cost Summary */}
+
               {quote.costs && (
                 <div className="cost-summary">
                   <div className="monthly-cost">
-                    <span className="cost-amount">
-                      {formatCurrency(quote.costs.monthlyCosts?.totalMonthlyCost || 0)}
-                    </span>
+                    <span className="cost-amount">{formatCurrency(quote.costs.monthlyCosts?.totalMonthlyCost || 0)}</span>
                     <span className="cost-period">/month</span>
                   </div>
                 </div>
               )}
-              {/* Actions */}
+
               <div className="quote-actions">
                 {quote.isActionable ? (
                   <div className="action-buttons">
@@ -395,4 +407,5 @@ const QuoteResults = () => {
     </div>
   );
 };
+
 export default QuoteResults;

@@ -1,3 +1,4 @@
+```jsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDropzone } from 'react-dropzone';
@@ -29,6 +30,18 @@ const suggestCopiers = async (data, token) => {
     console.warn('AI suggestions error:', error.message);
     return [];
   }
+};
+
+// Helper function to suggest minimum speed based on volume
+const suggestMinSpeed = (totalVolume) => {
+  if (totalVolume <= 6000) return 20;
+  if (totalVolume <= 13000) return 25;
+  if (totalVolume <= 20000) return 30;
+  if (totalVolume <= 30000) return 35;
+  if (totalVolume <= 40000) return 45;
+  if (totalVolume <= 50000) return 55;
+  if (totalVolume <= 60000) return 65;
+  return 75;
 };
 
 // Helper functions for data mapping
@@ -78,7 +91,7 @@ const mapEquipmentAge = (age) => {
     '5-6 years': '5+ years',
     'Over 6 years': '5+ years',
     'Mixed ages': '5+ years',
-    '': 'No current machine'
+    'No current equipment': 'No current machine'
   };
   return ageMapping[age] || 'No current machine';
 };
@@ -103,7 +116,6 @@ const mapFeatures = (features) => {
     'Stapling', 'Hole Punch', 'Booklet Making', 'Large Capacity Trays',
     'Touch Screen', 'Auto Document Feeder', 'ID Card Copying', 'Follow-Me Print'
   ];
-
   const featureMapping = {
     'High printing costs': 'Advanced Security',
     'Frequent equipment breakdowns': 'High Capacity Toner',
@@ -116,7 +128,6 @@ const mapFeatures = (features) => {
     'Security concerns': 'Advanced Security',
     'Integration problems': 'Email Integration'
   };
-
   return features.map(feature => featureMapping[feature] || feature)
                  .filter(feature => validFeatures.includes(feature));
 };
@@ -172,7 +183,7 @@ const mapFormDataToBackend = (formData, userProfile) => {
       essentialFeatures: mapFeatures(formData.required_functions || []),
       niceToHaveFeatures: [],
       minSpeed: parseInt(formData.min_speed) || undefined,
-      maxNoisLevel: undefined,
+      maxNoiseLevel: undefined,
       environmentalConcerns: formData.sustainabilityGoals ? true : false
     },
     budget: {
@@ -259,7 +270,6 @@ const submitQuoteRequest = async (formData, userProfile) => {
   try {
     const payload = mapFormDataToBackend(formData, userProfile);
     console.log('🚀 Submitting payload:', JSON.stringify(payload, null, 2));
-
     const response = await fetch(`${PRODUCTION_API_URL}/api/quotes/request`, {
       method: 'POST',
       headers: {
@@ -268,13 +278,11 @@ const submitQuoteRequest = async (formData, userProfile) => {
       },
       body: JSON.stringify(payload),
     });
-
     if (!response.ok) {
       const errorData = await response.json();
       console.error('❌ Backend validation error:', errorData);
       throw new Error(errorData.message || errorData.details?.join('; ') || 'Failed to submit quote request');
     }
-
     const result = await response.json();
     console.log('✅ Quote request submitted successfully:', result);
     return result;
@@ -323,6 +331,7 @@ const EnhancedQuoteRequest = () => {
     integrationNeeds: [],
     mobileRequirements: 'No',
     remoteWorkImpact: '',
+    currentEquipmentAge: '',
     currentSetup: {
       currentSupplier: '',
       currentModel: '',
@@ -374,7 +383,7 @@ const EnhancedQuoteRequest = () => {
   const [uploadedFiles, setUploadedFiles] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submissionStatus, setSubmissionStatus] = useState('idle');
-  const [errorMessage, setErrorMessage] = useState('');
+  const [errorMessages, setErrorMessages] = useState({});
   const [successMessage, setSuccessMessage] = useState('');
   const [suggestedMachines, setSuggestedMachines] = useState([]);
 
@@ -431,6 +440,18 @@ const EnhancedQuoteRequest = () => {
     }));
   }, [formData.currentSetup.quarterlyLeaseCost, formData.currentSetup.contractEndDate]);
 
+  // Auto-suggest minimum speed based on volume
+  useEffect(() => {
+    const totalVolume = (parseInt(formData.monthlyVolume.mono) || 0) + (parseInt(formData.monthlyVolume.colour) || 0);
+    if (totalVolume > 0) {
+      const suggestedSpeed = suggestMinSpeed(totalVolume);
+      setFormData(prev => ({
+        ...prev,
+        min_speed: suggestedSpeed.toString()
+      }));
+    }
+  }, [formData.monthlyVolume.mono, formData.monthlyVolume.colour]);
+
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     let updatedData;
@@ -448,14 +469,30 @@ const EnhancedQuoteRequest = () => {
         'evaluationCriteria',
         'required_functions',
         'reasonsForQuote',
-        'currentSetup.currentFeatures'
+        'currentSetup.currentFeatures',
+        'departmentBreakdown'
       ].includes(name)) {
-        updatedData = {
-          ...formData,
-          [name]: checked
-            ? [...formData[name], value]
-            : formData[name].filter((item) => item !== value),
-        };
+        const field = name.includes('.') ? name.split('.')[1] : name;
+        const parent = name.includes('.') ? name.split('.')[0] : null;
+        
+        if (parent === 'currentSetup') {
+          updatedData = {
+            ...formData,
+            currentSetup: {
+              ...formData.currentSetup,
+              [field]: checked
+                ? [...(formData.currentSetup[field] || []), value]
+                : (formData.currentSetup[field] || []).filter((item) => item !== value),
+            }
+          };
+        } else {
+          updatedData = {
+            ...formData,
+            [name]: checked
+              ? [...(formData[name] || []), value]
+              : (formData[name] || []).filter((item) => item !== value),
+          };
+        }
       } else if (name.startsWith('currentSetup.')) {
         const field = name.split('.')[1];
         updatedData = {
@@ -483,7 +520,7 @@ const EnhancedQuoteRequest = () => {
       };
     }
     setFormData(updatedData);
-    setErrorMessage(''); // Clear errors on change
+    setErrorMessages({}); // Clear errors on change
   };
 
   const { getRootProps, getInputProps } = useDropzone({
@@ -493,8 +530,32 @@ const EnhancedQuoteRequest = () => {
       'text/csv': ['.csv'],
       'image/*': ['.png', '.jpg', '.jpeg'],
     },
-    onDrop: (acceptedFiles) => {
-      setUploadedFiles((prev) => [...prev, ...acceptedFiles]);
+    maxFiles: 5,
+    maxSize: 5 * 1024 * 1024, // 5MB limit
+    onDrop: (acceptedFiles, fileRejections) => {
+      if (fileRejections.length > 0) {
+        setErrorMessages(prev => ({
+          ...prev,
+          fileUpload: 'Some files were rejected. Ensure files are PDF, Excel, CSV, or images and under 5MB.'
+        }));
+        return;
+      }
+      if (acceptedFiles.length + uploadedFiles.length > 5) {
+        setErrorMessages(prev => ({
+          ...prev,
+          fileUpload: 'Maximum 5 files allowed.'
+        }));
+        return;
+      }
+      // Check for duplicate file names
+      const newFiles = acceptedFiles.filter(file => !uploadedFiles.some(existing => existing.name === file.name));
+      if (newFiles.length < acceptedFiles.length) {
+        setErrorMessages(prev => ({
+          ...prev,
+          fileUpload: 'Some files were rejected due to duplicate names.'
+        }));
+      }
+      setUploadedFiles((prev) => [...prev, ...newFiles]);
     },
   });
 
@@ -523,18 +584,7 @@ const EnhancedQuoteRequest = () => {
         if (!formData.itSupportStructure) errors.itSupportStructure = 'IT support structure is required';
         break;
       case 5:
-        if (formData.currentSetup.currentSupplier && (
-          !formData.currentSetup.currentModel ||
-          !formData.currentSetup.currentSpeed ||
-          !formData.currentSetup.contractStartDate ||
-          !formData.currentSetup.contractEndDate ||
-          !formData.currentSetup.currentMonoCPC ||
-          !formData.currentSetup.currentColorCPC ||
-          !formData.currentSetup.quarterlyLeaseCost ||
-          formData.currentSetup.currentFeatures.length === 0
-        )) {
-          errors.currentSetup = 'All current setup fields are required if a supplier is specified';
-        }
+        if (!formData.currentEquipmentAge) errors.currentEquipmentAge = 'Current equipment age is required';
         break;
       case 6:
         if (!formData.serviceType) errors.serviceType = 'Service type is required';
@@ -557,14 +607,14 @@ const EnhancedQuoteRequest = () => {
       default:
         return true;
     }
-    setErrorMessage(Object.values(errors).join('; '));
+    setErrorMessages(errors);
     return Object.keys(errors).length === 0;
   };
 
   const handleNext = () => {
     if (validateStep(step)) {
       setStep((prev) => prev + 1);
-      setErrorMessage('');
+      setErrorMessages({});
     }
   };
 
@@ -577,16 +627,14 @@ const EnhancedQuoteRequest = () => {
     }
     setIsSubmitting(true);
     setSubmissionStatus('idle');
-    setErrorMessage('');
+    setErrorMessages({});
     setSuccessMessage('');
-
     if (!isLoggedIn) {
       alert('You must be logged in to submit a quote request.');
       navigate('/login');
       setIsSubmitting(false);
       return;
     }
-
     const token = auth?.token;
     const userId = auth?.user?.userId || auth?.user?.id;
     const userProfile = {
@@ -595,53 +643,43 @@ const EnhancedQuoteRequest = () => {
       email: auth?.user?.email,
       token: token
     };
-
     if (!token || !userId) {
       alert('Authentication failed. Please log in again.');
       navigate('/login');
       setIsSubmitting(false);
       return;
     }
-
     try {
       let data;
-
       if (uploadedFiles.length > 0) {
         console.log('📁 Submitting with files');
         const requestData = new FormData();
         const payload = mapFormDataToBackend(formData, userProfile);
         requestData.append('quoteRequest', JSON.stringify(payload));
         uploadedFiles.forEach((file, index) => requestData.append(`documents[${index}]`, file));
-
         const response = await fetch(`${PRODUCTION_API_URL}/api/quotes/request`, {
           method: 'POST',
           headers: { Authorization: `Bearer ${token}` },
           body: requestData,
         });
-
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}));
           console.error('Backend error:', errorData);
           throw new Error(errorData.message || errorData.details?.join('; ') || 'Failed to submit quote request');
         }
-
         data = await response.json();
       } else {
         console.log('📄 Submitting JSON only');
         data = await submitQuoteRequest(formData, userProfile);
       }
-
       console.log('✅ Quote request submitted successfully:', data);
-
       setSubmissionStatus('success');
       setSuccessMessage('Quote request submitted successfully! AI matching in progress. Redirecting to your quotes page...');
-      setErrorMessage('');
-
+      setErrorMessages({});
       setTimeout(() => {
         console.log('🎯 Navigating to quotes page');
         navigate('/quotes');
       }, 2000);
-
       setFormData({
         companyName: '', industryType: '', subSector: '', annualRevenue: '', numEmployees: '',
         officeBasedEmployees: '', numLocations: '', primaryBusinessActivity: '', organizationStructure: '',
@@ -651,1039 +689,1124 @@ const EnhancedQuoteRequest = () => {
         documentTypes: [], averagePageCount: '', finishingRequirements: [], departmentBreakdown: [],
         networkSetup: '', itSupportStructure: '', securityRequirements: [], currentSoftwareEnvironment: '',
         cloudPreference: '', integrationNeeds: [], mobileRequirements: 'No', remoteWorkImpact: '',
-        currentSetup: {
+        currentEquipmentAge: '', currentSetup: {
           currentSupplier: '', currentModel: '', currentSpeed: '', contractStartDate: '',
           contractEndDate: '', currentMonoCPC: '', currentColorCPC: '', quarterlyLeaseCost: '',
           currentFeatures: [], buyoutRequired: false, buyoutCost: '', includeBuyoutInCosts: false
         },
-        reasonsForQuote: [],
-        totalAnnualCosts: '', hiddenCosts: '', serviceProvider: '', maintenanceIssues: '',
-        additionalServices: [], paysForScanning: 'No', serviceType: 'Photocopiers', colour: '',
-        type: '', min_speed: '', securityFeatures: [], accessibilityNeeds: 'No', sustainabilityGoals: '',
-        responseTimeExpectation: '', maintenancePreference: '', trainingNeeds: '', supplyManagement: '',
-        reportingNeeds: [], vendorRelationshipType: '', decisionMakers: [], evaluationCriteria: [],
-        contractLengthPreference: '', pricingModelPreference: '', required_functions: [],
-        preference: '', max_lease_price: '', roiExpectations: '', expectedGrowth: '',
-        expansionPlans: '', technologyRoadmap: '', digitalTransformation: '', threeYearVision: ''
+        reasonsForQuote: [], totalAnnualCosts: '', hiddenCosts: '', serviceProvider: '',
+        maintenanceIssues: '', additionalServices: [], paysForScanning: 'No', serviceType: 'Photocopiers',
+        colour: '', type: '', min_speed: '', securityFeatures: [], accessibilityNeeds: 'No',
+        sustainabilityGoals: '', responseTimeExpectation: '', maintenancePreference: '', trainingNeeds: '',
+        supplyManagement: '', reportingNeeds: [], vendorRelationshipType: '', decisionMakers: [],
+        evaluationCriteria: [], contractLengthPreference: '', pricingModelPreference: '', required_functions: [],
+        preference: '', max_lease_price: '', roiExpectations: '', expectedGrowth: '', expansionPlans: '',
+        technologyRoadmap: '', digitalTransformation: '', threeYearVision: ''
       });
       setUploadedFiles([]);
       setStep(1);
     } catch (error) {
-      console.error('❌ Error submitting quote request:', error.message);
+      console.error('⚠️ Error submitting quote request:', error);
       setSubmissionStatus('error');
-      setErrorMessage(`Failed to submit: ${error.message}`);
+      setErrorMessages({ general: error.message || 'An error occurred while submitting your quote request. Please try again.' });
       setSuccessMessage('');
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const reasonsForQuoteOptions = [
-    'Not happy with current supplier',
-    'Too expensive',
-    'Poor service quality',
-    'Outdated equipment',
-    'Need additional features',
-    'Contract nearing end',
-    'Business expansion',
-    'Cost optimization'
-  ];
+  const renderStep1 = () => (
+    <motion.div
+      initial={{ opacity: 0, x: 20 }}
+      animate={{ opacity: 1, x: 0 }}
+      className="form-step"
+    >
+      <h2>Company Information</h2>
+      <div className="form-grid">
+        <div className="form-group">
+          <label htmlFor="companyName">Company Name *</label>
+          <input
+            type="text"
+            id="companyName"
+            name="companyName"
+            value={formData.companyName}
+            onChange={handleChange}
+            required
+            placeholder="Enter your company name"
+            aria-describedby={errorMessages.companyName ? 'companyName-error' : undefined}
+            className={errorMessages.companyName ? 'error' : ''}
+          />
+          {errorMessages.companyName && <span id="companyName-error" className="error-text">{errorMessages.companyName}</span>}
+        </div>
+        <div className="form-group">
+          <label htmlFor="industryType">Industry Type *</label>
+          <select
+            id="industryType"
+            name="industryType"
+            value={formData.industryType}
+            onChange={handleChange}
+            required
+            aria-describedby={errorMessages.industryType ? 'industryType-error' : undefined}
+            className={errorMessages.industryType ? 'error' : ''}
+          >
+            <option value="">Select Industry</option>
+            <option value="Technology">Technology</option>
+            <option value="Healthcare">Healthcare</option>
+            <option value="Legal">Legal</option>
+            <option value="Education">Education</option>
+            <option value="Finance">Finance</option>
+            <option value="Government">Government</option>
+            <option value="Manufacturing">Manufacturing</option>
+            <option value="Retail">Retail</option>
+            <option value="Real Estate">Real Estate</option>
+            <option value="Non-profit">Non-profit</option>
+          </select>
+          {errorMessages.industryType && <span id="industryType-error" className="error-text">{errorMessages.industryType}</span>}
+        </div>
+        <div className="form-group">
+          <label htmlFor="subSector">Sub-Sector</label>
+          <input
+            type="text"
+            id="subSector"
+            name="subSector"
+            value={formData.subSector}
+            onChange={handleChange}
+            placeholder="e.g., Software Development, Medical Devices"
+          />
+        </div>
+        <div className="form-group">
+          <label htmlFor="annualRevenue">Annual Revenue</label>
+          <select
+            id="annualRevenue"
+            name="annualRevenue"
+            value={formData.annualRevenue}
+            onChange={handleChange}
+          >
+            <option value="">Select Revenue Range</option>
+            <option value="Under £1M">Under £1M</option>
+            <option value="£1M - £5M">£1M - £5M</option>
+            <option value="£5M - £10M">£5M - £10M</option>
+            <option value="£10M - £50M">£10M - £50M</option>
+            <option value="£50M - £100M">£50M - £100M</option>
+            <option value="Over £100M">Over £100M</option>
+          </select>
+        </div>
+        <div className="form-group">
+          <label htmlFor="numEmployees">Total Number of Employees *</label>
+          <input
+            type="number"
+            id="numEmployees"
+            name="numEmployees"
+            value={formData.numEmployees}
+            onChange={handleChange}
+            required
+            min="1"
+            placeholder="e.g., 50"
+            aria-describedby={errorMessages.numEmployees ? 'numEmployees-error' : undefined}
+            className={errorMessages.numEmployees ? 'error' : ''}
+          />
+          {errorMessages.numEmployees && <span id="numEmployees-error" className="error-text">{errorMessages.numEmployees}</span>}
+        </div>
+        <div className="form-group">
+          <label htmlFor="officeBasedEmployees">Office-Based Employees</label>
+          <input
+            type="number"
+            id="officeBasedEmployees"
+            name="officeBasedEmployees"
+            value={formData.officeBasedEmployees}
+            onChange={handleChange}
+            min="1"
+            placeholder="e.g., 30"
+          />
+        </div>
+        <div className="form-group">
+          <label htmlFor="numLocations">Number of Locations *</label>
+          <input
+            type="number"
+            id="numLocations"
+            name="numLocations"
+            value={formData.numLocations}
+            onChange={handleChange}
+            required
+            min="1"
+            placeholder="e.g., 2"
+            aria-describedby={errorMessages.numLocations ? 'numLocations-error' : undefined}
+            className={errorMessages.numLocations ? 'error' : ''}
+          />
+          {errorMessages.numLocations && <span id="numLocations-error" className="error-text">{errorMessages.numLocations}</span>}
+        </div>
+        <div className="form-group">
+          <label htmlFor="multiFloor">Multiple Floors?</label>
+          <select
+            id="multiFloor"
+            name="multiFloor"
+            value={formData.multiFloor}
+            onChange={handleChange}
+          >
+            <option value="No">No</option>
+            <option value="Yes">Yes</option>
+          </select>
+        </div>
+        <div className="form-group">
+          <label htmlFor="postcode">Postcode *</label>
+          <input
+            type="text"
+            id="postcode"
+            name="postcode"
+            value={formData.postcode}
+            onChange={handleChange}
+            required
+            placeholder="e.g., SW1A 1AA"
+            aria-describedby={errorMessages.postcode ? 'postcode-error' : undefined}
+            className={errorMessages.postcode ? 'error' : ''}
+          />
+          {errorMessages.postcode && <span id="postcode-error" className="error-text">{errorMessages.postcode}</span>}
+        </div>
+        <div className="form-group full-width">
+          <label htmlFor="primaryBusinessActivity">Primary Business Activity</label>
+          <textarea
+            id="primaryBusinessActivity"
+            name="primaryBusinessActivity"
+            value={formData.primaryBusinessActivity}
+            onChange={handleChange}
+            placeholder="Brief description of your main business activities"
+            rows="3"
+          />
+        </div>
+      </div>
+    </motion.div>
+  );
 
-  const currentFeatureOptions = [
-    'Stapling',
-    'Duplex Printing',
-    'Follow-Me Print'
-  ];
-
-  const challengeOptions = [
-    'High printing costs',
-    'Frequent equipment breakdowns',
-    'Poor print quality',
-    'Slow printing speeds',
-    'Limited functionality',
-    'Complex user interface',
-    'Poor vendor support',
-    'Supply chain issues',
-    'Security concerns',
-    'Integration problems'
-  ];
-
-  const documentTypeOptions = [
-    'Standard office documents',
-    'Marketing materials',
-    'Technical drawings',
-    'Legal documents',
-    'Financial reports',
-    'Training materials',
-    'Customer communications',
-    'Compliance documents',
-    'Presentations',
-    'Graphics/Images'
-  ];
-
-  const finishingOptions = [
-    'Stapling',
-    'Hole punching',
-    'Booklet making',
-    'Folding',
-    'Cutting/Trimming',
-    'Binding',
-    'Laminating',
-    'Sorting/Collating'
-  ];
-
-  const securityRequirementOptions = [
-    'User authentication',
-    'Document encryption',
-    'Secure print release',
-    'Audit trails',
-    'Data wiping',
-    'Network security',
-    'Compliance (GDPR, HIPAA, etc.)',
-    'Access controls'
-  ];
-
-  const integrationOptions = [
-    'Email systems',
-    'Cloud storage (Google Drive, OneDrive, etc.)',
-    'Document management systems',
-    'ERP systems',
-    'CRM systems',
-    'Accounting software',
-    'Workflow automation',
-    'Mobile apps'
-  ];
-
-  const additionalServicesOptions = [
-    'Automatic toner replenishment',
-    'On-site service & repairs',
-    'Cost per copy fees',
-    'Bulk paper delivery',
-    'Print tracking & reporting',
-    'Monthly lease payments',
-    'Printer setup & network configuration',
-    'Toner cartridge recycling',
-    'User training',
-    'Help desk support'
-  ];
-
-  const securityFeatureOptions = [
-    'PIN/Card authentication',
-    'Biometric access',
-    'Encrypted hard drives',
-    'Secure boot',
-    'Digital signatures',
-    'Watermarking',
-    'Access logging',
-    'Network isolation'
-  ];
-
-  const reportingOptions = [
-    'Usage analytics',
-    'Cost tracking',
-    'Environmental impact',
-    'User activity',
-    'Device status',
-    'Supply levels',
-    'Service history',
-    'Compliance reports'
-  ];
-
-  const decisionMakerOptions = [
-    'IT Manager/Director',
-    'Finance Manager/CFO',
-    'Operations Manager',
-    'Procurement Manager',
-    'Office Manager',
-    'CEO/General Manager',
-    'Department Heads',
-    'End Users'
-  ];
-
-  const evaluationCriteriaOptions = [
-    'Total cost of ownership',
-    'Print quality',
-    'Reliability/Uptime',
-    'Speed/Productivity',
-    'Security features',
-    'Vendor support quality',
-    'Integration capabilities',
-    'Environmental impact',
-    'User friendliness',
-    'Scalability'
-  ];
-
-  const renderStep = () => {
-    switch (step) {
-      case 1:
-        return (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            <h3>Company Profile & Context</h3>
-            <div className="form-section">
-              <h4>Basic Information</h4>
-              <label>
-                Company Name: <span className="required">*</span>
-                <input
-                  type="text"
-                  name="companyName"
-                  value={formData.companyName}
-                  onChange={handleChange}
-                  required
-                  className={errorMessage.includes('companyName') ? 'error' : ''}
-                  aria-describedby={errorMessage.includes('companyName') ? 'companyName-error' : undefined}
-                />
-                {errorMessage.includes('companyName') && <span id="companyName-error" className="error-text">Company name is required</span>}
-              </label>
-              <label>
-                Postcode: <span className="required">*</span>
-                <input
-                  type="text"
-                  name="postcode"
-                  value={formData.postcode}
-                  onChange={handleChange}
-                  placeholder="e.g., SW1A 1AA"
-                  required
-                  className={errorMessage.includes('postcode') ? 'error' : ''}
-                  aria-describedby={errorMessage.includes('postcode') ? 'postcode-error' : undefined}
-                />
-                {errorMessage.includes('postcode') && <span id="postcode-error" className="error-text">Postcode is required</span>}
-              </label>
-              <label>
-                Industry Type: <span className="required">*</span>
-                <select
-                  name="industryType"
-                  value={formData.industryType}
-                  onChange={handleChange}
-                  required
-                  className={errorMessage.includes('industryType') ? 'error' : ''}
-                  aria-describedby={errorMessage.includes('industryType') ? 'industryType-error' : undefined}
-                >
-                  <option value="">Select Industry</option>
-                  <option value="Healthcare">Healthcare</option>
-                  <option value="Legal">Legal</option>
-                  <option value="Education">Education</option>
-                  <option value="Finance">Finance</option>
-                  <option value="Manufacturing">Manufacturing</option>
-                  <option value="Retail">Retail</option>
-                  <option value="Technology">Technology</option>
-                  <option value="Real Estate">Real Estate</option>
-                  <option value="Government">Government</option>
-                  <option value="Non-profit">Non-profit</option>
-                  <option value="Other">Other</option>
-                </select>
-                {errorMessage.includes('industryType') && <span id="industryType-error" className="error-text">Industry type is required</span>}
-              </label>
-              <label>
-                Sub-sector/Specialization:
-                <input
-                  type="text"
-                  name="subSector"
-                  value={formData.subSector}
-                  onChange={handleChange}
-                  placeholder="e.g., Dental practice, Corporate law, etc."
-                />
-              </label>
-              <label>
-                Annual Revenue Range:
-                <select name="annualRevenue" value={formData.annualRevenue} onChange={handleChange}>
-                  <option value="">Select Range</option>
-                  <option value="Under £1M">Under £1M</option>
-                  <option value="£1M - £5M">£1M - £5M</option>
-                  <option value="£5M - £25M">£5M - £25M</option>
-                  <option value="£25M - £100M">£25M - £100M</option>
-                  <option value="Over £100M">Over £100M</option>
-                </select>
-              </label>
-            </div>
-            <div className="form-section">
-              <h4>Organization Structure</h4>
-              <label>
-                Total Number of Employees: <span className="required">*</span>
-                <input
-                  type="number"
-                  name="numEmployees"
-                  value={formData.numEmployees}
-                  onChange={handleChange}
-                  required
-                  className={errorMessage.includes('numEmployees') ? 'error' : ''}
-                  aria-describedby={errorMessage.includes('numEmployees') ? 'numEmployees-error' : undefined}
-                />
-                {errorMessage.includes('numEmployees') && <span id="numEmployees-error" className="error-text">Number of employees is required</span>}
-              </label>
-              <label>
-                Office-Based Employees:
-                <input
-                  type="number"
-                  name="officeBasedEmployees"
-                  value={formData.officeBasedEmployees}
-                  onChange={handleChange}
-                  placeholder="Number who regularly use office equipment"
-                />
-              </label>
-              <label>
-                Number of Office Locations: <span className="required">*</span>
-                <input
-                  type="number"
-                  name="numLocations"
-                  value={formData.numLocations}
-                  onChange={handleChange}
-                  min="1"
-                  required
-                  className={errorMessage.includes('numLocations') ? 'error' : ''}
-                  aria-describedby={errorMessage.includes('numLocations') ? 'numLocations-error' : undefined}
-                />
-                {errorMessage.includes('numLocations') && <span id="numLocations-error" className="error-text">Number of locations is required</span>}
-              </label>
-              <label>
-                Primary Business Activity:
-                <textarea
-                  name="primaryBusinessActivity"
-                  value={formData.primaryBusinessActivity}
-                  onChange={handleChange}
-                  placeholder="Brief description of what your company does"
-                  rows="3"
-                />
-              </label>
-              <label>
-                Organization Structure:
-                <select name="organizationStructure" value={formData.organizationStructure} onChange={handleChange}>
-                  <option value="">Select Structure</option>
-                  <option value="Centralized">Centralized (decisions made at HQ)</option>
-                  <option value="Decentralized">Decentralized (local decision-making)</option>
-                  <option value="Hybrid">Hybrid (mixed approach)</option>
-                </select>
-              </label>
-              <label>
-                Multiple Floors at Main Location?
-                <select name="multiFloor" value={formData.multiFloor} onChange={handleChange}>
-                  <option value="Yes">Yes</option>
-                  <option value="No">No</option>
-                </select>
-              </label>
-            </div>
-            <div className="button-group">
-              <button onClick={handleNext}>Next</button>
-            </div>
-          </motion.div>
-        );
-      case 2:
-        return (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            <h3>Current Challenges & Timeline</h3>
-            <div className="form-section">
-              <h4>Why Are You Requesting a Quote?</h4>
-              <fieldset>
-                <legend>Reasons for Quote (Select all that apply): <span className="required">*</span></legend>
-                {reasonsForQuoteOptions.map((reason) => (
-                  <label key={reason}>
-                    <input
-                      type="checkbox"
-                      name="reasonsForQuote"
-                      value={reason}
-                      checked={formData.reasonsForQuote.includes(reason)}
-                      onChange={handleChange}
-                      aria-describedby={errorMessage.includes('reasonsForQuote') ? 'reasonsForQuote-error' : undefined}
-                    />
-                    {reason}
-                  </label>
-                ))}
-                {errorMessage.includes('reasonsForQuote') && <span id="reasonsForQuote-error" className="error-text">At least one reason is required</span>}
-              </fieldset>
-              <label>
-                Additional Pain Points:
-                <textarea
-                  name="currentPainPoints"
-                  value={formData.currentPainPoints}
-                  onChange={handleChange}
-                  placeholder="Describe any specific issues with your current setup"
-                  rows="3"
-                />
-              </label>
-              <label>
-                Urgency Level: <span className="required">*</span>
-                <select
-                  name="urgencyLevel"
-                  value={formData.urgencyLevel}
-                  onChange={handleChange}
-                  required
-                  className={errorMessage.includes('urgencyLevel') ? 'error' : ''}
-                  aria-describedby={errorMessage.includes('urgencyLevel') ? 'urgencyLevel-error' : undefined}
-                >
-                  <option value="">Select Urgency</option>
-                  <option value="Critical">Critical (Immediate)</option>
-                  <option value="High">High (1-2 months)</option>
-                  <option value="Medium">Medium (3-6 months)</option>
-                  <option value="Low">Low (6+ months)</option>
-                </select>
-                {errorMessage.includes('urgencyLevel') && <span id="urgencyLevel-error" className="error-text">Urgency level is required</span>}
-              </label>
-              <label>
-                Implementation Timeline: <span className="required">*</span>
-                <select
-                  name="implementationTimeline"
-                  value={formData.implementationTimeline}
-                  onChange={handleChange}
-                  required
-                  className={errorMessage.includes('implementationTimeline') ? 'error' : ''}
-                  aria-describedby={errorMessage.includes('implementationTimeline') ? 'implementationTimeline-error' : undefined}
-                >
-                  <option value="">Select Timeline</option>
-                  <option value="ASAP">As soon as possible</option>
-                  <option value="1-2 months">1-2 months</option>
-                  <option value="3-6 months">3-6 months</option>
-                  <option value="6-12 months">6-12 months</option>
-                  <option value="12+ months">12+ months</option>
-                </select>
-                {errorMessage.includes('implementationTimeline') && <span id="implementationTimeline-error" className="error-text">Implementation timeline is required</span>}
-              </label>
-            </div>
-            <div className="button-group">
-              <button onClick={handleBack}>Back</button>
-              <button onClick={handleNext}>Next</button>
-            </div>
-          </motion.div>
-        );
-      case 3:
-        return (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            <h3>Usage Patterns & Document Workflow</h3>
-            <div className="form-section">
-              <h4>Print Volume Analysis</h4>
-              <label>
-                Monthly Color Volume (pages): <span className="required">*</span>
-                <input
-                  type="number"
-                  name="monthlyVolume.colour"
-                  value={formData.monthlyVolume.colour}
-                  onChange={handleChange}
-                  placeholder="Color pages per month"
-                  required
-                  className={errorMessage.includes('monthlyVolume') ? 'error' : ''}
-                  aria-describedby={errorMessage.includes('monthlyVolume') ? 'monthlyVolume-error' : undefined}
-                />
-                {errorMessage.includes('monthlyVolume') && <span id="monthlyVolume-error" className="error-text">Color volume is required</span>}
-              </label>
-              <label>
-                Monthly Mono Volume (pages): <span className="required">*</span>
-                <input
-                  type="number"
-                  name="monthlyVolume.mono"
-                  value={formData.monthlyVolume.mono}
-                  onChange={handleChange}
-                  placeholder="Black & white pages per month"
-                  required
-                  className={errorMessage.includes('monthlyVolume') ? 'error' : ''}
-                  aria-describedby={errorMessage.includes('monthlyVolume') ? 'monthlyVolume-error' : undefined}
-                />
-                {errorMessage.includes('monthlyVolume') && <span id="monthlyVolume-error" className="error-text">Mono volume is required</span>}
-              </label>
-              <label>
-                Peak Usage Periods:
-                <select name="peakUsagePeriods" value={formData.peakUsagePeriods} onChange={handleChange}>
-                  <option value="">Select Pattern</option>
-                  <option value="Monday-Friday">Monday-Friday</option>
-                  <option value="Weekends">Weekends Included</option>
-                  <option value="Daily">Daily Consistent</option>
-                  <option value="Month-end">Month-end Heavy</option>
-                </select>
-              </label>
-            </div>
-            <div className="button-group">
-              <button onClick={handleBack}>Back</button>
-              <button onClick={handleNext}>Next</button>
-            </div>
-          </motion.div>
-        );
-      case 4:
-        return (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            <h3>Technical Environment & Integration</h3>
-            <div className="form-section">
-              <h4>IT Infrastructure</h4>
-              <label>
-                Network Setup: <span className="required">*</span>
-                <select
-                  name="networkSetup"
-                  value={formData.networkSetup}
-                  onChange={handleChange}
-                  required
-                  className={errorMessage.includes('networkSetup') ? 'error' : ''}
-                  aria-describedby={errorMessage.includes('networkSetup') ? 'networkSetup-error' : undefined}
-                >
-                  <option value="">Select Network Type</option>
-                  <option value="Wired only">Wired network only</option>
-                  <option value="Wireless only">Wireless network only</option>
-                  <option value="Mixed">Mixed (both wired and wireless)</option>
-                  <option value="Cloud-based">Cloud-based infrastructure</option>
-                </select>
-                {errorMessage.includes('networkSetup') && <span id="networkSetup-error" className="error-text">Network setup is required</span>}
-              </label>
-              <label>
-                IT Support Structure: <span className="required">*</span>
-                <select
-                  name="itSupportStructure"
-                  value={formData.itSupportStructure}
-                  onChange={handleChange}
-                  required
-                  className={errorMessage.includes('itSupportStructure') ? 'error' : ''}
-                  aria-describedby={errorMessage.includes('itSupportStructure') ? 'itSupportStructure-error' : undefined}
-                >
-                  <option value="">Select IT Support</option>
-                  <option value="Internal IT team">Internal IT team</option>
-                  <option value="Outsourced IT">Outsourced IT support</option>
-                  <option value="Hybrid">Hybrid (internal + external)</option>
-                  <option value="Minimal IT support">Minimal IT support</option>
-                  <option value="No dedicated IT">No dedicated IT support</option>
-                </select>
-                {errorMessage.includes('itSupportStructure') && <span id="itSupportStructure-error" className="error-text">IT support structure is required</span>}
-              </label>
-            </div>
-            <div className="button-group">
-              <button onClick={handleBack}>Back</button>
-              <button onClick={handleNext}>Next</button>
-            </div>
-          </motion.div>
-        );
-      case 5:
-        return (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            <h3>Current Setup & Financial Analysis</h3>
-            <div className="form-section">
-              <h4>Current Copier Setup</h4>
-              <label>
-                Current Supplier:
-                <input
-                  type="text"
-                  name="currentSetup.currentSupplier"
-                  value={formData.currentSetup.currentSupplier}
-                  onChange={handleChange}
-                  placeholder="e.g., Xerox, Canon"
-                  className={errorMessage.includes('currentSetup') ? 'error' : ''}
-                  aria-describedby={errorMessage.includes('currentSetup') ? 'currentSetup-error' : undefined}
-                />
-              </label>
-              <label>
-                Current Copier Model:
-                <input
-                  type="text"
-                  name="currentSetup.currentModel"
-                  value={formData.currentSetup.currentModel}
-                  onChange={handleChange}
-                  placeholder="e.g., AltaLink C8030"
-                  className={errorMessage.includes('currentSetup') ? 'error' : ''}
-                  aria-describedby={errorMessage.includes('currentSetup') ? 'currentSetup-error' : undefined}
-                />
-              </label>
-              <label>
-                Current Copier Speed (PPM):
-                <input
-                  type="number"
-                  name="currentSetup.currentSpeed"
-                  value={formData.currentSetup.currentSpeed}
-                  onChange={handleChange}
-                  min="0"
-                  placeholder="e.g., 30"
-                  className={errorMessage.includes('currentSetup') ? 'error' : ''}
-                  aria-describedby={errorMessage.includes('currentSetup') ? 'currentSetup-error' : undefined}
-                />
-              </label>
-              <label>
-                Contract Start Date:
-                <input
-                  type="date"
-                  name="currentSetup.contractStartDate"
-                  value={formData.currentSetup.contractStartDate}
-                  onChange={handleChange}
-                  className={errorMessage.includes('currentSetup') ? 'error' : ''}
-                  aria-describedby={errorMessage.includes('currentSetup') ? 'currentSetup-error' : undefined}
-                />
-              </label>
-              <label>
-                Contract End Date:
-                <input
-                  type="date"
-                  name="currentSetup.contractEndDate"
-                  value={formData.currentSetup.contractEndDate}
-                  onChange={handleChange}
-                  className={errorMessage.includes('currentSetup') ? 'error' : ''}
-                  aria-describedby={errorMessage.includes('currentSetup') ? 'currentSetup-error' : undefined}
-                />
-              </label>
-              <label>
-                Current Mono CPC (pence per page):
-                <input
-                  type="number"
-                  name="currentSetup.currentMonoCPC"
-                  value={formData.currentSetup.currentMonoCPC}
-                  onChange={handleChange}
-                  min="0"
-                  step="0.01"
-                  placeholder="e.g., 1.2"
-                  className={errorMessage.includes('currentSetup') ? 'error' : ''}
-                  aria-describedby={errorMessage.includes('currentSetup') ? 'currentSetup-error' : undefined}
-                />
-              </label>
-              <label>
-                Current Color CPC (pence per page):
-                <input
-                  type="number"
-                  name="currentSetup.currentColorCPC"
-                  value={formData.currentSetup.currentColorCPC}
-                  onChange={handleChange}
-                  min="0"
-                  step="0.01"
-                  placeholder="e.g., 6.5"
-                  className={errorMessage.includes('currentSetup') ? 'error' : ''}
-                  aria-describedby={errorMessage.includes('currentSetup') ? 'currentSetup-error' : undefined}
-                />
-              </label>
-              <label>
-                Current Quarterly Lease Cost (£):
-                <input
-                  type="number"
-                  name="currentSetup.quarterlyLeaseCost"
-                  value={formData.currentSetup.quarterlyLeaseCost}
-                  onChange={handleChange}
-                  min="0"
-                  step="0.01"
-                  placeholder="e.g., 450.00"
-                  className={errorMessage.includes('currentSetup') ? 'error' : ''}
-                  aria-describedby={errorMessage.includes('currentSetup') ? 'currentSetup-error' : undefined}
-                />
-              </label>
-              <fieldset>
-                <legend>Current Copier Features: <span className="required">*</span></legend>
-                {currentFeatureOptions.map((feature) => (
-                  <label key={feature}>
-                    <input
-                      type="checkbox"
-                      name="currentSetup.currentFeatures"
-                      value={feature}
-                      checked={formData.currentSetup.currentFeatures.includes(feature)}
-                      onChange={handleChange}
-                      aria-describedby={errorMessage.includes('currentSetup') ? 'currentSetup-error' : undefined}
-                    />
-                    {feature}
-                  </label>
-                ))}
-                {errorMessage.includes('currentSetup') && <span id="currentSetup-error" className="error-text">{errorMessage}</span>}
-              </fieldset>
-              <label className="checkbox-group">
+  const renderStep2 = () => (
+    <motion.div
+      initial={{ opacity: 0, x: 20 }}
+      animate={{ opacity: 1, x: 0 }}
+      className="form-step"
+    >
+      <h2>Current Challenges & Requirements</h2>
+      <div className="form-grid">
+        <div className="form-group full-width">
+          <label>Reasons for Requesting a Quote *</label>
+          <div className="checkbox-group">
+            {[
+              'Current lease ending',
+              'Expanding business',
+              'Poor print quality',
+              'High printing costs',
+              'Frequent equipment breakdowns',
+              'Slow printing speeds',
+              'Limited functionality',
+              'Need better security',
+              'Environmental concerns',
+              'Technology upgrade'
+            ].map((reason) => (
+              <label key={reason} className="checkbox-label">
                 <input
                   type="checkbox"
-                  name="currentSetup.buyoutRequired"
-                  checked={formData.currentSetup.buyoutRequired}
+                  name="reasonsForQuote"
+                  value={reason}
+                  checked={formData.reasonsForQuote.includes(reason)}
                   onChange={handleChange}
+                  aria-describedby={errorMessages.reasonsForQuote ? 'reasonsForQuote-error' : undefined}
                 />
-                Buyout of current contract required
+                {reason}
               </label>
-              {formData.currentSetup.buyoutRequired && (
-                <>
-                  <div className="buyout-info">
-                    <h4>Estimated Buyout Cost</h4>
-                    <p>£{calculateBuyout()}</p>
-                  </div>
-                  <label className="checkbox-group">
-                    <input
-                      type="checkbox"
-                      name="currentSetup.includeBuyoutInCosts"
-                      checked={formData.currentSetup.includeBuyoutInCosts}
-                      onChange={handleChange}
-                    />
-                    Include buyout cost in new quote costs
-                  </label>
-                </>
-              )}
-            </div>
-            <div className="button-group">
-              <button onClick={handleBack}>Back</button>
-              <button onClick={handleNext}>Next</button>
-            </div>
-          </motion.div>
-        );
-      case 6:
-        return (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            <h3>Equipment Requirements & Specifications</h3>
-            <div className="form-section">
-              <h4>Basic Requirements</h4>
-              <label>
-                Service Type: <span className="required">*</span>
-                <select
-                  name="serviceType"
-                  value={formData.serviceType}
-                  onChange={handleChange}
-                  required
-                  className={errorMessage.includes('serviceType') ? 'error' : ''}
-                  aria-describedby={errorMessage.includes('serviceType') ? 'serviceType-error' : undefined}
-                >
-                  <option value="Photocopiers">Multifunction Photocopiers</option>
-                  <option value="Printers">Desktop Printers</option>
-                  <option value="Production">Production Printing</option>
-                  <option value="Scanners">Standalone Scanners</option>
-                  <option value="Mixed">Mixed Solution</option>
-                </select>
-                {errorMessage.includes('serviceType') && <span id="serviceType-error" className="error-text">Service type is required</span>}
-              </label>
-              <label>
-                Colour Preference: <span className="required">*</span>
-                <select
-                  name="colour"
-                  value={formData.colour}
-                  onChange={handleChange}
-                  required
-                  className={errorMessage.includes('colour') ? 'error' : ''}
-                  aria-describedby={errorMessage.includes('colour') ? 'colour-error' : undefined}
-                >
-                  <option value="">Select Preference</option>
-                  <option value="Black & White">Black & White Only</option>
-                  <option value="Color">Color Required</option>
-                  <option value="Both">Both (separate devices)</option>
-                </select>
-                {errorMessage.includes('colour') && <span id="colour-error" className="error-text">Colour preference is required</span>}
-              </label>
-              {formData.colour && (
-                <label>
-                  Maximum Paper Size: <span className="required">*</span>
-                  <select
-                    name="type"
-                    value={formData.type}
-                    onChange={handleChange}
-                    required
-                    className={errorMessage.includes('type') ? 'error' : ''}
-                    aria-describedby={errorMessage.includes('type') ? 'type-error' : undefined}
-                  >
-                    <option value="">Select Size</option>
-                    <option value="A4">A4 (Standard)</option>
-                    <option value="A3">A3 (Larger format)</option>
-                    <option value="A2">A2 (Wide format)</option>
-                    <option value="SRA3">SRA3 (Oversized A3)</option>
-                  </select>
-                  {errorMessage.includes('type') && <span id="type-error" className="error-text">Maximum paper size is required</span>}
-                </label>
-              )}
-            </div>
-            <div className="form-section">
-              <h4>Document Upload</h4>
-              <div {...getRootProps()} className="dropzone">
-                <input {...getInputProps()} aria-label="Upload invoices, floor plans, or equipment photos" />
-                <p>Drag & drop recent invoices, floor plans, or equipment photos</p>
-                <p className="text-muted">Accepted: PDF, Excel, Images</p>
-              </div>
-              {uploadedFiles.length > 0 && (
-                <div className="file-list">
-                  <p>{uploadedFiles.length} file(s) selected:</p>
-                  {uploadedFiles.map((file, index) => (
-                    <div key={index} className="file-item">
-                      <div className="file-info">
-                        <span className="file-name">{file.name}</span>
-                        <span className="file-size">({(file.size / 1024).toFixed(1)} KB)</span>
-                        <button
-                          onClick={() => setUploadedFiles(prev => prev.filter((_, i) => i !== index))}
-                          className="remove-file"
-                          aria-label={`Remove ${file.name}`}
-                        >
-                          ✕
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-            {suggestedMachines.length > 0 && (
-              <div className="form-section">
-                <h4>AI-Powered Equipment Suggestions</h4>
-                <ul>
-                  {suggestedMachines.map((model, index) => (
-                    <li key={index}>{model}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
-            <div className="button-group">
-              <button onClick={handleBack}>Back</button>
-              <button onClick={handleNext}>Next</button>
-            </div>
-          </motion.div>
-        );
-      case 7:
-        return (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            <h3>Service & Support Expectations</h3>
-            <div className="form-section">
-              <h4>Service Level Requirements</h4>
-              <label>
-                Response Time Expectation: <span className="required">*</span>
-                <select
-                  name="responseTimeExpectation"
-                  value={formData.responseTimeExpectation}
-                  onChange={handleChange}
-                  required
-                  className={errorMessage.includes('responseTimeExpectation') ? 'error' : ''}
-                  aria-describedby={errorMessage.includes('responseTimeExpectation') ? 'responseTimeExpectation-error' : undefined}
-                >
-                  <option value="">Select Response Time</option>
-                  <option value="Same day">Same day (4-8 hours)</option>
-                  <option value="Next business day">Next business day</option>
-                  <option value="48 hours">Within 48 hours</option>
-                  <option value="3-5 days">3-5 business days</option>
-                  <option value="Flexible">Flexible</option>
-                </select>
-                {errorMessage.includes('responseTimeExpectation') && <span id="responseTimeExpectation-error" className="error-text">Response time expectation is required</span>}
-              </label>
-              <label>
-                Maintenance Preference: <span className="required">*</span>
-                <select
-                  name="maintenancePreference"
-                  value={formData.maintenancePreference}
-                  onChange={handleChange}
-                  required
-                  className={errorMessage.includes('maintenancePreference') ? 'error' : ''}
-                  aria-describedby={errorMessage.includes('maintenancePreference') ? 'maintenancePreference-error' : undefined}
-                >
-                  <option value="">Select Preference</option>
-                  <option value="Proactive">Proactive (scheduled preventive maintenance)</option>
-                  <option value="Reactive">Reactive (fix when broken)</option>
-                  <option value="Hybrid">Hybrid approach</option>
-                  <option value="Self-service">Self-service with remote support</option>
-                </select>
-                {errorMessage.includes('maintenancePreference') && <span id="maintenancePreference-error" className="error-text">Maintenance preference is required</span>}
-              </label>
-              <label>
-                Training Needs:
-                <select name="trainingNeeds" value={formData.trainingNeeds} onChange={handleChange}>
-                  <option value="">Select Training Needs</option>
-                  <option value="Basic">Basic user training</option>
-                  <option value="Advanced">Advanced admin training</option>
-                  <option value="None">No training required</option>
-                </select>
-              </label>
-              <label>
-                Supply Management:
-                <select name="supplyManagement" value={formData.supplyManagement} onChange={handleChange}>
-                  <option value="">Select Supply Management</option>
-                  <option value="Automatic">Automatic toner/supply replenishment</option>
-                  <option value="Manual">Manual ordering</option>
-                  <option value="Vendor-managed">Vendor-managed inventory</option>
-                </select>
-              </label>
-            </div>
-            <div className="button-group">
-              <button onClick={handleBack}>Back</button>
-              <button onClick={handleNext}>Next</button>
-            </div>
-          </motion.div>
-        );
-      case 8:
-        return (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            <h3>Decision Process & Commercial Framework</h3>
-            <div className="form-section">
-              <h4>Decision Making</h4>
-              <fieldset>
-                <legend>Key Decision Makers (Select all that apply): <span className="required">*</span></legend>
-                {decisionMakerOptions.map((role) => (
-                  <label key={role}>
-                    <input
-                      type="checkbox"
-                      name="decisionMakers"
-                      value={role}
-                      checked={formData.decisionMakers.includes(role)}
-                      onChange={handleChange}
-                      aria-describedby={errorMessage.includes('decisionMakers') ? 'decisionMakers-error' : undefined}
-                    />
-                    {role}
-                  </label>
-                ))}
-                {errorMessage.includes('decisionMakers') && <span id="decisionMakers-error" className="error-text">At least one decision maker is required</span>}
-              </fieldset>
-              <label>
-                What is most important to you? <span className="required">*</span>
-                <select
-                  name="preference"
-                  value={formData.preference}
-                  onChange={handleChange}
-                  required
-                  className={errorMessage.includes('preference') ? 'error' : ''}
-                  aria-describedby={errorMessage.includes('preference') ? 'preference-error' : undefined}
-                >
-                  <option value="">Select Priority</option>
-                  <option value="cost">Lowest total cost</option>
-                  <option value="quality">Best print quality</option>
-                  <option value="speed">Fastest performance</option>
-                  <option value="reliability">Maximum uptime/reliability</option>
-                  <option value="balanced">Balanced approach</option>
-                </select>
-                {errorMessage.includes('preference') && <span id="preference-error" className="error-text">Priority is required</span>}
-              </label>
-              <label>
-                Maximum Monthly Investment (£): <span className="required">*</span>
-                <input
-                  type="number"
-                  name="max_lease_price"
-                  value={formData.max_lease_price}
-                  onChange={handleChange}
-                  placeholder="Total monthly budget for all equipment/services"
-                  required
-                  className={errorMessage.includes('max_lease_price') ? 'error' : ''}
-                  aria-describedby={errorMessage.includes('max_lease_price') ? 'max_lease_price-error' : undefined}
-                />
-                {errorMessage.includes('max_lease_price') && <span id="max_lease_price-error" className="error-text">Maximum monthly investment is required</span>}
-              </label>
-              <label>
-                Contract Length Preference:
-                <select name="contractLengthPreference" value={formData.contractLengthPreference} onChange={handleChange}>
-                  <option value="">Select Term</option>
-                  <option value="12 months">12 months</option>
-                  <option value="24 months">24 months</option>
-                  <option value="36 months">36 months</option>
-                  <option value="48 months">48 months</option>
-                  <option value="60 months">60 months</option>
-                </select>
-              </label>
-              <label>
-                Pricing Model Preference:
-                <select name="pricingModelPreference" value={formData.pricingModelPreference} onChange={handleChange}>
-                  <option value="">Select Model</option>
-                  <option value="Lease">Lease (fixed monthly)</option>
-                  <option value="CPC">Cost per copy</option>
-                  <option value="Hybrid">Hybrid (lease + CPC)</option>
-                </select>
-              </label>
-            </div>
-            <div className="button-group">
-              <button onClick={handleBack}>Back</button>
-              <button onClick={handleNext}>Next</button>
-            </div>
-          </motion.div>
-        );
-      case 9:
-        return (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            <h3>Future Planning & Strategic Vision</h3>
-            <div className="form-section">
-              <h4>Growth & Expansion</h4>
-              <label>
-                Expected Business Growth: <span className="required">*</span>
-                <select
-                  name="expectedGrowth"
-                  value={formData.expectedGrowth}
-                  onChange={handleChange}
-                  required
-                  className={errorMessage.includes('expectedGrowth') ? 'error' : ''}
-                  aria-describedby={errorMessage.includes('expectedGrowth') ? 'expectedGrowth-error' : undefined}
-                >
-                  <option value="">Select Growth Expectation</option>
-                  <option value="Decline">Decline/Downsizing</option>
-                  <option value="Stable">Stable (no significant change)</option>
-                  <option value="Moderate growth">Moderate growth (10-25%)</option>
-                  <option value="Significant growth">Significant growth (25-50%)</option>
-                  <option value="Rapid growth">Rapid growth (50%+)</option>
-                  <option value="Uncertain">Uncertain</option>
-                </select>
-                {errorMessage.includes('expectedGrowth') && <span id="expectedGrowth-error" className="error-text">Expected growth is required</span>}
-              </label>
-              <label>
-                3-Year Vision: <span className="required">*</span>
-                <textarea
-                  name="threeYearVision"
-                  value={formData.threeYearVision}
-                  onChange={handleChange}
-                  placeholder="Where do you see your document/printing needs in 3 years?"
-                  rows="4"
-                  required
-                  className={errorMessage.includes('threeYearVision') ? 'error' : ''}
-                  aria-describedby={errorMessage.includes('threeYearVision') ? 'threeYearVision-error' : undefined}
-                />
-                {errorMessage.includes('threeYearVision') && <span id="threeYearVision-error" className="error-text">Three-year vision is required</span>}
-              </label>
-              <label>
-                Expansion Plans:
-                <textarea
-                  name="expansionPlans"
-                  value={formData.expansionPlans}
-                  onChange={handleChange}
-                  placeholder="Any planned office expansions or new locations?"
-                  rows="3"
-                />
-              </label>
-              <label>
-                Technology Roadmap:
-                <textarea
-                  name="technologyRoadmap"
-                  value={formData.technologyRoadmap}
-                  onChange={handleChange}
-                  placeholder="How do you plan to integrate new technology?"
-                  rows="3"
-                />
-              </label>
-            </div>
-            <div className="form-section">
-              <h4>Final Review Summary</h4>
-              <div className="review-section">
-                <p><strong>Assessment Completion:</strong> 95% complete</p>
-                <p><strong>Key Requirements Summary:</strong></p>
-                <ul>
-                  <li>Industry: {formData.industryType || 'Not specified'}</li>
-                  <li>Monthly Volume: {(parseInt(formData.monthlyVolume.colour) || 0) + (parseInt(formData.monthlyVolume.mono) || 0)} pages</li>
-                  <li>Current Supplier: {formData.currentSetup.currentSupplier || 'Not specified'}</li>
-                  <li>Current Model: {formData.currentSetup.currentModel || 'Not specified'}</li>
-                  <li>Reasons for Quote: {formData.reasonsForQuote.join(', ') || 'Not specified'}</li>
-                  <li>Priority: {formData.preference || 'Not specified'}</li>
-                  <li>Budget: £{formData.max_lease_price || 'Not specified'}/month</li>
-                  <li>Timeline: {formData.implementationTimeline || 'Not specified'}</li>
-                  {formData.currentSetup.buyoutRequired && (
-                    <li>Buyout Cost: £{formData.currentSetup.buyoutCost || 'N/A'}</li>
-                  )}
-                </ul>
-              </div>
-            </div>
-            <div className="button-group">
-              <button onClick={handleBack}>Back</button>
-              <button type="submit" onClick={handleSubmit} disabled={isSubmitting}>
-                {isSubmitting ? 'Submitting Comprehensive Assessment...' : 'Submit Complete Assessment'}
-              </button>
-            </div>
-          </motion.div>
-        );
-      default:
-        return null;
-    }
-  };
-
-  return (
-    <div className="request-quote-container">
-      <h2>Comprehensive Equipment Assessment</h2>
-      <p className="text-center text-muted">Professional procurement analysis - 15-20 minutes</p>
-
-      {submissionStatus === 'success' && (
-        <div className="success-message" role="alert">
-          ✅ {successMessage}
+            ))}
+          </div>
+          {errorMessages.reasonsForQuote && <span id="reasonsForQuote-error" className="error-text">{errorMessages.reasonsForQuote}</span>}
         </div>
-      )}
-
-      {submissionStatus === 'error' && errorMessage && (
-        <div className="error-message" role="alert">
-          ❌ {errorMessage}
+        <div className="form-group full-width">
+          <label htmlFor="currentPainPoints">Current Pain Points</label>
+          <textarea
+            id="currentPainPoints"
+            name="currentPainPoints"
+            value={formData.currentPainPoints}
+            onChange={handleChange}
+            placeholder="Describe your current printing/copying challenges in detail"
+            rows="4"
+          />
         </div>
-      )}
-
-      {submissionStatus === 'idle' && errorMessage && (
-        <p className="error-message" role="alert">
-          {errorMessage}
-        </p>
-      )}
-
-      <div className="progress-bar">
-        <span>Step {step} of 9 - {Math.round((step / 9) * 100)}% Complete</span>
-        <div style={{ width: `${(step / 9) * 100}%` }} className="progress" />
+        <div className="form-group">
+          <label htmlFor="urgencyLevel">Urgency Level *</label>
+          <select
+            id="urgencyLevel"
+            name="urgencyLevel"
+            value={formData.urgencyLevel}
+            onChange={handleChange}
+            required
+            aria-describedby={errorMessages.urgencyLevel ? 'urgencyLevel-error' : undefined}
+            className={errorMessages.urgencyLevel ? 'error' : ''}
+          >
+            <option value="">Select Urgency</option>
+            <option value="Critical - Within 1 week">Critical - Within 1 week</option>
+            <option value="High - Within 1 month">High - Within 1 month</option>
+            <option value="Medium - Within 3 months">Medium - Within 3 months</option>
+            <option value="Low - 3+ months">Low - 3+ months</option>
+          </select>
+          {errorMessages.urgencyLevel && <span id="urgencyLevel-error" className="error-text">{errorMessages.urgencyLevel}</span>}
+        </div>
+        <div className="form-group">
+          <label htmlFor="implementationTimeline">Implementation Timeline *</label>
+          <select
+            id="implementationTimeline"
+            name="implementationTimeline"
+            value={formData.implementationTimeline}
+            onChange={handleChange}
+            required
+            aria-describedby={errorMessages.implementationTimeline ? 'implementationTimeline-error' : undefined}
+            className={errorMessages.implementationTimeline ? 'error' : ''}
+          >
+            <option value="">Select Timeline</option>
+            <option value="ASAP">ASAP</option>
+            <option value="1-2 months">1-2 months</option>
+            <option value="3-6 months">3-6 months</option>
+            <option value="6-12 months">6-12 months</option>
+            <option value="12+ months">12+ months</option>
+          </select>
+          {errorMessages.implementationTimeline && <span id="implementationTimeline-error" className="error-text">{errorMessages.implementationTimeline}</span>}
+        </div>
+        <div className="form-group">
+          <label htmlFor="impactOnProductivity">Impact on Productivity</label>
+          <select
+            id="impactOnProductivity"
+            name="impactOnProductivity"
+            value={formData.impactOnProductivity}
+            onChange={handleChange}
+          >
+            <option value="">Select Impact</option>
+            <option value="Severe - Work frequently stops">Severe - Work frequently stops</option>
+            <option value="Moderate - Some delays">Moderate - Some delays</option>
+            <option value="Minor - Occasional issues">Minor - Occasional issues</option>
+            <option value="No impact">No impact</option>
+          </select>
+        </div>
+        <div className="form-group">
+          <label htmlFor="budgetCycle">Budget Cycle</label>
+          <select
+            id="budgetCycle"
+            name="budgetCycle"
+            value={formData.budgetCycle}
+            onChange={handleChange}
+          >
+            <option value="">Select Budget Cycle</option>
+            <option value="April - March">April - March</option>
+            <option value="January - December">January - December</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
       </div>
-      <form onSubmit={(e) => e.preventDefault()}>
-        {renderStep()}
-      </form>
-    </div>
+    </motion.div>
   );
-};
 
-export default EnhancedQuoteRequest;
+  const renderStep3 = () => (
+    <motion.div
+      initial={{ opacity: 0, x: 20 }}
+      animate={{ opacity: 1, x: 0 }}
+      className="form-step"
+    >
+      <h2>Volume & Usage Requirements</h2>
+      <div className="form-grid">
+        <div className="form-group">
+          <label htmlFor="monthlyVolume.mono">Monthly Mono Volume *</label>
+          <input
+            type="number"
+            id="monthlyVolume.mono"
+            name="monthlyVolume.mono"
+            value={formData.monthlyVolume.mono}
+            onChange={handleChange}
+            required
+            min="0"
+            placeholder="e.g., 5000"
+            aria-describedby={errorMessages.monthlyVolume ? 'monthlyVolume-error' : undefined}
+            className={errorMessages.monthlyVolume ? 'error' : ''}
+          />
+          {errorMessages.monthlyVolume && <span id="monthlyVolume-error" className="error-text">{errorMessages.monthlyVolume}</span>}
+        </div>
+        <div className="form-group">
+          <label htmlFor="monthlyVolume.colour">Monthly Colour Volume *</label>
+          <input
+            type="number"
+            id="monthlyVolume.colour"
+            name="monthlyVolume.colour"
+            value={formData.monthlyVolume.colour}
+            onChange={handleChange}
+            required
+            min="0"
+            placeholder="e.g., 1000"
+            aria-describedby={errorMessages.monthlyVolume ? 'monthlyVolume-error' : undefined}
+            className={errorMessages.monthlyVolume ? 'error' : ''}
+          />
+          {errorMessages.monthlyVolume && <span id="monthlyVolume-error" className="error-text">{errorMessages.monthlyVolume}</span>}
+        </div>
+        <div className="form-group">
+          <label htmlFor="peakUsagePeriods">Peak Usage Periods</label>
+          <input
+            type="text"
+            id="peakUsagePeriods"
+            name="peakUsagePeriods"
+            value={formData.peakUsagePeriods}
+            onChange={handleChange}
+            placeholder="e.g., Month-end, Quarter-end"
+          />
+        </div>
+        <div className="form-group">
+          <label htmlFor="averagePageCount">Average Pages per Document</label>
+          <select
+            id="averagePageCount"
+            name="averagePageCount"
+            value={formData.averagePageCount}
+            onChange={handleChange}
+          >
+            <option value="">Select Average</option>
+            <option value="1-2 pages">1-2 pages</option>
+            <option value="3-5 pages">3-5 pages</option>
+            <option value="6-10 pages">6-10 pages</option>
+            <option value="11-20 pages">11-20 pages</option>
+            <option value="20+ pages">20+ pages</option>
+          </select>
+        </div>
+        <div className="form-group full-width">
+          <label>Document Types</label>
+          <div className="checkbox-group">
+            {[
+              'Standard office documents',
+              'Presentations',
+              'Marketing materials',
+              'Technical drawings',
+              'Forms and invoices',
+              'Reports',
+              'Legal documents',
+              'Medical records'
+            ].map((type) => (
+              <label key={type} className="checkbox-label">
+                <input
+                  type="checkbox"
+                  name="documentTypes"
+                  value={type}
+                  checked={formData.documentTypes.includes(type)}
+                  onChange={handleChange}
+                />
+                {type}
+              </label>
+            ))}
+          </div>
+        </div>
+        <div className="form-group full-width">
+          <label>Finishing Requirements</label>
+          <div className="checkbox-group">
+            {[
+              'Stapling',
+              'Hole punching',
+              'Folding',
+              'Booklet making',
+              'Laminating',
+              'Binding'
+            ].map((requirement) => (
+              <label key={requirement} className="checkbox-label">
+                <input
+                  type="checkbox"
+                  name="finishingRequirements"
+                  value={requirement}
+                  checked={formData.finishingRequirements.includes(requirement)}
+                  onChange={handleChange}
+                />
+                {requirement}
+              </label>
+            ))}
+          </div>
+        </div>
+        <div className="form-group full-width">
+          <label>Department Breakdown</label>
+          <div className="checkbox-group">
+            {[
+              'Administration',
+              'Sales',
+              'Marketing',
+              'Finance',
+              'HR',
+              'IT',
+              'Operations',
+              'Other'
+            ].map((dept) => (
+              <label key={dept} className="checkbox-label">
+                <input
+                  type="checkbox"
+                  name="departmentBreakdown"
+                  value={dept}
+                  checked={formData.departmentBreakdown.includes(dept)}
+                  onChange={handleChange}
+                />
+                {dept}
+              </label>
+            ))}
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+
+  const renderStep4 = () => (
+    <motion.div
+      initial={{ opacity: 0, x: 20 }}
+      animate={{ opacity: 1, x: 0 }}
+      className="form-step"
+    >
+      <h2>IT Infrastructure & Integration</h2>
+      <div className="form-grid">
+        <div className="form-group">
+          <label htmlFor="networkSetup">Network Setup *</label>
+          <select
+            id="networkSetup"
+            name="networkSetup"
+            value={formData.networkSetup}
+            onChange={handleChange}
+            required
+            aria-describedby={errorMessages.networkSetup ? 'networkSetup-error' : undefined}
+            className={errorMessages.networkSetup ? 'error' : ''}
+          >
+            <option value="">Select Network Setup</option>
+            <option value="Wired network only">Wired network only</option>
+            <option value="Wireless network only">Wireless network only</option>
+            <option value="Mixed wired/wireless">Mixed wired/wireless</option>
+            <option value="Cloud-based">Cloud-based</option>
+          </select>
+          {errorMessages.networkSetup && <span id="networkSetup-error" className="error-text">{errorMessages.networkSetup}</span>}
+        </div>
+        <div className="form-group">
+          <label htmlFor="itSupportStructure">IT Support Structure *</label>
+          <select
+            id="itSupportStructure"
+            name="itSupportStructure"
+            value={formData.itSupportStructure}
+            onChange={handleChange}
+            required
+            aria-describedby={errorMessages.itSupportStructure ? 'itSupportStructure-error' : undefined}
+            className={errorMessages.itSupportStructure ? 'error' : ''}
+          >
+            <option value="">Select Support Structure</option>
+            <option value="In-house IT team">In-house IT team</option>
+            <option value="Outsourced IT">Outsourced IT</option>
+            <option value="Mixed support">Mixed support</option>
+            <option value="No dedicated IT">No dedicated IT</option>
+          </select>
+          {errorMessages.itSupportStructure && <span id="itSupportStructure-error" className="error-text">{errorMessages.itSupportStructure}</span>}
+        </div>
+        <div className="form-group">
+          <label htmlFor="currentSoftwareEnvironment">Current Software Environment</label>
+          <input
+            type="text"
+            id="currentSoftwareEnvironment"
+            name="currentSoftwareEnvironment"
+            value={formData.currentSoftwareEnvironment}
+            onChange={handleChange}
+            placeholder="e.g., Microsoft 365, Google Workspace"
+          />
+        </div>
+        <div className="form-group">
+          <label htmlFor="cloudPreference">Cloud Preference</label>
+          <select
+            id="cloudPreference"
+            name="cloudPreference"
+            value={formData.cloudPreference}
+            onChange={handleChange}
+          >
+            <option value="">Select Preference</option>
+            <option value="Cloud-first">Cloud-first</option>
+            <option value="Hybrid">Hybrid</option>
+            <option value="On-premise preferred">On-premise preferred</option>
+            <option value="No preference">No preference</option>
+          </select>
+        </div>
+        <div className="form-group">
+          <label htmlFor="mobileRequirements">Mobile Printing Requirements</label>
+          <select
+            id="mobileRequirements"
+            name="mobileRequirements"
+            value={formData.mobileRequirements}
+            onChange={handleChange}
+          >
+            <option value="No">No</option>
+            <option value="Yes">Yes</option>
+          </select>
+        </div>
+        <div className="form-group">
+          <label htmlFor="remoteWorkImpact">Remote Work Impact</label>
+          <textarea
+            id="remoteWorkImpact"
+            name="remoteWorkImpact"
+            value={formData.remoteWorkImpact}
+            onChange={handleChange}
+            placeholder="How has remote work affected your printing needs?"
+            rows="3"
+          />
+        </div>
+        <div className="form-group full-width">
+          <label>Security Requirements</label>
+          <div className="checkbox-group">
+            {[
+              'User authentication',
+              'Secure print release',
+              'Data encryption',
+              'Network security',
+              'Audit trail',
+              'GDPR compliance',
+              'Industry-specific compliance'
+            ].map((requirement) => (
+              <label key={requirement} className="checkbox-label">
+                <input
+                  type="checkbox"
+                  name="securityRequirements"
+                  value={requirement}
+                  checked={formData.securityRequirements.includes(requirement)}
+                  onChange={handleChange}
+                />
+                {requirement}
+              </label>
+            ))}
+          </div>
+        </div>
+        <div className="form-group full-width">
+          <label>Integration Needs</label>
+          <div className="checkbox-group">
+            {[
+              'Email integration',
+              'CRM integration',
+              'Document management system',
+              'ERP integration',
+              'Cloud storage integration',
+              'Custom software integration'
+            ].map((need) => (
+              <label key={need} className="checkbox-label">
+                <input
+                  type="checkbox"
+                  name="integrationNeeds"
+                  value={need}
+                  checked={formData.integrationNeeds.includes(need)}
+                  onChange={handleChange}
+                />
+                {need}
+              </label>
+            ))}
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+
+  const renderStep5 = () => (
+    <motion.div
+      initial={{ opacity: 0, x: 20 }}
+      animate={{ opacity: 1, x: 0 }}
+      className="form-step"
+    >
+      <h2>Current Equipment & Costs</h2>
+      <div className="form-grid">
+        <div className="form-group">
+          <label htmlFor="currentEquipmentAge">Current Equipment Age *</label>
+          <select
+            id="currentEquipmentAge"
+            name="currentEquipmentAge"
+            value={formData.currentEquipmentAge}
+            onChange={handleChange}
+            required
+            aria-describedby={errorMessages.currentEquipmentAge ? 'currentEquipmentAge-error' : undefined}
+            className={errorMessages.currentEquipmentAge ? 'error' : ''}
+          >
+            <option value="">Select Equipment Age</option>
+            <option value="No current equipment">No current equipment</option>
+            <option value="Less than 1 year">Less than 1 year</option>
+            <option value="1-2 years">1-2 years</option>
+            <option value="2-5 years">2-5 years</option>
+            <option value="5-6 years">5-6 years</option>
+            <option value="Over 6 years">Over 6 years</option>
+            <option value="Mixed ages">Mixed ages</option>
+          </select>
+          {errorMessages.currentEquipmentAge && <span id="currentEquipmentAge-error" className="error-text">{errorMessages.currentEquipmentAge}</span>}
+        </div>
+        <div className="form-group">
+          <label htmlFor="currentSetup.currentSupplier">Current Supplier</label>
+          <input
+            type="text"
+            id="currentSetup.currentSupplier"
+            name="currentSetup.currentSupplier"
+            value={formData.currentSetup.currentSupplier}
+            onChange={handleChange}
+            placeholder="e.g., Canon, Xerox, HP"
+          />
+        </div>
+        <div className="form-group">
+          <label htmlFor="currentSetup.currentModel">Current Model</label>
+          <input
+            type="text"
+            id="currentSetup.currentModel"
+            name="currentSetup.currentModel"
+            value={formData.currentSetup.currentModel}
+            onChange={handleChange}
+            placeholder="e.g., imageRUNNER ADVANCE C3530i"
+          />
+        </div>
+        <div className="form-group">
+          <label htmlFor="currentSetup.currentSpeed">Current Speed (PPM)</label>
+          <input
+            type="number"
+            id="currentSetup.currentSpeed"
+            name="currentSetup.currentSpeed"
+            value={formData.currentSetup.currentSpeed}
+            onChange={handleChange}
+            placeholder="e.g., 30"
+            min="1"
+          />
+        </div>
+        <div className="form-group">
+          <label htmlFor="currentSetup.contractStartDate">Contract Start Date</label>
+          <input
+            type="date"
+            id="currentSetup.contractStartDate"
+            name="currentSetup.contractStartDate"
+            value={formData.currentSetup.contractStartDate}
+            onChange={handleChange}
+          />
+        </div>
+        <div className="form-group">
+          <label htmlFor="currentSetup.contractEndDate">Contract End Date</label>
+          <input
+            type="date"
+            id="currentSetup.contractEndDate"
+            name="currentSetup.contractEndDate"
+            value={formData.currentSetup.contractEndDate}
+            onChange={handleChange}
+          />
+        </div>
+        <div className="form-group">
+          <label htmlFor="currentSetup.currentMonoCPC">Current Mono CPC (pence)</label>
+          <input
+            type="number"
+            id="currentSetup.currentMonoCPC"
+            name="currentSetup.currentMonoCPC"
+            value={formData.currentSetup.currentMonoCPC}
+            onChange={handleChange}
+            placeholder="e.g., 0.8"
+            step="0.01"
+            min="0"
+          />
+        </div>
+        <div className="form-group">
+          <label htmlFor="currentSetup.currentColorCPC">Current Color CPC (pence)</label>
+          <input
+            type="number"
+            id="currentSetup.currentColorCPC"
+            name="currentSetup.currentColorCPC"
+            value={formData.currentSetup.currentColorCPC}
+            onChange={handleChange}
+            placeholder="e.g., 8.5"
+            step="0.01"
+            min="0"
+          />
+        </div>
+        <div className="form-group">
+          <label htmlFor="currentSetup.quarterlyLeaseCost">Quarterly Lease Cost (£)</label>
+          <input
+            type="number"
+            id="currentSetup.quarterlyLeaseCost"
+            name="currentSetup.quarterlyLeaseCost"
+            value={formData.currentSetup.quarterlyLeaseCost}
+            onChange={handleChange}
+            placeholder="e.g., 450"
+            min="0"
+          />
+        </div>
+        <div className="form-group">
+          <label>Estimated Buyout Cost: £{calculateBuyout()}</label>
+          <div className="checkbox-container">
+            <label className="checkbox-label">
+              <input
+                type="checkbox"
+                name="currentSetup.buyoutRequired"
+                checked={formData.currentSetup.buyoutRequired}
+                onChange={handleChange}
+              />
+              Buyout required
+            </label>
+          </div>
+          {formData.currentSetup.buyoutRequired && (
+            <label className="checkbox-label">
+              <input
+                type="checkbox"
+                name="currentSetup.includeBuyoutInCosts"
+                checked={formData.currentSetup.includeBuyoutInCosts}
+                onChange={handleChange}
+              />
+              Include buyout in new contract costs
+            </label>
+          )}
+        </div>
+        <div className="form-group full-width">
+          <label>Current Features</label>
+          <div className="checkbox-group">
+            {[
+              'Duplex Printing',
+              'Wireless Printing',
+              'Mobile Printing',
+              'Cloud Integration',
+              'Advanced Security',
+              'Large Paper Trays',
+              'High Capacity Toner',
+              'Color Printing',
+              'Scanning',
+              'Fax',
+              'Copying',
+              'Email Integration',
+              'Stapling',
+              'Hole Punch',
+              'Booklet Making',
+              'Large Capacity Trays',
+              'Touch Screen',
+              'Auto Document Feeder',
+              'ID Card Copying',
+              'Follow-Me Print'
+            ].map((feature) => (
+              <label key={feature} className="checkbox-label">
+                <input
+                  type="checkbox"
+                  name="currentSetup.currentFeatures"
+                  value={feature}
+                  checked={formData.currentSetup.currentFeatures.includes(feature)}
+                  onChange={handleChange}
+                />
+                {feature}
+              </label>
+            ))}
+          </div>
+        </div>
+        <div className="form-group full-width">
+          <label htmlFor="totalAnnualCosts">Total Annual Costs</label>
+          <input
+            type="number"
+            id="totalAnnualCosts"
+            name="totalAnnualCosts"
+            value={formData.totalAnnualCosts}
+            onChange={handleChange}
+            placeholder="Total annual cost including lease, service, supplies"
+            min="0"
+          />
+        </div>
+        <div className="form-group full-width">
+          <label htmlFor="hiddenCosts">Hidden Costs</label>
+          <textarea
+            id="hiddenCosts"
+            name="hiddenCosts"
+            value={formData.hiddenCosts}
+            onChange={handleChange}
+            placeholder="Any unexpected or hidden costs you've encountered"
+            rows="3"
+          />
+        </div>
+        <div className="form-group full-width">
+          <label>AI Suggested Machines</label>
+          {suggestedMachines.length > 0 ? (
+            <div className="suggested-machines">
+              {suggestedMachines.map((machine, index) => (
+                <div key={index} className="machine-suggestion">
+                  <h4>{machine.brand} {machine.model}</h4>
+                  <p>Speed: {machine.speed} PPM | Confidence: {machine.confidence}%</p>
+                  <p>{machine.reason}</p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p>No suggestions available yet.</p>
+          )}
+        </div>
+      </div>
+    </motion.div>
+  );
+
+  const renderStep6 = () => (
+    <motion.div
+      initial={{ opacity: 0, x: 20 }}
+      animate={{ opacity: 1, x: 0 }}
+      className="form-step"
+    >
+      <h2>Equipment Specifications</h2>
+      <div className="form-grid">
+        <div className="form-group">
+          <label htmlFor="serviceType">Service Type *</label>
+          <select
+            id="serviceType"
+            name="serviceType"
+            value={formData.serviceType}
+            onChange={handleChange}
+            required
+            aria-describedby={errorMessages.serviceType ? 'serviceType-error' : undefined}
+            className={errorMessages.serviceType ? 'error' : ''}
+          >
+            <option value="">Select Service Type</option>
+            <option value="Photocopiers">Photocopiers</option>
+            <option value="Multi-Function Devices">Multi-Function Devices</option>
+            <option value="Printers Only">Printers Only</option>
+            <option value="Production Printing">Production Printing</option>
+          </select>
+          {errorMessages.serviceType && <span id="serviceType-error" className="error-text">{errorMessages.serviceType}</span>}
+        </div>
+        <div className="form-group">
+          <label htmlFor="colour">Colour Requirements *</label>
+          <select
+            id="colour"
+            name="colour"
+            value={formData.colour}
+            onChange={handleChange}
+            required
+            aria-describedby={errorMessages.colour ? 'colour-error' : undefined}
+            className={errorMessages.colour ? 'error' : ''}
+          >
+            <option value="">Select Colour Requirement</option>
+            <option value="Mono only">Mono only</option>
+            <option value="Colour required">Colour required</option>
+            <option value="Both mono and colour">Both mono and colour</option>
+          </select>
+          {errorMessages.colour && <span id="colour-error" className="error-text">{errorMessages.colour}</span>}
+        </div>
+        <div className="form-group">
+          <label htmlFor="type">Maximum Paper Size *</label>
+          <select
+            id="type"
+            name="type"
+            value={formData.type}
+            onChange={handleChange}
+            required
+            aria-describedby={errorMessages.type ? 'type-error' : undefined}
+            className={errorMessages.type ? 'error' : ''}
+          >
+            <option value="">Select Paper Size</option>
+            <option value="A4">A4</option>
+            <option value="A3">A3</option>
+            <option value="A2">A2</option>
+            <option value="SRA3">SRA3</option>
+          </select>
+          {errorMessages.type && <span id="type-error" className="error-text">{errorMessages.type}</span>}
+        </div>
+        <div className="form-group">
+          <label htmlFor="min_speed">Minimum Speed (PPM)</label>
+          <input
+            type="number"
+            id="min_speed"
+            name="min_speed"
+            value={formData.min_speed}
+            onChange={handleChange}
+            placeholder="Auto-suggested based on volume"
+            min="1"
+          />
+          <small>Suggested based on your monthly volume</small>
+        </div>
+        <div className="form-group full-width">
+          <label>Required Functions</label>
+          <div className="checkbox-group">
+            {[
+              'Duplex Printing',
+              'Wireless Printing',
+              'Mobile Printing',
+              'Cloud Integration',
+              'Advanced Security',
+              'Large Paper Trays',
+              'High Capacity Toner',
+              'Color Printing',
+              'Scanning',
+              'Fax',
+              'Copying',
+              'Email Integration',
+              'Stapling',
+              'Hole Punch',
+              'Booklet Making',
+              'Touch Screen',
+              'Auto Document Feeder',
+              'ID Card Copying',
+              'Follow-Me Print'
+            ].map((func) => (
+              <label key={func} className="checkbox-label">
+                <input
+                  type="checkbox"
+                  name="required_functions"
+                  value={func}
+                  checked={formData.required_functions.includes(func)}
+                  onChange={handleChange}
+                />
+                {func}
+              </label>
+            ))}
+          </div>
+        </div>
+        <div className="form-group full-width">
+          <label>Security Features</label>
+          <div className="checkbox-group">
+            {[
+              'User Authentication',
+              'Secure Print Release',
+              'Data Encryption',
+              'Network Security',
+              'Audit Trail',
+              'Card Reader Integration',
+              'PIN Code Access'
+            ].map((feature) => (
+              <label key={feature} className="checkbox-label">
+                <input
+                  type="checkbox"
+                  name="securityFeatures"
+                  value={feature}
+                  checked={formData.securityFeatures.includes(feature)}
+                  onChange={handleChange}
+                />
+                {feature}
+              </label>
+            ))}
+          </div>
+        </div>
+        <div className="form-group">
+          <label htmlFor="accessibilityNeeds">Accessibility Requirements</label>
+          <select
+            id="accessibilityNeeds"
+            name="accessibilityNeeds"
+            value={formData.accessibilityNeeds}
+            onChange={handleChange}
+          >
+            <option value="No">No</option>
+            <option value="Yes">Yes</option>
+          </select>
+        </div>
+        <div className="form-group full-width">
+          <label htmlFor="sustainabilityGoals">Sustainability Goals</label>
+          <textarea
+            id="sustainabilityGoals"
+            name="sustainabilityGoals"
+            value={formData.sustainabilityGoals}
+            onChange={handleChange}
+            placeholder="Any environmental or sustainability requirements"
+            rows="3"
+          />
+        </div>
+      </div>
+    </motion.div>
+  );
+
+  const renderStep7 = () => (
+    <motion.div
+      initial={{ opacity: 0, x: 20 }}
+      animate={{ opacity: 1, x: 0 }}
+      className="form-step"
+    >
+      <h2>Service & Support Requirements</h2>
+      <div className="form-grid">
+        <div className="form-group">
+          <label htmlFor="responseTimeExpectation">Response Time Expectation *</label>
+          <select
+            id="responseTimeExpectation"
+            name="responseTimeExpectation"
+            value={formData.responseTimeExpectation}
+            onChange={handleChange}
+            required
+            aria-describedby={errorMessages.responseTimeExpectation ? 'responseTimeExpectation-error' : undefined}
+            className={errorMessages.responseTimeExpectation ? 'error' : ''}
+          >
+            <option value="">Select Response Time</option>
+            <option value="Same day">Same day</option>
+            <option value="Next working day">Next working day</option>
+            <option value="Within 48 hours">Within 48 hours</option>
+            <option value="Within 1 week">Within 1 week</option>
+          </select>
+          {errorMessages.responseTimeExpectation && <span id="responseTimeExpectation-error" className="error-text">{errorMessages.responseTimeExpectation}</span>}
+        </div>
+        <div className="form-group">
+          <label htmlFor="maintenancePreference">Maintenance Preference *</label>
+          <select
+            id="maintenancePreference"
+            name="maintenancePreference"
+            value={formData.maintenancePreference}
+            onChange={handleChange}
+            required
+            aria-describedby={errorMessages.maintenancePreference ? 'maintenancePreference-error' : undefined}
+            className={errorMessages.maintenancePreference ? 'error' : ''}
+          >
+            <option value="">Select Preference</option>
+            <option value="Full service included">Full service included</option>
+            <option value="Parts and labour only">Parts and labour only</option>
+            <option value="Basic maintenance only">Basic maintenance only</option>
+            <option value="Self-maintenance">Self-maintenance</option>
+          </select>
+          {errorMessages.maintenancePreference && <span id="maintenancePreference-error" className="error-text">{errorMessages.maintenancePreference}</span>}
+        </div>
+        <div className="form-group">
+          <label htmlFor="trainingNeeds">Training Requirements</label>
+          <textarea
+            id="trainingNeeds"
+            name="trainingNeeds"
+            value={formData.trainingNeeds}
+            onChange={handleChange}
+            placeholder="What training do your staff need?"
+            rows="3"
+          />
+        </div>
+        <div className="form-group">
+          <label htmlFor="supplyManagement">Supply Management Preference</label>
+          <select
+            id="supplyManagement"
+            name="supplyManagement"
+            value={formData.supplyManagement}
+            onChange={handleChange}
+          >
+            <option value="">Select Preference</option>
+            <option value="Automatic supply delivery">Automatic supply delivery</option>
+            <option value="Order as needed">Order as needed</option>
+            <option value="Self-managed supplies">Self-managed supplies</option>
+            <option value="Mixed approach">Mixed approach</option>
+          </select>
+        </div>
+        <div className="form-group full-width">
+          <label>Additional Services</label>
+          <div className="checkbox-group">
+            {[
+              'Document management',
+              'Workflow automation',
+              'Cloud integration',
+              'Mobile app support',
+              'Remote monitoring',
+              'Usage reporting',
+              'Cost center tracking',
+              'Environmental reporting'
+            ].map((service) => (
+              <label key={service} className="checkbox-label">
+                <input
+                  type="checkbox"
+                  name="additionalServices"
+                  value={service}
+                  checked={formData.additionalServices.includes(service)}
+                  onChange={handleChange}
+                />
+                {service}
+              </label>
+            ))}
+          </div>
+        </div>
+        <div className="form-group full-width">
+          <label>Reporting Needs</label>
+          <div className="checkbox-group">
+            {[
+              'Usage reports',
+              'Cost reports',
+              'Environmental reports',
+              'Maintenance reports',
+              'User activity reports',
+              'Department breakdown',
+              'Custom reporting'
+            ].map((report) => (
+              <label key={report} className="checkbox-label">
+                <input
+                  type="checkbox"
+                  name="reportingNeeds"
+                  value={report}
+                  checked={formData.reportingNeeds.includes(report)}
+                  onChange={handleChange}
+                />
+                {report}
+              </label>
+            ))}
+          </div>
+        </

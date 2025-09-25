@@ -24,8 +24,8 @@ import { useAuth } from "../context/AuthContext";
 import { logout } from "../utils/auth";
 import "../styles/UserDashboard.css";
 
-// Constants
-const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:5000";
+// Constants - Updated to match your backend URL
+const API_BASE_URL = 'https://ai-procurement-backend-q35u.onrender.com';
 const REFRESH_INTERVAL = 5 * 60 * 1000; // 5 minutes
 const ITEMS_PER_PAGE = 10;
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
@@ -60,7 +60,9 @@ const formatCurrency = (amount) => {
 const getStatusColor = (status) => {
   const statusColors = {
     pending: "#f59e0b",
+    processing: "#3b82f6", 
     matched: "#10b981",
+    completed: "#059669",
     accepted: "#059669",
     declined: "#ef4444",
     created: "#6b7280",
@@ -87,20 +89,14 @@ const validateFile = (file) => {
   return { isValid: true, error: null };
 };
 
-// Helper function to safely get array from response
-const safeArrayExtract = (data, key, fallback = []) => {
-  const extracted = data?.[key] || data?.data?.[key] || data?.[key + 's'] || fallback;
-  return Array.isArray(extracted) ? extracted : fallback;
-};
-
 // Helper function to get user ID from either field name
 const getUserId = (record) => {
   return record.userId || record.submittedBy;
 };
 
 const UserDashboard = () => {
-  console.log("UserDashboard component initialized");
-  console.log("API_BASE_URL:", API_BASE_URL);
+  console.log("✅ UserDashboard component initialized");
+  console.log("🔧 API_BASE_URL:", API_BASE_URL);
 
   const navigate = useNavigate();
   const { auth, logout: authLogout } = useAuth();
@@ -143,6 +139,8 @@ const UserDashboard = () => {
   const [quoteFunnelData, setQuoteFunnelData] = useState({
     created: 0,
     pending: 0,
+    processing: 0,
+    completed: 0,
     matched: 0,
     accepted: 0,
     declined: 0,
@@ -152,7 +150,7 @@ const UserDashboard = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
 
-  // Get current user ID
+  // Get current user ID - Fixed to match your auth structure
   const currentUserId = useMemo(() => {
     return auth?.user?.userId || auth?.user?.id;
   }, [auth?.user?.userId, auth?.user?.id]);
@@ -160,7 +158,7 @@ const UserDashboard = () => {
   // Authentication check
   useEffect(() => {
     if (!auth?.isAuthenticated || auth.user?.role !== "user") {
-      console.log("Authentication failed, redirecting to login");
+      console.log("❌ Authentication failed, redirecting to login");
       navigate("/login", { replace: true, state: { from: "/dashboard" } });
     }
   }, [auth?.isAuthenticated, auth.user?.role, navigate]);
@@ -182,18 +180,17 @@ const UserDashboard = () => {
       const profileName = data.user?.name || data.name || "User";
       setUserName(profileName);
       localStorage.setItem("userName", profileName);
-      console.log("User profile loaded:", profileName);
+      console.log("✅ User profile loaded:", profileName);
     } catch (error) {
-      console.error("Profile fetch error:", error);
+      console.error("❌ Profile fetch error:", error);
       setGlobalError("Failed to load user profile. Please try again.");
     }
   }, [auth?.isAuthenticated, auth?.token]);
 
-  // FIXED: Single dashboard data fetch with comprehensive error handling and DEBUG LOGS
+  // FIXED: Multiple API calls to match your actual backend endpoints
   const fetchDashboardData = useCallback(async () => {
-    // DEBUG LOGS ADDED HERE
     console.log("=== DASHBOARD FETCH DEBUG ===");
-    console.log("DEBUG - Auth state:", {
+    console.log("🔍 Auth state:", {
       isAuthenticated: auth?.isAuthenticated,
       hasToken: !!auth?.token,
       currentUserId: currentUserId,
@@ -201,11 +198,7 @@ const UserDashboard = () => {
     });
 
     if (!auth?.isAuthenticated || !auth?.token || !currentUserId) {
-      console.log("❌ Early return - missing auth data:", {
-        isAuthenticated: auth?.isAuthenticated,
-        hasToken: !!auth?.token,
-        currentUserId: currentUserId
-      });
+      console.log("❌ Early return - missing auth data");
       return;
     }
 
@@ -213,68 +206,96 @@ const UserDashboard = () => {
     setGlobalError(null);
 
     try {
-      console.log("🚀 About to call dashboard endpoint...");
-      console.log("🔗 API URL:", `${API_BASE_URL}/api/users/dashboard`);
+      console.log("🚀 Making parallel API calls...");
       
-      // Single dashboard API call
-      const response = await fetch(`${API_BASE_URL}/api/users/dashboard`, {
-        headers: { 
-          Authorization: `Bearer ${auth.token}`,
-          'Content-Type': 'application/json'
-        },
+      // Make multiple API calls in parallel based on your backend structure
+      const [
+        quoteRequestsResponse,
+        notificationsResponse,
+        recentActivityResponse,
+        uploadedFilesResponse
+      ] = await Promise.allSettled([
+        // Quote requests with proper parameters
+        fetch(`${API_BASE_URL}/api/quotes/requests?userId=${currentUserId}&submittedBy=${currentUserId}&page=1&limit=50`, {
+          headers: { 
+            Authorization: `Bearer ${auth.token}`,
+            'Content-Type': 'application/json'
+          },
+        }),
+        // Notifications
+        fetch(`${API_BASE_URL}/api/users/notifications?page=1&limit=50`, {
+          headers: { Authorization: `Bearer ${auth.token}` },
+        }),
+        // Recent activity
+        fetch(`${API_BASE_URL}/api/users/recent-activity?page=1&limit=10`, {
+          headers: { Authorization: `Bearer ${auth.token}` },
+        }),
+        // Uploaded files
+        fetch(`${API_BASE_URL}/api/users/uploaded-files?page=1&limit=10`, {
+          headers: { Authorization: `Bearer ${auth.token}` },
+        })
+      ]);
+
+      console.log("📡 API responses status:", {
+        quoteRequests: quoteRequestsResponse.status === 'fulfilled' ? quoteRequestsResponse.value.status : 'failed',
+        notifications: notificationsResponse.status === 'fulfilled' ? notificationsResponse.value.status : 'failed',
+        recentActivity: recentActivityResponse.status === 'fulfilled' ? recentActivityResponse.value.status : 'failed',
+        uploadedFiles: uploadedFilesResponse.status === 'fulfilled' ? uploadedFilesResponse.value.status : 'failed'
       });
 
-      console.log("📡 Dashboard response status:", response.status);
-      console.log("📡 Dashboard response ok:", response.ok);
-      console.log("📡 Dashboard response headers:", Object.fromEntries(response.headers.entries()));
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error("❌ Dashboard API error response:", errorText);
-        throw new Error(`Dashboard API returned ${response.status}: ${response.statusText}`);
+      // Process quote requests
+      let requests = [];
+      if (quoteRequestsResponse.status === 'fulfilled' && quoteRequestsResponse.value.ok) {
+        const requestsData = await quoteRequestsResponse.value.json();
+        console.log("📊 Quote requests response:", requestsData);
+        requests = Array.isArray(requestsData.quoteRequests) ? requestsData.quoteRequests : [];
       }
 
-      const dashboardData = await response.json();
-      console.log("📊 Dashboard data received:", dashboardData);
+      // Process notifications
+      let notifications = [];
+      if (notificationsResponse.status === 'fulfilled' && notificationsResponse.value.ok) {
+        const notificationsData = await notificationsResponse.value.json();
+        notifications = Array.isArray(notificationsData.notifications) ? notificationsData.notifications : [];
+      }
 
-      // Extract data with safe fallbacks - ensure all are arrays
-      const requests = Array.isArray(dashboardData.requests) ? dashboardData.requests : [];
-      const activities = Array.isArray(dashboardData.recentActivity) ? dashboardData.recentActivity : [];
-      const files = Array.isArray(dashboardData.uploadedFiles) ? dashboardData.uploadedFiles : [];
-      const notifications = Array.isArray(dashboardData.notifications) ? dashboardData.notifications : [];
+      // Process recent activity
+      let activities = [];
+      if (recentActivityResponse.status === 'fulfilled' && recentActivityResponse.value.ok) {
+        const activityData = await recentActivityResponse.value.json();
+        activities = Array.isArray(activityData.activities) ? activityData.activities : [];
+      }
 
-      console.log("🔍 Extracted data counts:", {
+      // Process uploaded files
+      let files = [];
+      if (uploadedFilesResponse.status === 'fulfilled' && uploadedFilesResponse.value.ok) {
+        const filesData = await uploadedFilesResponse.value.json();
+        files = Array.isArray(filesData.files) ? filesData.files : [];
+      }
+
+      console.log("🔍 Data extraction results:", {
         requests: requests.length,
         activities: activities.length,
         files: files.length,
         notifications: notifications.length
       });
 
-      // Filter requests to only show user's own
-      const userRequests = requests.filter(request => {
-        const requestUserId = getUserId(request);
-        const isUserRequest = requestUserId === currentUserId;
-        console.log(`Request ${request._id}: userId=${requestUserId}, currentUserId=${currentUserId}, isMatch=${isUserRequest}`);
-        return isUserRequest;
-      });
-
-      console.log(`📋 Filtered to ${userRequests.length} user requests from ${requests.length} total`);
-
       // Update state with validated arrays
-      setQuoteRequests(userRequests);
+      setQuoteRequests(requests);
       setRecentActivity(activities);
       setUploadedFiles(files);
       setNotifications(notifications);
 
       // Calculate KPIs from validated data
-      const totalQuotes = userRequests.reduce((sum, r) => sum + (Array.isArray(r.quotes) ? r.quotes.length : 0), 0);
-      const totalSavings = userRequests.reduce((sum, r) => {
-        const bestQuote = Array.isArray(r.quotes) && r.quotes.length > 0 ? r.quotes[0] : null;
-        return sum + (bestQuote?.savings || 0);
+      const totalQuotes = requests.reduce((sum, r) => sum + (Array.isArray(r.quotes) ? r.quotes.length : 0), 0);
+      const totalSavings = requests.reduce((sum, r) => {
+        const quotes = Array.isArray(r.quotes) ? r.quotes : [];
+        const bestQuote = quotes.length > 0 ? quotes[0] : null;
+        const savings = bestQuote?.pricing?.annualSavings || bestQuote?.savings || 0;
+        return sum + (typeof savings === 'number' ? savings : 0);
       }, 0);
       const pendingNotifications = notifications.filter(n => n.status === "unread").length;
-      const activeRequests = userRequests.filter(r =>
-        ["pending", "matched"].includes(r.status?.toLowerCase())
+      const activeRequests = requests.filter(r =>
+        ["pending", "processing", "matched"].includes(r.status?.toLowerCase())
       ).length;
 
       setKpiData({
@@ -284,13 +305,15 @@ const UserDashboard = () => {
         activeRequests,
       });
 
-      // Calculate funnel data
+      // Calculate funnel data with processing status
       const funnelData = {
-        created: userRequests.length,
-        pending: userRequests.filter(r => r.status?.toLowerCase() === "pending").length,
-        matched: userRequests.filter(r => r.status?.toLowerCase() === "matched").length,
-        accepted: userRequests.filter(r => r.status?.toLowerCase() === "accepted").length,
-        declined: userRequests.filter(r => r.status?.toLowerCase() === "declined").length,
+        created: requests.length,
+        pending: requests.filter(r => r.status?.toLowerCase() === "pending").length,
+        processing: requests.filter(r => r.status?.toLowerCase() === "processing").length,
+        completed: requests.filter(r => r.status?.toLowerCase() === "completed").length,
+        matched: requests.filter(r => Array.isArray(r.quotes) && r.quotes.length > 0).length,
+        accepted: requests.filter(r => r.status?.toLowerCase() === "accepted").length,
+        declined: requests.filter(r => r.status?.toLowerCase() === "declined").length,
       };
 
       setQuoteFunnelData(funnelData);
@@ -298,14 +321,12 @@ const UserDashboard = () => {
       console.log("✅ Dashboard data processed successfully");
       console.log("📈 Final KPIs:", { totalQuotes, totalSavings, pendingNotifications, activeRequests });
       console.log("🎯 Final funnel data:", funnelData);
-      console.log("=== DASHBOARD FETCH COMPLETE ===");
 
     } catch (error) {
       console.error("❌ Dashboard fetch error:", error);
-      console.error("❌ Error stack:", error.stack);
       setGlobalError(`Failed to load dashboard: ${error.message}`);
       
-      // Set safe fallback empty states to prevent .filter errors
+      // Set safe fallback empty states
       setQuoteRequests([]);
       setRecentActivity([]);
       setUploadedFiles([]);
@@ -319,6 +340,8 @@ const UserDashboard = () => {
       setQuoteFunnelData({
         created: 0,
         pending: 0,
+        processing: 0,
+        completed: 0,
         matched: 0,
         accepted: 0,
         declined: 0,
@@ -357,7 +380,7 @@ const UserDashboard = () => {
 
     setFile(selectedFile);
     setUploadMessage(`Selected: ${selectedFile.name}`);
-    console.log("File selected:", selectedFile.name);
+    console.log("📄 File selected:", selectedFile.name);
   }, []);
 
   const handleUpload = useCallback(async () => {
@@ -411,11 +434,11 @@ const UserDashboard = () => {
 
       await uploadPromise;
 
-      setUploadMessage("File uploaded successfully!");
+      setUploadMessage("✅ File uploaded successfully!");
       setFile(null);
       setUploadProgress(100);
 
-      console.log("File uploaded successfully:", file.name);
+      console.log("✅ File uploaded successfully:", file.name);
 
       // Refresh dashboard data
       fetchDashboardData();
@@ -426,8 +449,8 @@ const UserDashboard = () => {
         setUploadMessage("");
       }, 3000);
     } catch (error) {
-      console.error("Upload error:", error);
-      setUploadMessage(`Upload failed: ${error.message}`);
+      console.error("❌ Upload error:", error);
+      setUploadMessage(`❌ Upload failed: ${error.message}`);
     } finally {
       setIsUploading(false);
     }
@@ -454,12 +477,12 @@ const UserDashboard = () => {
         throw new Error(`Failed to accept quote: ${response.status}`);
       }
 
-      setUploadMessage(`Quote from ${vendorName} accepted successfully!`);
-      console.log("Quote accepted:", { quoteId, vendorName });
+      setUploadMessage(`✅ Quote from ${vendorName} accepted successfully!`);
+      console.log("✅ Quote accepted:", { quoteId, vendorName });
       fetchDashboardData();
     } catch (error) {
-      console.error("Accept quote error:", error);
-      setUploadMessage(`Failed to accept quote: ${error.message}`);
+      console.error("❌ Accept quote error:", error);
+      setUploadMessage(`❌ Failed to accept quote: ${error.message}`);
     }
   }, [auth?.token, fetchDashboardData]);
 
@@ -483,24 +506,24 @@ const UserDashboard = () => {
         throw new Error(`Failed to contact vendor: ${response.status}`);
       }
 
-      setUploadMessage(`Contact request sent to ${vendorName}!`);
-      console.log("Vendor contacted:", { quoteId, vendorName });
+      setUploadMessage(`✅ Contact request sent to ${vendorName}!`);
+      console.log("✅ Vendor contacted:", { quoteId, vendorName });
       fetchDashboardData();
     } catch (error) {
-      console.error("Contact vendor error:", error);
-      setUploadMessage(`Failed to contact vendor: ${error.message}`);
+      console.error("❌ Contact vendor error:", error);
+      setUploadMessage(`❌ Failed to contact vendor: ${error.message}`);
     }
   }, [auth?.token, fetchDashboardData]);
 
   // Navigation handlers
   const handleNewQuoteRequest = useCallback(() => {
-    navigate("/request-quote");
-    console.log("Navigating to quote request form");
+    navigate("/quote-request");
+    console.log("🎯 Navigating to quote request form");
   }, [navigate]);
 
   const handleQuotesNavigation = useCallback((status = 'all') => {
     navigate(`/quotes?status=${status}`);
-    console.log("Navigating to quotes with status:", status);
+    console.log("🎯 Navigating to quotes with status:", status);
   }, [navigate]);
 
   const handleLogout = useCallback(() => {
@@ -509,9 +532,9 @@ const UserDashboard = () => {
       logout();
       localStorage.removeItem("userName");
       navigate("/login", { replace: true });
-      console.log("User logged out successfully");
+      console.log("✅ User logged out successfully");
     } catch (error) {
-      console.error("Logout error:", error);
+      console.error("❌ Logout error:", error);
       setGlobalError("Failed to logout. Please try again.");
     }
   }, [navigate, authLogout]);
@@ -536,13 +559,13 @@ const UserDashboard = () => {
       );
 
       if (response.ok) {
-        console.log("Notification marked as read:", notificationId);
+        console.log("✅ Notification marked as read:", notificationId);
         fetchDashboardData();
       } else {
         throw new Error(`Failed to mark notification as read: ${response.status}`);
       }
     } catch (error) {
-      console.error("Mark notification error:", error);
+      console.error("❌ Mark notification error:", error);
       setGlobalError("Failed to mark notification as read. Please try again.");
     }
   }, [auth?.token, fetchDashboardData]);
@@ -573,12 +596,30 @@ const UserDashboard = () => {
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
 
-      console.log("File downloaded:", { fileId, fileName });
+      console.log("✅ File downloaded:", { fileId, fileName });
     } catch (error) {
-      console.error("Download error:", error);
-      setUploadMessage(`Failed to download file: ${error.message}`);
+      console.error("❌ Download error:", error);
+      setUploadMessage(`❌ Failed to download file: ${error.message}`);
     }
   }, [auth?.token]);
+
+  // Helper function to get status display text
+  const getStatusDisplayText = (request) => {
+    const status = request.status?.toLowerCase();
+    const quotesCount = Array.isArray(request.quotes) ? request.quotes.length : 0;
+    
+    if (status === 'pending' && (!request.aiAnalysis || !request.aiAnalysis.processed)) {
+      return 'AI matching in progress...';
+    } else if (status === 'processing') {
+      return 'Processing quotes...';
+    } else if (status === 'completed' && quotesCount === 0) {
+      return 'Waiting for vendor responses...';
+    } else if (quotesCount > 0) {
+      return `${quotesCount} quote${quotesCount > 1 ? 's' : ''} received`;
+    } else {
+      return status || 'Unknown';
+    }
+  };
 
   // Filtered quote requests
   const filteredQuoteRequests = useMemo(() => {
@@ -599,13 +640,13 @@ const UserDashboard = () => {
   // Pagination handlers
   const handleNextPage = useCallback((setPage, currentPage) => {
     setPage(currentPage + 1);
-    console.log("Next page:", currentPage + 1);
+    console.log("➡️ Next page:", currentPage + 1);
   }, []);
 
   const handlePrevPage = useCallback((setPage, currentPage) => {
     if (currentPage > 1) {
       setPage(currentPage - 1);
-      console.log("Previous page:", currentPage - 1);
+      console.log("⬅️ Previous page:", currentPage - 1);
     }
   }, []);
 
@@ -627,7 +668,7 @@ const UserDashboard = () => {
       <header className="dashboard-header">
         <div className="header-content">
           <div className="welcome-section">
-            <h1 data-testid="welcome-header">Welcome back, {userName} 👋</h1>
+            <h1 data-testid="welcome-header">Welcome back, {userName}!</h1>
             <p className="header-subtitle">
               {new Date().toLocaleDateString("en-US", {
                 weekday: "long",
@@ -688,7 +729,7 @@ const UserDashboard = () => {
         {/* Upload Status */}
         {uploadMessage && (
           <div
-            className={`upload-status ${uploadMessage.includes("successfully") ? "success" : "error"}`}
+            className={`upload-status ${uploadMessage.includes("successfully") || uploadMessage.includes("✅") ? "success" : "error"}`}
             data-testid="upload-status"
           >
             {uploadMessage}
@@ -906,30 +947,6 @@ const UserDashboard = () => {
                   <p>No recent activity</p>
                 </div>
               )}
-              {/* Pagination for Recent Activity */}
-              {recentActivity.length > 0 && (
-                <div className="pagination" data-testid="activity-pagination">
-                  <button
-                    className="page-btn"
-                    onClick={() => handlePrevPage(setActivityPage, activityPage)}
-                    disabled={activityPage === 1}
-                    aria-label="Previous activity page"
-                    data-testid="activity-prev-page"
-                  >
-                    Previous
-                  </button>
-                  <span className="page-info">Page {activityPage}</span>
-                  <button
-                    className="page-btn"
-                    onClick={() => handleNextPage(setActivityPage, activityPage)}
-                    disabled={recentActivity.length < ITEMS_PER_PAGE}
-                    aria-label="Next activity page"
-                    data-testid="activity-next-page"
-                  >
-                    Next
-                  </button>
-                </div>
-              )}
             </section>
           </div>
         )}
@@ -959,6 +976,8 @@ const UserDashboard = () => {
                 >
                   <option value="all">All Statuses</option>
                   <option value="pending">Pending</option>
+                  <option value="processing">Processing</option>
+                  <option value="completed">Completed</option>
                   <option value="matched">Matched</option>
                   <option value="accepted">Accepted</option>
                   <option value="declined">Declined</option>
@@ -969,105 +988,118 @@ const UserDashboard = () => {
             {/* Quote Cards */}
             {filteredQuoteRequests.length > 0 ? (
               <div className="quotes-grid" data-testid="quotes-grid">
-                {filteredQuoteRequests.map((request) => (
-                  <div key={request._id} className="quote-card" data-testid={`quote-card-${request._id}`}>
-                    <div className="quote-header">
-                      <h3>{request.title || request.companyName || "Untitled Request"}</h3>
-                      <span
-                        className="quote-status"
-                        style={{ backgroundColor: getStatusColor(request.status) }}
-                      >
-                        {request.status || "Unknown"}
-                      </span>
-                    </div>
-                    <div className="quote-details">
-                      <p>
-                        <strong>Industry:</strong> {request.industryType || "N/A"}
-                      </p>
-                      <p>
-                        <strong>Service:</strong> {request.serviceType || "N/A"}
-                      </p>
-                      <p>
-                        <strong>Created:</strong> {formatDate(request.createdAt)}
-                      </p>
-                      <p>
-                        <strong>Quotes:</strong> {request.quotes?.length || 0}
-                      </p>
-                    </div>
-                    {request.quotes?.length > 0 && (
-                      <div className="quote-matches">
-                        <h4>Vendor Quotes</h4>
-                        {request.quotes.slice(0, 3).map((quote, index) => (
-                          <div
-                            key={index}
-                            className="match-item"
-                            data-testid={`match-item-${index}`}
-                          >
-                            <div className="match-info">
-                              <span className="vendor-name">
-                                {quote.vendorName || quote.vendor?.name || "Unknown Vendor"}
-                              </span>
-                              <span className="quote-price">
-                                {formatCurrency(quote.monthlyPayment || quote.price || 0)}
-                              </span>
-                              {quote.savings > 0 && (
-                                <span className="savings">
-                                  Save {formatCurrency(quote.savings)}
-                                </span>
-                              )}
-                              {quote.aiScore && (
-                                <span className="ai-score">
-                                  AI Score: {quote.aiScore}%
-                                </span>
-                              )}
-                            </div>
-                            {quote.explanation && (
-                              <div className="ai-explanation">
-                                <p><strong>AI Recommendation:</strong> {quote.explanation}</p>
-                              </div>
-                            )}
-                            <div className="match-actions">
-                              <button
-                                className="action-btn view"
-                                onClick={() => navigate(`/quote-details?Id=${request._id}`)}
-                                aria-label={`View details for ${quote.vendorName}`}
-                                data-testid={`view-quote-${index}`}
-                              >
-                                <FaEye />
-                                View
-                              </button>
-                              <button
-                                className="action-btn contact"
-                                onClick={() => handleContactVendor(quote._id, quote.vendorName)}
-                                aria-label={`Contact ${quote.vendorName}`}
-                                data-testid={`contact-vendor-${index}`}
-                              >
-                                <FaPhone />
-                                Contact
-                              </button>
-                              {request.status?.toLowerCase() === "matched" && (
-                                <button
-                                  className="action-btn accept"
-                                  onClick={() => handleAcceptQuote(quote._id, quote.vendorName)}
-                                  aria-label={`Accept quote from ${quote.vendorName}`}
-                                  data-testid={`accept-quote-${index}`}
-                                >
-                                  <FaCheckCircle />
-                                  Accept
-                                </button>
-                              )}
-                            </div>
-                          </div>
-                        ))}
-                        {request.quotes.length > 3 && (
-                          <p className="more-quotes">
-                            +{request.quotes.length - 3} more quotes available
-                          </p>
-                        )}
+                {filteredQuoteRequests.map((request) => {
+                  const quotesCount = Array.isArray(request.quotes) ? request.quotes.length : 0;
+                  const statusText = getStatusDisplayText(request);
+                  
+                  return (
+                    <div key={request._id} className="quote-card" data-testid={`quote-card-${request._id}`}>
+                      <div className="quote-header">
+                        <h3>{request.companyName || "Untitled Request"}</h3>
+                        <span
+                          className="quote-status"
+                          style={{ backgroundColor: getStatusColor(request.status) }}
+                        >
+                          {statusText}
+                        </span>
                       </div>
-                    )}
-                  </div>
-                ))}
+                      <div className="quote-details">
+                        <p><strong>Industry:</strong> {request.industryType || "N/A"}</p>
+                        <p><strong>Service:</strong> {request.serviceType || "Photocopiers"}</p>
+                        <p><strong>Volume:</strong> {request.monthlyVolume?.total || 0} pages/month</p>
+                        <p><strong>Budget:</strong> {formatCurrency(request.budget?.maxLeasePrice || 0)}/month</p>
+                        <p><strong>Created:</strong> {formatDate(request.createdAt)}</p>
+                        <p><strong>Quotes:</strong> {quotesCount}</p>
+                      </div>
+                      
+                      {quotesCount > 0 && (
+                        <div className="quote-matches">
+                          <h4>Available Quotes ({quotesCount})</h4>
+                          {request.quotes.slice(0, 3).map((quote, index) => (
+                            <div
+                              key={quote._id || index}
+                              className="match-item"
+                              data-testid={`match-item-${index}`}
+                            >
+                              <div className="match-info">
+                                <span className="vendor-name">
+                                  {quote.vendor?.name || quote.vendorName || "Unknown Vendor"}
+                                </span>
+                                <span className="quote-price">
+                                  {formatCurrency(quote.pricing?.monthlyCost || quote.monthlyPayment || 0)}/month
+                                </span>
+                                {quote.pricing?.annualSavings > 0 && (
+                                  <span className="savings">
+                                    Save {formatCurrency(quote.pricing.annualSavings)}/year
+                                  </span>
+                                )}
+                                {quote.confidence && (
+                                  <span className={`confidence ${quote.confidence.toLowerCase()}`}>
+                                    {quote.confidence} Confidence
+                                  </span>
+                                )}
+                              </div>
+                              {quote.recommendation?.explanation && (
+                                <div className="ai-explanation">
+                                  <p><strong>AI Recommendation:</strong> {quote.recommendation.explanation}</p>
+                                </div>
+                              )}
+                              <div className="match-actions">
+                                <button
+                                  className="action-btn view"
+                                  onClick={() => navigate(`/quote-details/${request._id}`)}
+                                  aria-label={`View details for quote ${index + 1}`}
+                                  data-testid={`view-quote-${index}`}
+                                >
+                                  <FaEye />
+                                  View Details
+                                </button>
+                                <button
+                                  className="action-btn contact"
+                                  onClick={() => handleContactVendor(quote._id, quote.vendor?.name || "Unknown")}
+                                  aria-label={`Contact vendor`}
+                                  data-testid={`contact-vendor-${index}`}
+                                >
+                                  <FaPhone />
+                                  Contact
+                                </button>
+                                {quote.status === "pending_vendor_approval" && (
+                                  <button
+                                    className="action-btn accept"
+                                    onClick={() => handleAcceptQuote(quote._id, quote.vendor?.name || "Unknown")}
+                                    aria-label={`Accept this quote`}
+                                    data-testid={`accept-quote-${index}`}
+                                  >
+                                    <FaCheckCircle />
+                                    Accept
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                          {quotesCount > 3 && (
+                            <p className="more-quotes">
+                              +{quotesCount - 3} more quotes available - 
+                              <button 
+                                className="view-all-link"
+                                onClick={() => navigate(`/quote-details/${request._id}`)}
+                              >
+                                View All
+                              </button>
+                            </p>
+                          )}
+                        </div>
+                      )}
+                      
+                      {quotesCount === 0 && request.status === 'pending' && (
+                        <div className="processing-info">
+                          <FaSpinner className="fa-spin" />
+                          <p>AI is analyzing your requirements and finding suitable vendors...</p>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             ) : (
               <div className="empty-state" data-testid="quotes-empty">
@@ -1080,31 +1112,6 @@ const UserDashboard = () => {
                 >
                   <FaPlus />
                   Create Your First Quote Request
-                </button>
-              </div>
-            )}
-
-            {/* Pagination */}
-            {filteredQuoteRequests.length > 0 && (
-              <div className="pagination" data-testid="quotes-pagination">
-                <button
-                  className="page-btn"
-                  onClick={() => handlePrevPage(setRequestPage, requestPage)}
-                  disabled={requestPage === 1}
-                  aria-label="Previous page"
-                  data-testid="quotes-prev-page"
-                >
-                  Previous
-                </button>
-                <span className="page-info">Page {requestPage}</span>
-                <button
-                  className="page-btn"
-                  onClick={() => handleNextPage(setRequestPage, requestPage)}
-                  disabled={filteredQuoteRequests.length < ITEMS_PER_PAGE}
-                  aria-label="Next page"
-                  data-testid="quotes-next-page"
-                >
-                  Next
                 </button>
               </div>
             )}
@@ -1172,31 +1179,6 @@ const UserDashboard = () => {
                     style={{ display: "none" }}
                   />
                 </label>
-              </div>
-            )}
-
-            {/* Pagination */}
-            {uploadedFiles.length > 0 && (
-              <div className="pagination" data-testid="files-pagination">
-                <button
-                  className="page-btn"
-                  onClick={() => handlePrevPage(setFilePage, filePage)}
-                  disabled={filePage === 1}
-                  aria-label="Previous page"
-                  data-testid="files-prev-page"
-                >
-                  Previous
-                </button>
-                <span className="page-info">Page {filePage}</span>
-                <button
-                  className="page-btn"
-                  onClick={() => handleNextPage(setFilePage, filePage)}
-                  disabled={uploadedFiles.length < ITEMS_PER_PAGE}
-                  aria-label="Next page"
-                  data-testid="files-next-page"
-                >
-                  Next
-                </button>
               </div>
             )}
           </div>

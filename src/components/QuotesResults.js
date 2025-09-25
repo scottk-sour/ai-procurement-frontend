@@ -1,41 +1,13 @@
-// src/components/QuoteResults.js
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import '../styles/QuotesResults.css'; // ✅ Corrected path for Vercel/Linux
+import '../styles/QuotesResults.css';
 
-// Utility function to format currency
-const formatCurrency = (amount) => {
-  if (typeof amount !== "number" || isNaN(amount)) return "£0.00";
-  return new Intl.NumberFormat("en-GB", {
-    style: "currency",
-    currency: "GBP",
-  }).format(amount);
-};
+// Hard-coded production URL to match your backend logs
+const PRODUCTION_API_URL = 'https://ai-procurement-backend-q35u.onrender.com';
 
-// Debounce function
-const debounce = (func, wait) => {
-  let timeout;
-  return function executedFunction(...args) {
-    const later = () => {
-      clearTimeout(timeout);
-      func(...args);
-    };
-    clearTimeout(timeout);
-    timeout = setTimeout(later, wait);
-  };
-};
-
-// Validate quote actions
-const validateQuoteAction = (quote, action) => {
-  if (!quote || !quote._id) {
-    return { isValid: false, message: 'Invalid quote data' };
-  }
-  if (!['generated', 'pending'].includes(quote.status)) {
-    return { isValid: false, message: 'Quote is no longer actionable' };
-  }
-  return { isValid: true, message: '' };
-};
+// Constants
+const QUOTES_PER_PAGE = 12;
 
 // Loading spinner component
 const LoadingSpinner = ({ message = "Loading..." }) => (
@@ -83,32 +55,28 @@ const EmptyState = ({ title, description, actionLabel, onAction }) => (
   </div>
 );
 
-// Constants
-const QUOTES_PER_PAGE = 12;
-
 const QuoteResults = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { user, token, isAuthenticated } = useAuth();
+  const { auth } = useAuth(); // Fixed: Use auth object
+  const isAuthenticated = auth?.isAuthenticated;
+  const user = auth?.user;
+  const token = auth?.token;
 
-  const [quotes, setQuotes] = useState([]);
+  const [quoteRequests, setQuoteRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [actionLoading, setActionLoading] = useState({});
+  const [lastFetchTime, setLastFetchTime] = useState(Date.now()); // Track last fetch
   const [filters, setFilters] = useState({
     status: searchParams.get('status') || 'all',
     search: searchParams.get('search') || '',
   });
-  const [pagination, setPagination] = useState({
-    currentPage: 1,
-    totalPages: 1,
-    totalItems: 0,
-  });
 
-  const showToast = useCallback((message, type = 'info') => {
-    console.log(`${type.toUpperCase()}: ${message}`);
-    alert(`${message}`);
-  }, []);
+  console.log('🔍 QuotesResults fetching with:', { 
+    userId: user?.userId || user?.id, 
+    status: filters.status, 
+    individualQuote: undefined 
+  });
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -117,21 +85,27 @@ const QuoteResults = () => {
     }
   }, [isAuthenticated, navigate]);
 
-  // Fetch quotes
-  const fetchQuotes = useCallback(async () => {
-    if (!user?.id || !token) return;
+  // Fetch quotes (now fetches quote requests)
+  const fetchQuotes = useCallback(async (silent = false) => {
+    // Use the correct user ID field from your logs
+    const userId = user?.userId || user?.id;
+    if (!userId || !token) return;
 
     try {
-      setLoading(true);
+      if (!silent) {
+        setLoading(true);
+      }
       setError(null);
 
       const queryParams = new URLSearchParams({
-        userId: user.id,
-        page: pagination.currentPage.toString(),
-        limit: QUOTES_PER_PAGE.toString(),
+        userId: userId,
+        submittedBy: userId, // Add this based on your backend logs
+        page: 1,
+        limit: 50
       });
 
-      const response = await fetch(`/api/quotes/requests?${queryParams}`, {
+      // Use the full production URL to match your backend
+      const response = await fetch(`${PRODUCTION_API_URL}/api/quotes/requests?${queryParams}`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -144,135 +118,116 @@ const QuoteResults = () => {
           navigate('/login');
           return;
         }
-        throw new Error(`Failed to fetch quotes: ${response.status}`);
+        throw new Error(`Failed to fetch quote requests: ${response.status}`);
       }
 
       const data = await response.json();
-
-      const quotesData = [];
-      const quoteRequests = data.quoteRequests || [];
-
-      quoteRequests.forEach(request => {
-        if (request.quotes && Array.isArray(request.quotes)) {
-          request.quotes.forEach(quote => {
-            if (quote && quote._id) {
-              quotesData.push({
-                ...quote,
-                quoteRequestId: request._id,
-                companyName: request.companyName,
-                isActionable: ['generated', 'pending'].includes(quote.status)
-              });
-            }
-          });
-        }
-      });
-
-      setQuotes(quotesData);
-      setPagination(prev => ({
-        ...prev,
-        totalItems: quotesData.length,
-        totalPages: Math.ceil(quotesData.length / QUOTES_PER_PAGE)
-      }));
-
+      console.log('📄 API Response:', data);
+      
+      setQuoteRequests(data.quoteRequests || []);
+      setLastFetchTime(Date.now());
+      
+      // Extract quotes for debugging (this will show the issue you reported)
+      const extractedQuotes = (data.quoteRequests || []).flatMap(req => req.quotes || []);
+      console.log('📋 Extracted quotes:', extractedQuotes);
+      
     } catch (err) {
-      console.error('Error fetching quotes:', err);
+      console.error('Error fetching quote requests:', err);
       setError(err.message);
     } finally {
-      setLoading(false);
-    }
-  }, [user?.id, token, pagination.currentPage, navigate]);
-
-  // Filter quotes
-  const filteredQuotes = useMemo(() => {
-    let filtered = [...quotes];
-
-    if (filters.status && filters.status !== 'all') {
-      filtered = filtered.filter(quote => quote.status === filters.status);
-    }
-
-    if (filters.search) {
-      const searchLower = filters.search.toLowerCase();
-      filtered = filtered.filter(quote =>
-        (quote.vendor?.name?.toLowerCase() || '').includes(searchLower) ||
-        (quote.productSummary?.manufacturer?.toLowerCase() || '').includes(searchLower)
-      );
-    }
-
-    return filtered;
-  }, [quotes, filters]);
-
-  // Execute quote actions
-  const executeQuoteAction = useCallback(async (quote, action, payload = {}) => {
-    const actionKey = quote._id;
-    setActionLoading(prev => ({ ...prev, [actionKey]: action }));
-
-    try {
-      const response = await fetch(`/api/quotes/${action}`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          quoteId: quote._id,
-          vendorName: quote.vendor?.name || 'Vendor',
-          ...payload
-        })
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || `Failed to ${action} quote`);
+      if (!silent) {
+        setLoading(false);
       }
-
-      showToast(`Quote ${action}ed successfully!`, 'success');
-      fetchQuotes();
-
-    } catch (err) {
-      console.error(`Error ${action} quote:`, err);
-      showToast(`Failed to ${action} quote: ${err.message}`, 'error');
-    } finally {
-      setActionLoading(prev => ({ ...prev, [actionKey]: null }));
     }
-  }, [token, showToast, fetchQuotes]);
+  }, [user?.userId, user?.id, token, navigate]);
 
-  const handleQuickAccept = useCallback(async (quote) => {
-    const validation = validateQuoteAction(quote, 'accept');
-    if (!validation.isValid) {
-      showToast(validation.message, 'error');
-      return;
+  // Implement polling with better logic
+  useEffect(() => {
+    // Check if any requests are still being processed
+    const hasProcessingRequests = quoteRequests.some(req => 
+      req.status === 'pending' || 
+      (req.aiAnalysis && !req.aiAnalysis.processed) ||
+      req.status === 'processing'
+    );
+
+    let interval;
+    if (hasProcessingRequests && quoteRequests.length > 0) {
+      console.log('📊 Setting up polling for processing requests...');
+      interval = setInterval(() => {
+        console.log("🔄 Polling for quote updates...");
+        fetchQuotes(true); // Silent fetch
+      }, 30000); // Poll every 30 seconds
     }
+    
+    return () => {
+      if (interval) {
+        clearInterval(interval);
+        console.log('🛑 Cleared polling interval');
+      }
+    };
+  }, [lastFetchTime]); // Only depend on lastFetchTime to avoid infinite re-renders
 
-    if (window.confirm(`Accept quote from ${quote.vendor?.name || 'this vendor'}?`)) {
-      await executeQuoteAction(quote, 'accept');
-    }
-  }, [executeQuoteAction, showToast]);
-
-  const handleQuickDecline = useCallback(async (quote) => {
-    const validation = validateQuoteAction(quote, 'decline');
-    if (!validation.isValid) {
-      showToast(validation.message, 'error');
-      return;
-    }
-
-    if (window.confirm(`Decline quote from ${quote.vendor?.name || 'this vendor'}?`)) {
-      await executeQuoteAction(quote, 'decline');
-    }
-  }, [executeQuoteAction, showToast]);
-
+  // Initial fetch on component mount
   useEffect(() => {
     fetchQuotes();
   }, [fetchQuotes]);
 
-  if (loading && quotes.length === 0) {
+  // Filter quote requests based on search and status
+  const filteredQuoteRequests = useMemo(() => {
+    let filtered = [...quoteRequests];
+
+    if (filters.status && filters.status !== 'all') {
+      filtered = filtered.filter(req => req.status === filters.status);
+    }
+
+    if (filters.search) {
+      const searchLower = filters.search.toLowerCase();
+      filtered = filtered.filter(req =>
+        (req.companyName?.toLowerCase() || '').includes(searchLower)
+      );
+    }
+    return filtered;
+  }, [quoteRequests, filters]);
+
+  // Get processing status message
+  const getStatusMessage = (request) => {
+    const quotesCount = request.quotes?.length || 0;
+    
+    if (request.status === 'processing' || (request.aiAnalysis && !request.aiAnalysis.processed)) {
+      return 'AI matching in progress...';
+    } else if (quotesCount === 0 && request.status === 'pending') {
+      return 'Waiting for vendor responses...';
+    } else if (quotesCount > 0) {
+      return `${quotesCount} quote${quotesCount > 1 ? 's' : ''} received`;
+    } else {
+      return 'Processing...';
+    }
+  };
+
+  // Format date helper
+  const formatDate = (dateString) => {
+    if (!dateString) return 'Unknown';
+    try {
+      return new Date(dateString).toLocaleDateString('en-UK', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric'
+      });
+    } catch {
+      return 'Unknown';
+    }
+  };
+
+  // --- Render Logic ---
+  if (loading) {
     return (
       <div className="quote-results-container">
-        <LoadingSpinner message="Loading your quotes..." />
+        <LoadingSpinner message="Loading your quote requests..." />
       </div>
     );
   }
 
-  if (error && quotes.length === 0) {
+  if (error) {
     return (
       <div className="quote-results-container">
         <div className="error-state">
@@ -291,8 +246,8 @@ const QuoteResults = () => {
       {/* Header */}
       <div className="results-header">
         <div className="header-content">
-          <h1>Your Quotes</h1>
-          <p>Review and manage your quotes</p>
+          <h1>Your Quote Requests</h1>
+          <p>Review and manage the status of your requests ({quoteRequests.length} total)</p>
         </div>
         <div className="header-actions">
           <button onClick={() => navigate('/quote-request')} className="btn-primary">
@@ -310,98 +265,112 @@ const QuoteResults = () => {
             style={{ padding: '0.5rem', borderRadius: '4px', border: '1px solid #ddd' }}
           >
             <option value="all">All Statuses</option>
-            <option value="generated">Generated</option>
             <option value="pending">Pending</option>
-            <option value="accepted">Accepted</option>
-            <option value="rejected">Rejected</option>
+            <option value="processing">Processing</option>
+            <option value="completed">Completed</option>
+            <option value="cancelled">Cancelled</option>
           </select>
 
           <input
             type="text"
-            placeholder="Search quotes..."
+            placeholder="Search by company name..."
             value={filters.search}
             onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
             style={{ padding: '0.5rem', borderRadius: '4px', border: '1px solid #ddd', flex: 1 }}
           />
+
+          <button
+            onClick={() => fetchQuotes()}
+            style={{
+              padding: '0.5rem 1rem',
+              borderRadius: '4px',
+              border: '1px solid #ddd',
+              background: 'white',
+              cursor: 'pointer'
+            }}
+          >
+            🔄 Refresh
+          </button>
         </div>
       </div>
 
-      {/* Quote cards or empty state */}
-      {filteredQuotes.length === 0 ? (
+      {/* Quote request cards or empty state */}
+      {filteredQuoteRequests.length === 0 ? (
         <EmptyState
-          title="No quotes found"
-          description="You don't have any quotes yet or none match your filters."
+          title="No requests found"
+          description="You don't have any requests yet or none match your filters."
           actionLabel="Request Your First Quotes"
           onAction={() => navigate('/quote-request')}
         />
       ) : (
         <div className="quotes-grid">
-          {filteredQuotes.map(quote => (
-            <div key={quote._id} className="quote-card">
-              <div className="quote-card-header">
-                <div className="vendor-info">
-                  <h3 className="vendor-name">{quote.vendor?.name || 'Unknown Vendor'}</h3>
-                  <div className="quote-meta">
-                    <span className={`status-badge status-${quote.status}`}>{quote.status || 'Unknown'}</span>
+          {filteredQuoteRequests.map(request => {
+            const statusMessage = getStatusMessage(request);
+            const quotesCount = request.quotes?.length || 0;
+
+            return (
+              <div key={request._id} className="quote-card">
+                <div className="quote-card-header">
+                  <div className="vendor-info">
+                    <h3 className="vendor-name">{request.companyName || 'Unknown Company'}</h3>
+                    <div className="quote-meta">
+                      <span className={`status-badge status-${request.status}`}>
+                        {request.status || 'Unknown'}
+                      </span>
+                      <span className="date-submitted">
+                        {formatDate(request.createdAt)}
+                      </span>
+                    </div>
                   </div>
                 </div>
-                {quote.aiScore && (
-                  <div className="quote-score">
-                    <span className="score-value">{quote.aiScore}%</span>
-                    <span className="score-label">AI Score</span>
-                  </div>
-                )}
-              </div>
 
-              {quote.productSummary && (
                 <div className="product-summary">
-                  <h4 className="product-name">{quote.productSummary.manufacturer} {quote.productSummary.model}</h4>
-                </div>
-              )}
-
-              {quote.costs && (
-                <div className="cost-summary">
-                  <div className="monthly-cost">
-                    <span className="cost-amount">{formatCurrency(quote.costs.monthlyCosts?.totalMonthlyCost || 0)}</span>
-                    <span className="cost-period">/month</span>
+                  <h4 className="product-name">
+                    {request.serviceType || 'Photocopiers'} Request
+                  </h4>
+                  <div className="request-details">
+                    <p className="monthly-cost">
+                      <strong>Budget: £{request.budget?.maxLeasePrice || '0'}/month</strong>
+                    </p>
+                    <p className="volume-info">
+                      Monthly Volume: {request.monthlyVolume?.total || 0} pages
+                    </p>
+                    {request.monthlyVolume && (
+                      <p className="volume-breakdown">
+                        ({request.monthlyVolume.mono || 0} mono, {request.monthlyVolume.colour || 0} colour)
+                      </p>
+                    )}
                   </div>
                 </div>
-              )}
 
-              <div className="quote-actions">
-                {quote.isActionable ? (
+                <div className="quote-actions">
+                  <div className="status-info">
+                    <span className={`status-text ${quotesCount > 0 ? 'has-quotes' : 'processing'}`}>
+                      {statusMessage}
+                    </span>
+                  </div>
+                  
                   <div className="action-buttons">
+                    {quotesCount > 0 && (
+                      <button
+                        onClick={() => navigate(`/quote-details/${request._id}`)}
+                        className="btn-contact-small"
+                      >
+                        View {quotesCount} Quote{quotesCount > 1 ? 's' : ''}
+                      </button>
+                    )}
+                    
                     <button
-                      onClick={() => handleQuickAccept(quote)}
-                      disabled={actionLoading[quote._id] === 'accept'}
-                      className="btn-accept-small"
-                    >
-                      {actionLoading[quote._id] === 'accept' ? 'Accepting...' : 'Accept'}
-                    </button>
-                    <button
-                      onClick={() => handleQuickDecline(quote)}
-                      disabled={actionLoading[quote._id] === 'decline'}
-                      className="btn-decline-small"
-                    >
-                      {actionLoading[quote._id] === 'decline' ? 'Declining...' : 'Decline'}
-                    </button>
-                    <button
-                      onClick={() => navigate(`/quote-details/${quote._id}`)}
-                      className="btn-contact-small"
+                      onClick={() => navigate(`/quote-request/${request._id}`)}
+                      className="btn-secondary-small"
                     >
                       View Details
                     </button>
                   </div>
-                ) : (
-                  <div className="status-info">
-                    <span className="status-text">
-                      Quote {quote.status === 'accepted' ? 'Accepted' : 'Declined'}
-                    </span>
-                  </div>
-                )}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

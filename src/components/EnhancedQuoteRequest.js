@@ -1,428 +1,4 @@
-</motion.div>
-  );
-
-  const renderStep6 = () => (
-    <motion.div
-      initial={{ opacity: 0, x: 20 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: -20 }}
-      className="form-section"
-    >
-      <h2>Step 6: New Equipment Requirements</h2>
-      {suggestedMachines.length > 0 && (
-        <div className="mb-lg">
-          <h3>⚡ AI Suggested Copiers</h3>
-          <ul>
-            {suggestedMachines.slice(0, 3).map((machine, index) => (
-              <li key={index}>
-                <strong>{machine.brand} {machine.model}</strong>: {machine.reason}
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-      <div className="form-grid">
-        <div className="form-group">
-          <label htmlFor="serviceType">Service Type <span className="required">*</span></label>
-          <select
-            id="serviceType"
-            name="serviceType"
-            value={formData.serviceType}
-            onChange={handleChange}
-            required
-            className={errorMessages.serviceType ? 'error' : ''}
-          >
-            <option value="">Select service type</option>
-            <option value="Photocopiers">Photocopiers</option>
-            <option value="Printers">Printers</option>
-            <option value="Multifunction Devices">Multifunction Devices</option>
-          </select>
-          {errorMessages.serviceType && <span className="error-text">{errorMessages.serviceType}</span>}
-        </div>
-        <div className="form-group">
-          <label htmlFor="colour">Colour Preference <span className="required">*</span></label>
-          <select
-            id="colour"
-            name="colour"
-            value={formData.colour}
-            onChange={handleChange}
-            required
-            className={errorMessages.colour ? 'error' : ''}
-          >
-            <option value="">Select colour preference</option>
-            <option value="Full Colour">Full Colour</option>
-            <option value="Black & White">Black & White</option>
-          </select>
-          {errorMessages.colour && <span className="error-text">{errorMessages.colour}</span>}
-        </div>
-      </div>
-      <div className="form-grid">
-        <div className="form-group">
-          <label htmlFor="type">Maximum Paper Size <span className="required">*</span></label>
-          <select
-            id="type"
-            name="type"
-            value={formData.type}
-            onChange={handleChange}
-            required
-            className={errorMessages.type ? 'error' : ''}
-          >
-            <option value="">Select paper size</option>
-            <option value="A4">A4</option>
-            <option value="A3">A3</option>
-            <option value="A2">A2</option>
-            <option value="SRA3">SRA3</option>
-          </select>
-          {errorMessages.type && <span className="error-text">{errorMessages.type}</span>}
-        </div>
-        <div className="form-group">
-          <label htmlFor="min_speed">Minimum Speed (PPM) <span className="required">*</span></label>
-          <input
-            type="number"
-            id="min_speed"
-            name="min_speed"
-            value={formData.min_speed}
-            onChange={handleChange}
-            required
-            min="1"
-            placeholder="e.g., 30"
-            className={errorMessages.min_speed ? 'error' : ''}
-          />
-          {errorMessages.min_speed && <span className="error-text">{errorMessages.min_speed}</span>}
-        </div>
-      </div>
-      <div className="form-group">
-        <label>Required Functions & Features</label>
-        <fieldset className="checkbox-group">
-          <legend className="sr-only">Required Functions & Features</legend>
-          <label><input type="checkbox" name="required_functions" value="Mobile Printing" checked={formData.required_functions.includes('Mobile Printing')} onChange={handleChange} /> Mobile Printing</label>
-          <label><input type="checkbox" name="required_functions" value="Cloud Integration" checked={formData.required_functions.includes('Cloud Integration')} onChange={handleChange} /> Cloud Integration</label>
-          <label><input type="checkbox" name="required_functions" value="Advanced Security" checked={formData.required_functions.includes('Advanced Security')} onChange={handleChange} /> Advanced Security</label>
-          <label><input type="checkbox" name="required_functions" value="Large Paper Trays" checked={formData.required_functions.includes('Large Paper Trays')} onChange={handleChange} /> Large Paper Trays</label>
-          <label><input type="checkbox" name="required_functions" value="High Capacity Toner" checked={formData.required_functions.includes('High Capacity Toner')} onChange={handleChange} /> High Capacity Toner</label>
-          <label><input type="checkbox" name="required_functions" value="Scanning" checked={formData.required_functions.includes('Scanning')} onChange={handleChange} /> Scanning</label>
-          <label><input type="checkbox" name="required_functions" value="Fax" checked={formData.required_functions.includes('Fax')} onChange={handleChange} /> Fax</label>
-          <label><input type="checkbox" name="required_functions" value="Copying" checked={formData.required_functions.includes('Copying')} onChange={handleChange} /> Copying</label>
-        </fieldset>
-      </div>
-    </motion.div>
-  );
-
-  const renderStep7 = () => (
-    <motion.div
-      initial={{ opacity: 0, x: 20 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: -20 }}
-      className="form-section"
-    >
-      <h2>Step 7: Service & Maintenance</h2>
-      <div className="form-grid">
-        <div className="form-group">
-          <label htmlFor="responseTimeExpectation">Response Time Expectation <span className="required">*</span></label>
-          <select
-            id="responseTimeExpectation"
-            name="responseTimeExpectation"
-            value={formData.responseTimeExpectation}
-            onChange={handleChange}
-            required
-            className={errorMessages.responseTimeExpectation ? 'error' : ''}
-          >
-            <option value="">Select expectation</option>
-            <option value="4 hours">4 hours</option>
-            <option value="8 hours">8 hours</option>
-            <option value="24 hours">24 hours</option>
-            <option value="48 hours">48 hours</option>
-            <option value="72 hours">72 hours</option>
-          </select>
-          {errorMessages.responseTimeExpectation && <span className="error-text">{errorMessages.responseTimeExpectation}</span>}
-        </div>
-        <div className="form-group">
-          <label htmlFor="maintenancePreference">Maintenance Preference <span className="required">*</span></label>
-          <select
-            id="maintenancePreference"
-            name="maintenancePreference"
-            value={formData.maintenancePreference}
-            onChange={handleChange}
-            required
-            className={errorMessages.maintenancePreference ? 'error' : ''}
-          >
-            <option value="">Select preference</option>
-            <option value="Scheduled Maintenance">Scheduled Maintenance</option>
-            <option value="On-demand Service">On-demand Service</option>
-            <option value="Managed Print Service (MPS)">Managed Print Service (MPS)</option>
-          </select>
-          {errorMessages.maintenancePreference && <span className="error-text">{errorMessages.maintenancePreference}</span>}
-        </div>
-      </div>
-      <div className="form-group">
-        <label htmlFor="supplyManagement">Supply Management Preference</label>
-        <textarea
-          id="supplyManagement"
-          name="supplyManagement"
-          value={formData.supplyManagement}
-          onChange={handleChange}
-          rows="2"
-          placeholder="e.g., 'Automated toner ordering', 'Manual inventory management'."
-        />
-      </div>
-      <div className="form-group">
-        <label htmlFor="trainingNeeds">Training Requirements</label>
-        <textarea
-          id="trainingNeeds"
-          name="trainingNeeds"
-          value={formData.trainingNeeds}
-          onChange={handleChange}
-          rows="2"
-          placeholder="e.g., 'Basic user training', 'Administrator training', 'No training needed'."
-        />
-      </div>
-    </motion.div>
-  );
-
-  const renderStep8 = () => (
-    <motion.div
-      initial={{ opacity: 0, x: 20 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: -20 }}
-      className="form-section"
-    >
-      <h2>Step 8: Budget & Decision Making</h2>
-      <div className="form-group">
-        <label>Decision Makers <span className="required">*</span></label>
-        {errorMessages.decisionMakers && <span className="error-text">{errorMessages.decisionMakers}</span>}
-        <fieldset className="checkbox-group">
-          <legend className="sr-only">Decision Makers</legend>
-          <label><input type="checkbox" name="decisionMakers" value="IT Manager" checked={formData.decisionMakers.includes('IT Manager')} onChange={handleChange} /> IT Manager</label>
-          <label><input type="checkbox" name="decisionMakers" value="CFO/Finance Director" checked={formData.decisionMakers.includes('CFO/Finance Director')} onChange={handleChange} /> CFO/Finance Director</label>
-          <label><input type="checkbox" name="decisionMakers" value="CEO/Owner" checked={formData.decisionMakers.includes('CEO/Owner')} onChange={handleChange} /> CEO/Owner</label>
-          <label><input type="checkbox" name="decisionMakers" value="Procurement Manager" checked={formData.decisionMakers.includes('Procurement Manager')} onChange={handleChange} /> Procurement Manager</label>
-          <label><input type="checkbox" name="decisionMakers" value="Office Manager" checked={formData.decisionMakers.includes('Office Manager')} onChange={handleChange} /> Office Manager</label>
-        </fieldset>
-      </div>
-      <div className="form-grid">
-        <div className="form-group">
-          <label htmlFor="preference">What is most important to you? <span className="required">*</span></label>
-          <select
-            id="preference"
-            name="preference"
-            value={formData.preference}
-            onChange={handleChange}
-            required
-            className={errorMessages.preference ? 'error' : ''}
-          >
-            <option value="">Select priority</option>
-            <option value="cost">Cost</option>
-            <option value="quality">Quality</option>
-            <option value="speed">Speed</option>
-            <option value="reliability">Reliability</option>
-            <option value="balanced">Balanced</option>
-          </select>
-          {errorMessages.preference && <span className="error-text">{errorMessages.preference}</span>}
-        </div>
-        <div className="form-group">
-          <label htmlFor="max_lease_price">Maximum Monthly Investment (£) <span className="required">*</span></label>
-          <input
-            type="number"
-            id="max_lease_price"
-            name="max_lease_price"
-            value={formData.max_lease_price}
-            onChange={handleChange}
-            required
-            min="1"
-            placeholder="e.g., 200"
-            className={errorMessages.max_lease_price ? 'error' : ''}
-          />
-          {errorMessages.max_lease_price && <span className="error-text">{errorMessages.max_lease_price}</span>}
-        </div>
-      </div>
-      <div className="form-grid">
-        <div className="form-group">
-          <label htmlFor="contractLengthPreference">Contract Length Preference</label>
-          <select
-            id="contractLengthPreference"
-            name="contractLengthPreference"
-            value={formData.contractLengthPreference}
-            onChange={handleChange}
-          >
-            <option value="">Select contract length</option>
-            <option value="12 months">12 months</option>
-            <option value="24 months">24 months</option>
-            <option value="36 months">36 months</option>
-            <option value="48 months">48 months</option>
-            <option value="60 months">60 months</option>
-          </select>
-        </div>
-        <div className="form-group">
-          <label htmlFor="pricingModelPreference">Pricing Model Preference</label>
-          <select
-            id="pricingModelPreference"
-            name="pricingModelPreference"
-            value={formData.pricingModelPreference}
-            onChange={handleChange}
-          >
-            <option value="">Select pricing model</option>
-            <option value="Lease">Lease</option>
-            <option value="Cost Per Copy (CPC)">Cost Per Copy (CPC)</option>
-            <option value="Hybrid">Hybrid</option>
-          </select>
-        </div>
-      </div>
-    </motion.div>
-  );
-
-  const renderStep9 = () => (
-    <motion.div
-      initial={{ opacity: 0, x: 20 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: -20 }}
-      className="form-section"
-    >
-      <h2>Step 9: Future Planning & Strategic Vision</h2>
-      <div className="form-group">
-        <label htmlFor="expectedGrowth">Expected Business Growth <span className="required">*</span></label>
-        <select
-          id="expectedGrowth"
-          name="expectedGrowth"
-          value={formData.expectedGrowth}
-          onChange={handleChange}
-          required
-          className={errorMessages.expectedGrowth ? 'error' : ''}
-        >
-          <option value="">Select growth expectation</option>
-          <option value="Decline">Decline</option>
-          <option value="Stable">Stable</option>
-          <option value="Moderate Growth">Moderate Growth (5-15%)</option>
-          <option value="Strong Growth">Strong Growth (16-30%)</option>
-          <option value="Rapid Growth">Rapid Growth (30%+)</option>
-        </select>
-        {errorMessages.expectedGrowth && <span className="error-text">{errorMessages.expectedGrowth}</span>}
-      </div>
-      <div className="form-group">
-        <label htmlFor="threeYearVision">3-Year Vision <span className="required">*</span></label>
-        <textarea
-          id="threeYearVision"
-          name="threeYearVision"
-          value={formData.threeYearVision}
-          onChange={handleChange}
-          rows="4"
-          required
-          placeholder="Describe your 3-year vision for your business and document workflow needs."
-          className={errorMessages.threeYearVision ? 'error' : ''}
-        />
-        {errorMessages.threeYearVision && <span className="error-text">{errorMessages.threeYearVision}</span>}
-      </div>
-      <div className="form-group">
-        <label htmlFor="expansionPlans">Expansion Plans</label>
-        <textarea
-          id="expansionPlans"
-          name="expansionPlans"
-          value={formData.expansionPlans}
-          onChange={handleChange}
-          rows="2"
-          placeholder="Any plans for new offices, locations, or significant business expansion?"
-        />
-      </div>
-      <div className="form-group">
-        <label htmlFor="technologyRoadmap">Technology Roadmap</label>
-        <textarea
-          id="technologyRoadmap"
-          name="technologyRoadmap"
-          value={formData.technologyRoadmap}
-          onChange={handleChange}
-          rows="2"
-          placeholder="Any upcoming technology initiatives or digital transformation plans?"
-        />
-      </div>
-      <div className="form-group">
-        <h4>Upload Relevant Documents (Optional)</h4>
-        <div {...getRootProps({ className: 'dropzone' })}>
-          <input {...getInputProps()} />
-          <p>Drag 'n' drop some files here, or click to select files</p>
-          <p className="text-muted">(Max 5 files, 5MB each. PDF, XLSX, CSV, images)</p>
-        </div>
-        {errorMessages.fileUpload && <span className="error-text">{errorMessages.fileUpload}</span>}
-        {uploadedFiles.length > 0 && (
-          <ul className="file-list">
-            {uploadedFiles.map((file, index) => (
-              <li key={file.name} className="file-item">
-                <div className="file-info">
-                  <span className="file-name">{file.name}</span>
-                  <span className="file-size">({(file.size / 1024 / 1024).toFixed(2)} MB)</span>
-                </div>
-                <button type="button" onClick={() => removeFile(file)} className="remove-file">
-                  ×
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-    </motion.div>
-  );
-
-  return (
-    <div className="enhanced-quote-request">
-      <div className="progress-indicator">
-        <div className="progress-bar">
-          <div className="progress-fill" style={{ width: `${(step / 9) * 100}%` }}></div>
-        </div>
-        <span className="progress-text">Step {step} of 9</span>
-      </div>
-
-      <form onSubmit={handleSubmit} className="quote-form">
-        <AnimatePresence mode="wait">
-          {step === 1 && renderStep1()}
-          {step === 2 && renderStep2()}
-          {step === 3 && renderStep3()}
-          {step === 4 && renderStep4()}
-          {step === 5 && renderStep5()}
-          {step === 6 && renderStep6()}
-          {step === 7 && renderStep7()}
-          {step === 8 && renderStep8()}
-          {step === 9 && renderStep9()}
-        </AnimatePresence>
-
-        {submissionStatus === 'error' && errorMessages.general && (
-          <div className="error-message">
-            <p>{errorMessages.general}</p>
-          </div>
-        )}
-
-        {submissionStatus === 'success' && successMessage && (
-          <div className="success-message">
-            <p>{successMessage}</p>
-          </div>
-        )}
-
-        <div className="form-actions">
-          {step > 1 && (
-            <button type="button" onClick={handleBack} className="btn-secondary" disabled={isSubmitting}>
-              Back
-            </button>
-          )}
-          
-          {step < 9 ? (
-            <button type="button" onClick={handleNext} className="btn-primary" disabled={isSubmitting}>
-              Next
-            </button>
-          ) : (
-            <button 
-              type="submit" 
-              disabled={isSubmitting}
-              className="btn-submit"
-            >
-              {isSubmitting ? 'Submitting...' : 'Submit Quote Request'}
-            </button>
-          )}
-        </div>
-      </form>
-    </div>
-  );
-};
-
-export default EnhancedQuoteRequest;="required_functions" value="Duplex Printing" checked={formData.required_functions.includes('Duplex Printing')} onChange={handleChange} /> Duplex Printing</label>
-          <label><input type="checkbox" name="required_functions" value="Wireless Printing" checked={formData.required_functions.includes('Wireless Printing')} onChange={handleChange} /> Wireless Printing</label>
-          <label><input type="checkbox" nameimport React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDropzone } from 'react-dropzone';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -621,7 +197,7 @@ const mapFormDataToBackend = (formData, userProfile) => {
       essentialFeatures: mapFeatures(formData.required_functions || []),
       niceToHaveFeatures: [],
       minSpeed: parseInt(formData.min_speed) || suggestMinSpeed(totalVolume),
-      maxNoisLevel: undefined, // Fixed typo from maxNoiseLevel
+      maxNoisLevel: undefined,
       environmentalConcerns: formData.sustainabilityGoals ? true : false
     },
     budget: {
@@ -787,7 +363,7 @@ const EnhancedQuoteRequest = () => {
     paysForScanning: 'No',
     serviceType: 'Photocopiers',
     colour: '',
-    type: '', // This will hold paper size like A4, A3
+    type: '',
     min_speed: '',
     securityFeatures: [],
     accessibilityNeeds: 'No',
@@ -854,7 +430,7 @@ const EnhancedQuoteRequest = () => {
     const end = new Date(contractEndDate);
     const today = new Date();
     if (today > end) return 'Contract Ended';
-    const monthsRemaining = (end - today) / (1000 * 60 * 60 * 24 * 30.44); // Average months days
+    const monthsRemaining = (end - today) / (1000 * 60 * 60 * 24 * 30.44);
     const quarterlyCost = parseFloat(quarterlyLeaseCost) || 0;
     const buyout = (quarterlyCost / 3) * monthsRemaining;
     return buyout.toFixed(2);
@@ -888,7 +464,6 @@ const EnhancedQuoteRequest = () => {
     const { name, value, type, checked } = e.target;
     let updatedData;
 
-    // Helper for updating nested state
     const updateNestedState = (obj, keys, val) => {
       const updated = { ...obj };
       let current = updated;
@@ -931,7 +506,7 @@ const EnhancedQuoteRequest = () => {
       };
     }
     setFormData(updatedData);
-    setErrorMessages({}); // Clear errors on change
+    setErrorMessages({});
   };
 
   const { getRootProps, getInputProps } = useDropzone({
@@ -942,7 +517,7 @@ const EnhancedQuoteRequest = () => {
       'image/*': ['.png', '.jpg', '.jpeg'],
     },
     maxFiles: 5,
-    maxSize: 5 * 1024 * 1024, // 5MB limit
+    maxSize: 5 * 1024 * 1024,
     onDrop: (acceptedFiles, fileRejections) => {
       if (fileRejections.length > 0) {
         setErrorMessages(prev => ({
@@ -958,7 +533,6 @@ const EnhancedQuoteRequest = () => {
         }));
         return;
       }
-      // Check for duplicate file names
       const newFiles = acceptedFiles.filter(file => !uploadedFiles.some(existing => existing.name === file.name));
       if (newFiles.length < acceptedFiles.length) {
         setErrorMessages(prev => ({
@@ -1097,11 +671,9 @@ const EnhancedQuoteRequest = () => {
       setErrorMessages({});
       setTimeout(() => {
         console.log('🎯 Navigating to compare vendors page');
-        // CRITICAL FIX: Navigate to CompareVendors instead of broken QuotesResults
         if (data.aiMatching?.quotesCreated > 0) {
           navigate('/compare-vendors');
         } else {
-          // Fallback to quotes page if no quotes were generated
           navigate('/quotes');
         }
       }, 2000);
@@ -1625,3 +1197,426 @@ const EnhancedQuoteRequest = () => {
       )}
     </motion.div>
   );
+
+  const renderStep6 = () => (
+    <motion.div
+      initial={{ opacity: 0, x: 20 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: -20 }}
+      className="form-section"
+    >
+      <h2>Step 6: New Equipment Requirements</h2>
+      {suggestedMachines.length > 0 && (
+        <div className="mb-lg">
+          <h3>⚡ AI Suggested Copiers</h3>
+          <ul>
+            {suggestedMachines.slice(0, 3).map((machine, index) => (
+              <li key={index}>
+                <strong>{machine.brand} {machine.model}</strong>: {machine.reason}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+      <div className="form-grid">
+        <div className="form-group">
+          <label htmlFor="serviceType">Service Type <span className="required">*</span></label>
+          <select
+            id="serviceType"
+            name="serviceType"
+            value={formData.serviceType}
+            onChange={handleChange}
+            required
+            className={errorMessages.serviceType ? 'error' : ''}
+          >
+            <option value="">Select service type</option>
+            <option value="Photocopiers">Photocopiers</option>
+            <option value="Printers">Printers</option>
+            <option value="Multifunction Devices">Multifunction Devices</option>
+          </select>
+          {errorMessages.serviceType && <span className="error-text">{errorMessages.serviceType}</span>}
+        </div>
+        <div className="form-group">
+          <label htmlFor="colour">Colour Preference <span className="required">*</span></label>
+          <select
+            id="colour"
+            name="colour"
+            value={formData.colour}
+            onChange={handleChange}
+            required
+            className={errorMessages.colour ? 'error' : ''}
+          >
+            <option value="">Select colour preference</option>
+            <option value="Full Colour">Full Colour</option>
+            <option value="Black & White">Black & White</option>
+          </select>
+          {errorMessages.colour && <span className="error-text">{errorMessages.colour}</span>}
+        </div>
+      </div>
+      <div className="form-grid">
+        <div className="form-group">
+          <label htmlFor="type">Maximum Paper Size <span className="required">*</span></label>
+          <select
+            id="type"
+            name="type"
+            value={formData.type}
+            onChange={handleChange}
+            required
+            className={errorMessages.type ? 'error' : ''}
+          >
+            <option value="">Select paper size</option>
+            <option value="A4">A4</option>
+            <option value="A3">A3</option>
+            <option value="A2">A2</option>
+            <option value="SRA3">SRA3</option>
+          </select>
+          {errorMessages.type && <span className="error-text">{errorMessages.type}</span>}
+        </div>
+        <div className="form-group">
+          <label htmlFor="min_speed">Minimum Speed (PPM) <span className="required">*</span></label>
+          <input
+            type="number"
+            id="min_speed"
+            name="min_speed"
+            value={formData.min_speed}
+            onChange={handleChange}
+            required
+            min="1"
+            placeholder="e.g., 30"
+            className={errorMessages.min_speed ? 'error' : ''}
+          />
+          {errorMessages.min_speed && <span className="error-text">{errorMessages.min_speed}</span>}
+        </div>
+      </div>
+      <div className="form-group">
+        <label>Required Functions & Features</label>
+        <fieldset className="checkbox-group">
+          <legend className="sr-only">Required Functions & Features</legend>
+          <label><input type="checkbox" name="required_functions" value="Mobile Printing" checked={formData.required_functions.includes('Mobile Printing')} onChange={handleChange} /> Mobile Printing</label>
+          <label><input type="checkbox" name="required_functions" value="Cloud Integration" checked={formData.required_functions.includes('Cloud Integration')} onChange={handleChange} /> Cloud Integration</label>
+          <label><input type="checkbox" name="required_functions" value="Advanced Security" checked={formData.required_functions.includes('Advanced Security')} onChange={handleChange} /> Advanced Security</label>
+          <label><input type="checkbox" name="required_functions" value="Large Paper Trays" checked={formData.required_functions.includes('Large Paper Trays')} onChange={handleChange} /> Large Paper Trays</label>
+          <label><input type="checkbox" name="required_functions" value="High Capacity Toner" checked={formData.required_functions.includes('High Capacity Toner')} onChange={handleChange} /> High Capacity Toner</label>
+          <label><input type="checkbox" name="required_functions" value="Scanning" checked={formData.required_functions.includes('Scanning')} onChange={handleChange} /> Scanning</label>
+          <label><input type="checkbox" name="required_functions" value="Fax" checked={formData.required_functions.includes('Fax')} onChange={handleChange} /> Fax</label>
+          <label><input type="checkbox" name="required_functions" value="Copying" checked={formData.required_functions.includes('Copying')} onChange={handleChange} /> Copying</label>
+          <label><input type="checkbox" name="required_functions" value="Duplex Printing" checked={formData.required_functions.includes('Duplex Printing')} onChange={handleChange} /> Duplex Printing</label>
+          <label><input type="checkbox" name="required_functions" value="Wireless Printing" checked={formData.required_functions.includes('Wireless Printing')} onChange={handleChange} /> Wireless Printing</label>
+        </fieldset>
+      </div>
+    </motion.div>
+  );
+
+  const renderStep7 = () => (
+    <motion.div
+      initial={{ opacity: 0, x: 20 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: -20 }}
+      className="form-section"
+    >
+      <h2>Step 7: Service & Maintenance</h2>
+      <div className="form-grid">
+        <div className="form-group">
+          <label htmlFor="responseTimeExpectation">Response Time Expectation <span className="required">*</span></label>
+          <select
+            id="responseTimeExpectation"
+            name="responseTimeExpectation"
+            value={formData.responseTimeExpectation}
+            onChange={handleChange}
+            required
+            className={errorMessages.responseTimeExpectation ? 'error' : ''}
+          >
+            <option value="">Select expectation</option>
+            <option value="4 hours">4 hours</option>
+            <option value="8 hours">8 hours</option>
+            <option value="24 hours">24 hours</option>
+            <option value="48 hours">48 hours</option>
+            <option value="72 hours">72 hours</option>
+          </select>
+          {errorMessages.responseTimeExpectation && <span className="error-text">{errorMessages.responseTimeExpectation}</span>}
+        </div>
+        <div className="form-group">
+          <label htmlFor="maintenancePreference">Maintenance Preference <span className="required">*</span></label>
+          <select
+            id="maintenancePreference"
+            name="maintenancePreference"
+            value={formData.maintenancePreference}
+            onChange={handleChange}
+            required
+            className={errorMessages.maintenancePreference ? 'error' : ''}
+          >
+            <option value="">Select preference</option>
+            <option value="Scheduled Maintenance">Scheduled Maintenance</option>
+            <option value="On-demand Service">On-demand Service</option>
+            <option value="Managed Print Service (MPS)">Managed Print Service (MPS)</option>
+          </select>
+          {errorMessages.maintenancePreference && <span className="error-text">{errorMessages.maintenancePreference}</span>}
+        </div>
+      </div>
+      <div className="form-group">
+        <label htmlFor="supplyManagement">Supply Management Preference</label>
+        <textarea
+          id="supplyManagement"
+          name="supplyManagement"
+          value={formData.supplyManagement}
+          onChange={handleChange}
+          rows="2"
+          placeholder="e.g., 'Automated toner ordering', 'Manual inventory management'."
+        />
+      </div>
+      <div className="form-group">
+        <label htmlFor="trainingNeeds">Training Requirements</label>
+        <textarea
+          id="trainingNeeds"
+          name="trainingNeeds"
+          value={formData.trainingNeeds}
+          onChange={handleChange}
+          rows="2"
+          placeholder="e.g., 'Basic user training', 'Administrator training', 'No training needed'."
+        />
+      </div>
+    </motion.div>
+  );
+
+  const renderStep8 = () => (
+    <motion.div
+      initial={{ opacity: 0, x: 20 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: -20 }}
+      className="form-section"
+    >
+      <h2>Step 8: Budget & Decision Making</h2>
+      <div className="form-group">
+        <label>Decision Makers <span className="required">*</span></label>
+        {errorMessages.decisionMakers && <span className="error-text">{errorMessages.decisionMakers}</span>}
+        <fieldset className="checkbox-group">
+          <legend className="sr-only">Decision Makers</legend>
+          <label><input type="checkbox" name="decisionMakers" value="IT Manager" checked={formData.decisionMakers.includes('IT Manager')} onChange={handleChange} /> IT Manager</label>
+          <label><input type="checkbox" name="decisionMakers" value="CFO/Finance Director" checked={formData.decisionMakers.includes('CFO/Finance Director')} onChange={handleChange} /> CFO/Finance Director</label>
+          <label><input type="checkbox" name="decisionMakers" value="CEO/Owner" checked={formData.decisionMakers.includes('CEO/Owner')} onChange={handleChange} /> CEO/Owner</label>
+          <label><input type="checkbox" name="decisionMakers" value="Procurement Manager" checked={formData.decisionMakers.includes('Procurement Manager')} onChange={handleChange} /> Procurement Manager</label>
+          <label><input type="checkbox" name="decisionMakers" value="Office Manager" checked={formData.decisionMakers.includes('Office Manager')} onChange={handleChange} /> Office Manager</label>
+        </fieldset>
+      </div>
+      <div className="form-grid">
+        <div className="form-group">
+          <label htmlFor="preference">What is most important to you? <span className="required">*</span></label>
+          <select
+            id="preference"
+            name="preference"
+            value={formData.preference}
+            onChange={handleChange}
+            required
+            className={errorMessages.preference ? 'error' : ''}
+          >
+            <option value="">Select priority</option>
+            <option value="cost">Cost</option>
+            <option value="quality">Quality</option>
+            <option value="speed">Speed</option>
+            <option value="reliability">Reliability</option>
+            <option value="balanced">Balanced</option>
+          </select>
+          {errorMessages.preference && <span className="error-text">{errorMessages.preference}</span>}
+        </div>
+        <div className="form-group">
+          <label htmlFor="max_lease_price">Maximum Monthly Investment (£) <span className="required">*</span></label>
+          <input
+            type="number"
+            id="max_lease_price"
+            name="max_lease_price"
+            value={formData.max_lease_price}
+            onChange={handleChange}
+            required
+            min="1"
+            placeholder="e.g., 200"
+            className={errorMessages.max_lease_price ? 'error' : ''}
+          />
+          {errorMessages.max_lease_price && <span className="error-text">{errorMessages.max_lease_price}</span>}
+        </div>
+      </div>
+      <div className="form-grid">
+        <div className="form-group">
+          <label htmlFor="contractLengthPreference">Contract Length Preference</label>
+          <select
+            id="contractLengthPreference"
+            name="contractLengthPreference"
+            value={formData.contractLengthPreference}
+            onChange={handleChange}
+          >
+            <option value="">Select contract length</option>
+            <option value="12 months">12 months</option>
+            <option value="24 months">24 months</option>
+            <option value="36 months">36 months</option>
+            <option value="48 months">48 months</option>
+            <option value="60 months">60 months</option>
+          </select>
+        </div>
+        <div className="form-group">
+          <label htmlFor="pricingModelPreference">Pricing Model Preference</label>
+          <select
+            id="pricingModelPreference"
+            name="pricingModelPreference"
+            value={formData.pricingModelPreference}
+            onChange={handleChange}
+          >
+            <option value="">Select pricing model</option>
+            <option value="Lease">Lease</option>
+            <option value="Cost Per Copy (CPC)">Cost Per Copy (CPC)</option>
+            <option value="Hybrid">Hybrid</option>
+          </select>
+        </div>
+      </div>
+    </motion.div>
+  );
+
+  const renderStep9 = () => (
+    <motion.div
+      initial={{ opacity: 0, x: 20 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: -20 }}
+      className="form-section"
+    >
+      <h2>Step 9: Future Planning & Strategic Vision</h2>
+      <div className="form-group">
+        <label htmlFor="expectedGrowth">Expected Business Growth <span className="required">*</span></label>
+        <select
+          id="expectedGrowth"
+          name="expectedGrowth"
+          value={formData.expectedGrowth}
+          onChange={handleChange}
+          required
+          className={errorMessages.expectedGrowth ? 'error' : ''}
+        >
+          <option value="">Select growth expectation</option>
+          <option value="Decline">Decline</option>
+          <option value="Stable">Stable</option>
+          <option value="Moderate Growth">Moderate Growth (5-15%)</option>
+          <option value="Strong Growth">Strong Growth (16-30%)</option>
+          <option value="Rapid Growth">Rapid Growth (30%+)</option>
+        </select>
+        {errorMessages.expectedGrowth && <span className="error-text">{errorMessages.expectedGrowth}</span>}
+      </div>
+      <div className="form-group">
+        <label htmlFor="threeYearVision">3-Year Vision <span className="required">*</span></label>
+        <textarea
+          id="threeYearVision"
+          name="threeYearVision"
+          value={formData.threeYearVision}
+          onChange={handleChange}
+          rows="4"
+          required
+          placeholder="Describe your 3-year vision for your business and document workflow needs."
+          className={errorMessages.threeYearVision ? 'error' : ''}
+        />
+        {errorMessages.threeYearVision && <span className="error-text">{errorMessages.threeYearVision}</span>}
+      </div>
+      <div className="form-group">
+        <label htmlFor="expansionPlans">Expansion Plans</label>
+        <textarea
+          id="expansionPlans"
+          name="expansionPlans"
+          value={formData.expansionPlans}
+          onChange={handleChange}
+          rows="2"
+          placeholder="Any plans for new offices, locations, or significant business expansion?"
+        />
+      </div>
+      <div className="form-group">
+        <label htmlFor="technologyRoadmap">Technology Roadmap</label>
+        <textarea
+          id="technologyRoadmap"
+          name="technologyRoadmap"
+          value={formData.technologyRoadmap}
+          onChange={handleChange}
+          rows="2"
+          placeholder="Any upcoming technology initiatives or digital transformation plans?"
+        />
+      </div>
+      <div className="form-group">
+        <h4>Upload Relevant Documents (Optional)</h4>
+        <div {...getRootProps({ className: 'dropzone' })}>
+          <input {...getInputProps()} />
+          <p>Drag 'n' drop some files here, or click to select files</p>
+          <p className="text-muted">(Max 5 files, 5MB each. PDF, XLSX, CSV, images)</p>
+        </div>
+        {errorMessages.fileUpload && <span className="error-text">{errorMessages.fileUpload}</span>}
+        {uploadedFiles.length > 0 && (
+          <ul className="file-list">
+            {uploadedFiles.map((file, index) => (
+              <li key={file.name} className="file-item">
+                <div className="file-info">
+                  <span className="file-name">{file.name}</span>
+                  <span className="file-size">({(file.size / 1024 / 1024).toFixed(2)} MB)</span>
+                </div>
+                <button type="button" onClick={() => removeFile(file)} className="remove-file">
+                  ×
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </motion.div>
+  );
+
+  return (
+    <div className="enhanced-quote-request">
+      <div className="progress-indicator">
+        <div className="progress-bar">
+          <div className="progress-fill" style={{ width: `${(step / 9) * 100}%` }}></div>
+        </div>
+        <span className="progress-text">Step {step} of 9</span>
+      </div>
+
+      <form onSubmit={handleSubmit} className="quote-form">
+        <AnimatePresence mode="wait">
+          {step === 1 && renderStep1()}
+          {step === 2 && renderStep2()}
+          {step === 3 && renderStep3()}
+          {step === 4 && renderStep4()}
+          {step === 5 && renderStep5()}
+          {step === 6 && renderStep6()}
+          {step === 7 && renderStep7()}
+          {step === 8 && renderStep8()}
+          {step === 9 && renderStep9()}
+        </AnimatePresence>
+
+        {submissionStatus === 'error' && errorMessages.general && (
+          <div className="error-message">
+            <p>{errorMessages.general}</p>
+          </div>
+        )}
+
+        {submissionStatus === 'success' && successMessage && (
+          <div className="success-message">
+            <p>{successMessage}</p>
+          </div>
+        )}
+
+        <div className="form-actions">
+          {step > 1 && (
+            <button type="button" onClick={handleBack} className="btn-secondary" disabled={isSubmitting}>
+              Back
+            </button>
+          )}
+          
+          {step < 9 ? (
+            <button type="button" onClick={handleNext} className="btn-primary" disabled={isSubmitting}>
+              Next
+            </button>
+          ) : (
+            <button 
+              type="submit" 
+              disabled={isSubmitting}
+              className="btn-submit"
+            >
+              {isSubmitting ? 'Submitting...' : 'Submit Quote Request'}
+            </button>
+          )}
+        </div>
+      </form>
+    </div>
+  );
+};
+
+export default EnhancedQuoteRequest;

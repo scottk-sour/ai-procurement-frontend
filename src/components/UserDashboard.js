@@ -1,3 +1,5 @@
+// UserDashboard.js - Part 1: Imports and Constants
+
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -93,6 +95,7 @@ const validateFile = (file) => {
 const getUserId = (record) => {
   return record.userId || record.submittedBy;
 };
+// UserDashboard.js - Part 2: Component Initialization and State
 
 const UserDashboard = () => {
   console.log("✅ UserDashboard component initialized");
@@ -162,6 +165,7 @@ const UserDashboard = () => {
       navigate("/login", { replace: true, state: { from: "/dashboard" } });
     }
   }, [auth?.isAuthenticated, auth.user?.role, navigate]);
+  // UserDashboard.js - Part 3: Fetch Functions
 
   // Fetch user profile
   const fetchUserProfile = useCallback(async () => {
@@ -187,7 +191,7 @@ const UserDashboard = () => {
     }
   }, [auth?.isAuthenticated, auth?.token]);
 
-  // FIXED: Multiple API calls to match your actual backend endpoints
+  // FIXED: Fetch dashboard data with proper error handling
   const fetchDashboardData = useCallback(async () => {
     console.log("=== DASHBOARD FETCH DEBUG ===");
     console.log("🔍 Auth state:", {
@@ -208,15 +212,15 @@ const UserDashboard = () => {
     try {
       console.log("🚀 Making parallel API calls...");
       
-      // Make multiple API calls in parallel based on your backend structure
+      // Make multiple API calls in parallel
       const [
         quoteRequestsResponse,
         notificationsResponse,
         recentActivityResponse,
         uploadedFilesResponse
       ] = await Promise.allSettled([
-        // Quote requests with proper parameters
-        fetch(`${API_BASE_URL}/api/quotes/requests?userId=${currentUserId}&submittedBy=${currentUserId}&page=1&limit=50`, {
+        // Quote requests
+        fetch(`${API_BASE_URL}/api/quotes/requests`, {
           headers: { 
             Authorization: `Bearer ${auth.token}`,
             'Content-Type': 'application/json'
@@ -243,11 +247,12 @@ const UserDashboard = () => {
         uploadedFiles: uploadedFilesResponse.status === 'fulfilled' ? uploadedFilesResponse.value.status : 'failed'
       });
 
-      // Process quote requests
+      // Process quote requests - CRITICAL FIX
       let requests = [];
       if (quoteRequestsResponse.status === 'fulfilled' && quoteRequestsResponse.value.ok) {
         const requestsData = await quoteRequestsResponse.value.json();
         console.log("📊 Quote requests response:", requestsData);
+        // ENSURE IT'S ALWAYS AN ARRAY
         requests = Array.isArray(requestsData.quoteRequests) ? requestsData.quoteRequests : [];
       }
 
@@ -305,7 +310,7 @@ const UserDashboard = () => {
         activeRequests,
       });
 
-      // Calculate funnel data with processing status
+      // Calculate funnel data
       const funnelData = {
         created: requests.length,
         pending: requests.filter(r => r.status?.toLowerCase() === "pending").length,
@@ -320,7 +325,6 @@ const UserDashboard = () => {
 
       console.log("✅ Dashboard data processed successfully");
       console.log("📈 Final KPIs:", { totalQuotes, totalSavings, pendingNotifications, activeRequests });
-      console.log("🎯 Final funnel data:", funnelData);
 
     } catch (error) {
       console.error("❌ Dashboard fetch error:", error);
@@ -361,6 +365,7 @@ const UserDashboard = () => {
       return () => clearInterval(intervalId);
     }
   }, [auth?.isAuthenticated, auth.user?.role, currentUserId, fetchUserProfile, fetchDashboardData]);
+  // UserDashboard.js - Part 4: Event Handlers
 
   // File upload handlers
   const handleFileChange = useCallback((event) => {
@@ -649,6 +654,7 @@ const UserDashboard = () => {
       console.log("⬅️ Previous page:", currentPage - 1);
     }
   }, []);
+  // UserDashboard.js - Part 5: JSX Render - Loading and Header
 
   // Loading state
   if (globalLoading && quoteRequests.length === 0 && recentActivity.length === 0) {
@@ -826,6 +832,7 @@ const UserDashboard = () => {
           </label>
         </div>
       </header>
+// UserDashboard.js - Part 6: Navigation Tabs and Overview Panel
 
       {/* Navigation Tabs */}
       <nav className="dashboard-nav" role="tablist" data-testid="dashboard-nav">
@@ -950,6 +957,7 @@ const UserDashboard = () => {
             </section>
           </div>
         )}
+// UserDashboard.js - Part 7: Quotes Tab (First Half)
 
         {/* Quotes Tab */}
         {activeTab === "quotes" && (
@@ -1117,6 +1125,7 @@ const UserDashboard = () => {
             )}
           </div>
         )}
+// UserDashboard.js - Part 8: Files Tab, Notifications Tab, and Component Close
 
         {/* Files Tab */}
         {activeTab === "files" && (

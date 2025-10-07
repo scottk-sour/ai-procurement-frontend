@@ -175,9 +175,9 @@ const NavigationBar = () => {
 
   // **FIXED: Request Quote Navigation**
   const handleRequestQuote = useCallback(() => {
-    closeAll();
-    navigate("/request-quote");
-  }, [closeAll, navigate]);
+  closeAll();
+  navigate("/quote-request");  // ✅ CHANGED
+}, [closeAll, navigate]);
 
   // Close on route change
   useEffect(() => {

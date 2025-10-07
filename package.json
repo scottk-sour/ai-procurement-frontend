@@ -2,6 +2,7 @@
   "name": "ai-procurement-frontend",
   "version": "0.1.1",
   "private": true,
+  "homepage": ".",
   "engines": {
     "node": ">=20.0.0",
     "npm": ">=10.0.0"

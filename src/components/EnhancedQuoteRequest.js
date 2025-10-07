@@ -28,6 +28,7 @@ const EnhancedQuoteRequest = () => {
   const [successMessage, setSuccessMessage] = useState('');
   const [suggestedMachines, setSuggestedMachines] = useState([]);
   const [uploadedFiles, setUploadedFiles] = useState([]);
+  
   // Comprehensive form data structure that maps to backend QuoteRequest model
   const [formData, setFormData] = useState({
     // === STEP 1: Company Information ===
@@ -194,6 +195,22 @@ const EnhancedQuoteRequest = () => {
   const validatePostcode = (postcode) => {
     const ukPostcodeRegex = /^[A-Z]{1,2}[0-9][A-Z0-9]? ?[0-9][A-Z]{2}$/i;
     return ukPostcodeRegex.test(postcode);
+  };
+
+  // **FIXED: Calculate Cost Per Page**
+  const calculateCostPerPage = (type) => {
+    const mono = parseInt(formData.monthlyVolume.mono) || 0;
+    const colour = parseInt(formData.monthlyVolume.colour) || 0;
+    
+    if (type === 'mono') {
+      if (mono === 0) return '£0.00';
+      const monoCost = (formData.currentSetup.currentMonoCPC || 1.0) / 100;
+      return `£${monoCost.toFixed(3)}`;
+    } else {
+      if (colour === 0) return '£0.00';
+      const colourCost = (formData.currentSetup.currentColorCPC || 4.0) / 100;
+      return `£${colourCost.toFixed(3)}`;
+    }
   };
 
   // Auto-update calculated fields
@@ -426,6 +443,12 @@ const EnhancedQuoteRequest = () => {
   const handleBack = () => {
     setStep(prev => prev - 1);
   };
+
+  // **FIXED: Handle Previous**
+  const handlePrevious = () => {
+    setStep(prev => prev - 1);
+    setErrorMessages({});
+  };
   // Form submission with proper backend mapping
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -500,6 +523,7 @@ const EnhancedQuoteRequest = () => {
           buyoutCost: formData.currentSetup.buyoutCost,
           painPoints: formData.reasonsForQuote || []
         },
+        
         // Requirements (backend schema)
         requirements: {
           priority: formData.preference || 'balanced',
@@ -589,6 +613,7 @@ const EnhancedQuoteRequest = () => {
         threeYearVision: formData.threeYearVision,
         reasonsForQuote: formData.reasonsForQuote
       };
+      
       console.log('📤 Submitting quote request:', submissionData);
       
       let response;
@@ -862,7 +887,8 @@ const EnhancedQuoteRequest = () => {
       </div>
     </motion.div>
   );
-           const renderStep2 = () => (
+
+  const renderStep2 = () => (
     <motion.div
       initial={{ opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
@@ -957,8 +983,7 @@ const EnhancedQuoteRequest = () => {
       {errorMessages.monthlyVolume && <span className="error-text">{errorMessages.monthlyVolume}</span>}
     </motion.div>
   );
-
-  const renderStep3 = () => (
+       const renderStep3 = () => (
     <motion.div
       initial={{ opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
@@ -1063,9 +1088,383 @@ const EnhancedQuoteRequest = () => {
       </div>
     </motion.div>
   );
-// Part 12 - Render Steps 6 and 7
-  
-  const renderStep6 = () => (
+// **FIXED: renderStep4 - IT & Network Environment**
+  const renderStep4 = () => (
+    <motion.div
+      initial={{ opacity: 0, x: 20 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: -20 }}
+      className="form-section"
+    >
+      <h2>Step 4: IT & Network Environment</h2>
+      
+      <div className="info-box">
+        <p>🔌 Understanding your IT setup helps ensure seamless integration.</p>
+      </div>
+
+      <div className="form-grid">
+        <div className="form-group">
+          <label htmlFor="networkSetup">Network Setup <span className="required">*</span></label>
+          <div className="radio-group">
+            {['Wired (Ethernet)', 'Wireless (Wi-Fi)', 'Both', 'Not Sure'].map(setup => (
+              <label key={setup}>
+                <input
+                  type="radio"
+                  name="networkSetup"
+                  value={setup}
+                  checked={formData.networkSetup === setup}
+                  onChange={handleChange}
+                />
+                {setup}
+              </label>
+            ))}
+          </div>
+          {errorMessages.networkSetup && <span className="error-text">{errorMessages.networkSetup}</span>}
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="itSupportStructure">IT Support Structure</label>
+          <select
+            id="itSupportStructure"
+            name="itSupportStructure"
+            value={formData.itSupportStructure}
+            onChange={handleChange}
+          >
+            <option value="">Select IT support</option>
+            <option value="In-house IT team">In-house IT team</option>
+            <option value="External IT provider">External IT provider</option>
+            <option value="Hybrid (in-house + external)">Hybrid (in-house + external)</option>
+            <option value="No dedicated IT support">No dedicated IT support</option>
+          </select>
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="currentSoftwareEnvironment">Current Software Environment</label>
+          <input
+            type="text"
+            id="currentSoftwareEnvironment"
+            name="currentSoftwareEnvironment"
+            value={formData.currentSoftwareEnvironment}
+            onChange={handleChange}
+            placeholder="e.g., Microsoft 365, Google Workspace"
+          />
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="cloudPreference">Cloud Integration</label>
+          <select
+            id="cloudPreference"
+            name="cloudPreference"
+            value={formData.cloudPreference}
+            onChange={handleChange}
+          >
+            <option value="">Select cloud preference</option>
+            <option value="Essential - Must have cloud">Essential - Must have cloud</option>
+            <option value="Nice to have">Nice to have</option>
+            <option value="Not needed">Not needed</option>
+            <option value="Not sure">Not sure</option>
+          </select>
+        </div>
+
+        <div className="form-group full-width">
+          <label>Integration Requirements</label>
+          <div className="checkbox-grid">
+            {[
+              'Email Integration',
+              'Document Management Systems',
+              'Cloud Storage (Dropbox, OneDrive, Google Drive)',
+              'ERP Systems',
+              'CRM Systems',
+              'Accounting Software'
+            ].map(integration => (
+              <label key={integration}>
+                <input
+                  type="checkbox"
+                  value={integration}
+                  checked={formData.integrationNeeds?.includes(integration)}
+                  onChange={(e) => handleArrayChange('integrationNeeds', integration, e.target.checked)}
+                />
+                {integration}
+              </label>
+            ))}
+          </div>
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="mobileRequirements">Mobile/Remote Printing Required?</label>
+          <select
+            id="mobileRequirements"
+            name="mobileRequirements"
+            value={formData.mobileRequirements}
+            onChange={handleChange}
+          >
+            <option value="No">No</option>
+            <option value="Yes">Yes</option>
+            <option value="Not Sure">Not Sure</option>
+          </select>
+        </div>
+
+        <div className="form-group full-width">
+          <label>Security Requirements</label>
+          <div className="checkbox-grid">
+            {[
+              'User Authentication',
+              'Secure Print Release',
+              'Data Encryption',
+              'Compliance (GDPR, HIPAA, etc.)',
+              'Audit Trails',
+              'Access Control'
+            ].map(req => (
+              <label key={req}>
+                <input
+                  type="checkbox"
+                  value={req}
+                  checked={formData.securityRequirements?.includes(req)}
+                  onChange={(e) => handleArrayChange('securityRequirements', req, e.target.checked)}
+                />
+                {req}
+              </label>
+            ))}
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+
+  // **FIXED: renderStep5 - Current Equipment & Pain Points**
+  const renderStep5 = () => (
+    <motion.div
+      initial={{ opacity: 0, x: 20 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: -20 }}
+      className="form-section"
+    >
+      <h2>Step 5: Current Equipment & Pain Points</h2>
+      
+      <div className="info-box">
+        <p>🔧 Understanding your current setup helps us recommend the best replacement or upgrade.</p>
+      </div>
+
+      <div className="form-grid">
+        <div className="form-group">
+          <label htmlFor="currentSetup.machineAge">Current Equipment Age <span className="required">*</span></label>
+          <select
+            id="currentSetup.machineAge"
+            name="currentSetup.machineAge"
+            value={formData.currentSetup.machineAge}
+            onChange={handleChange}
+            required
+            className={errorMessages.currentSetup ? 'error' : ''}
+          >
+            <option value="">Select age</option>
+            <option value="No current machine">No current machine</option>
+            <option value="0-2 years">0-2 years (New)</option>
+            <option value="2-5 years">2-5 years (Mid-life)</option>
+            <option value="5+ years">5+ years (Aging)</option>
+            <option value="Not sure">Not sure</option>
+          </select>
+          {errorMessages.currentSetup && <span className="error-text">{errorMessages.currentSetup}</span>}
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="currentSetup.currentSupplier">Current Supplier</label>
+          <input
+            type="text"
+            id="currentSetup.currentSupplier"
+            name="currentSetup.currentSupplier"
+            value={formData.currentSetup.currentSupplier}
+            onChange={handleChange}
+            placeholder="e.g., Xerox, Canon"
+          />
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="currentSetup.currentModel">Current Model</label>
+          <input
+            type="text"
+            id="currentSetup.currentModel"
+            name="currentSetup.currentModel"
+            value={formData.currentSetup.currentModel}
+            onChange={handleChange}
+            placeholder="Model number or name"
+          />
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="currentSetup.currentSpeed">Current Speed (PPM)</label>
+          <input
+            type="number"
+            id="currentSetup.currentSpeed"
+            name="currentSetup.currentSpeed"
+            value={formData.currentSetup.currentSpeed}
+            onChange={handleChange}
+            min="0"
+            placeholder="Pages per minute"
+          />
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="currentSetup.contractStartDate">Contract Start Date</label>
+          <input
+            type="date"
+            id="currentSetup.contractStartDate"
+            name="currentSetup.contractStartDate"
+            value={formData.currentSetup.contractStartDate}
+            onChange={handleChange}
+          />
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="currentSetup.contractEndDate">Contract End Date</label>
+          <input
+            type="date"
+            id="currentSetup.contractEndDate"
+            name="currentSetup.contractEndDate"
+            value={formData.currentSetup.contractEndDate}
+            onChange={handleChange}
+          />
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="currentSetup.currentMonoCPC">Current Mono CPC (pence)</label>
+          <input
+            type="number"
+            id="currentSetup.currentMonoCPC"
+            name="currentSetup.currentMonoCPC"
+            value={formData.currentSetup.currentMonoCPC}
+            onChange={handleChange}
+            step="0.01"
+            min="0"
+            placeholder="e.g., 0.8"
+          />
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="currentSetup.currentColorCPC">Current Colour CPC (pence)</label>
+          <input
+            type="number"
+            id="currentSetup.currentColorCPC"
+            name="currentSetup.currentColorCPC"
+            value={formData.currentSetup.currentColorCPC}
+            onChange={handleChange}
+            step="0.01"
+            min="0"
+            placeholder="e.g., 4.5"
+          />
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="currentSetup.quarterlyLeaseCost">Quarterly Lease Cost (£)</label>
+          <input
+            type="number"
+            id="currentSetup.quarterlyLeaseCost"
+            name="currentSetup.quarterlyLeaseCost"
+            value={formData.currentSetup.quarterlyLeaseCost}
+            onChange={handleChange}
+            step="0.01"
+            min="0"
+            placeholder="e.g., 750"
+          />
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="currentSetup.quarterlyService">Quarterly Service Cost (£)</label>
+          <input
+            type="number"
+            id="currentSetup.quarterlyService"
+            name="currentSetup.quarterlyService"
+            value={formData.currentSetup.quarterlyService}
+            onChange={handleChange}
+            step="0.01"
+            min="0"
+            placeholder="e.g., 150"
+          />
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="currentSetup.buyoutRequired">Buyout Required?</label>
+          <select
+            id="currentSetup.buyoutRequired"
+            name="currentSetup.buyoutRequired"
+            value={formData.currentSetup.buyoutRequired}
+            onChange={handleChange}
+          >
+            <option value={false}>No</option>
+            <option value={true}>Yes</option>
+          </select>
+        </div>
+
+        {formData.currentSetup.buyoutRequired && (
+          <div className="form-group">
+            <label htmlFor="currentSetup.buyoutCost">Estimated Buyout Cost (£)</label>
+            <input
+              type="number"
+              id="currentSetup.buyoutCost"
+              name="currentSetup.buyoutCost"
+              value={formData.currentSetup.buyoutCost || calculateBuyout()}
+              onChange={handleChange}
+              step="0.01"
+              min="0"
+              placeholder="Auto-calculated"
+            />
+            <p className="helper-text">Calculated: £{calculateBuyout()}</p>
+          </div>
+        )}
+
+        <div className="form-group full-width">
+          <label>Reasons for Requesting Quote <span className="required">*</span></label>
+          <div className="checkbox-grid">
+            {[
+              'Contract ending',
+              'High running costs',
+              'Frequent breakdowns',
+              'Poor print quality',
+              'Slow performance',
+              'Expanding business',
+              'New requirements',
+              'Dissatisfied with current supplier'
+            ].map(reason => (
+              <label key={reason}>
+                <input
+                  type="checkbox"
+                  value={reason}
+                  checked={formData.reasonsForQuote?.includes(reason)}
+                  onChange={(e) => handleArrayChange('reasonsForQuote', reason, e.target.checked)}
+                />
+                {reason}
+              </label>
+            ))}
+          </div>
+          {errorMessages.reasonsForQuote && <span className="error-text">{errorMessages.reasonsForQuote}</span>}
+        </div>
+
+        <div className="form-group full-width">
+          <label htmlFor="currentPainPoints">Current Pain Points</label>
+          <textarea
+            id="currentPainPoints"
+            name="currentPainPoints"
+            value={formData.currentPainPoints}
+            onChange={handleChange}
+            rows="3"
+            placeholder="Describe specific issues with your current setup..."
+          />
+        </div>
+
+        <div className="form-group full-width">
+          <label htmlFor="maintenanceIssues">Maintenance Issues</label>
+          <textarea
+            id="maintenanceIssues"
+            name="maintenanceIssues"
+            value={formData.maintenanceIssues}
+            onChange={handleChange}
+            rows="3"
+            placeholder="Any recurring maintenance problems..."
+          />
+        </div>
+      </div>
+    </motion.div>
+  );
+const renderStep6 = () => (
     <motion.div
       initial={{ opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
@@ -1126,35 +1525,19 @@ const EnhancedQuoteRequest = () => {
         </div>
 
         <div className="form-group">
-          <label htmlFor="speed">Minimum Speed (PPM) <span className="required">*</span></label>
+          <label htmlFor="min_speed">Minimum Speed (PPM) <span className="required">*</span></label>
           <input
             type="number"
-            id="speed"
-            name="speed"
-            value={formData.speed}
+            id="min_speed"
+            name="min_speed"
+            value={formData.min_speed}
             onChange={handleChange}
             min="0"
             placeholder="e.g., 45"
-            className={errorMessages.speed ? 'error' : ''}
+            className={errorMessages.min_speed ? 'error' : ''}
           />
           <p className="helper-text">Recommended: {suggestMinSpeed(formData.monthlyVolume.total)} PPM based on your volume</p>
-          {errorMessages.speed && <span className="error-text">{errorMessages.speed}</span>}
-        </div>
-
-        <div className="form-group">
-          <label htmlFor="capacity">Capacity (Duty Cycle)</label>
-          <select
-            id="capacity"
-            name="capacity"
-            value={formData.capacity}
-            onChange={handleChange}
-          >
-            <option value="">Select capacity</option>
-            <option value="Light (up to 10k pages/month)">Light (up to 10k pages/month)</option>
-            <option value="Medium (10k-30k pages/month)">Medium (10k-30k pages/month)</option>
-            <option value="Heavy (30k-100k pages/month)">Heavy (30k-100k pages/month)</option>
-            <option value="Very Heavy (100k+ pages/month)">Very Heavy (100k+ pages/month)</option>
-          </select>
+          {errorMessages.min_speed && <span className="error-text">{errorMessages.min_speed}</span>}
         </div>
 
         <div className="form-group full-width">
@@ -1165,14 +1548,14 @@ const EnhancedQuoteRequest = () => {
                 <input
                   type="checkbox"
                   value={func}
-                  checked={formData.requiredFunctions.includes(func)}
-                  onChange={(e) => handleArrayChange('requiredFunctions', func, e.target.checked)}
+                  checked={formData.required_functions?.includes(func)}
+                  onChange={(e) => handleArrayChange('required_functions', func, e.target.checked)}
                 />
                 {func}
               </label>
             ))}
           </div>
-          {errorMessages.requiredFunctions && <span className="error-text">{errorMessages.requiredFunctions}</span>}
+          {errorMessages.required_functions && <span className="error-text">{errorMessages.required_functions}</span>}
         </div>
 
         <div className="form-group full-width">
@@ -1200,7 +1583,7 @@ const EnhancedQuoteRequest = () => {
         </div>
 
         <div className="form-group full-width">
-          <label>Additional Features</label>
+          <label>Nice-to-Have Features</label>
           <div className="checkbox-grid">
             {[
               'Duplex (Double-sided) Printing',
@@ -1215,8 +1598,8 @@ const EnhancedQuoteRequest = () => {
                 <input
                   type="checkbox"
                   value={feature}
-                  checked={formData.additionalFeatures?.includes(feature)}
-                  onChange={(e) => handleArrayChange('additionalFeatures', feature, e.target.checked)}
+                  checked={formData.niceToHaveFeatures?.includes(feature)}
+                  onChange={(e) => handleArrayChange('niceToHaveFeatures', feature, e.target.checked)}
                 />
                 {feature}
               </label>
@@ -1280,54 +1663,8 @@ const EnhancedQuoteRequest = () => {
           {errorMessages.maintenancePreference && <span className="error-text">{errorMessages.maintenancePreference}</span>}
         </div>
 
-        <div className="form-group">
-          <label>Service Coverage Hours</label>
-          <div className="radio-group">
-            {[
-              'Business hours (9am-5pm)',
-              'Extended hours (7am-7pm)',
-              '24/7 Coverage',
-              'Standard (9am-5pm weekdays)'
-            ].map(option => (
-              <label key={option}>
-                <input
-                  type="radio"
-                  name="serviceCoverageHours"
-                  value={option}
-                  checked={formData.serviceCoverageHours === option}
-                  onChange={handleChange}
-                />
-                {option}
-              </label>
-            ))}
-          </div>
-        </div>
-
-        <div className="form-group">
-          <label>Preferred Service Type</label>
-          <div className="radio-group">
-            {[
-              'On-site service only',
-              'Remote support preferred',
-              'Combination of both',
-              'No preference'
-            ].map(option => (
-              <label key={option}>
-                <input
-                  type="radio"
-                  name="preferredServiceType"
-                  value={option}
-                  checked={formData.preferredServiceType === option}
-                  onChange={handleChange}
-                />
-                {option}
-              </label>
-            ))}
-          </div>
-        </div>
-
         <div className="form-group full-width">
-          <label>Included Services Required</label>
+          <label>Additional Services Required</label>
           <div className="checkbox-grid">
             {[
               'Toner/Ink Included',
@@ -1342,8 +1679,8 @@ const EnhancedQuoteRequest = () => {
                 <input
                   type="checkbox"
                   value={service}
-                  checked={formData.includedServices?.includes(service)}
-                  onChange={(e) => handleArrayChange('includedServices', service, e.target.checked)}
+                  checked={formData.additionalServices?.includes(service)}
+                  onChange={(e) => handleArrayChange('additionalServices', service, e.target.checked)}
                 />
                 {service}
               </label>
@@ -1352,22 +1689,20 @@ const EnhancedQuoteRequest = () => {
         </div>
 
         <div className="form-group full-width">
-          <label htmlFor="specialServiceRequirements">Special Service Requirements</label>
+          <label htmlFor="trainingNeeds">Training Requirements</label>
           <textarea
-            id="specialServiceRequirements"
-            name="specialServiceRequirements"
-            value={formData.specialServiceRequirements || ''}
+            id="trainingNeeds"
+            name="trainingNeeds"
+            value={formData.trainingNeeds}
             onChange={handleChange}
             rows="3"
-            placeholder="Any specific service requirements or SLA needs..."
+            placeholder="Describe any training needs for your team..."
           />
         </div>
       </div>
     </motion.div>
   );
-// Part 13 - Render Steps 8 and 9
-  
-  const renderStep8 = () => (
+const renderStep8 = () => (
     <motion.div
       initial={{ opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
@@ -1382,63 +1717,56 @@ const EnhancedQuoteRequest = () => {
 
       <div className="form-grid">
         <div className="form-group">
-          <label htmlFor="budgetRange">Budget Range (Quarterly) <span className="required">*</span></label>
-          <select
-            id="budgetRange"
-            name="budgetRange"
-            value={formData.budgetRange}
+          <label htmlFor="budget.maxLeasePrice">Maximum Quarterly Lease Price (£) <span className="required">*</span></label>
+          <input
+            type="number"
+            id="budget.maxLeasePrice"
+            name="budget.maxLeasePrice"
+            value={formData.budget.maxLeasePrice}
             onChange={handleChange}
+            step="0.01"
+            min="0"
+            placeholder="e.g., 1500"
             required
-            className={errorMessages.budgetRange ? 'error' : ''}
-          >
-            <option value="">Select budget range</option>
-            <option value="Under £500">Under £500</option>
-            <option value="£500 - £1,000">£500 - £1,000</option>
-            <option value="£1,000 - £2,000">£1,000 - £2,000</option>
-            <option value="£2,000 - £3,500">£2,000 - £3,500</option>
-            <option value="£3,500 - £5,000">£3,500 - £5,000</option>
-            <option value="£5,000+">£5,000+</option>
-            <option value="Flexible">Flexible</option>
-          </select>
-          {errorMessages.budgetRange && <span className="error-text">{errorMessages.budgetRange}</span>}
+            className={errorMessages.budget ? 'error' : ''}
+          />
+          {errorMessages.budget && <span className="error-text">{errorMessages.budget}</span>}
         </div>
 
         <div className="form-group">
-          <label htmlFor="paymentPreference">Payment Preference <span className="required">*</span></label>
+          <label htmlFor="contractLengthPreference">Preferred Contract Length</label>
           <select
-            id="paymentPreference"
-            name="paymentPreference"
-            value={formData.paymentPreference}
-            onChange={handleChange}
-            required
-            className={errorMessages.paymentPreference ? 'error' : ''}
-          >
-            <option value="">Select payment preference</option>
-            <option value="Lease">Lease</option>
-            <option value="Rental">Rental</option>
-            <option value="Purchase">Outright Purchase</option>
-            <option value="Pay-per-page">Pay-per-page</option>
-            <option value="Open to options">Open to options</option>
-          </select>
-          {errorMessages.paymentPreference && <span className="error-text">{errorMessages.paymentPreference}</span>}
-        </div>
-
-        <div className="form-group">
-          <label htmlFor="contractLength">Preferred Contract Length</label>
-          <select
-            id="contractLength"
-            name="contractLength"
-            value={formData.contractLength}
+            id="contractLengthPreference"
+            name="contractLengthPreference"
+            value={formData.contractLengthPreference}
             onChange={handleChange}
           >
             <option value="">Select contract length</option>
-            <option value="12 months">12 months</option>
-            <option value="24 months">24 months</option>
-            <option value="36 months">36 months (Standard)</option>
+            <option value="36 months">36 months</option>
             <option value="48 months">48 months</option>
-            <option value="60 months">60 months</option>
+            <option value="60 months">60 months (Standard)</option>
             <option value="Flexible">Flexible</option>
           </select>
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="preference">Priority <span className="required">*</span></label>
+          <select
+            id="preference"
+            name="preference"
+            value={formData.preference}
+            onChange={handleChange}
+            required
+            className={errorMessages.preference ? 'error' : ''}
+          >
+            <option value="">Select priority</option>
+            <option value="cost">Cost (Best Price)</option>
+            <option value="quality">Quality (Best Performance)</option>
+            <option value="speed">Speed (Fastest PPM)</option>
+            <option value="reliability">Reliability (Lowest Downtime)</option>
+            <option value="balanced">Balanced (All Factors)</option>
+          </select>
+          {errorMessages.preference && <span className="error-text">{errorMessages.preference}</span>}
         </div>
 
         <div className="form-group">
@@ -1446,149 +1774,12 @@ const EnhancedQuoteRequest = () => {
           <div className="cost-estimate">
             <p><strong>Mono:</strong> {calculateCostPerPage('mono')} per page</p>
             <p><strong>Colour:</strong> {calculateCostPerPage('colour')} per page</p>
-            <p className="info-text">Based on your monthly volume</p>
+            <p className="info-text">Based on your current setup</p>
           </div>
         </div>
 
         <div className="form-group full-width">
-          <label>Preferred Brands</label>
-          <div className="checkbox-grid">
-            {[
-              'Xerox',
-              'Canon',
-              'HP',
-              'Ricoh',
-              'Konica Minolta',
-              'Brother',
-              'Sharp',
-              'Kyocera',
-              'No Preference'
-            ].map(brand => (
-              <label key={brand}>
-                <input
-                  type="checkbox"
-                  value={brand}
-                  checked={formData.preferredBrands?.includes(brand)}
-                  onChange={(e) => handleArrayChange('preferredBrands', brand, e.target.checked)}
-                />
-                {brand}
-              </label>
-            ))}
-          </div>
-        </div>
-
-        <div className="form-group full-width">
-          <label>Environmental Preferences</label>
-          <div className="checkbox-grid">
-            {[
-              'Energy Star Certified',
-              'Low Power Consumption',
-              'Eco Mode',
-              'Recycling Program',
-              'Carbon Neutral',
-              'Refurbished Options OK'
-            ].map(pref => (
-              <label key={pref}>
-                <input
-                  type="checkbox"
-                  value={pref}
-                  checked={formData.environmentalPreferences?.includes(pref)}
-                  onChange={(e) => handleArrayChange('environmentalPreferences', pref, e.target.checked)}
-                />
-                {pref}
-              </label>
-            ))}
-          </div>
-        </div>
-
-        <div className="form-group full-width">
-          <label htmlFor="additionalBudgetNotes">Additional Budget Notes</label>
-          <textarea
-            id="additionalBudgetNotes"
-            name="additionalBudgetNotes"
-            value={formData.additionalBudgetNotes || ''}
-            onChange={handleChange}
-            rows="3"
-            placeholder="Any budget constraints or financial considerations we should know about..."
-          />
-        </div>
-      </div>
-    </motion.div>
-  );
-
-  const renderStep9 = () => (
-    <motion.div
-      initial={{ opacity: 0, x: 20 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: -20 }}
-      className="form-section"
-    >
-      <h2>Step 9: Decision Makers & Contact Information</h2>
-      
-      <div className="info-box">
-        <p>👥 Help us understand your decision-making process so we can provide the right information to the right people.</p>
-      </div>
-
-      <div className="form-grid">
-        <div className="form-group">
-          <label htmlFor="primaryContactName">Primary Contact Name <span className="required">*</span></label>
-          <input
-            type="text"
-            id="primaryContactName"
-            name="primaryContactName"
-            value={formData.primaryContactName}
-            onChange={handleChange}
-            placeholder="Your full name"
-            required
-            className={errorMessages.primaryContactName ? 'error' : ''}
-          />
-          {errorMessages.primaryContactName && <span className="error-text">{errorMessages.primaryContactName}</span>}
-        </div>
-
-        <div className="form-group">
-          <label htmlFor="primaryContactEmail">Primary Contact Email <span className="required">*</span></label>
-          <input
-            type="email"
-            id="primaryContactEmail"
-            name="primaryContactEmail"
-            value={formData.primaryContactEmail}
-            onChange={handleChange}
-            placeholder="your.email@company.com"
-            required
-            className={errorMessages.primaryContactEmail ? 'error' : ''}
-          />
-          {errorMessages.primaryContactEmail && <span className="error-text">{errorMessages.primaryContactEmail}</span>}
-        </div>
-
-        <div className="form-group">
-          <label htmlFor="primaryContactPhone">Primary Contact Phone <span className="required">*</span></label>
-          <input
-            type="tel"
-            id="primaryContactPhone"
-            name="primaryContactPhone"
-            value={formData.primaryContactPhone}
-            onChange={handleChange}
-            placeholder="020 1234 5678"
-            required
-            className={errorMessages.primaryContactPhone ? 'error' : ''}
-          />
-          {errorMessages.primaryContactPhone && <span className="error-text">{errorMessages.primaryContactPhone}</span>}
-        </div>
-
-        <div className="form-group">
-          <label htmlFor="jobTitle">Your Job Title</label>
-          <input
-            type="text"
-            id="jobTitle"
-            name="jobTitle"
-            value={formData.jobTitle || ''}
-            onChange={handleChange}
-            placeholder="e.g., Office Manager, IT Director"
-          />
-        </div>
-
-        <div className="form-group full-width">
-          <label>Who else will be involved in the decision?</label>
+          <label>Decision Makers <span className="required">*</span></label>
           <div className="checkbox-grid">
             {[
               'Finance Director',
@@ -1597,7 +1788,7 @@ const EnhancedQuoteRequest = () => {
               'Managing Director',
               'Procurement Team',
               'Department Heads',
-              'Other Stakeholders'
+              'Office Manager'
             ].map(role => (
               <label key={role}>
                 <input
@@ -1610,28 +1801,12 @@ const EnhancedQuoteRequest = () => {
               </label>
             ))}
           </div>
-        </div>
-
-        <div className="form-group">
-          <label htmlFor="decisionTimeframe">Expected Decision Timeframe</label>
-          <select
-            id="decisionTimeframe"
-            name="decisionTimeframe"
-            value={formData.decisionTimeframe || ''}
-            onChange={handleChange}
-          >
-            <option value="">Select timeframe</option>
-            <option value="Within 1 week">Within 1 week</option>
-            <option value="1-2 weeks">1-2 weeks</option>
-            <option value="2-4 weeks">2-4 weeks</option>
-            <option value="1-3 months">1-3 months</option>
-            <option value="3+ months">3+ months</option>
-            <option value="Just exploring options">Just exploring options</option>
-          </select>
+          {errorMessages.decisionMakers && <span className="error-text">{errorMessages.
+                                                                         decisionMakers}</span>}
         </div>
 
         <div className="form-group full-width">
-          <label>What factors are most important in your decision?</label>
+          <label>Evaluation Criteria</label>
           <div className="checkbox-grid">
             {[
               'Price/Cost',
@@ -1656,55 +1831,164 @@ const EnhancedQuoteRequest = () => {
           </div>
         </div>
 
-        <div className="form-group">
-          <label htmlFor="preferredContactMethod">Preferred Contact Method</label>
-          <div className="radio-group">
-            {['Email', 'Phone', 'Either'].map(method => (
-              <label key={method}>
-                <input
-                  type="radio"
-                  name="preferredContactMethod"
-                  value={method}
-                  checked={formData.preferredContactMethod === method}
-                  onChange={handleChange}
-                />
-                {method}
-              </label>
-            ))}
-          </div>
-        </div>
-
-        <div className="form-group">
-          <label htmlFor="bestTimeToContact">Best Time to Contact</label>
+        <div className="form-group full-width">
+          <label htmlFor="expectedGrowth">Expected Growth <span className="required">*</span></label>
           <select
-            id="bestTimeToContact"
-            name="bestTimeToContact"
-            value={formData.bestTimeToContact || ''}
+            id="expectedGrowth"
+            name="expectedGrowth"
+            value={formData.expectedGrowth}
             onChange={handleChange}
+            required
+            className={errorMessages.expectedGrowth ? 'error' : ''}
           >
-            <option value="">Select best time</option>
-            <option value="Morning (9am-12pm)">Morning (9am-12pm)</option>
-            <option value="Afternoon (12pm-5pm)">Afternoon (12pm-5pm)</option>
-            <option value="Anytime">Anytime</option>
+            <option value="">Select expected growth</option>
+            <option value="No growth expected">No growth expected</option>
+            <option value="0-10% growth">0-10% growth</option>
+            <option value="10-25% growth">10-25% growth</option>
+            <option value="25-50% growth">25-50% growth</option>
+            <option value="50%+ growth">50%+ growth</option>
+            <option value="Uncertain">Uncertain</option>
           </select>
+          {errorMessages.expectedGrowth && <span className="error-text">{errorMessages.expectedGrowth}</span>}
         </div>
 
         <div className="form-group full-width">
-          <label htmlFor="additionalComments">Additional Comments or Questions</label>
+          <label htmlFor="threeYearVision">Three-Year Vision <span className="required">*</span></label>
           <textarea
-            id="additionalComments"
-            name="additionalComments"
-            value={formData.additionalComments || ''}
+            id="threeYearVision"
+            name="threeYearVision"
+            value={formData.threeYearVision}
             onChange={handleChange}
-            rows="4"
-            placeholder="Any other information you'd like to share or questions you have..."
+            rows="3"
+            placeholder="Describe your company's 3-year printing/copying needs..."
+            required
+            className={errorMessages.threeYearVision ? 'error' : ''}
           />
+          {errorMessages.threeYearVision && <span className="error-text">{errorMessages.threeYearVision}</span>}
         </div>
       </div>
     </motion.div>
   );
-// Part 14 - Main Render Function and Navigation
-  
+
+  const renderStep9 = () => (
+    <motion.div
+      initial={{ opacity: 0, x: 20 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: -20 }}
+      className="form-section"
+    >
+      <h2>Step 9: Urgency & Timeline</h2>
+      
+      <div className="info-box">
+        <p>⏰ Understanding your timeline helps us prioritize and expedite your quote.</p>
+      </div>
+
+      <div className="form-grid">
+        <div className="form-group">
+          <label htmlFor="urgencyLevel">Urgency Level <span className="required">*</span></label>
+          <select
+            id="urgencyLevel"
+            name="urgencyLevel"
+            value={formData.urgencyLevel}
+            onChange={handleChange}
+            required
+            className={errorMessages.urgencyLevel ? 'error' : ''}
+          >
+            <option value="">Select urgency</option>
+            <option value="Critical - Immediate">Critical - Immediate (ASAP)</option>
+            <option value="High - Within 1 week">High - Within 1 week</option>
+            <option value="Medium - 1-4 weeks">Medium - 1-4 weeks</option>
+            <option value="Low - 1-3 months">Low - 1-3 months</option>
+            <option value="Planning - 3+ months">Planning - 3+ months</option>
+            <option value="Just exploring">Just exploring options</option>
+          </select>
+          {errorMessages.urgencyLevel && <span className="error-text">{errorMessages.urgencyLevel}</span>}
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="implementationTimeline">Implementation Timeline <span className="required">*</span></label>
+          <select
+            id="implementationTimeline"
+            name="implementationTimeline"
+            value={formData.implementationTimeline}
+            onChange={handleChange}
+            required
+            className={errorMessages.implementationTimeline ? 'error' : ''}
+          >
+            <option value="">Select timeline</option>
+            <option value="Immediately">Immediately (This week)</option>
+            <option value="1-2 weeks">1-2 weeks</option>
+            <option value="2-4 weeks">2-4 weeks</option>
+            <option value="1-3 months">1-3 months</option>
+            <option value="3-6 months">3-6 months</option>
+            <option value="6+ months">6+ months</option>
+            <option value="Flexible">Flexible</option>
+          </select>
+          {errorMessages.implementationTimeline && <span className="error-text">{errorMessages.implementationTimeline}</span>}
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="budgetCycle">Budget Approval Cycle</label>
+          <select
+            id="budgetCycle"
+            name="budgetCycle"
+            value={formData.budgetCycle}
+            onChange={handleChange}
+          >
+            <option value="">Select budget cycle</option>
+            <option value="Budget already approved">Budget already approved</option>
+            <option value="Approval within 1 week">Approval within 1 week</option>
+            <option value="Approval within 1 month">Approval within 1 month</option>
+            <option value="Next quarter">Next quarter</option>
+            <option value="Next financial year">Next financial year</option>
+            <option value="No budget constraints">No budget constraints</option>
+          </select>
+        </div>
+
+        <div className="form-group full-width">
+          <label htmlFor="sustainabilityGoals">Sustainability Goals</label>
+          <textarea
+            id="sustainabilityGoals"
+            name="sustainabilityGoals"
+            value={formData.sustainabilityGoals}
+            onChange={handleChange}
+            rows="3"
+            placeholder="Any environmental or sustainability requirements..."
+          />
+        </div>
+
+        <div className="form-group full-width">
+          <label>Upload Supporting Documents (Optional)</label>
+          <div {...getRootProps()} className="dropzone">
+            <input {...getInputProps()} />
+            <p>📎 Drag & drop files here, or click to select</p>
+            <p className="dropzone-info">Max 5 files, 5MB each (PDF, Excel, CSV, Images)</p>
+          </div>
+          {errorMessages.fileUpload && <span className="error-text">{errorMessages.fileUpload}</span>}
+        </div>
+
+        {uploadedFiles.length > 0 && (
+          <div className="form-group full-width">
+            <label>Uploaded Files:</label>
+            <ul className="uploaded-files-list">
+              {uploadedFiles.map((file, index) => (
+                <li key={index}>
+                  <div className="file-info">
+                    <span className="file-name">{file.name}</span>
+                    <span className="file-size">({(file.size / 1024 / 1024).toFixed(2)} MB)</span>
+                  </div>
+                  <button type="button" onClick={() => removeFile(file)} className="remove-file">
+                    ×
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>
+    </motion.div>
+  );
+// Main render function
   const renderStepContent = () => {
     switch (step) {
       case 1:
@@ -1757,7 +2041,7 @@ const EnhancedQuoteRequest = () => {
             { num: 6, label: 'Requirements' },
             { num: 7, label: 'Service & Support' },
             { num: 8, label: 'Budget' },
-            { num: 9, label: 'Contact Info' }
+            { num: 9, label: 'Timeline' }
           ].map((s) => (
             <div 
               key={s.num}
@@ -1781,6 +2065,7 @@ const EnhancedQuoteRequest = () => {
               type="button" 
               onClick={handlePrevious}
               className="btn btn-secondary"
+              disabled={isSubmitting}
             >
               ← Previous
             </button>
@@ -1791,6 +2076,7 @@ const EnhancedQuoteRequest = () => {
               type="button" 
               onClick={handleNext}
               className="btn btn-primary"
+              disabled={isSubmitting}
             >
               Next →
             </button>
@@ -1813,8 +2099,22 @@ const EnhancedQuoteRequest = () => {
           )}
         </div>
 
-        {/* Overall Error Message */}
-        {Object.keys(errorMessages).length > 0 && (
+        {/* Success Message */}
+        {submissionStatus === 'success' && successMessage && (
+          <div className="success-message">
+            <p>✅ {successMessage}</p>
+          </div>
+        )}
+
+        {/* Error Messages */}
+        {submissionStatus === 'error' && errorMessages.general && (
+          <div className="error-message">
+            <p>❌ {errorMessages.general}</p>
+          </div>
+        )}
+
+        {/* Overall Error Summary */}
+        {Object.keys(errorMessages).length > 0 && submissionStatus !== 'error' && (
           <div className="error-summary">
             <p>⚠️ Please fix the following errors:</p>
             <ul>

@@ -1,16 +1,6 @@
 /**
  * NavigationBar.js
  * Production-ready navigation component for TendorAI
- *
- * Features:
- * - Dynamic overflow handling -> moves excessive nav links into a "More" dropdown
- * - Accessible dropdowns (Services & More) with keyboard support
- * - Mobile nav with overlay and scroll-lock
- * - User/Vendor auth display + logout flows
- * - Debounced ResizeObserver + window resize for performance
- *
- * Usage:
- * import NavigationBar from './NavigationBar';
  */
 
 import React, {
@@ -119,7 +109,6 @@ const ServiceLinkItem = React.memo(function ServiceLinkItem({
     </NavLink>
   );
 });
-
 /* ----------------------------- Main component ------------------------------ */
 
 const NavigationBar = () => {
@@ -139,19 +128,18 @@ const NavigationBar = () => {
   const [isServicesOpen, setIsServicesOpen] = useState(false);
   const [isMoreOpen, setIsMoreOpen] = useState(false);
 
-  // Overflow state: items moved from main nav into "More"
+  // Overflow state
   const [overflowIndices, setOverflowIndices] = useState([]);
 
   // refs
   const navContainerRef = useRef(null);
-  const navLinksRef = useRef([]); // array of refs for each nav link
+  const navLinksRef = useRef([]);
   const brandRef = useRef(null);
   const authRef = useRef(null);
   const servicesRef = useRef(null);
   const moreRef = useRef(null);
   const mobileNavRef = useRef(null);
 
-  // Clean up ref list
   navLinksRef.current = [];
 
   // Toggles
@@ -185,19 +173,25 @@ const NavigationBar = () => {
     }
   }, [logout, closeAll, navigate]);
 
+  // **FIXED: Request Quote Navigation**
+  const handleRequestQuote = useCallback(() => {
+    closeAll();
+    navigate("/request-quote");
+  }, [closeAll, navigate]);
+
   // Close on route change
   useEffect(() => {
     closeAll();
   }, [location.pathname, closeAll]);
 
-  // Scroll state for styling
+  // Scroll state
   useEffect(() => {
     const onScroll = () => setIsScrolled(window.scrollY > 20);
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  // Escape key to close
+  // Escape key
   useEffect(() => {
     const onKey = (e) => {
       if (e.key === "Escape") closeAll();
@@ -206,7 +200,7 @@ const NavigationBar = () => {
     return () => document.removeEventListener("keydown", onKey);
   }, [closeAll]);
 
-  // Click outside for dropdowns / mobile nav
+  // Click outside
   useEffect(() => {
     const onClick = (e) => {
       if (
@@ -223,24 +217,19 @@ const NavigationBar = () => {
       ) {
         setIsMoreOpen(false);
       }
-      if (mobileNavRef.current && !mobileNavRef.current.contains(e.target)) {
-        // don't close mobile if clicked the toggle - handled elsewhere
-      }
     };
     document.addEventListener("mousedown", onClick);
     return () => document.removeEventListener("mousedown", onClick);
   }, []);
 
-  // Scroll lock when mobile menu open
+  // Scroll lock
   useEffect(() => {
     document.body.style.overflow = isMenuOpen ? "hidden" : "";
     return () => {
       document.body.style.overflow = "";
     };
   }, [isMenuOpen]);
-
   /* ---------------------- Dynamic overflow algorithm --------------------- */
-  // Purpose: compute which nav items fit in the center area and which must move to "More"
   const measureOverflow = useCallback(() => {
     const container = navContainerRef.current;
     if (!container) return;
@@ -255,39 +244,30 @@ const NavigationBar = () => {
       ? Math.ceil(servicesRef.current.getBoundingClientRect().width)
       : 0;
 
-    // available space in the center area: total width minus brand and auth and small margins
     const total = Math.ceil(container.getBoundingClientRect().width);
-    const safety = 24; // small padding buffer
+    const safety = 24;
     const availableCenter = Math.max(0, total - brandWidth - authWidth - safety);
 
-    // compute cumulative widths for nav link nodes
     const widths = (navLinksRef.current || []).map((el) =>
       el ? Math.ceil(el.getBoundingClientRect().width) : 0
     );
 
-    // Always keep services width accounted for (we show the services trigger in the center)
-    // Our nav links are the NAVIGATION_LINKS array. We'll try to fit them left-to-right.
-    // If they don't fit, we mark their indices as overflowed.
     const resultOverflow = [];
-    let used = servicesWidth; // services trigger included among center items
+    let used = servicesWidth;
     for (let i = 0; i < widths.length; i++) {
       used += widths[i];
       if (used > availableCenter) {
-        // Mark this and all following as overflow
         for (let j = i; j < widths.length; j++) resultOverflow.push(j);
         break;
       }
-      // small gap accounted for implicitly
     }
 
-    // Save state only when changed to avoid re-renders
     const same =
       resultOverflow.length === overflowIndices.length &&
       resultOverflow.every((v, idx) => overflowIndices[idx] === v);
     if (!same) setOverflowIndices(resultOverflow);
   }, [overflowIndices]);
 
-  // Debounce helper
   const debounce = (fn, ms = 120) => {
     let t;
     return (...args) => {
@@ -296,21 +276,17 @@ const NavigationBar = () => {
     };
   };
 
-  // Resize observer + window resize
   useLayoutEffect(() => {
     if (!navContainerRef.current) return;
     const ro = new ResizeObserver(debounce(() => measureOverflow(), 100));
     ro.observe(navContainerRef.current);
 
-    // Also observe brand/auth to react to their width changes (fonts, contents)
     if (brandRef.current) ro.observe(brandRef.current);
     if (authRef.current) ro.observe(authRef.current);
 
-    // initial measure
     measureOverflow();
 
     window.addEventListener("resize", debounce(measureOverflow, 80));
-    // remeasure after fonts load or images
     const idle = setTimeout(measureOverflow, 300);
 
     return () => {
@@ -320,9 +296,6 @@ const NavigationBar = () => {
     };
   }, [measureOverflow]);
 
-  /* ---------------------- Render helpers & layout ------------------------- */
-
-  // Build arrays for rendering: which nav links are primary (fit) vs overflow (More)
   const primaryNavItems = useMemo(() => {
     return NAVIGATION_LINKS.filter((_, idx) => !overflowIndices.includes(idx));
   }, [overflowIndices]);
@@ -330,11 +303,6 @@ const NavigationBar = () => {
   const overflowNavItems = useMemo(() => {
     return NAVIGATION_LINKS.filter((_, idx) => overflowIndices.includes(idx));
   }, [overflowIndices]);
-
-  // Utility: get ref for each nav link
-  const setNavLinkRef = (el, idx) => {
-    navLinksRef.current[idx] = el;
-  };
 
   return (
     <>
@@ -354,17 +322,13 @@ const NavigationBar = () => {
             </NavLink>
           </div>
 
-          {/* NAV CENTER - dynamic */}
+          {/* NAV CENTER */}
           <div className="navbar-nav" aria-hidden={isMenuOpen}>
-            {/* Render first N items (primaryNavItems) */}
             {NAVIGATION_LINKS.map((link, idx) => {
-              // If index is overflowed, we still render a hidden element for measurement,
-              // but placed with visibility: hidden and no pointer events (so measurement works).
               const isOverflowed = overflowIndices.includes(idx);
               const shouldRender =
                 !isOverflowed && primaryNavItems.find((l) => l.to === link.to);
 
-              // Render a visible item if it's among primary
               return shouldRender ? (
                 <NavLinkItem
                   key={link.to}
@@ -373,12 +337,10 @@ const NavigationBar = () => {
                   exact={!!link.exact}
                   onClick={closeAll}
                   className="center-nav-item"
-                  ref={null}
                 />
               ) : null;
             })}
-
-            {/* Services dropdown trigger (always visible in center) */}
+{/* Services dropdown */}
             <div
               className="dropdown-container services-container"
               ref={servicesRef}
@@ -389,7 +351,6 @@ const NavigationBar = () => {
                 className="nav-link dropdown-trigger dropdown-trigger-services"
                 aria-haspopup="true"
                 aria-expanded={isServicesOpen}
-                aria-controls="services-menu"
                 onClick={() => setIsServicesOpen((s) => !s)}
                 type="button"
               >
@@ -397,11 +358,7 @@ const NavigationBar = () => {
               </button>
 
               {isServicesOpen && (
-                <div
-                  id="services-menu"
-                  role="menu"
-                  className="dropdown-menu services-menu"
-                >
+                <div role="menu" className="dropdown-menu services-menu">
                   <div className="dropdown-header">
                     <h4>Our Services</h4>
                     <p>Find the right suppliers for your business needs</p>
@@ -430,29 +387,7 @@ const NavigationBar = () => {
               )}
             </div>
 
-            {/* Render the remaining primary items after Services */}
-            {NAVIGATION_LINKS.map((link, idx) => {
-              const isOverflowed = overflowIndices.includes(idx);
-              const shouldRender =
-                !isOverflowed &&
-                primaryNavItems.find((l) => l.to === link.to) &&
-                // prevent duplicates: some were already rendered before services earlier
-                !NAVIGATION_LINKS.slice(0, 2).includes(link);
-
-              if (!shouldRender) return null;
-              return (
-                <NavLinkItem
-                  key={link.to}
-                  to={link.to}
-                  label={link.label}
-                  exact={!!link.exact}
-                  onClick={closeAll}
-                  className="center-nav-item"
-                />
-              );
-            })}
-
-            {/* More dropdown (if overflowed items exist) */}
+            {/* More dropdown */}
             {overflowNavItems.length > 0 && (
               <div
                 className="dropdown-container more-container"
@@ -464,7 +399,6 @@ const NavigationBar = () => {
                   className="nav-link dropdown-trigger dropdown-trigger-more"
                   aria-haspopup="true"
                   aria-expanded={isMoreOpen}
-                  aria-controls="more-menu"
                   onClick={() => setIsMoreOpen((s) => !s)}
                   type="button"
                 >
@@ -472,7 +406,7 @@ const NavigationBar = () => {
                 </button>
 
                 {isMoreOpen && (
-                  <div id="more-menu" role="menu" className="dropdown-menu small-menu">
+                  <div role="menu" className="dropdown-menu small-menu">
                     {overflowNavItems.map((link) => (
                       <NavLinkItem
                         key={link.to}
@@ -489,9 +423,8 @@ const NavigationBar = () => {
             )}
           </div>
 
-          {/* AUTH / CTA group */}
+          {/* AUTH SECTION */}
           <div className="navbar-auth" ref={authRef}>
-            {/* USER */}
             {!isUserLoggedIn ? (
               <div className="user-auth-section">
                 <NavLink
@@ -499,7 +432,7 @@ const NavigationBar = () => {
                   className="auth-link login-link"
                   onClick={closeAll}
                 >
-                  <FaUser className="auth-icon" aria-hidden /> <span>User Login</span>
+                  <FaUser className="auth-icon" /> Login
                 </NavLink>
 
                 <NavLink
@@ -507,18 +440,27 @@ const NavigationBar = () => {
                   className="auth-link signup-link cta-button"
                   onClick={closeAll}
                 >
-                  <span>User Sign Up</span>
+                  Sign Up
                 </NavLink>
               </div>
             ) : (
               <div className="user-menu authenticated">
+                {/* **FIXED: Request Quote Button** */}
+                <button
+                  className="auth-link request-quote-button cta-button"
+                  onClick={handleRequestQuote}
+                  aria-label="Request a quote"
+                >
+                  Request Quote
+                </button>
+
                 <NavLink
                   to="/dashboard"
                   className="auth-link dashboard-link"
                   onClick={closeAll}
                 >
-                  <FaUser className="auth-icon" aria-hidden />
-                  <span className="user-name">{userName}</span>
+                  <FaUser className="auth-icon" />
+                  {userName}
                 </NavLink>
 
                 <button
@@ -526,74 +468,64 @@ const NavigationBar = () => {
                   onClick={handleLogout}
                   aria-label="Log out"
                 >
-                  <span>Log Out</span>
+                  Log Out
                 </button>
               </div>
             )}
 
-            {/* VENDOR */}
-            {!isVendorLoggedIn ? (
+            {!isVendorLoggedIn && (
               <div className="vendor-auth-section">
                 <NavLink
                   to="/vendor-login"
                   className="auth-link vendor-link"
                   onClick={closeAll}
                 >
-                  <FaStore className="auth-icon" aria-hidden />
-                  <span>Vendor Login</span>
-                </NavLink>
-
-                <NavLink
-                  to="/vendor-signup"
-                  className="auth-link vendor-signup-link cta-button"
-                  onClick={closeAll}
-                >
-                  <span>Vendor Sign Up</span>
+                  <FaStore className="auth-icon" />
+                  Vendor
                 </NavLink>
               </div>
-            ) : (
+            )}
+
+            {isVendorLoggedIn && (
               <div className="vendor-menu authenticated">
                 <NavLink
                   to="/vendor-dashboard"
                   className="auth-link vendor-dashboard-link"
                   onClick={closeAll}
                 >
-                  <FaStore className="auth-icon" aria-hidden />
-                  <span>Vendor Dashboard</span>
+                  <FaStore className="auth-icon" />
+                  Vendor
                 </NavLink>
 
                 <button
                   className="auth-link logout-link"
                   onClick={handleVendorLogout}
-                  aria-label="Vendor log out"
                 >
-                  <span>Log Out</span>
+                  Log Out
                 </button>
               </div>
             )}
           </div>
 
-          {/* Mobile menu toggle */}
+          {/* Mobile toggle */}
           <button
             className="mobile-menu-toggle"
             onClick={toggleMenu}
             aria-expanded={isMenuOpen}
-            aria-controls="mobile-nav"
-            aria-label={isMenuOpen ? "Close navigation menu" : "Open navigation menu"}
+            aria-label={isMenuOpen ? "Close menu" : "Open menu"}
           >
             {isMenuOpen ? <FaTimes /> : <FaBars />}
           </button>
         </div>
       </nav>
-
-      {/* MOBILE NAV (drawer) */}
+{/* MOBILE NAV */}
       {isMenuOpen && (
         <>
           <div className="mobile-nav-overlay" onClick={closeAll} />
           <div id="mobile-nav" ref={mobileNavRef} className="mobile-nav active" role="dialog" aria-modal="true">
             <div className="mobile-nav-content">
               <nav className="mobile-nav-section" aria-label="Mobile primary">
-                {NAVIGATION_LINKS.map((link, idx) => (
+                {NAVIGATION_LINKS.map((link) => (
                   <NavLink
                     key={link.to}
                     to={link.to}
@@ -624,7 +556,7 @@ const NavigationBar = () => {
                 </div>
               </nav>
 
-              {/* Auth blocks on mobile */}
+              {/* Mobile Auth */}
               <div className="mobile-auth-section">
                 <div className="mobile-user-auth">
                   <h4 className="mobile-section-title"><FaUser className="section-icon" />User Account</h4>
@@ -635,6 +567,13 @@ const NavigationBar = () => {
                     </>
                   ) : (
                     <>
+                      {/* **FIXED: Mobile Request Quote Button** */}
+                      <button 
+                        onClick={() => { handleRequestQuote(); closeAll(); }} 
+                        className="mobile-auth-link request-quote"
+                      >
+                        Request Quote
+                      </button>
                       <NavLink to="/dashboard" onClick={closeAll} className="mobile-auth-link dashboard">{userName}'s Dashboard</NavLink>
                       <button onClick={() => { handleLogout(); closeAll(); }} className="mobile-auth-link logout">Log Out</button>
                     </>
@@ -662,10 +601,10 @@ const NavigationBar = () => {
                   <p className="mobile-tagline"><FaShieldAlt className="tagline-icon" />Revolutionising procurement with AI</p>
                   <div className="mobile-contact">
                     <a href="mailto:hello@tendorai.com" className="mobile-contact-link">
-                      <FaEnvelope className="contact-icon" /> <span>hello@tendorai.com</span>
+                      <FaEnvelope className="contact-icon" /> hello@tendorai.com
                     </a>
                     <a href="tel:+442079460958" className="mobile-contact-link">
-                      <FaPhone className="contact-icon" /> <span>+44 20 7946 0958</span>
+                      <FaPhone className="contact-icon" /> +44 20 7946 0958
                     </a>
                   </div>
                 </div>

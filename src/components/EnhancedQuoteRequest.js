@@ -36,14 +36,12 @@ const EnhancedQuoteRequest = () => {
     contactName: '',
     email: '',
     phone: '',
-    industryType: '', // Healthcare, Legal, Education, Finance, etc.
-    subSector: '', // More specific industry detail
-    numEmployees: '', // 1-10, 11-25, 26-50, etc.
+    industryType: '',
+    subSector: '',
+    numEmployees: '',
     numLocations: 1,
     multiFloor: 'No',
     postcode: '',
-    
-    // Additional company details for better AI matching
     annualRevenue: '',
     officeBasedEmployees: '',
     primaryBusinessActivity: '',
@@ -52,32 +50,39 @@ const EnhancedQuoteRequest = () => {
     monthlyVolume: {
       mono: '',
       colour: '',
-      total: 0 // Auto-calculated
+      total: 0
     },
-    
-    // Peak usage patterns (helps AI recommend appropriate capacity)
     peakUsagePeriods: '',
-    documentTypes: [], // Contracts, Marketing, Reports, etc.
+    documentTypes: [],
     averagePageCount: '',
     
     // === STEP 3: Paper & Finishing Requirements ===
     paperRequirements: {
-      primarySize: 'A4', // A4, A3, SRA3
+      primarySize: 'A4',
       additionalSizes: [],
       specialPaper: false,
-      specialPaperTypes: [] // Cardstock, Labels, Envelopes, etc.
+      specialPaperTypes: []
     },
-    finishingRequirements: [], // Stapling, Hole punch, Booklet, etc.
+    finishingRequirements: [],
     
-    // === STEP 4: Current Setup & Pain Points ===
+    // === STEP 4: IT & Network Environment ===
+    networkSetup: '',
+    itSupportStructure: '',
+    currentSoftwareEnvironment: '',
+    cloudPreference: '',
+    integrationNeeds: [],
+    mobileRequirements: 'No',
+    securityRequirements: [],
+    
+    // === STEP 5: Current Setup & Pain Points ===
     currentSetup: {
-      machineAge: '', // 0-2 years, 2-5 years, 5+ years, No current machine
+      machineAge: '',
       currentSupplier: '',
       currentModel: '',
       currentSpeed: '',
       contractStartDate: '',
       contractEndDate: '',
-      currentMonoCPC: '', // Cost per copy in pence
+      currentMonoCPC: '',
       currentColorCPC: '',
       quarterlyLeaseCost: '',
       quarterlyService: '',
@@ -86,36 +91,21 @@ const EnhancedQuoteRequest = () => {
       buyoutCost: '',
       includeBuyoutInCosts: false
     },
-    
-    // Current pain points and reasons for change
-    reasonsForQuote: [], // High costs, Breakdowns, Poor quality, etc.
+    reasonsForQuote: [],
     currentPainPoints: '',
     impactOnProductivity: '',
     maintenanceIssues: '',
     
-    // === STEP 5: Technical Requirements ===
-    serviceType: 'Photocopiers', // Photocopiers, Printers, Multifunction
-    colour: '', // Full Colour, Black & White
-    type: '', // Paper size (A4, A3, etc.) - maps to paperRequirements.primarySize
-    min_speed: '', // Minimum PPM required
+    // === STEP 6: Technical Requirements ===
+    serviceType: 'Photocopiers',
+    colour: '',
+    type: '',
+    min_speed: '',
+    required_functions: [],
+    niceToHaveFeatures: [],
+    securityFeatures: [],
     
-    // Feature requirements
-    required_functions: [], // Essential features
-    niceToHaveFeatures: [], // Optional features
-    
-    // Security & compliance
-    securityRequirements: [], // User auth, encryption, etc.
-    securityFeatures: [], // Additional security needs
-    
-    // Network & integration
-    networkSetup: '',
-    itSupportStructure: '',
-    currentSoftwareEnvironment: '',
-    cloudPreference: '',
-    integrationNeeds: [],
-    mobileRequirements: 'No',
-    
-    // === STEP 6: Service & Support ===
+    // === STEP 7: Service & Support ===
     responseTimeExpectation: '',
     maintenancePreference: '',
     trainingNeeds: '',
@@ -123,23 +113,19 @@ const EnhancedQuoteRequest = () => {
     reportingNeeds: [],
     additionalServices: [],
     
-    // === STEP 7: Budget & Commercial ===
+    // === STEP 8: Budget & Commercial ===
     budget: {
-      maxLeasePrice: '', // Maximum quarterly lease price
+      maxLeasePrice: '',
       preferredTerm: '60 months',
       includeService: true,
       includeConsumables: true
     },
-    
-    // Decision making
-    preference: '', // cost, quality, speed, reliability, balanced
+    preference: '',
     decisionMakers: [],
     evaluationCriteria: [],
     contractLengthPreference: '',
     pricingModelPreference: '',
-    max_lease_price: '', // Monthly max (different from quarterly)
-    
-    // === STEP 8: Future Planning ===
+    max_lease_price: '',
     expectedGrowth: '',
     expansionPlans: '',
     technologyRoadmap: '',
@@ -149,7 +135,7 @@ const EnhancedQuoteRequest = () => {
     
     // === STEP 9: Urgency & Timeline ===
     urgency: {
-      timeframe: '', // Immediately, 1-3 months, etc.
+      timeframe: '',
       reason: ''
     },
     urgencyLevel: '',
@@ -162,12 +148,11 @@ const EnhancedQuoteRequest = () => {
     sustainabilityGoals: '',
     vendorRelationshipType: '',
     roiExpectations: '',
-    
-    // Hidden/calculated fields
     totalAnnualCosts: '',
     hiddenCosts: '',
     serviceProvider: ''
   });
+
   // Helper functions for calculations and suggestions
   const calculateVolumeRange = (mono, colour) => {
     const total = (parseInt(mono) || 0) + (parseInt(colour) || 0);
@@ -197,7 +182,7 @@ const EnhancedQuoteRequest = () => {
     return ukPostcodeRegex.test(postcode);
   };
 
-  // **FIXED: Calculate Cost Per Page**
+  // Calculate Cost Per Page
   const calculateCostPerPage = (type) => {
     const mono = parseInt(formData.monthlyVolume.mono) || 0;
     const colour = parseInt(formData.monthlyVolume.colour) || 0;
@@ -212,7 +197,6 @@ const EnhancedQuoteRequest = () => {
       return `£${colourCost.toFixed(3)}`;
     }
   };
-
   // Auto-update calculated fields
   useEffect(() => {
     const mono = parseInt(formData.monthlyVolume.mono) || 0;
@@ -267,6 +251,7 @@ const EnhancedQuoteRequest = () => {
       }
     }
   }, [formData.currentSetup.quarterlyLeaseCost, formData.currentSetup.contractEndDate, formData.currentSetup.buyoutRequired]);
+
   // Handle input changes
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -347,7 +332,8 @@ const EnhancedQuoteRequest = () => {
   const removeFile = (file) => {
     setUploadedFiles(prev => prev.filter(f => f.name !== file.name));
   };
-  // Validation for each step
+
+  // ✅ FIXED: Validation for each step
   const validateStep = (currentStep) => {
     const errors = {};
     
@@ -373,7 +359,13 @@ const EnhancedQuoteRequest = () => {
         }
         break;
         
-      case 4: // Current Setup
+      case 4: // IT & Network Environment - FIXED
+        if (!formData.networkSetup) {
+          errors.networkSetup = 'Network setup is required';
+        }
+        break;
+        
+      case 5: // Current Setup & Pain Points - FIXED
         if (!formData.currentSetup.machineAge) {
           errors.currentSetup = 'Please select current equipment age';
         }
@@ -382,13 +374,13 @@ const EnhancedQuoteRequest = () => {
         }
         break;
         
-      case 5: // Technical Requirements
+      case 6: // Technical Requirements - FIXED (was step 5)
         if (!formData.serviceType) errors.serviceType = 'Service type is required';
         if (!formData.colour) errors.colour = 'Colour preference is required';
         if (!formData.min_speed) errors.min_speed = 'Minimum speed is required';
         break;
         
-      case 6: // Service & Support
+      case 7: // Service & Support - FIXED (was step 6)
         if (!formData.responseTimeExpectation) {
           errors.responseTimeExpectation = 'Response time expectation is required';
         }
@@ -397,7 +389,7 @@ const EnhancedQuoteRequest = () => {
         }
         break;
         
-      case 7: // Budget & Commercial
+      case 8: // Budget & Commercial - FIXED (was step 7 & 8 combined)
         if (!formData.budget.maxLeasePrice) {
           errors.budget = 'Maximum quarterly lease price is required';
         }
@@ -407,9 +399,6 @@ const EnhancedQuoteRequest = () => {
         if (formData.decisionMakers.length === 0) {
           errors.decisionMakers = 'Please select at least one decision maker';
         }
-        break;
-        
-      case 8: // Future Planning
         if (!formData.expectedGrowth) {
           errors.expectedGrowth = 'Expected growth is required';
         }
@@ -440,11 +429,6 @@ const EnhancedQuoteRequest = () => {
     }
   };
 
-  const handleBack = () => {
-    setStep(prev => prev - 1);
-  };
-
-  // **FIXED: Handle Previous**
   const handlePrevious = () => {
     setStep(prev => prev - 1);
     setErrorMessages({});
@@ -573,7 +557,6 @@ const EnhancedQuoteRequest = () => {
         documentTypes: formData.documentTypes,
         averagePageCount: formData.averagePageCount,
         finishingRequirements: formData.finishingRequirements,
-        departmentBreakdown: formData.departmentBreakdown,
         securityRequirements: formData.securityRequirements,
         currentSoftwareEnvironment: formData.currentSoftwareEnvironment,
         cloudPreference: formData.cloudPreference,
@@ -818,19 +801,16 @@ const EnhancedQuoteRequest = () => {
         </div>
         
         <div className="form-group">
-          <label htmlFor="numLocations">Number of Locations <span className="required">*</span></label>
+          <label htmlFor="numLocations">Number of Locations</label>
           <input
             type="number"
             id="numLocations"
             name="numLocations"
             value={formData.numLocations}
             onChange={handleChange}
-            required
             min="1"
             placeholder="1"
-            className={errorMessages.numLocations ? 'error' : ''}
           />
-          {errorMessages.numLocations && <span className="error-text">{errorMessages.numLocations}</span>}
         </div>
         
         <div className="form-group">
@@ -1088,7 +1068,7 @@ const EnhancedQuoteRequest = () => {
       </div>
     </motion.div>
   );
-// **FIXED: renderStep4 - IT & Network Environment**
+
   const renderStep4 = () => (
     <motion.div
       initial={{ opacity: 0, x: 20 }}
@@ -1231,7 +1211,6 @@ const EnhancedQuoteRequest = () => {
     </motion.div>
   );
 
-  // **FIXED: renderStep5 - Current Equipment & Pain Points**
   const renderStep5 = () => (
     <motion.div
       initial={{ opacity: 0, x: 20 }}
@@ -1541,7 +1520,7 @@ const renderStep6 = () => (
         </div>
 
         <div className="form-group full-width">
-          <label>Required Functions <span className="required">*</span></label>
+          <label>Required Functions</label>
           <div className="checkbox-grid">
             {['Print', 'Copy', 'Scan', 'Fax', 'Email'].map(func => (
               <label key={func}>
@@ -1555,7 +1534,6 @@ const renderStep6 = () => (
               </label>
             ))}
           </div>
-          {errorMessages.required_functions && <span className="error-text">{errorMessages.required_functions}</span>}
         </div>
 
         <div className="form-group full-width">
@@ -1801,8 +1779,7 @@ const renderStep8 = () => (
               </label>
             ))}
           </div>
-          {errorMessages.decisionMakers && <span className="error-text">{errorMessages.
-                                                                         decisionMakers}</span>}
+          {errorMessages.decisionMakers && <span className="error-text">{errorMessages.decisionMakers}</span>}
         </div>
 
         <div className="form-group full-width">

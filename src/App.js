@@ -426,7 +426,7 @@ const router = createBrowserRouter(
         { path: "/services/telecoms", element: <Telecoms /> },
         { path: "/services/cctv", element: <CCTV /> },
 
-        // Vendor public route (should this be protected?)
+        // Vendor public route
         { path: "/vendor-dashboard", element: <VendorDashboard /> },
 
         // FIXED: Protected user routes
@@ -434,12 +434,10 @@ const router = createBrowserRouter(
           element: <PrivateRoute />,
           children: [
             { path: "/dashboard", element: <UserDashboard /> },
-            { path: "/request-quote", element: <RequestQuote /> },
-            // CRITICAL: CompareVendors route for the main workflow
+            { path: "/quote-request", element: <RequestQuote /> }, // ✅ FIXED: Changed from /request-quote
             { path: "/compare-vendors", element: <CompareVendors /> },
             { path: "/manage-account", element: <AccountSettings /> },
             { path: "/quotes-requested", element: <QuotesRequested /> },
-            // FIXED: Quotes viewing routes
             { path: "/quotes", element: <QuotesResults /> },
             { path: "/quotes/:id", element: <QuotesResults /> },
           ],
@@ -506,7 +504,6 @@ function App() {
   return (
     <HelmetProvider>
       <ErrorBoundary>
-        {/* CRITICAL: AuthProvider must wrap RouterProvider for token access */}
         <AuthProvider>
           <RouterProvider router={router} />
         </AuthProvider>

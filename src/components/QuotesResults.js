@@ -30,7 +30,6 @@ const LoadingSpinner = ({ message = "Loading..." }) => (
     `}</style>
   </div>
 );
-
 // Empty state component
 const EmptyState = ({ title, description, actionLabel, onAction }) => (
   <div style={{ textAlign: 'center', padding: '3rem', background: 'white', borderRadius: '8px' }}>
@@ -54,11 +53,10 @@ const EmptyState = ({ title, description, actionLabel, onAction }) => (
     )}
   </div>
 );
-
 const QuoteResults = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { auth } = useAuth(); // Fixed: Use auth object
+  const { auth } = useAuth();
   const isAuthenticated = auth?.isAuthenticated;
   const user = auth?.user;
   const token = auth?.token;
@@ -66,7 +64,7 @@ const QuoteResults = () => {
   const [quoteRequests, setQuoteRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [lastFetchTime, setLastFetchTime] = useState(Date.now()); // Track last fetch
+  const [lastFetchTime, setLastFetchTime] = useState(Date.now());
   const [filters, setFilters] = useState({
     status: searchParams.get('status') || 'all',
     search: searchParams.get('search') || '',
@@ -77,17 +75,14 @@ const QuoteResults = () => {
     status: filters.status, 
     individualQuote: undefined 
   });
-
   // Redirect if not authenticated
   useEffect(() => {
     if (!isAuthenticated) {
       navigate('/login', { state: { from: '/quotes' } });
     }
   }, [isAuthenticated, navigate]);
-
   // Fetch quotes (now fetches quote requests)
   const fetchQuotes = useCallback(async (silent = false) => {
-    // Use the correct user ID field from your logs
     const userId = user?.userId || user?.id;
     if (!userId || !token) return;
 
@@ -99,12 +94,11 @@ const QuoteResults = () => {
 
       const queryParams = new URLSearchParams({
         userId: userId,
-        submittedBy: userId, // Add this based on your backend logs
+        submittedBy: userId,
         page: 1,
         limit: 50
       });
 
-      // Use the full production URL to match your backend
       const response = await fetch(`${PRODUCTION_API_URL}/api/quotes/requests?${queryParams}`, {
         method: 'GET',
         headers: {
@@ -127,7 +121,6 @@ const QuoteResults = () => {
       setQuoteRequests(data.quoteRequests || []);
       setLastFetchTime(Date.now());
       
-      // Extract quotes for debugging (this will show the issue you reported)
       const extractedQuotes = (data.quoteRequests || []).flatMap(req => req.quotes || []);
       console.log('📋 Extracted quotes:', extractedQuotes);
       
@@ -140,10 +133,8 @@ const QuoteResults = () => {
       }
     }
   }, [user?.userId, user?.id, token, navigate]);
-
   // Implement polling with better logic
   useEffect(() => {
-    // Check if any requests are still being processed
     const hasProcessingRequests = quoteRequests.some(req => 
       req.status === 'pending' || 
       (req.aiAnalysis && !req.aiAnalysis.processed) ||
@@ -155,8 +146,8 @@ const QuoteResults = () => {
       console.log('📊 Setting up polling for processing requests...');
       interval = setInterval(() => {
         console.log("🔄 Polling for quote updates...");
-        fetchQuotes(true); // Silent fetch
-      }, 30000); // Poll every 30 seconds
+        fetchQuotes(true);
+      }, 30000);
     }
     
     return () => {
@@ -165,13 +156,12 @@ const QuoteResults = () => {
         console.log('🛑 Cleared polling interval');
       }
     };
-  }, [lastFetchTime]); // Only depend on lastFetchTime to avoid infinite re-renders
+  }, [lastFetchTime]);
 
   // Initial fetch on component mount
   useEffect(() => {
     fetchQuotes();
   }, [fetchQuotes]);
-
   // Filter quote requests based on search and status
   const filteredQuoteRequests = useMemo(() => {
     let filtered = [...quoteRequests];
@@ -217,7 +207,6 @@ const QuoteResults = () => {
       return 'Unknown';
     }
   };
-
   // --- Render Logic ---
   if (loading) {
     return (
@@ -240,8 +229,7 @@ const QuoteResults = () => {
       </div>
     );
   }
-
-  return (
+return (
     <div className="quote-results-container">
       {/* Header */}
       <div className="results-header">
@@ -293,8 +281,7 @@ const QuoteResults = () => {
           </button>
         </div>
       </div>
-
-      {/* Quote request cards or empty state */}
+{/* Quote request cards or empty state */}
       {filteredQuoteRequests.length === 0 ? (
         <EmptyState
           title="No requests found"
@@ -353,10 +340,17 @@ const QuoteResults = () => {
                   <div className="action-buttons">
                     {quotesCount > 0 && (
                       <button
-                        onClick={() => navigate(`/quote-details/${request._id}`)}
+                        onClick={() => navigate('/compare-vendors', { 
+                          state: { 
+                            quoteRequestId: request._id,
+                            companyName: request.companyName,
+                            serviceType: request.serviceType,
+                            quotesCount: quotesCount
+                          } 
+                        })}
                         className="btn-contact-small"
                       >
-                        View {quotesCount} Quote{quotesCount > 1 ? 's' : ''}
+                        Compare {quotesCount} Quote{quotesCount > 1 ? 's' : ''} →
                       </button>
                     )}
                     

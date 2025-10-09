@@ -12,9 +12,7 @@
       http-equiv="Content-Security-Policy"
       content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://chimpstatic.com https://js.stripe.com https://js.intercomcdn.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https: blob:; connect-src 'self' https://www.google-analytics.com https://region1.analytics.google.com https://stats.g.doubleclick.net https://api.tendorai.com https://ai-procurement-backend-q35u.onrender.com https://api.stripe.com https://widget.intercom.io wss://nexus-websocket-a.intercom.io; frame-src 'self' https://js.stripe.com https://widget.intercom.io; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests;"
     />
-    <meta http-equiv="X-Frame-Options" content="SAMEORIGIN" />
     <meta http-equiv="X-Content-Type-Options" content="nosniff" />
-    <meta http-equiv="Strict-Transport-Security" content="max-age=31536000; includeSubDomains" />
     <meta name="format-detection" content="telephone=no" />
 
     <!-- OPTIMIZED SEO Meta -->
@@ -50,7 +48,6 @@
     <!-- Theme & Branding -->
     <meta name="theme-color" content="#1D4ED8" />
     <meta name="msapplication-TileColor" content="#1D4ED8" />
-    <meta name="msapplication-config" content="/browserconfig.xml" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
@@ -67,7 +64,6 @@
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta property="og:locale" content="en_GB" />
-    <meta property="og:updated_time" content="2024-01-01T00:00:00Z" />
 
     <!-- OPTIMIZED Twitter Card -->
     <meta name="twitter:card" content="summary_large_image" />
@@ -78,23 +74,10 @@
     <meta name="twitter:image" content="https://www.tendorai.com/images/twitter-image.png" />
     <meta name="twitter:image:alt" content="TendorAI - AI-powered procurement platform for business equipment" />
 
-    <!-- LinkedIn -->
-    <meta property="og:title" content="TendorAI | AI Quotes for Copiers, Telecoms, CCTV & IT" />
-    <meta property="og:description" content="Compare 3 instant AI-powered quotes for copiers, telecoms, CCTV, and IT equipment from verified UK suppliers." />
-    <meta property="og:image" content="https://www.tendorai.com/images/linkedin-image.png" />
-
     <!-- Icons & Manifest -->
     <link rel="icon" href="/favicon.ico" sizes="32x32" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180" />
-    <link rel="apple-touch-icon" href="/apple-touch-icon-152x152.png" sizes="152x152" />
-    <link rel="apple-touch-icon" href="/apple-touch-icon-144x144.png" sizes="144x144" />
-    <link rel="apple-touch-icon" href="/apple-touch-icon-120x120.png" sizes="120x120" />
-    <link rel="apple-touch-icon" href="/apple-touch-icon-114x114.png" sizes="114x114" />
-    <link rel="apple-touch-icon" href="/apple-touch-icon-76x76.png" sizes="76x76" />
-    <link rel="apple-touch-icon" href="/apple-touch-icon-72x72.png" sizes="72x72" />
-    <link rel="apple-touch-icon" href="/apple-touch-icon-60x60.png" sizes="60x60" />
-    <link rel="apple-touch-icon" href="/apple-touch-icon-57x57.png" sizes="57x57" />
     <link rel="manifest" href="/site.webmanifest" />
 
     <!-- Google tag (gtag.js) -->
@@ -121,13 +104,6 @@
           "urlTemplate": "https://www.tendorai.com/search?q={search_term_string}"
         },
         "query-input": "required name=search_term_string"
-      },
-      "mainEntity": {
-        "@type": "Organization",
-        "name": "TendorAI",
-        "url": "https://www.tendorai.com/",
-        "logo": "https://www.tendorai.com/images/logo.png",
-        "description": "AI-powered procurement platform for copiers, telecoms, CCTV, and IT equipment"
       }
     }
     </script>
@@ -145,7 +121,6 @@
       "foundingDate": "2024",
       "contactPoint": {
         "@type": "ContactPoint",
-        "telephone": "+44-20-XXXX-XXXX",
         "contactType": "Customer Service",
         "email": "hello@tendorai.com",
         "availableLanguage": "en"
@@ -153,27 +128,16 @@
       "address": {
         "@type": "PostalAddress",
         "addressCountry": "GB",
-        "addressLocality": "London",
-        "postalCode": "SW1A 1AA"
+        "addressLocality": "London"
       },
-      "sameAs": [
-        "https://www.linkedin.com/company/tendorai",
-        "https://twitter.com/tendorai",
-        "https://www.facebook.com/tendorai"
-      ],
       "areaServed": {
         "@type": "Country",
         "name": "United Kingdom"
-      },
-      "serviceType": [
-        "Procurement Software",
-        "Quote Comparison",
-        "Supplier Management"
-      ]
+      }
     }
     </script>
 
-    <!-- NEW Service Schema for Better SEO -->
+    <!-- Service Schema for Better SEO -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -203,38 +167,7 @@
     }
     </script>
 
-    <!-- ENHANCED SoftwareApplication Schema -->
-    <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "SoftwareApplication",
-      "name": "TendorAI",
-      "description": "AI-powered procurement platform for comparing copier, telecom, CCTV, and IT equipment quotes",
-      "url": "https://www.tendorai.com/",
-      "applicationCategory": "BusinessApplication",
-      "operatingSystem": "Web Browser",
-      "offers": {
-        "@type": "Offer",
-        "price": "0",
-        "priceCurrency": "GBP",
-        "priceValidUntil": "2024-12-31",
-        "description": "Free quote comparison service"
-      },
-      "aggregateRating": {
-        "@type": "AggregateRating",
-        "ratingValue": "4.8",
-        "ratingCount": "150"
-      },
-      "featureList": [
-        "Instant quote comparison",
-        "AI-powered matching",
-        "Verified supplier network",
-        "Multi-category support"
-      ]
-    }
-    </script>
-
-    <!-- NEW FAQ Schema for Featured Snippets -->
+    <!-- FAQ Schema for Featured Snippets -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -268,16 +201,11 @@
     }
     </script>
 
-    <!-- Preconnect and Preload for Performance -->
+    <!-- Preconnect for Performance -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="preconnect" href="https://www.google-analytics.com" />
-    <link rel="preconnect" href="https://region1.analytics.google.com" />
-    <link rel="preconnect" href="https://www.googletagmanager.com" />
-    <link rel="preconnect" href="https://api.tendorai.com" />
     <link rel="preconnect" href="https://ai-procurement-backend-q35u.onrender.com" />
-    <link rel="preconnect" href="https://js.stripe.com" />
-    <link rel="preconnect" href="https://widget.intercom.io" />
 
     <!-- Preload Critical Assets -->
     <link
@@ -292,19 +220,6 @@
         href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@400;500;600;700&display=swap"
       />
     </noscript>
-
-    <!-- DNS Prefetch -->
-    <link rel="dns-prefetch" href="//fonts.googleapis.com" />
-    <link rel="dns-prefetch" href="//www.google-analytics.com" />
-    <link rel="dns-prefetch" href="//region1.analytics.google.com" />
-    <link rel="dns-prefetch" href="//api.tendorai.com" />
-    <link rel="dns-prefetch" href="//ai-procurement-backend-q35u.onrender.com" />
-    <link rel="dns-prefetch" href="//js.stripe.com" />
-    <link rel="dns-prefetch" href="//widget.intercom.io" />
-
-    <!-- Resource Hints -->
-    <link rel="prefetch" href="/images/hero-illustration.webp" />
-    <link rel="prefetch" href="/images/dashboard-preview.webp" />
 
     <!-- Critical CSS Inline -->
     <style>
@@ -427,7 +342,6 @@
         background-color: #1e40af;
       }
       
-      /* Reduced Motion */
       @media (prefers-reduced-motion: reduce) {
         .loading-spinner,
         .loading-progress-bar {
@@ -439,19 +353,6 @@
         }
       }
       
-      /* High Contrast */
-      @media (prefers-contrast: high) {
-        .loading-spinner {
-          border-color: #000000;
-          border-top-color: #0066cc;
-        }
-        
-        .loading-text {
-          color: #000000;
-        }
-      }
-      
-      /* Dark Mode */
       @media (prefers-color-scheme: dark) {
         .loading-container {
           background-color: rgba(17, 24, 39, 0.95);
@@ -474,7 +375,6 @@
         <h1>JavaScript Required</h1>
         <p>TendorAI requires JavaScript to provide the best experience for comparing copier, telecom, CCTV, and IT equipment quotes.</p>
         <p>Please enable JavaScript in your browser settings and refresh the page.</p>
-        <p><strong>Supported browsers:</strong> Chrome 90+, Firefox 88+, Safari 14+, Edge 90+</p>
         <div style="margin-top: 24px; padding: 16px; background-color: #f9fafb; border-radius: 8px; border-left: 4px solid #1D4ED8;">
           <strong>Need help?</strong> Contact us at <a href="mailto:hello@tendorai.com">hello@tendorai.com</a>
         </div>
@@ -503,27 +403,31 @@
       </p>
     </div>
 
+    <!-- Configuration Script -->
+    <script>
+      window.TENDORAI_CONFIG = {
+        GA_ID: 'G-0D3RVTRZY9',
+        API_BASE_URL: 'https://ai-procurement-backend-q35u.onrender.com',
+        ENVIRONMENT: 'production'
+      };
+    </script>
+
     <!-- Enhanced Loading Script -->
     <script>
       (function() {
         const loadingIndicator = document.getElementById('loading-indicator');
         const errorBoundary = document.getElementById('error-boundary');
         let loadingTimeout;
-        let progressInterval;
-        let progress = 0;
         
-        // Show error if loading takes too long
         loadingTimeout = setTimeout(() => {
           if (loadingIndicator) {
             loadingIndicator.style.display = 'none';
             errorBoundary.style.display = 'block';
           }
-        }, 30000); // 30 seconds timeout
+        }, 30000);
         
-        // Enhanced loading removal
         function removeLoading() {
           clearTimeout(loadingTimeout);
-          clearInterval(progressInterval);
           
           if (loadingIndicator) {
             loadingIndicator.style.transition = 'opacity 0.3s ease';
@@ -534,18 +438,13 @@
           }
         }
         
-        // Listen for React app ready
         window.addEventListener('tendorai-app-ready', removeLoading);
-        
-        // Fallback for window load
         window.addEventListener('load', () => {
           setTimeout(removeLoading, 1000);
         });
         
-        // Global error handler
         window.addEventListener('error', (event) => {
           console.error('Global error:', event.error);
-          // You can send this to your error reporting service
           if (typeof gtag !== 'undefined') {
             gtag('event', 'exception', {
               description: event.error.message,
@@ -554,10 +453,8 @@
           }
         });
         
-        // Unhandled promise rejection handler
         window.addEventListener('unhandledrejection', (event) => {
           console.error('Unhandled promise rejection:', event.reason);
-          // You can send this to your error reporting service
           if (typeof gtag !== 'undefined') {
             gtag('event', 'exception', {
               description: event.reason.toString(),
@@ -577,73 +474,6 @@
         m.src=i,
         p.parentNode.insertBefore(m,p)
       }(document,"script","https://chimpstatic.com/mcjs-connected/js/users/a316845fbb538a98787af1923/614ed1ec924eef8559f63d9bc.js");
-    </script>
-
-    <!-- Intercom Customer Support (Optional) -->
-    <script>
-      // Only load Intercom if ID is configured
-      if (window.TENDORAI_CONFIG && window.TENDORAI_CONFIG.INTERCOM_ID) {
-        window.intercomSettings = {
-          app_id: window.TENDORAI_CONFIG.INTERCOM_ID,
-          hide_default_launcher: true
-        };
-        
-        (function(){
-          var w=window;var ic=w.Intercom;
-          if(typeof ic==="function"){
-            ic('reattach_activator');
-            ic('update',w.intercomSettings);
-          }else{
-            var d=document;var i=function(){i.c(arguments);};
-            i.q=[];i.c=function(args){i.q.push(args);};w.Intercom=i;
-            var l=function(){
-              var s=d.createElement('script');
-              s.type='text/javascript';s.async=true;
-              s.src='https://widget.intercom.io/widget/'+window.TENDORAI_CONFIG.INTERCOM_ID;
-              var x=d.getElementsByTagName('script')[0];
-              x.parentNode.insertBefore(s,x);
-            };
-            if(w.attachEvent){w.attachEvent('onload',l);}
-            else{w.addEventListener('load',l,false);}
-          }
-        })();
-      }
-    </script>
-
-    <!-- Service Worker Registration -->
-    <script>
-      // Only register service worker if it exists
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          fetch('/sw.js', { method: 'HEAD' })
-            .then(response => {
-              if (response.ok) {
-                return navigator.serviceWorker.register('/sw.js');
-              }
-              throw new Error('Service worker not found');
-            })
-            .then((registration) => {
-              console.log('SW registered: ', registration);
-            })
-            .catch((error) => {
-              console.log('SW registration skipped: ', error.message);
-            });
-        });
-      }
-    </script>
-
-    <!-- Configuration Script - Add this to your app -->
-    <script>
-      // TendorAI Configuration
-      window.TENDORAI_CONFIG = {
-        // Your actual Google Analytics ID
-        GA_ID: 'G-0D3RVTRZY9',
-        HOTJAR_ID: null,          // Add your Hotjar ID when ready
-        INTERCOM_ID: null,        // Add your Intercom ID when ready
-        API_BASE_URL: 'https://api.tendorai.com',
-        STRIPE_PUBLIC_KEY: null,  // Add your Stripe public key when ready
-        ENVIRONMENT: 'production' // Set to production since you have GA configured
-      };
     </script>
   </body>
 </html>

@@ -9,27 +9,40 @@ const PRODUCTION_API_URL = 'https://ai-procurement-backend-q35u.onrender.com';
 // Constants
 const QUOTES_PER_PAGE = 12;
 
-// Loading spinner component
-const LoadingSpinner = ({ message = "Loading..." }) => (
-  <div style={{ textAlign: 'center', padding: '2rem' }}>
-    <div style={{
-      width: '40px',
-      height: '40px',
-      border: '4px solid #f3f4f6',
-      borderTop: '4px solid #3b82f6',
-      borderRadius: '50%',
-      animation: 'spin 1s linear infinite',
-      margin: '0 auto 1rem'
-    }} />
-    <p>{message}</p>
-    <style jsx>{`
-      @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-      }
-    `}</style>
-  </div>
-);
+// ✅ FIXED: Loading spinner component (removed jsx styling)
+const LoadingSpinner = ({ message = "Loading..." }) => {
+  // Inject keyframes if not already present
+  React.useEffect(() => {
+    const styleId = 'spinner-keyframes';
+    if (!document.getElementById(styleId)) {
+      const style = document.createElement('style');
+      style.id = styleId;
+      style.textContent = `
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+      `;
+      document.head.appendChild(style);
+    }
+  }, []);
+
+  return (
+    <div style={{ textAlign: 'center', padding: '2rem' }}>
+      <div style={{
+        width: '40px',
+        height: '40px',
+        border: '4px solid #f3f4f6',
+        borderTop: '4px solid #3b82f6',
+        borderRadius: '50%',
+        animation: 'spin 1s linear infinite',
+        margin: '0 auto 1rem'
+      }} />
+      <p>{message}</p>
+    </div>
+  );
+};
+
 // Empty state component
 const EmptyState = ({ title, description, actionLabel, onAction }) => (
   <div style={{ textAlign: 'center', padding: '3rem', background: 'white', borderRadius: '8px' }}>
@@ -53,6 +66,7 @@ const EmptyState = ({ title, description, actionLabel, onAction }) => (
     )}
   </div>
 );
+
 const QuoteResults = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -75,12 +89,14 @@ const QuoteResults = () => {
     status: filters.status, 
     individualQuote: undefined 
   });
+
   // Redirect if not authenticated
   useEffect(() => {
     if (!isAuthenticated) {
       navigate('/login', { state: { from: '/quotes' } });
     }
   }, [isAuthenticated, navigate]);
+
   // Fetch quotes (now fetches quote requests)
   const fetchQuotes = useCallback(async (silent = false) => {
     const userId = user?.userId || user?.id;
@@ -133,7 +149,8 @@ const QuoteResults = () => {
       }
     }
   }, [user?.userId, user?.id, token, navigate]);
-  // Implement polling with better logic
+
+  // ✅ FIXED: Polling with correct dependencies
   useEffect(() => {
     const hasProcessingRequests = quoteRequests.some(req => 
       req.status === 'pending' || 
@@ -156,12 +173,13 @@ const QuoteResults = () => {
         console.log('🛑 Cleared polling interval');
       }
     };
-  }, [lastFetchTime]);
+  }, [lastFetchTime, fetchQuotes]); // ✅ Added fetchQuotes
 
   // Initial fetch on component mount
   useEffect(() => {
     fetchQuotes();
   }, [fetchQuotes]);
+
   // Filter quote requests based on search and status
   const filteredQuoteRequests = useMemo(() => {
     let filtered = [...quoteRequests];
@@ -229,7 +247,8 @@ const QuoteResults = () => {
       </div>
     );
   }
-return (
+
+  return (
     <div className="quote-results-container">
       {/* Header */}
       <div className="results-header">
@@ -281,7 +300,8 @@ return (
           </button>
         </div>
       </div>
-{/* Quote request cards or empty state */}
+
+      {/* Quote request cards or empty state */}
       {filteredQuoteRequests.length === 0 ? (
         <EmptyState
           title="No requests found"
@@ -337,6 +357,7 @@ return (
                     </span>
                   </div>
                   
+                  {/* ✅ FIXED: Navigate to /compare-vendors with state */}
                   <div className="action-buttons">
                     {quotesCount > 0 && (
                       <button

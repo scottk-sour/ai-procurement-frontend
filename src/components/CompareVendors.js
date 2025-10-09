@@ -7,7 +7,6 @@ import { debounce } from "lodash";
 import { ErrorBoundary } from "react-error-boundary";
 import { useAuth } from "../context/AuthContext";
 
-// Production API URL - FIXED
 const API_BASE_URL = process.env.REACT_APP_API_URL || "https://ai-procurement-backend-q35u.onrender.com";
 
 const CompareVendorsErrorFallback = ({ error, resetErrorBoundary }) => (
@@ -31,12 +30,10 @@ const CompareVendors = () => {
   const { auth } = useAuth();
   const quote = location.state?.quote;
 
-  // ✅ NEW: Get specific quote request data from navigation
   const quoteRequestId = location.state?.quoteRequestId;
   const passedCompanyName = location.state?.companyName;
   const passedQuotesCount = location.state?.quotesCount;
 
-  // State management
   const [vendors, setVendors] = useState([]);
   const [selectedVendors, setSelectedVendors] = useState([]);
   const [filters, setFilters] = useState({
@@ -55,7 +52,6 @@ const CompareVendors = () => {
   const [recommendationType, setRecommendationType] = useState('user_generated_quotes');
   const [aiPowered, setAiPowered] = useState(true);
 
-  // Authentication check
   useEffect(() => {
     if (!auth?.isAuthenticated) {
       navigate('/login', { replace: true });
@@ -63,7 +59,6 @@ const CompareVendors = () => {
     }
   }, [navigate, auth?.isAuthenticated]);
 
-  // ✅ UPDATED: Fetch user's generated quotes with improved error handling
   const fetchUserQuotes = useCallback(async () => {
     if (hasFetched || !auth?.token || !auth?.user?.userId) return;
 
@@ -73,17 +68,14 @@ const CompareVendors = () => {
     try {
       const userId = auth.user.userId || auth.user.id;
       
-      // ✅ NEW: Determine which endpoint to use
       let endpoint;
       let fetchDescription;
       
       if (quoteRequestId) {
-        // Fetch specific quote request
         endpoint = `${API_BASE_URL}/api/quotes/requests/${quoteRequestId}`;
         fetchDescription = `specific quote request: ${quoteRequestId}`;
         console.log('🎯 Fetching', fetchDescription);
       } else {
-        // Fetch all user quotes
         endpoint = `${API_BASE_URL}/api/quotes/user/${userId}`;
         fetchDescription = `all quotes for user: ${userId}`;
         console.log('🔍 Fetching', fetchDescription);
@@ -118,18 +110,15 @@ const CompareVendors = () => {
         throw new Error(responseData.message || 'Failed to fetch quotes');
       }
 
-      // ✅ NEW: Handle single quote request vs multiple quotes
       let quotes = [];
       let companyName = passedCompanyName || 'Your Company';
       
       if (quoteRequestId) {
-        // Single quote request - extract its quotes
         const quoteRequest = responseData.quoteRequest || responseData.data;
         quotes = quoteRequest?.quotes || [];
         companyName = quoteRequest?.companyName || passedCompanyName || 'Your Company';
         console.log(`✅ Loaded ${quotes.length} quotes from request ${quoteRequestId}`);
       } else {
-        // Multiple quote requests - use all quotes
         quotes = responseData.quotes || [];
         companyName = quotes[0]?.companyName || 'Your Company';
         console.log(`✅ Found ${quotes.length} user quotes`);
@@ -146,10 +135,8 @@ const CompareVendors = () => {
         return;
       }
 
-      // Convert quotes to vendor format for comparison
       const vendorsFromQuotes = quotes.map((quote, index) => {
         try {
-          // Extract vendor information
           const vendor = quote.vendor || {};
           const product = quote.product || quote.productSummary || {};
           const costs = quote.costs || {};
@@ -161,7 +148,7 @@ const CompareVendors = () => {
             vendor: vendor.name || vendor.company || product.manufacturer || `Vendor ${index + 1}`,
             price: monthlyPrices.totalMonthlyCost || costs.totalMonthlyCost || 0,
             speed: product.speed || 0,
-            rating: (matchScore.total || 0) * 5, // Convert match score to 5-star rating
+            rating: (matchScore.total || 0) * 5,
             website: vendor.website || '#',
             aiRecommendation: matchScore.reasoning?.[0] || "AI-generated quote",
             savingsInfo: matchScore.reasoning?.find(r => r.includes('savings')) || null,
@@ -171,7 +158,6 @@ const CompareVendors = () => {
               email: vendor.email,
               phone: vendor.phone
             },
-            // Quote-specific data
             quoteId: quote._id,
             matchScore: matchScore.total || 0,
             confidence: matchScore.confidence || 'Medium',
@@ -185,7 +171,6 @@ const CompareVendors = () => {
             productDetails: product,
             vendorDetails: vendor,
             ranking: quote.ranking || index + 1,
-            // Additional metadata
             aiMatchScore: matchScore.total,
             aiConfidence: matchScore.confidence,
             aiReasoning: matchScore.reasoning || [],
@@ -215,7 +200,6 @@ const CompareVendors = () => {
         }
       });
 
-      // Sort by match score (best matches first)
       vendorsFromQuotes.sort((a, b) => (b.matchScore || 0) - (a.matchScore || 0));
 
       setVendors(vendorsFromQuotes);
@@ -242,7 +226,7 @@ const CompareVendors = () => {
       fetchUserQuotes();
     }
   }, [fetchUserQuotes, auth?.isAuthenticated]);
-  // Debounced search
+
   const debouncedSearch = useMemo(
     () => debounce((query) => {
       setSearchQuery(query);
@@ -254,7 +238,6 @@ const CompareVendors = () => {
     debouncedSearch(query);
   }, [debouncedSearch]);
 
-  // Vendor selection
   const handleVendorSelect = useCallback((vendorId) => {
     setSelectedVendors((prev) =>
       prev.includes(vendorId)
@@ -263,7 +246,6 @@ const CompareVendors = () => {
     );
   }, []);
 
-  // Request quotes from selected vendors (contact vendors about existing quotes)
   const handleRequestQuotes = useCallback(async () => {
     if (selectedVendors.length === 0) {
       alert('Please select at least one quote to contact the vendor about.');
@@ -276,7 +258,6 @@ const CompareVendors = () => {
       const selectedQuotes = vendors.filter(v => selectedVendors.includes(v.id));
       const contactPromises = [];
 
-      // Contact each vendor about their quote
       for (const quote of selectedQuotes) {
         const contactPromise = fetch(`${API_BASE_URL}/api/quotes/contact`, {
           method: "POST",
@@ -301,7 +282,6 @@ const CompareVendors = () => {
         alert(`Successfully contacted ${successCount} vendor(s) about your quotes!`);
         setSelectedVendors([]);
         
-        // Navigate to quotes page to see contact status
         setTimeout(() => {
           navigate('/quotes?status=contacted');
         }, 1500);
@@ -316,7 +296,6 @@ const CompareVendors = () => {
     }
   }, [selectedVendors, vendors, quoteCompanyName, auth?.token, navigate]);
 
-  // Accept a quote
   const handleAcceptQuote = useCallback(async (vendorId) => {
     const vendor = vendors.find(v => v.id === vendorId);
     if (!vendor) return;
@@ -344,7 +323,6 @@ const CompareVendors = () => {
 
       alert(`Quote from ${vendor.vendor} accepted successfully!`);
       
-      // Refresh the quotes to show updated status
       setHasFetched(false);
       fetchUserQuotes();
     } catch (error) {
@@ -353,11 +331,9 @@ const CompareVendors = () => {
     }
   }, [vendors, auth?.token, fetchUserQuotes]);
 
-  // ✅ FIXED: Filter and sort vendors
   const filteredVendors = useMemo(() => {
     let list = [...vendors];
 
-    // Search filter
     if (searchQuery) {
       list = list.filter((v) =>
         v.vendor?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -365,25 +341,21 @@ const CompareVendors = () => {
       );
     }
 
-    // Price range filter
     list = list.filter((v) =>
       (v.price || 0) >= filters.priceRange[0] &&
       (v.price || 0) <= filters.priceRange[1]
     );
 
-    // Rating filter (using match score)
     if (filters.rating > 0) {
       list = list.filter((v) => (v.rating || 0) >= filters.rating);
     }
 
-    // Speed filter
     if (filters.minSpeed) {
       list = list.filter((v) =>
         v.speed && v.speed >= parseInt(filters.minSpeed)
       );
     }
 
-    // ✅ FIXED: Complete sort logic
     list.sort((a, b) => {
       switch (sortBy) {
         case "price":
@@ -400,7 +372,6 @@ const CompareVendors = () => {
     return list;
   }, [vendors, searchQuery, filters, sortBy]);
 
-  // Render star rating (based on match score)
   const renderStars = useCallback((rating) => {
     if (typeof rating !== "number" || rating < 0) {
       return <span className="rating-na">N/A</span>;
@@ -413,8 +384,7 @@ const CompareVendors = () => {
     return (
       <span className="star-rating">
         {[...Array(fullStars)].map((_, i) => (
-          <FaStar key
-                                   <FaStar key={`full-${i}`} className="star full-star" />
+          <FaStar key={`full-${i}`} className="star full-star" />
         ))}
         {halfStar && <FaStarHalfAlt className="star half-star" />}
         {[...Array(emptyStars)].map((_, i) => (
@@ -425,7 +395,6 @@ const CompareVendors = () => {
     );
   }, []);
 
-  // Loading state
   if (isLoading) {
     return (
       <div className="loading-container">
@@ -440,7 +409,8 @@ const CompareVendors = () => {
       </div>
     );
   }
-return (
+
+  return (
     <ErrorBoundary FallbackComponent={CompareVendorsErrorFallback}>
       <div className="compare-vendors-container">
         <motion.div
@@ -625,7 +595,6 @@ return (
                           ))}
                         </tr>
 
-                        {/* ✅ FIXED: AI Match Score with safe percentage display */}
                         <tr>
                           <td className="spec-label">AI Match Score</td>
                           {filteredVendors.map((vendor) => (
@@ -718,7 +687,6 @@ return (
             </>
           )}
 
-          {/* ✅ FIXED: Navigation buttons with conditional request details link */}
           <div className="navigation-buttons">
             <button 
               className="secondary-button" 

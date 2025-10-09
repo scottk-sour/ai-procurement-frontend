@@ -5,25 +5,7 @@
       "destination": "https://ai-procurement-backend-q35u.onrender.com/api/$1"
     },
     {
-      "source": "/(.*)",
-      "has": [
-        {
-          "type": "missing",
-          "value": "/static/*"
-        },
-        {
-          "type": "missing",
-          "value": "/favicon.ico"
-        },
-        {
-          "type": "missing",
-          "value": "/manifest.json"
-        },
-        {
-          "type": "missing",
-          "value": "/site.webmanifest"
-        }
-      ],
+      "source": "/((?!static|favicon.ico|manifest.json|site.webmanifest).*)",
       "destination": "/index.html"
     }
   ],

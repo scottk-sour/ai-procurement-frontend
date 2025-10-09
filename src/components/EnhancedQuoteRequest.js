@@ -1855,8 +1855,7 @@ const renderStep6 = () => (
               'Environmental Impact',
               'Features & Functionality',
               'Contract Flexibility'
-            ].map(factor
-                  ].map(factor => (
+            ].map(factor => (
               <label key={factor}>
                 <input
                   type="checkbox"

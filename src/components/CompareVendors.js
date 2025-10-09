@@ -9,6 +9,7 @@ import { useAuth } from "../context/AuthContext";
 
 // Production API URL - FIXED
 const API_BASE_URL = process.env.REACT_APP_API_URL || "https://ai-procurement-backend-q35u.onrender.com";
+
 const CompareVendorsErrorFallback = ({ error, resetErrorBoundary }) => (
   <div className="error-fallback">
     <FaExclamationTriangle className="error-icon" />
@@ -23,6 +24,7 @@ const CompareVendorsErrorFallback = ({ error, resetErrorBoundary }) => (
     </button>
   </div>
 );
+
 const CompareVendors = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -52,6 +54,7 @@ const CompareVendors = () => {
   const [isSubmittingQuotes, setIsSubmittingQuotes] = useState(false);
   const [recommendationType, setRecommendationType] = useState('user_generated_quotes');
   const [aiPowered, setAiPowered] = useState(true);
+
   // Authentication check
   useEffect(() => {
     if (!auth?.isAuthenticated) {
@@ -59,7 +62,8 @@ const CompareVendors = () => {
       return;
     }
   }, [navigate, auth?.isAuthenticated]);
-  // Fetch user's generated quotes with improved error handling
+
+  // ✅ UPDATED: Fetch user's generated quotes with improved error handling
   const fetchUserQuotes = useCallback(async () => {
     if (hasFetched || !auth?.token || !auth?.user?.userId) return;
 
@@ -141,6 +145,7 @@ const CompareVendors = () => {
         setHasFetched(true);
         return;
       }
+
       // Convert quotes to vendor format for comparison
       const vendorsFromQuotes = quotes.map((quote, index) => {
         try {
@@ -231,6 +236,7 @@ const CompareVendors = () => {
       setIsLoading(false);
     }
   }, [hasFetched, auth?.token, auth?.user?.userId, navigate, quoteRequestId, passedCompanyName]);
+
   useEffect(() => {
     if (auth?.isAuthenticated) {
       fetchUserQuotes();
@@ -256,6 +262,7 @@ const CompareVendors = () => {
         : [...prev, vendorId]
     );
   }, []);
+
   // Request quotes from selected vendors (contact vendors about existing quotes)
   const handleRequestQuotes = useCallback(async () => {
     if (selectedVendors.length === 0) {
@@ -308,6 +315,7 @@ const CompareVendors = () => {
       setIsSubmittingQuotes(false);
     }
   }, [selectedVendors, vendors, quoteCompanyName, auth?.token, navigate]);
+
   // Accept a quote
   const handleAcceptQuote = useCallback(async (vendorId) => {
     const vendor = vendors.find(v => v.id === vendorId);
@@ -344,7 +352,8 @@ const CompareVendors = () => {
       alert(`Failed to accept quote: ${error.message}`);
     }
   }, [vendors, auth?.token, fetchUserQuotes]);
-  // Filter and sort vendors
+
+  // ✅ FIXED: Filter and sort vendors
   const filteredVendors = useMemo(() => {
     let list = [...vendors];
 
@@ -374,11 +383,10 @@ const CompareVendors = () => {
       );
     }
 
-    // Sort
+    // ✅ FIXED: Complete sort logic
     list.sort((a, b) => {
       switch (sortBy) {
-        case
-          case "price":
+        case "price":
           return (a.price || 0) - (b.price || 0);
         case "speed":
           return (b.speed || 0) - (a.speed || 0);
@@ -405,7 +413,8 @@ const CompareVendors = () => {
     return (
       <span className="star-rating">
         {[...Array(fullStars)].map((_, i) => (
-          <FaStar key={`full-${i}`} className="star full-star" />
+          <FaStar key
+                                   <FaStar key={`full-${i}`} className="star full-star" />
         ))}
         {halfStar && <FaStarHalfAlt className="star half-star" />}
         {[...Array(emptyStars)].map((_, i) => (
@@ -415,7 +424,8 @@ const CompareVendors = () => {
       </span>
     );
   }, []);
-// Loading state
+
+  // Loading state
   if (isLoading) {
     return (
       <div className="loading-container">
@@ -460,7 +470,8 @@ return (
               </div>
             )}
           </div>
-{vendors.length === 0 ? (
+
+          {vendors.length === 0 ? (
             <div className="no-vendors-message">
               <h3>No quotes available for comparison</h3>
               <p>
@@ -489,7 +500,7 @@ return (
             </div>
           ) : (
             <>
-            <div className="filters-section">
+              <div className="filters-section">
                 <input
                   type="text"
                   className="search-input"
@@ -540,7 +551,8 @@ return (
                   onChange={(e) => setFilters({ ...filters, minSpeed: e.target.value })}
                 />
               </div>
-{filteredVendors.length === 0 ? (
+
+              {filteredVendors.length === 0 ? (
                 <div className="no-vendors-message">
                   <h3>No quotes match your current filters</h3>
                   <p>Try adjusting your search criteria.</p>
@@ -561,7 +573,7 @@ return (
                 </div>
               ) : (
                 <>
-                <div className="comparison-table">
+                  <div className="comparison-table">
                     <table>
                       <thead>
                         <tr>
@@ -586,7 +598,7 @@ return (
                         </tr>
                       </thead>
                       <tbody>
-                            <tr>
+                        <tr>
                           <td className="spec-label">Monthly Price</td>
                           {filteredVendors.map((vendor) => (
                             <td key={`${vendor.id}-price`} className="price-cell">
@@ -603,7 +615,8 @@ return (
                             </td>
                           ))}
                         </tr>
-<tr>
+
+                        <tr>
                           <td className="spec-label">Speed (PPM)</td>
                           {filteredVendors.map((vendor) => (
                             <td key={`${vendor.id}-speed`}>
@@ -612,18 +625,24 @@ return (
                           ))}
                         </tr>
 
+                        {/* ✅ FIXED: AI Match Score with safe percentage display */}
                         <tr>
                           <td className="spec-label">AI Match Score</td>
                           {filteredVendors.map((vendor) => (
                             <td key={`${vendor.id}-rating`}>
                               {renderStars(vendor.rating)}
                               <div className="match-score">
-                                <small>{(vendor.matchScore * 100).toFixed(1)}% match</small>
+                                <small>
+                                  {vendor.matchScore 
+                                    ? `${(vendor.matchScore * 100).toFixed(1)}% match` 
+                                    : 'N/A'}
+                                </small>
                               </div>
                             </td>
                           ))}
                         </tr>
-<tr>
+
+                        <tr>
                           <td className="spec-label">AI Recommendation</td>
                           {filteredVendors.map((vendor) => (
                             <td key={`${vendor.id}-ai`} className="ai-recommendation">
@@ -648,7 +667,8 @@ return (
                             </td>
                           ))}
                         </tr>
-<tr>
+
+                        <tr>
                           <td className="spec-label">Actions</td>
                           {filteredVendors.map((vendor) => (
                             <td key={`${vendor.id}-actions`} className="actions-cell">
@@ -664,7 +684,8 @@ return (
                       </tbody>
                     </table>
                   </div>
-<motion.button
+
+                  <motion.button
                     className="request-quote-button"
                     onClick={handleRequestQuotes}
                     disabled={selectedVendors.length === 0 || isSubmittingQuotes}
@@ -696,7 +717,9 @@ return (
               )}
             </>
           )}
-<div className="navigation-buttons">
+
+          {/* ✅ FIXED: Navigation buttons with conditional request details link */}
+          <div className="navigation-buttons">
             <button 
               className="secondary-button" 
               onClick={() => navigate('/quotes')}

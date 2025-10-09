@@ -6,6 +6,24 @@
     },
     {
       "source": "/(.*)",
+      "has": [
+        {
+          "type": "missing",
+          "value": "/static/*"
+        },
+        {
+          "type": "missing",
+          "value": "/favicon.ico"
+        },
+        {
+          "type": "missing",
+          "value": "/manifest.json"
+        },
+        {
+          "type": "missing",
+          "value": "/site.webmanifest"
+        }
+      ],
       "destination": "/index.html"
     }
   ],

@@ -353,7 +353,8 @@ const EnhancedQuoteRequest = () => {
         }
         break;
         
-      case 3: // Paper & Finishing
+      case 3
+        case 3: // Paper & Finishing
         if (!formData.paperRequirements.primarySize) {
           errors.paperRequirements = 'Primary paper size is required';
         }
@@ -433,7 +434,7 @@ const EnhancedQuoteRequest = () => {
     setStep(prev => prev - 1);
     setErrorMessages({});
   };
-  // Form submission with proper backend mapping
+  // ✅ FIXED: Form submission with proper backend enum mapping
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -508,28 +509,86 @@ const EnhancedQuoteRequest = () => {
           painPoints: formData.reasonsForQuote || []
         },
         
-        // Requirements (backend schema)
+        // ✅ FIXED: Requirements (backend schema) - Map to backend enums
         requirements: {
           priority: formData.preference || 'balanced',
           essentialFeatures: formData.required_functions || [],
           niceToHaveFeatures: formData.niceToHaveFeatures || [],
           minSpeed: parseInt(formData.min_speed) || 0,
-          serviceLevel: formData.maintenancePreference,
-          responseTime: formData.responseTimeExpectation
+          
+          // ✅ Map maintenance preference to backend serviceLevel enum: ['Basic', 'Standard', 'Premium']
+          serviceLevel: (() => {
+            const preference = formData.maintenancePreference;
+            if (!preference) return 'Standard';
+            
+            // Map user-friendly text to backend enum values
+            if (preference.includes('quarterly') || preference.includes('Quarterly')) return 'Basic';
+            if (preference.includes('Predictive') || preference.includes('predictive')) return 'Premium';
+            if (preference.includes('monthly') || preference.includes('Monthly')) return 'Premium';
+            if (preference.includes('As-needed')) return 'Basic';
+            
+            return 'Standard'; // Default fallback
+          })(),
+          
+          // ✅ Map response time to backend responseTime enum: ['4hr', '8hr', 'Next day', '48hr']
+          responseTime: (() => {
+            const time = formData.responseTimeExpectation;
+            if (!time) return 'Next day';
+            
+            // Map user-friendly text to backend enum values
+            if (time.includes('Same day') || time.includes('4-8 hours')) return '4hr';
+            if (time.includes('Next business day') || time.includes('Next day')) return 'Next day';
+            if (time.includes('48 hours') || time.includes('Within 48')) return '48hr';
+            if (time.includes('3-5 business days')) return '48hr'; // Closest match
+            if (time.includes('Flexible')) return 'Next day'; // Default for flexible
+            
+            return 'Next day'; // Default fallback
+          })()
         },
         
-        // Budget (backend schema)
+        // ✅ FIXED: Budget (backend schema) - Ensure valid enum values
         budget: {
           maxLeasePrice: parseFloat(formData.budget.maxLeasePrice) || 0,
-          preferredTerm: formData.contractLengthPreference || formData.budget.preferredTerm || '60 months',
-          includeService: true,
-          includeConsumables: true
+          
+          // ✅ Ensure contract term matches backend enum: ['12 months', '24 months', '36 months', '48 months', '60 months']
+          preferredTerm: (() => {
+            const term = formData.contractLengthPreference || formData.budget.preferredTerm || '60 months';
+            
+            // Backend only accepts: ['12 months', '24 months', '36 months', '48 months', '60 months']
+            const validTerms = ['12 months', '24 months', '36 months', '48 months', '60 months'];
+            
+            // If term is just a number like "60", add " months"
+            if (term && !term.includes('months')) {
+              const formatted = `${term} months`;
+              if (validTerms.includes(formatted)) return formatted;
+            }
+            
+            // If already formatted correctly
+            if (validTerms.includes(term)) return term;
+            
+            // Default to 60 months
+            return '60 months';
+          })()
         },
         
-        // Urgency (backend schema)
+        // ✅ FIXED: Urgency (backend schema) - Map to backend enum
         urgency: {
-          timeframe: formData.implementationTimeline || formData.urgency.timeframe,
-          reason: formData.currentPainPoints || formData.urgency.reason
+          // ✅ Map implementation timeline to backend timeframe enum: ['Immediately', '1-3 months', '3-6 months', '6+ months']
+          timeframe: (() => {
+            const timeline = formData.implementationTimeline || formData.urgency.timeframe;
+            
+            if (!timeline) return '1-3 months';
+            
+            if (timeline.includes('Immediately') || timeline.includes('This week')) return 'Immediately';
+            if (timeline.includes('1-2 weeks') || timeline.includes('2-4 weeks')) return '1-3 months';
+            if (timeline.includes('1-3 months')) return '1-3 months';
+            if (timeline.includes('3-6 months')) return '3-6 months';
+            if (timeline.includes('6+ months') || timeline.includes('6 months')) return '6+ months';
+            if (timeline.includes('Flexible')) return '1-3 months';
+            
+            return '1-3 months'; // Default
+          })(),
+          reason: formData.currentPainPoints || formData.urgency.reason || ''
         },
         
         // Location
@@ -963,7 +1022,8 @@ const EnhancedQuoteRequest = () => {
       {errorMessages.monthlyVolume && <span className="error-text">{errorMessages.monthlyVolume}</span>}
     </motion.div>
   );
-       const renderStep3 = () => (
+
+  const renderStep3 = () => (
     <motion.div
       initial={{ opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
@@ -1068,8 +1128,7 @@ const EnhancedQuoteRequest = () => {
       </div>
     </motion.div>
   );
-
-  const renderStep4 = () => (
+const renderStep4 = () => (
     <motion.div
       initial={{ opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
@@ -1443,7 +1502,8 @@ const EnhancedQuoteRequest = () => {
       </div>
     </motion.div>
   );
-const renderStep6 = () => (
+
+  const renderStep6 = () => (
     <motion.div
       initial={{ opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
@@ -1500,7 +1560,8 @@ const renderStep6 = () => (
             <option value="Black & White Only">Black & White Only</option>
             <option value="Both">Both (Colour & B&W)</option>
           </select>
-          {errorMessages.colour && <span className="error-text">{errorMessages.colour}</span>}
+          {errorMessages.colour && <span className="error-text
+            {errorMessages.colour && <span className="error-text">{errorMessages.colour}</span>}
         </div>
 
         <div className="form-group">
@@ -1559,8 +1620,7 @@ const renderStep6 = () => (
             ))}
           </div>
         </div>
-
-        <div className="form-group full-width">
+<div className="form-group full-width">
           <label>Nice-to-Have Features</label>
           <div className="checkbox-grid">
             {[
@@ -1680,7 +1740,8 @@ const renderStep6 = () => (
       </div>
     </motion.div>
   );
-const renderStep8 = () => (
+
+  const renderStep8 = () => (
     <motion.div
       initial={{ opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
@@ -1846,8 +1907,7 @@ const renderStep8 = () => (
       </div>
     </motion.div>
   );
-
-  const renderStep9 = () => (
+           const renderStep9 = () => (
     <motion.div
       initial={{ opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
@@ -1965,7 +2025,8 @@ const renderStep8 = () => (
       </div>
     </motion.div>
   );
-// Main render function
+
+  // Main render function
   const renderStepContent = () => {
     switch (step) {
       case 1:
@@ -1990,8 +2051,7 @@ const renderStep8 = () => (
         return renderStep1();
     }
   };
-
-  return (
+return (
     <div className="enhanced-quote-request">
       <div className="form-container">
         {/* Progress Bar */}

@@ -197,6 +197,7 @@ const EnhancedQuoteRequest = () => {
       return `£${colourCost.toFixed(3)}`;
     }
   };
+
   // Auto-update calculated fields
   useEffect(() => {
     const mono = parseInt(formData.monthlyVolume.mono) || 0;
@@ -353,20 +354,19 @@ const EnhancedQuoteRequest = () => {
         }
         break;
         
-      case 3
-        case 3: // Paper & Finishing
+      case 3: // Paper & Finishing
         if (!formData.paperRequirements.primarySize) {
           errors.paperRequirements = 'Primary paper size is required';
         }
         break;
         
-      case 4: // IT & Network Environment - FIXED
+      case 4: // IT & Network Environment
         if (!formData.networkSetup) {
           errors.networkSetup = 'Network setup is required';
         }
         break;
         
-      case 5: // Current Setup & Pain Points - FIXED
+      case 5: // Current Setup & Pain Points
         if (!formData.currentSetup.machineAge) {
           errors.currentSetup = 'Please select current equipment age';
         }
@@ -375,13 +375,13 @@ const EnhancedQuoteRequest = () => {
         }
         break;
         
-      case 6: // Technical Requirements - FIXED (was step 5)
+      case 6: // Technical Requirements
         if (!formData.serviceType) errors.serviceType = 'Service type is required';
         if (!formData.colour) errors.colour = 'Colour preference is required';
         if (!formData.min_speed) errors.min_speed = 'Minimum speed is required';
         break;
         
-      case 7: // Service & Support - FIXED (was step 6)
+      case 7: // Service & Support
         if (!formData.responseTimeExpectation) {
           errors.responseTimeExpectation = 'Response time expectation is required';
         }
@@ -390,7 +390,7 @@ const EnhancedQuoteRequest = () => {
         }
         break;
         
-      case 8: // Budget & Commercial - FIXED (was step 7 & 8 combined)
+      case 8: // Budget & Commercial
         if (!formData.budget.maxLeasePrice) {
           errors.budget = 'Maximum quarterly lease price is required';
         }
@@ -434,6 +434,7 @@ const EnhancedQuoteRequest = () => {
     setStep(prev => prev - 1);
     setErrorMessages({});
   };
+
   // ✅ FIXED: Form submission with proper backend enum mapping
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -590,7 +591,6 @@ const EnhancedQuoteRequest = () => {
           })(),
           reason: formData.currentPainPoints || formData.urgency.reason || ''
         },
-        
         // Location
         location: {
           postcode: formData.postcode || ''
@@ -723,6 +723,7 @@ const EnhancedQuoteRequest = () => {
       setIsSubmitting(false);
     }
   };
+
   // Render functions for each step
   const renderStep1 = () => (
     <motion.div
@@ -1022,8 +1023,7 @@ const EnhancedQuoteRequest = () => {
       {errorMessages.monthlyVolume && <span className="error-text">{errorMessages.monthlyVolume}</span>}
     </motion.div>
   );
-
-  const renderStep3 = () => (
+       const renderStep3 = () => (
     <motion.div
       initial={{ opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
@@ -1128,7 +1128,8 @@ const EnhancedQuoteRequest = () => {
       </div>
     </motion.div>
   );
-const renderStep4 = () => (
+
+  const renderStep4 = () => (
     <motion.div
       initial={{ opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
@@ -1502,8 +1503,7 @@ const renderStep4 = () => (
       </div>
     </motion.div>
   );
-
-  const renderStep6 = () => (
+const renderStep6 = () => (
     <motion.div
       initial={{ opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
@@ -1560,8 +1560,7 @@ const renderStep4 = () => (
             <option value="Black & White Only">Black & White Only</option>
             <option value="Both">Both (Colour & B&W)</option>
           </select>
-          {errorMessages.colour && <span className="error-text
-            {errorMessages.colour && <span className="error-text">{errorMessages.colour}</span>}
+          {errorMessages.colour && <span className="error-text">{errorMessages.colour}</span>}
         </div>
 
         <div className="form-group">
@@ -1620,7 +1619,8 @@ const renderStep4 = () => (
             ))}
           </div>
         </div>
-<div className="form-group full-width">
+
+        <div className="form-group full-width">
           <label>Nice-to-Have Features</label>
           <div className="checkbox-grid">
             {[
@@ -1855,7 +1855,8 @@ const renderStep4 = () => (
               'Environmental Impact',
               'Features & Functionality',
               'Contract Flexibility'
-            ].map(factor => (
+            ].map(factor
+                  ].map(factor => (
               <label key={factor}>
                 <input
                   type="checkbox"
@@ -1907,7 +1908,8 @@ const renderStep4 = () => (
       </div>
     </motion.div>
   );
-           const renderStep9 = () => (
+
+  const renderStep9 = () => (
     <motion.div
       initial={{ opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
@@ -2051,7 +2053,8 @@ const renderStep4 = () => (
         return renderStep1();
     }
   };
-return (
+
+  return (
     <div className="enhanced-quote-request">
       <div className="form-container">
         {/* Progress Bar */}

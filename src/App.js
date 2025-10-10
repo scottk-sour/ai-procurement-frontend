@@ -112,7 +112,7 @@ const UserDashboard = loadWithFallback(
   () => <div style={errorStyle}>Failed to load UserDashboard</div>
 );
 
-// FIXED: Enhanced Quote Request component
+// Enhanced Quote Request component
 const RequestQuote = loadWithFallback(
   () => import("./components/EnhancedQuoteRequest"),
   () => (
@@ -138,13 +138,38 @@ const RequestQuote = loadWithFallback(
   )
 );
 
-// FIXED: QuotesResults component for viewing quotes
+// QuotesResults component for viewing quotes
 const QuotesResults = loadWithFallback(
   () => import("./components/QuotesResults"),
   () => (
     <div style={errorStyle}>
       <h1>Quotes Results</h1>
       <p>Quotes results page is currently unavailable.</p>
+      <button 
+        onClick={() => window.location.href = '/dashboard'}
+        style={{
+          padding: '12px 24px',
+          backgroundColor: '#28a745',
+          color: 'white',
+          border: 'none',
+          borderRadius: '4px',
+          cursor: 'pointer',
+          marginTop: '1rem'
+        }}
+      >
+        Return to Dashboard
+      </button>
+    </div>
+  )
+);
+
+// QuoteDetails component for viewing individual quote requests
+const QuoteDetails = loadWithFallback(
+  () => import("./components/QuoteDetails"),
+  () => (
+    <div style={errorStyle}>
+      <h1>Quote Details</h1>
+      <p>Quote details page is currently unavailable.</p>
       <button 
         onClick={() => window.location.href = '/dashboard'}
         style={{
@@ -375,7 +400,7 @@ const NavigationTracker = () => {
   return null;
 };
 
-// FIXED: Layout component with proper error boundaries
+// Layout component with proper error boundaries
 const Layout = () => (
   <ErrorBoundary>
     <ToastProvider>
@@ -391,7 +416,7 @@ const Layout = () => (
   </ErrorBoundary>
 );
 
-// FIXED: Router configuration with proper route structure
+// ✅ FIXED: Router configuration with correct route structure
 const router = createBrowserRouter(
   [
     {
@@ -429,21 +454,24 @@ const router = createBrowserRouter(
         // Vendor public route
         { path: "/vendor-dashboard", element: <VendorDashboard /> },
 
-        // FIXED: Protected user routes
+        // ✅ FIXED: Protected user routes with correct paths
         {
           element: <PrivateRoute />,
           children: [
             { path: "/dashboard", element: <UserDashboard /> },
-            { path: "/quote-request", element: <RequestQuote /> }, // ✅ FIXED: Changed from /request-quote
-            { path: "/compare-vendors", element: <CompareVendors /> },
+            { path: "/quote-request", element: <RequestQuote /> },
+            { path: "/quote-comparison/:quoteRequestId", element: <CompareVendors /> }, // ✅ NEW: Main comparison route
+            { path: "/compare-vendors", element: <CompareVendors /> }, // ✅ Keep for backwards compatibility
             { path: "/manage-account", element: <AccountSettings /> },
             { path: "/quotes-requested", element: <QuotesRequested /> },
             { path: "/quotes", element: <QuotesResults /> },
             { path: "/quotes/:id", element: <QuotesResults /> },
+            { path: "/quote-details", element: <QuoteDetails /> }, // ✅ NEW: Quote details with query params
+            { path: "/quote-details/:id", element: <QuoteDetails /> }, // ✅ NEW: Quote details with ID
           ],
         },
 
-        // FIXED: Protected admin routes
+        // Protected admin routes
         {
           element: <AdminPrivateRoute />,
           children: [
@@ -465,7 +493,7 @@ const router = createBrowserRouter(
   }
 );
 
-// FIXED: Main App component with proper initialization
+// Main App component with proper initialization
 function App() {
   // Service Worker registration
   useEffect(() => {

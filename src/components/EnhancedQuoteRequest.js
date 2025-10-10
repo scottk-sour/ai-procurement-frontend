@@ -2000,8 +2000,7 @@ const renderStep8 = () => (
             <option value="">Select budget cycle</option>
             <option value="Budget already approved">Budget already approved</option>
             <option value="Approval within 1 week">Approval within 1 week</option>
-            <option value="
-              <option value="Approval within 1 month">Approval within 1 month</option>
+            <option value="Approval within 1 month">Approval within 1 month</option>
             <option value="Next quarter">Next quarter</option>
             <option value="Next financial year">Next financial year</option>
             <option value="No budget constraints">No budget constraints</option>

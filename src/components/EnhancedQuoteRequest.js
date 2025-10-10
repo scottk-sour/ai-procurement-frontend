@@ -1182,7 +1182,6 @@ const EnhancedQuoteRequest = () => {
               </label>
             ))}
           </div>
-          {errorMessages.networkSetup &&
             {errorMessages.networkSetup && <span className="error-text">{errorMessages.networkSetup}</span>}
         </div>
 

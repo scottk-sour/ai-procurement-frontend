@@ -460,14 +460,23 @@ const router = createBrowserRouter(
           children: [
             { path: "/dashboard", element: <UserDashboard /> },
             { path: "/quote-request", element: <RequestQuote /> },
-            { path: "/quote-comparison/:quoteRequestId", element: <CompareVendors /> }, // ✅ NEW: Main comparison route
-            { path: "/compare-vendors", element: <CompareVendors /> }, // ✅ Keep for backwards compatibility
+            
+            // ✅ CRITICAL: Main comparison route - MUST match EnhancedQuoteRequest navigation
+            { path: "/quote-comparison/:id", element: <CompareVendors /> },
+            
+            // ✅ Keep legacy routes for backwards compatibility
+            { path: "/compare-vendors", element: <CompareVendors /> },
+            { path: "/compare-vendors/:id", element: <CompareVendors /> },
+            
             { path: "/manage-account", element: <AccountSettings /> },
             { path: "/quotes-requested", element: <QuotesRequested /> },
             { path: "/quotes", element: <QuotesResults /> },
             { path: "/quotes/:id", element: <QuotesResults /> },
-            { path: "/quote-details", element: <QuoteDetails /> }, // ✅ NEW: Quote details with query params
-            { path: "/quote-details/:id", element: <QuoteDetails /> }, // ✅ NEW: Quote details with ID
+            
+            // ✅ Quote details routes
+            { path: "/quote-details", element: <QuoteDetails /> },
+            { path: "/quote-details/:id", element: <QuoteDetails /> },
+            { path: "/quote-request/:id", element: <QuoteDetails /> },
           ],
         },
 

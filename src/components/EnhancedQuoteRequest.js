@@ -334,7 +334,7 @@ const EnhancedQuoteRequest = () => {
     setUploadedFiles(prev => prev.filter(f => f.name !== file.name));
   };
 
-  // ✅ FIXED: Validation for each step
+  // Validation for each step
   const validateStep = (currentStep) => {
     const errors = {};
     
@@ -434,7 +434,6 @@ const EnhancedQuoteRequest = () => {
     setStep(prev => prev - 1);
     setErrorMessages({});
   };
-
   // ✅ FIXED: Form submission with proper backend enum mapping
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -591,6 +590,7 @@ const EnhancedQuoteRequest = () => {
           })(),
           reason: formData.currentPainPoints || formData.urgency.reason || ''
         },
+        
         // Location
         location: {
           postcode: formData.postcode || ''
@@ -697,21 +697,44 @@ const EnhancedQuoteRequest = () => {
       console.log('✅ Quote request submitted:', result);
       
       setSubmissionStatus('success');
-      setSuccessMessage('Quote request submitted successfully! Redirecting to vendor comparison...');
       
-      // Navigate to compare vendors page after short delay
-      setTimeout(() => {
-        if (result.aiMatching?.quotesCreated > 0 || result.quotes?.length > 0) {
-          navigate('/compare-vendors', { 
+      // ✅ FIXED: Navigate to comparison page with proper quote request ID
+      if (result.aiMatching?.success && result.quotes?.count > 0) {
+        setSuccessMessage(`🎉 Success! ${result.quotes.count} AI-matched quotes generated! Redirecting to comparison...`);
+        
+        setTimeout(() => {
+          // Navigate to the quote comparison page with the quote request ID
+          const quoteRequestId = result.quoteRequest?.id || result.quoteRequest?._id || result._id;
+          navigate(`/quote-comparison/${quoteRequestId}`, { 
             state: { 
-              quoteRequestId: result.quoteRequest?.id || result._id,
-              companyName: formData.companyName 
+              quoteRequestId: quoteRequestId,
+              companyName: formData.companyName,
+              quotesCount: result.quotes.count
             }
           });
-        } else {
+        }, 2000);
+      } else if (result.quotes?.length > 0) {
+        // Fallback if aiMatching structure is different
+        setSuccessMessage(`🎉 Success! ${result.quotes.length} quotes generated! Redirecting to comparison...`);
+        
+        setTimeout(() => {
+          const quoteRequestId = result.quoteRequest?.id || result.quoteRequest?._id || result._id;
+          navigate(`/quote-comparison/${quoteRequestId}`, { 
+            state: { 
+              quoteRequestId: quoteRequestId,
+              companyName: formData.companyName,
+              quotesCount: result.quotes.length
+            }
+          });
+        }, 2000);
+      } else {
+        // No quotes generated yet, AI still processing
+        setSuccessMessage('Quote request submitted successfully! AI is generating quotes...');
+        
+        setTimeout(() => {
           navigate('/quotes');
-        }
-      }, 2000);
+        }, 2000);
+      }
       
     } catch (error) {
       console.error('❌ Submission error:', error);
@@ -1159,7 +1182,8 @@ const EnhancedQuoteRequest = () => {
               </label>
             ))}
           </div>
-          {errorMessages.networkSetup && <span className="error-text">{errorMessages.networkSetup}</span>}
+          {errorMessages.networkSetup &&
+            {errorMessages.networkSetup && <span className="error-text">{errorMessages.networkSetup}</span>}
         </div>
 
         <div className="form-group">
@@ -1503,7 +1527,8 @@ const EnhancedQuoteRequest = () => {
       </div>
     </motion.div>
   );
-const renderStep6 = () => (
+
+  const renderStep6 = () => (
     <motion.div
       initial={{ opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
@@ -1740,8 +1765,7 @@ const renderStep6 = () => (
       </div>
     </motion.div>
   );
-
-  const renderStep8 = () => (
+const renderStep8 = () => (
     <motion.div
       initial={{ opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
@@ -1976,7 +2000,8 @@ const renderStep6 = () => (
             <option value="">Select budget cycle</option>
             <option value="Budget already approved">Budget already approved</option>
             <option value="Approval within 1 week">Approval within 1 week</option>
-            <option value="Approval within 1 month">Approval within 1 month</option>
+            <option value="
+              <option value="Approval within 1 month">Approval within 1 month</option>
             <option value="Next quarter">Next quarter</option>
             <option value="Next financial year">Next financial year</option>
             <option value="No budget constraints">No budget constraints</option>

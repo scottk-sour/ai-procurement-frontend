@@ -1,0 +1,16 @@
+/site.webmanifest
+  Access-Control-Allow-Origin: *
+  Content-Type: application/manifest+json
+  Cache-Control: public, max-age=31536000
+
+/favicon.ico
+  Access-Control-Allow-Origin: *
+  Cache-Control: public, max-age=31536000
+
+/robots.txt
+  Access-Control-Allow-Origin: *
+  Cache-Control: public, max-age=86400
+
+/tendorai.png
+  Access-Control-Allow-Origin: *
+  Cache-Control: public, max-age=31536000

@@ -219,7 +219,7 @@ const CompareVendors = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [hasFetched, auth?.token, auth?.user?.userId, navigate, quoteRequestId, passedCompanyName]);
+  }, [hasFetched, auth?.token, auth?.user?.userId, auth?.user?.id, navigate, quoteRequestId, passedCompanyName]);
 
   useEffect(() => {
     if (auth?.isAuthenticated) {

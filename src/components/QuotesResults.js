@@ -173,7 +173,7 @@ const QuoteResults = () => {
         console.log('🛑 Cleared polling interval');
       }
     };
-  }, [lastFetchTime, fetchQuotes]); // ✅ Added fetchQuotes
+  }, [lastFetchTime, fetchQuotes, quoteRequests]); // ✅ Added fetchQuotes and quoteRequests
 
   // Initial fetch on component mount
   useEffect(() => {

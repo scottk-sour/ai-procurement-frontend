@@ -353,7 +353,7 @@ const UserDashboard = () => {
     } finally {
       setGlobalLoading(false);
     }
-  }, [auth?.isAuthenticated, auth?.token, currentUserId]);
+  }, [auth?.isAuthenticated, auth?.token, auth?.user?.role, currentUserId]);
 
   // Initial data fetch and periodic refresh
   useEffect(() => {

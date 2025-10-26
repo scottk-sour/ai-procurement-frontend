@@ -219,7 +219,7 @@ const EnhancedQuoteRequest = () => {
         min_speed: suggestMinSpeed(total).toString()
       }));
     }
-  }, [formData.monthlyVolume.mono, formData.monthlyVolume.colour]);
+  }, [formData.monthlyVolume.mono, formData.monthlyVolume.colour, formData.min_speed]);
 
   // Calculate buyout cost
   const calculateBuyout = () => {
@@ -251,7 +251,7 @@ const EnhancedQuoteRequest = () => {
         }));
       }
     }
-  }, [formData.currentSetup.quarterlyLeaseCost, formData.currentSetup.contractEndDate, formData.currentSetup.buyoutRequired]);
+  }, [formData.currentSetup.quarterlyLeaseCost, formData.currentSetup.contractEndDate, formData.currentSetup.buyoutRequired, calculateBuyout]);
 
   // Handle input changes
   const handleChange = (e) => {

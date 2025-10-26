@@ -299,7 +299,7 @@ const ContactForm = () => {
       }
     });
     setErrors(newErrors);
-  }, [debouncedFormData]);
+  }, [debouncedFormData, errors]);
 
   const handleChange = useCallback((e) => {
     const { name, value } = e.target;

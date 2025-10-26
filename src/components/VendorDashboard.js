@@ -403,7 +403,7 @@ const VendorDashboard = () => {
     } finally {
       setDashboardState(prev => ({ ...prev, loading: false }));
     }
-  }, [showMessage, auth]);
+  }, [showMessage, auth?.token]);
 
   // Format utilities
   const formatDate = useCallback((dateString) => {

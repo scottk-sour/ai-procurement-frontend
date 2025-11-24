@@ -142,21 +142,23 @@ const CompareVendors = () => {
           const costs = quote.costs || {};
           const monthlyPrices = costs.monthlyCosts || {};
           const matchScore = quote.matchScore || {};
+          const recommendation = quote.recommendation || {};
 
           return {
             id: quote._id || `quote-${index}`,
             vendor: vendor.name || vendor.company || product.manufacturer || `Vendor ${index + 1}`,
             price: monthlyPrices.totalMonthlyCost || costs.totalMonthlyCost || 0,
-            speed: product.speed || 0,
+            speed: product.speed || product.ppm || 0,
             rating: (matchScore.total || 0) * 5,
             website: vendor.website || '#',
             aiRecommendation: matchScore.reasoning?.[0] || "AI-generated quote",
             savingsInfo: matchScore.reasoning?.find(r => r.includes('savings')) || null,
             description: product.model ? `${product.manufacturer} ${product.model}` : 'Professional solution',
             features: product.features || [],
+            paperSizes: product.paperSizes || [],
             contactInfo: {
-              email: vendor.email,
-              phone: vendor.phone
+              email: vendor.email || vendor.contactInfo?.email,
+              phone: vendor.phone || vendor.contactInfo?.phone
             },
             quoteId: quote._id,
             matchScore: matchScore.total || 0,
@@ -174,6 +176,13 @@ const CompareVendors = () => {
             aiMatchScore: matchScore.total,
             aiConfidence: matchScore.confidence,
             aiReasoning: matchScore.reasoning || [],
+            // NEW: AI recommendation enhancements
+            whyRecommended: recommendation.whyRecommended || quote.whyRecommended || [],
+            tradeoffs: recommendation.tradeoffs || quote.tradeoffs || [],
+            tco3Year: costs.tco3Year || recommendation.costInfo?.tco3Year || 0,
+            tco5Year: costs.tco5Year || recommendation.costInfo?.tco5Year || 0,
+            serviceLevel: vendor.serviceLevel || product.service?.level || 'Standard',
+            responseTime: vendor.responseTime || product.service?.responseTime || 'Next day',
             recommendationType: 'user_generated_quotes',
             isAiPowered: true,
             companyName: quote.companyName,
@@ -550,7 +559,7 @@ const CompareVendors = () => {
                           <th className="spec-column">Specification</th>
                           {filteredVendors.map((vendor) => (
                             <th key={vendor.id} className="vendor-column">
-                              <div className="vendor-header">
+                              <div className={`vendor-header ${vendor.ranking === 1 ? 'best-match' : ''}`}>
                                 <input
                                   type="checkbox"
                                   checked={selectedVendors.includes(vendor.id)}
@@ -560,7 +569,12 @@ const CompareVendors = () => {
                                 <span className="vendor-name">
                                   {vendor.vendor}
                                   <span className="ai-indicator">🤖</span>
-                                  <div className="ranking-badge">Rank #{vendor.ranking}</div>
+                                  {vendor.ranking === 1 && (
+                                    <span className="best-match-badge">★ Best Match</span>
+                                  )}
+                                  <div className={`ranking-badge ${vendor.ranking === 1 ? 'rank-1' : ''}`}>
+                                    Rank #{vendor.ranking}
+                                  </div>
                                 </span>
                               </div>
                             </th>
@@ -637,6 +651,132 @@ const CompareVendors = () => {
                           ))}
                         </tr>
 
+                        {/* NEW: Why This Match */}
+                        <tr>
+                          <td className="spec-label">Why This Match</td>
+                          {filteredVendors.map((vendor) => (
+                            <td key={`${vendor.id}-why`} className="why-recommended">
+                              {vendor.whyRecommended && vendor.whyRecommended.length > 0 ? (
+                                <ul className="match-reasons">
+                                  {vendor.whyRecommended.map((reason, idx) => (
+                                    <li key={idx}>
+                                      <span className="checkmark">✓</span> {reason}
+                                    </li>
+                                  ))}
+                                </ul>
+                              ) : (
+                                <small>AI-generated recommendation</small>
+                              )}
+                            </td>
+                          ))}
+                        </tr>
+
+                        {/* NEW: Tradeoffs (for rank 2-3) */}
+                        {filteredVendors.some(v => v.tradeoffs && v.tradeoffs.length > 0) && (
+                          <tr>
+                            <td className="spec-label">vs Best Match</td>
+                            {filteredVendors.map((vendor) => (
+                              <td key={`${vendor.id}-tradeoffs`} className="tradeoffs">
+                                {vendor.tradeoffs && vendor.tradeoffs.length > 0 ? (
+                                  <ul className="tradeoffs-list">
+                                    {vendor.tradeoffs.map((tradeoff, idx) => (
+                                      <li key={idx}>
+                                        <span className="comparison-icon">⚖️</span> {tradeoff}
+                                      </li>
+                                    ))}
+                                  </ul>
+                                ) : (
+                                  vendor.ranking === 1 ? (
+                                    <span className="best-option">This is the best match</span>
+                                  ) : (
+                                    <small>-</small>
+                                  )
+                                )}
+                              </td>
+                            ))}
+                          </tr>
+                        )}
+
+                        {/* NEW: Machine Specifications */}
+                        <tr>
+                          <td className="spec-label">Specifications</td>
+                          {filteredVendors.map((vendor) => (
+                            <td key={`${vendor.id}-specs`} className="machine-specs">
+                              <div className="spec-item">
+                                <strong>Speed:</strong> {vendor.speed || 'N/A'} ppm
+                              </div>
+                              {vendor.paperSizes && vendor.paperSizes.length > 0 && (
+                                <div className="spec-item">
+                                  <strong>Paper:</strong> {vendor.paperSizes.join(', ')}
+                                </div>
+                              )}
+                              {vendor.features && vendor.features.length > 0 && (
+                                <div className="spec-item">
+                                  <strong>Features:</strong>
+                                  <div className="features-grid">
+                                    {vendor.features.slice(0, 6).map((feature, idx) => (
+                                      <span key={idx} className="feature-badge">
+                                        ✓ {feature}
+                                      </span>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                            </td>
+                          ))}
+                        </tr>
+
+                        {/* NEW: TCO Comparison */}
+                        {filteredVendors.some(v => v.tco3Year > 0 || v.tco5Year > 0) && (
+                          <tr>
+                            <td className="spec-label">Total Cost of Ownership</td>
+                            {filteredVendors.map((vendor) => (
+                              <td key={`${vendor.id}-tco`} className="tco-cell">
+                                {vendor.tco3Year > 0 && (
+                                  <div className="tco-item">
+                                    <strong>3-Year Total:</strong> £{vendor.tco3Year.toLocaleString()}
+                                  </div>
+                                )}
+                                {vendor.tco5Year > 0 && (
+                                  <div className="tco-item">
+                                    <strong>5-Year Total:</strong> £{vendor.tco5Year.toLocaleString()}
+                                  </div>
+                                )}
+                                {vendor.tco3Year === 0 && vendor.tco5Year === 0 && (
+                                  <small>Not available</small>
+                                )}
+                              </td>
+                            ))}
+                          </tr>
+                        )}
+
+                        {/* NEW: Vendor Details */}
+                        <tr>
+                          <td className="spec-label">Vendor Details</td>
+                          {filteredVendors.map((vendor) => (
+                            <td key={`${vendor.id}-vendor-details`} className="vendor-details">
+                              <div className="vendor-info-item">
+                                <strong>Company:</strong> {vendor.vendor}
+                              </div>
+                              {vendor.serviceLevel && (
+                                <div className="vendor-info-item">
+                                  <strong>Service Level:</strong> {vendor.serviceLevel}
+                                </div>
+                              )}
+                              {vendor.responseTime && (
+                                <div className="vendor-info-item">
+                                  <strong>Response Time:</strong> {vendor.responseTime}
+                                </div>
+                              )}
+                              {vendor.contactInfo?.email && (
+                                <div className="vendor-info-item">
+                                  <strong>Email:</strong> <a href={`mailto:${vendor.contactInfo.email}`}>{vendor.contactInfo.email}</a>
+                                </div>
+                              )}
+                            </td>
+                          ))}
+                        </tr>
+
                         <tr>
                           <td className="spec-label">Actions</td>
                           {filteredVendors.map((vendor) => (
@@ -682,6 +822,28 @@ const CompareVendors = () => {
                       </p>
                     </div>
                   )}
+
+                  {/* NEW: Alternatives suggestion banner */}
+                  {(() => {
+                    // Extract alternatives from metadata of any quote
+                    const alternatives = filteredVendors[0]?.metadata?.alternatives ||
+                                       filteredVendors.find(v => v.metadata?.alternatives)?.metadata?.alternatives;
+
+                    return alternatives ? (
+                      <motion.div
+                        className="alternatives-banner"
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.5 }}
+                      >
+                        <div className="banner-icon">💡</div>
+                        <div className="banner-content">
+                          <h4>Alternative Suggestion</h4>
+                          <p>{alternatives}</p>
+                        </div>
+                      </motion.div>
+                    ) : null;
+                  })()}
                 </>
               )}
             </>

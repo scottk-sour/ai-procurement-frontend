@@ -416,7 +416,7 @@ const Layout = () => (
   </ErrorBoundary>
 );
 
-// ✅ FIXED: Router configuration with correct route structure
+// Router configuration with correct route structure
 const router = createBrowserRouter(
   [
     {
@@ -454,17 +454,17 @@ const router = createBrowserRouter(
         // Vendor public route
         { path: "/vendor-dashboard", element: <VendorDashboard /> },
 
-        // ✅ FIXED: Protected user routes with correct paths
+        // Protected user routes with correct paths
         {
           element: <PrivateRoute />,
           children: [
             { path: "/dashboard", element: <UserDashboard /> },
             { path: "/quote-request", element: <RequestQuote /> },
             
-            // ✅ CRITICAL: Main comparison route - MUST match EnhancedQuoteRequest navigation
+            // Main comparison route - MUST match EnhancedQuoteRequest navigation
             { path: "/quote-comparison/:id", element: <CompareVendors /> },
             
-            // ✅ Keep legacy routes for backwards compatibility
+            // Keep legacy routes for backwards compatibility
             { path: "/compare-vendors", element: <CompareVendors /> },
             { path: "/compare-vendors/:id", element: <CompareVendors /> },
             
@@ -473,7 +473,7 @@ const router = createBrowserRouter(
             { path: "/quotes", element: <QuotesResults /> },
             { path: "/quotes/:id", element: <QuotesResults /> },
             
-            // ✅ Quote details routes
+            // Quote details routes
             { path: "/quote-details", element: <QuoteDetails /> },
             { path: "/quote-details/:id", element: <QuoteDetails /> },
             { path: "/quote-request/:id", element: <QuoteDetails /> },
@@ -502,23 +502,8 @@ const router = createBrowserRouter(
   }
 );
 
-// Main App component with proper initialization
+// Main App component
 function App() {
-  // Service Worker registration
-  useEffect(() => {
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js')
-          .then((registration) => {
-            console.log('✅ Service Worker registered with scope:', registration.scope);
-          })
-          .catch((error) => {
-            console.error('❌ Service Worker registration failed:', error);
-          });
-      });
-    }
-  }, []);
-
   // Global error handler
   useEffect(() => {
     const handleUnhandledRejection = (event) => {

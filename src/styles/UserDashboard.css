@@ -7,26 +7,27 @@
    📌 CSS Custom Properties & Design Tokens
    ==================================== */
 :root {
-  /* 🎨 Brand Color System */
+  /* 🎨 Brand Color System - Matched to VendorDashboard */
   --brand-primary-50: #eff6ff;
   --brand-primary-100: #dbeafe;
   --brand-primary-200: #bfdbfe;
   --brand-primary-300: #93c5fd;
   --brand-primary-400: #60a5fa;
   --brand-primary-500: #3b82f6;
-  --brand-primary-600: #2563eb;
-  --brand-primary-700: #1d4ed8;
+  --brand-primary-600: #1e40af;  /* Matched to vendor --primary-blue */
+  --brand-primary-700: #1e40af;  /* Matched to vendor --primary-blue */
   --brand-primary-800: #1e40af;
   --brand-primary-900: #1e3a8a;
   --brand-primary-950: #172554;
 
+  /* 🎨 Accent Orange - Matched to VendorDashboard */
   --brand-secondary-50: #fff7ed;
   --brand-secondary-100: #ffedd5;
   --brand-secondary-200: #fed7aa;
   --brand-secondary-300: #fdba74;
   --brand-secondary-400: #fb923c;
-  --brand-secondary-500: #f97316;
-  --brand-secondary-600: #ea580c;
+  --brand-secondary-500: #f97316;  /* Vendor --accent-orange */
+  --brand-secondary-600: #ea580c;  /* Vendor --accent-orange-dark */
   --brand-secondary-700: #c2410c;
   --brand-secondary-800: #9a3412;
   --brand-secondary-900: #7c2d12;
@@ -372,10 +373,9 @@ p {
 .dashboard-header {
   background: linear-gradient(
     135deg,
-    var(--brand-primary-700) 0%,
-    var(--brand-primary-600) 50%,
-    var(--brand-primary-500) 100%
-  );
+    #1e40af 0%,
+    #3b82f6 100%
+  );  /* Matched to VendorDashboard header gradient */
   color: var(--text-inverse);
   padding: var(--space-16) 0;
   box-shadow: var(--shadow-lg);
@@ -699,9 +699,9 @@ p {
   height: 100%;
   background: linear-gradient(
     90deg,
-    var(--brand-primary-500),
-    var(--brand-primary-400)
-  );
+    #f97316 0%,
+    #ea580c 100%
+  );  /* Vendor progress bar orange */
   border-radius: var(--radius-full);
   transition: width var(--duration-normal) var(--easing-ease-out);
   position: relative;
@@ -884,9 +884,9 @@ p {
 .upload-btn {
   background: linear-gradient(
     135deg,
-    var(--brand-primary-600),
-    var(--brand-primary-500)
-  );
+    #f97316 0%,
+    #ea580c 100%
+  );  /* Vendor btn-primary orange gradient */
   color: var(--text-inverse);
 }
 
@@ -895,8 +895,8 @@ p {
   box-shadow: var(--shadow-lg);
   background: linear-gradient(
     135deg,
-    var(--brand-primary-700),
-    var(--brand-primary-600)
+    #ea580c 0%,
+    #c2410c 100%
   );
 }
 
@@ -967,9 +967,9 @@ p {
 .action-button.primary {
   background: linear-gradient(
     135deg,
-    var(--brand-primary-600),
-    var(--brand-primary-500)
-  );
+    #f97316 0%,
+    #ea580c 100%
+  );  /* Vendor btn-primary orange gradient */
   color: var(--text-inverse);
 }
 
@@ -978,8 +978,8 @@ p {
   box-shadow: var(--shadow-xl);
   background: linear-gradient(
     135deg,
-    var(--brand-primary-700),
-    var(--brand-primary-600)
+    #ea580c 0%,
+    #c2410c 100%
   );
 }
 
@@ -1069,8 +1069,8 @@ p {
 }
 
 .tab-button.active {
-  color: var(--brand-primary-600);
-  border-bottom-color: var(--brand-secondary-500);
+  color: #1e40af;  /* Vendor --primary-blue */
+  border-bottom-color: #f97316;  /* Vendor --accent-orange */
   font-weight: var(--font-weight-semibold);
 }
 
@@ -1079,7 +1079,7 @@ p {
 }
 
 .notification-badge {
-  background: var(--color-error-500);
+  background: #f97316;  /* Vendor --accent-orange */
   color: var(--text-inverse);
   font-size: var(--font-size-xs);
   font-weight: var(--font-weight-semibold);
@@ -1139,9 +1139,9 @@ p {
   height: 4px;
   background: linear-gradient(
     90deg,
-    var(--brand-primary-500),
-    var(--brand-secondary-500)
-  );
+    #1e40af,
+    #f97316
+  );  /* Vendor primary-blue to accent-orange */
   border-radius: var(--radius-sm) var(--radius-sm) 0 0;
 }
 
@@ -1510,10 +1510,9 @@ p {
   height: 4px;
   background: linear-gradient(
     90deg,
-    var(--brand-primary-500),
-    var(--brand-secondary-500),
-    var(--color-success-500)
-  );
+    #1e40af,
+    #f97316
+  );  /* Vendor primary-blue to accent-orange */
 }
 
 .quote-card:hover {
@@ -2016,17 +2015,17 @@ p {
 }
 
 .page-btn:hover:not(:disabled) {
-  background: var(--brand-primary-600);
+  background: #1e40af;  /* Vendor --primary-blue */
   color: var(--text-inverse);
-  border-color: var(--brand-primary-600);
+  border-color: #1e40af;
   transform: translateY(-1px) var(--gpu-acceleration);
   box-shadow: var(--shadow-md);
 }
 
 .page-btn.active {
-  background: var(--brand-primary-600);
+  background: #1e40af;  /* Vendor --primary-blue */
   color: var(--text-inverse);
-  border-color: var(--brand-primary-600);
+  border-color: #1e40af;
   box-shadow: var(--shadow-md);
 }
 

@@ -447,6 +447,7 @@ const router = createBrowserRouter(
         { path: "/signup", element: <Signup /> },
         { path: "/vendor-login", element: <VendorLogin /> },
         { path: "/vendor-signup", element: <VendorSignup /> },
+        { path: "/vendors/signup", element: <VendorSignup /> },
         { path: "/about-us", element: <AboutUs /> },
         { path: "/contact", element: <ContactUs /> },
         { path: "/why-choose-us", element: <WhyChooseUs /> },

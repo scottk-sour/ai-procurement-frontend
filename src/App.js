@@ -106,6 +106,16 @@ const CCTV = loadWithFallback(
   () => <div style={errorStyle}>Failed to load CCTV</div>
 );
 
+// Supplier Directory (GEO-optimized public pages)
+const SuppliersIndex = loadWithFallback(
+  () => import("./components/suppliers/SuppliersIndex"),
+  () => <div style={errorStyle}>Failed to load Suppliers Directory</div>
+);
+const SupplierDirectory = loadWithFallback(
+  () => import("./components/suppliers/SupplierDirectory"),
+  () => <div style={errorStyle}>Failed to load Supplier Directory</div>
+);
+
 // User Dashboard
 const UserDashboard = loadWithFallback(
   () => import("./components/UserDashboard"),
@@ -450,6 +460,10 @@ const router = createBrowserRouter(
         { path: "/services/photocopiers", element: <Photocopiers /> },
         { path: "/services/telecoms", element: <Telecoms /> },
         { path: "/services/cctv", element: <CCTV /> },
+
+        // Supplier Directory routes (GEO-optimized for AI discoverability)
+        { path: "/suppliers", element: <SuppliersIndex /> },
+        { path: "/suppliers/:category/:location", element: <SupplierDirectory /> },
 
         // Vendor public route
         { path: "/vendor-dashboard", element: <VendorDashboard /> },

@@ -12,6 +12,7 @@ import NavigationBar from "./components/NavigationBar";
 import Footer from "./components/Footer";
 import PrivateRoute from "./routes/PrivateRoute";
 import AdminPrivateRoute from "./routes/AdminPrivateRoute";
+import VendorPrivateRoute from "./routes/VendorPrivateRoute";
 import "./styles/App.css";
 
 // Error style for fallback components
@@ -104,6 +105,10 @@ const Telecoms = loadWithFallback(
 const CCTV = loadWithFallback(
   () => import("./components/services/CCTV"),
   () => <div style={errorStyle}>Failed to load CCTV</div>
+);
+const ITServices = loadWithFallback(
+  () => import("./components/services/ITSolutions"),
+  () => <div style={errorStyle}>Failed to load IT Services</div>
 );
 
 // Supplier Directory (GEO-optimized public pages)
@@ -461,13 +466,19 @@ const router = createBrowserRouter(
         { path: "/services/photocopiers", element: <Photocopiers /> },
         { path: "/services/telecoms", element: <Telecoms /> },
         { path: "/services/cctv", element: <CCTV /> },
+        { path: "/services/it", element: <ITServices /> },
 
         // Supplier Directory routes (GEO-optimized for AI discoverability)
         { path: "/suppliers", element: <SuppliersIndex /> },
         { path: "/suppliers/:category/:location", element: <SupplierDirectory /> },
 
-        // Vendor public route
-        { path: "/vendor-dashboard", element: <VendorDashboard /> },
+        // Protected vendor routes
+        {
+          element: <VendorPrivateRoute />,
+          children: [
+            { path: "/vendor-dashboard", element: <VendorDashboard /> },
+          ],
+        },
 
         // Protected user routes with correct paths
         {

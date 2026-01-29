@@ -150,18 +150,18 @@ const LandingPage = () => {
     {
       link: "/services/telecoms",
       image: "phone.PNG",
-      alt: "Office Printer Quotes",
-      title: "Office Printer Quotes",
-      description: "Compare prices for office printers, inkjet, laser, and wide-format printers. Find the best deals from UK suppliers.",
-      features: ["All Printer Types", "Competitive Pricing", "Fast Delivery"]
+      alt: "Business Telecoms & Phone Systems",
+      title: "Telecoms & Phone Systems",
+      description: "Compare business phone systems, VoIP solutions, and telecoms packages from verified UK suppliers. Get instant quotes for your communication needs.",
+      features: ["VoIP & Cloud Phone Systems", "Unified Communications", "Business Broadband"]
     },
     {
       link: "/services/cctv",
       image: "cctv.PNG",
-      alt: "Office Furniture Quotes",
-      title: "Office Furniture Quotes",
-      description: "Get instant quotes for office desks, chairs, storage solutions, and complete office setups from trusted UK suppliers.",
-      features: ["Complete Office Solutions", "Ergonomic Furniture", "Flexible Payment Terms"]
+      alt: "CCTV & Security Systems",
+      title: "CCTV & Security Systems",
+      description: "Get instant quotes for CCTV cameras, access control, and complete security solutions from trusted UK security suppliers.",
+      features: ["HD & 4K CCTV Systems", "Access Control", "24/7 Monitoring Options"]
     },
     {
       link: "/services/it",

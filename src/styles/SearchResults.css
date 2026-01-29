@@ -1,0 +1,303 @@
+/* src/styles/SearchResults.css */
+/* TendorAI Design System - Search Results Page */
+
+.search-results {
+  min-height: 100vh;
+  background: var(--bg-secondary, #f8fafc);
+}
+
+.search-results__container {
+  max-width: var(--max-width, 1280px);
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+/* Search Header */
+.search-results__header {
+  background: linear-gradient(135deg, var(--primary-blue, #1e40af) 0%, var(--secondary-blue, #3b82f6) 100%);
+  padding: 2rem 0;
+}
+
+/* Toolbar */
+.search-results__toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.5rem 0;
+  border-bottom: 1px solid #e5e7eb;
+  margin-bottom: 1.5rem;
+}
+
+.search-results__count {
+  font-size: 1rem;
+  color: var(--text-secondary, #6b7280);
+}
+
+.search-results__count strong {
+  color: var(--text-primary, #1f2937);
+  font-weight: 700;
+}
+
+.search-results__location {
+  display: block;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+
+.search-results__controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+/* Sort */
+.search-results__sort {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-secondary, #6b7280);
+}
+
+.search-results__sort-select {
+  padding: 0.5rem 1rem;
+  border: 1px solid #e5e7eb;
+  border-radius: var(--border-radius, 12px);
+  font-size: 0.875rem;
+  background: var(--bg-primary, #ffffff);
+  cursor: pointer;
+}
+
+.search-results__sort-select:focus {
+  outline: none;
+  border-color: var(--primary-blue, #1e40af);
+}
+
+/* Filter Toggle (Mobile) */
+.search-results__filter-toggle {
+  display: none;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: var(--bg-primary, #ffffff);
+  border: 1px solid #e5e7eb;
+  border-radius: var(--border-radius, 12px);
+  font-size: 0.875rem;
+  color: var(--text-primary, #1f2937);
+  cursor: pointer;
+}
+
+/* Results Grid */
+.search-results__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 1.5rem;
+  padding-bottom: 2rem;
+}
+
+/* Loading State */
+.search-results__loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  text-align: center;
+}
+
+.search-results__spinner {
+  font-size: 2rem;
+  color: var(--primary-blue, #1e40af);
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.search-results__loading p {
+  margin-top: 1rem;
+  font-size: 1.125rem;
+  color: var(--text-secondary, #6b7280);
+}
+
+/* Error State */
+.search-results__error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  text-align: center;
+  background: #fef2f2;
+  border-radius: var(--border-radius-lg, 16px);
+  margin: 2rem 0;
+}
+
+.search-results__error svg {
+  font-size: 3rem;
+  color: #dc2626;
+  margin-bottom: 1rem;
+}
+
+.search-results__error p {
+  font-size: 1.125rem;
+  color: #991b1b;
+  margin-bottom: 1.5rem;
+}
+
+.search-results__error button {
+  padding: 0.75rem 1.5rem;
+  background: #dc2626;
+  color: #ffffff;
+  border: none;
+  border-radius: var(--border-radius, 12px);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.search-results__error button:hover {
+  background: #b91c1c;
+}
+
+/* Empty State */
+.search-results__empty {
+  text-align: center;
+  padding: 4rem 2rem;
+  background: var(--bg-primary, #ffffff);
+  border-radius: var(--border-radius-lg, 16px);
+  margin: 2rem 0;
+}
+
+.search-results__empty h2 {
+  font-size: 1.5rem;
+  color: var(--text-primary, #1f2937);
+  margin-bottom: 0.5rem;
+}
+
+.search-results__empty p {
+  font-size: 1rem;
+  color: var(--text-secondary, #6b7280);
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+/* Load More */
+.search-results__load-more {
+  display: flex;
+  justify-content: center;
+  padding: 2rem 0 4rem;
+}
+
+.search-results__load-more-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem 2rem;
+  background: var(--bg-primary, #ffffff);
+  border: 2px solid var(--primary-blue, #1e40af);
+  border-radius: var(--border-radius, 12px);
+  color: var(--primary-blue, #1e40af);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.search-results__load-more-btn:hover:not(:disabled) {
+  background: var(--primary-blue, #1e40af);
+  color: #ffffff;
+}
+
+.search-results__load-more-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.search-results__load-more-btn .search-results__spinner {
+  font-size: 1rem;
+}
+
+/* Mobile Filters Overlay */
+.search-results__filters-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  display: flex;
+  align-items: flex-end;
+}
+
+.search-results__filters-content {
+  width: 100%;
+  max-height: 90vh;
+  background: var(--bg-primary, #ffffff);
+  border-radius: var(--border-radius-lg, 16px) var(--border-radius-lg, 16px) 0 0;
+  overflow-y: auto;
+}
+
+.search-results__filters-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.search-results__filters-header h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-primary, #1f2937);
+}
+
+.search-results__filters-header button {
+  padding: 0.5rem;
+  background: none;
+  border: none;
+  font-size: 1.25rem;
+  color: var(--text-secondary, #6b7280);
+  cursor: pointer;
+}
+
+.search-results__filters-body {
+  padding: 1.5rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .search-results__toolbar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .search-results__controls {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .search-results__filter-toggle {
+    display: flex;
+  }
+
+  .search-results__grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .search-results__container {
+    padding: 0 1rem;
+  }
+
+  .search-results__header {
+    padding: 1.5rem 0;
+  }
+
+  .search-results__count {
+    font-size: 0.875rem;
+  }
+}

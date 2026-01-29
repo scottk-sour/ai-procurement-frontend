@@ -1,0 +1,347 @@
+/* src/styles/VendorCard.css */
+/* TendorAI Design System - Vendor Card Component */
+
+.vendor-card {
+  position: relative;
+  background: var(--bg-primary, #ffffff);
+  border-radius: var(--border-radius-lg, 16px);
+  padding: 1.5rem;
+  box-shadow: var(--shadow-light, 0 4px 6px rgba(0, 0, 0, 0.05));
+  border: 1px solid #f1f5f9;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.vendor-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-medium, 0 10px 25px rgba(0, 0, 0, 0.1));
+}
+
+.vendor-card--featured {
+  border-color: var(--accent-orange, #f97316);
+  box-shadow: 0 4px 20px rgba(249, 115, 22, 0.15);
+}
+
+.vendor-card--featured:hover {
+  box-shadow: 0 10px 40px rgba(249, 115, 22, 0.2);
+}
+
+/* Tier Badge */
+.vendor-card__tier-badge {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.375rem 0.75rem;
+  border-radius: 50px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.vendor-card__tier-badge svg {
+  font-size: 0.7rem;
+}
+
+/* Header */
+.vendor-card__header {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  padding-right: 8rem; /* Space for tier badge */
+}
+
+.vendor-card__logo {
+  width: 60px;
+  height: 60px;
+  border-radius: var(--border-radius, 12px);
+  object-fit: contain;
+  background: var(--bg-secondary, #f8fafc);
+  padding: 0.5rem;
+  flex-shrink: 0;
+}
+
+.vendor-card__logo--placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--primary-blue, #1e40af);
+  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+}
+
+.vendor-card__info {
+  flex: 1;
+  min-width: 0;
+}
+
+.vendor-card__company {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.vendor-card__company a {
+  color: var(--text-primary, #1f2937);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.vendor-card__company a:hover {
+  color: var(--primary-blue, #1e40af);
+}
+
+/* Rating */
+.vendor-card__rating {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.vendor-card__stars {
+  display: flex;
+  gap: 2px;
+}
+
+.vendor-card__star {
+  font-size: 0.875rem;
+}
+
+.vendor-card__star--filled {
+  color: #fbbf24;
+}
+
+.vendor-card__star--half {
+  color: #fbbf24;
+  opacity: 0.5;
+}
+
+.vendor-card__star--empty {
+  color: #e5e7eb;
+}
+
+.vendor-card__rating-text {
+  font-size: 0.875rem;
+  color: var(--text-secondary, #6b7280);
+}
+
+/* Services */
+.vendor-card__services {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.vendor-card__service-tag {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  background: var(--bg-accent, #f1f5f9);
+  color: var(--primary-blue, #1e40af);
+  border-radius: 50px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.vendor-card__service-more {
+  color: var(--text-secondary, #6b7280);
+  font-size: 0.75rem;
+  padding: 0.25rem 0;
+}
+
+/* Description */
+.vendor-card__description {
+  margin: 0 0 1rem 0;
+  font-size: 0.875rem;
+  color: var(--text-secondary, #6b7280);
+  line-height: 1.6;
+}
+
+/* Meta Info */
+.vendor-card__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.vendor-card__meta-item {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.875rem;
+  color: var(--text-secondary, #6b7280);
+}
+
+.vendor-card__meta-item svg {
+  font-size: 0.875rem;
+  color: var(--text-secondary, #6b7280);
+}
+
+.vendor-card__meta-item--distance {
+  background: linear-gradient(135deg, var(--primary-blue, #1e40af) 0%, var(--secondary-blue, #3b82f6) 100%);
+  color: #ffffff;
+  padding: 0.25rem 0.75rem;
+  border-radius: 50px;
+  font-weight: 600;
+}
+
+.vendor-card__distance {
+  font-weight: 600;
+}
+
+/* Accreditations */
+.vendor-card__accreditations {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.vendor-card__accreditation {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  color: #10b981;
+}
+
+.vendor-card__accreditation svg {
+  font-size: 0.625rem;
+}
+
+/* Actions */
+.vendor-card__actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.vendor-card__btn {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1rem;
+  border-radius: var(--border-radius, 12px);
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: none;
+}
+
+.vendor-card__btn--primary {
+  background: linear-gradient(135deg, var(--accent-orange, #f97316) 0%, var(--accent-orange-dark, #ea580c) 100%);
+  color: #ffffff;
+}
+
+.vendor-card__btn--primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
+}
+
+.vendor-card__btn--secondary {
+  background: var(--bg-secondary, #f8fafc);
+  color: var(--text-primary, #1f2937);
+  border: 1px solid #e5e7eb;
+}
+
+.vendor-card__btn--secondary:hover {
+  background: var(--bg-accent, #f1f5f9);
+  border-color: var(--primary-blue, #1e40af);
+  color: var(--primary-blue, #1e40af);
+}
+
+/* Quick Links */
+.vendor-card__quick-links {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #f1f5f9;
+}
+
+.vendor-card__quick-link {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.75rem;
+  color: var(--text-secondary, #6b7280);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.vendor-card__quick-link:hover {
+  color: var(--primary-blue, #1e40af);
+}
+
+/* Compact Variant */
+.vendor-card--compact {
+  padding: 1rem;
+}
+
+.vendor-card--compact .vendor-card__header {
+  margin-bottom: 0.75rem;
+  padding-right: 6rem;
+}
+
+.vendor-card--compact .vendor-card__logo {
+  width: 48px;
+  height: 48px;
+}
+
+.vendor-card--compact .vendor-card__company {
+  font-size: 1rem;
+}
+
+.vendor-card--compact .vendor-card__services {
+  margin-bottom: 0.75rem;
+}
+
+.vendor-card--compact .vendor-card__meta {
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.75rem;
+}
+
+.vendor-card--compact .vendor-card__actions {
+  gap: 0.5rem;
+}
+
+.vendor-card--compact .vendor-card__btn {
+  padding: 0.625rem 0.75rem;
+  font-size: 0.8rem;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .vendor-card__header {
+    flex-direction: column;
+    padding-right: 0;
+  }
+
+  .vendor-card__tier-badge {
+    position: static;
+    align-self: flex-start;
+    margin-bottom: 0.75rem;
+  }
+
+  .vendor-card__logo {
+    width: 50px;
+    height: 50px;
+  }
+
+  .vendor-card__actions {
+    flex-direction: column;
+  }
+
+  .vendor-card__btn {
+    width: 100%;
+  }
+}

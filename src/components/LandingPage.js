@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Helmet, HelmetProvider } from "react-helmet-async";
 import { FaCheckCircle, FaBolt, FaShieldAlt, FaChartLine, FaUsers, FaClock, FaAward, FaArrowRight } from "react-icons/fa";
+import HeroSearch from "./HeroSearch";
 import "../styles/LandingPage.css";
 
 const NewsletterSignup = () => {
@@ -387,17 +388,22 @@ const LandingPage = () => {
               </div>
             </div>
             
-            <div className="hero-actions">
-              <Link to="/request-quote" className="btn btn-primary btn-lg">
-                Get Instant Quotes <FaArrowRight />
-              </Link>
+            {/* Bark-style Search Bar */}
+            <div className="hero-search-wrapper">
+              <HeroSearch variant="hero" />
+            </div>
+
+            <div className="hero-actions hero-actions-secondary">
               <Link to="/how-it-works" className="btn btn-secondary-white btn-lg">
-                How AI Procurement Works
+                How It Works
+              </Link>
+              <Link to="/quote-request" className="btn btn-outline-white btn-lg">
+                Or Request a Custom Quote <FaArrowRight />
               </Link>
             </div>
-            
+
             <p className="hero-note hero-note-white">
-              ✓ Free comparison service ✓ 3 quotes in minutes ✓ Verified UK suppliers only
+              ✓ Free comparison service ✓ Find local suppliers ✓ Verified UK vendors only
             </p>
           </div>
         </section>

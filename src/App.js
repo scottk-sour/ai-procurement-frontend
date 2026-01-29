@@ -252,6 +252,10 @@ const VendorDashboard = loadWithFallback(
   () => import("./components/VendorDashboard"),
   () => <div style={errorStyle}>Failed to load Vendor Dashboard</div>
 );
+const UpgradePlan = loadWithFallback(
+  () => import("./components/vendor/UpgradePlan"),
+  () => <div style={errorStyle}>Failed to load Upgrade Plan</div>
+);
 
 // Admin Pages
 const AdminLogin = loadWithFallback(
@@ -487,6 +491,7 @@ const router = createBrowserRouter(
           element: <VendorPrivateRoute />,
           children: [
             { path: "/vendor-dashboard", element: <VendorDashboard /> },
+            { path: "/vendor-dashboard/upgrade", element: <UpgradePlan /> },
           ],
         },
 

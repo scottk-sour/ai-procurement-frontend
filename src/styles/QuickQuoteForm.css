@@ -1,0 +1,279 @@
+/* src/styles/QuickQuoteForm.css */
+/* TendorAI Design System - Quick Quote Form Modal */
+
+.quote-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+  backdrop-filter: blur(4px);
+}
+
+.quote-modal__content {
+  width: 100%;
+  max-width: 600px;
+  max-height: 90vh;
+  background: var(--bg-primary, #ffffff);
+  border-radius: var(--border-radius-lg, 16px);
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+  overflow-y: auto;
+}
+
+.quote-modal__content--success {
+  max-width: 450px;
+  padding: 3rem;
+  text-align: center;
+}
+
+.quote-modal__success-icon {
+  font-size: 4rem;
+  color: #10b981;
+  margin-bottom: 1.5rem;
+}
+
+.quote-modal__content--success h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary, #1f2937);
+  margin: 0 0 1rem 0;
+}
+
+.quote-modal__content--success p {
+  color: var(--text-secondary, #6b7280);
+  margin: 0 0 2rem 0;
+  line-height: 1.6;
+}
+
+.quote-modal__close-btn {
+  padding: 0.75rem 2rem;
+  background: var(--primary-blue, #1e40af);
+  color: #ffffff;
+  border: none;
+  border-radius: var(--border-radius, 12px);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.quote-modal__close-btn:hover {
+  background: #1e3a8a;
+}
+
+/* Header */
+.quote-modal__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 1.5rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.quote-modal__header h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary, #1f2937);
+  margin: 0;
+}
+
+.quote-modal__header p {
+  font-size: 0.875rem;
+  color: var(--text-secondary, #6b7280);
+  margin: 0.25rem 0 0 0;
+}
+
+.quote-modal__close {
+  padding: 0.5rem;
+  background: none;
+  border: none;
+  font-size: 1.25rem;
+  color: var(--text-secondary, #6b7280);
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.quote-modal__close:hover {
+  color: var(--text-primary, #1f2937);
+}
+
+/* Form */
+.quote-modal__form {
+  padding: 1.5rem;
+}
+
+.quote-modal__error {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: var(--border-radius, 12px);
+  color: #dc2626;
+  font-size: 0.875rem;
+  margin-bottom: 1.5rem;
+}
+
+.quote-modal__row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.quote-modal__field {
+  display: flex;
+  flex-direction: column;
+}
+
+.quote-modal__field--full {
+  grid-column: 1 / -1;
+}
+
+.quote-modal__field label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-primary, #1f2937);
+  margin-bottom: 0.5rem;
+}
+
+.quote-modal__field input,
+.quote-modal__field select,
+.quote-modal__field textarea {
+  padding: 0.875rem 1rem;
+  border: 2px solid #e5e7eb;
+  border-radius: var(--border-radius, 12px);
+  font-size: 1rem;
+  font-family: 'Inter', -apple-system, sans-serif;
+  color: var(--text-primary, #1f2937);
+  background: var(--bg-primary, #ffffff);
+  transition: all 0.2s ease;
+}
+
+.quote-modal__field input:focus,
+.quote-modal__field select:focus,
+.quote-modal__field textarea:focus {
+  outline: none;
+  border-color: var(--primary-blue, #1e40af);
+  box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.1);
+}
+
+.quote-modal__field input::placeholder,
+.quote-modal__field textarea::placeholder {
+  color: var(--text-secondary, #6b7280);
+}
+
+.quote-modal__field textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+.quote-modal__field select {
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+  background-size: 1rem;
+  padding-right: 2.5rem;
+}
+
+/* Actions */
+.quote-modal__actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.quote-modal__btn {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1rem 1.5rem;
+  border-radius: var(--border-radius, 12px);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: none;
+}
+
+.quote-modal__btn--primary {
+  background: linear-gradient(135deg, var(--accent-orange, #f97316) 0%, var(--accent-orange-dark, #ea580c) 100%);
+  color: #ffffff;
+}
+
+.quote-modal__btn--primary:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(249, 115, 22, 0.3);
+}
+
+.quote-modal__btn--primary:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.quote-modal__btn--secondary {
+  background: var(--bg-secondary, #f8fafc);
+  color: var(--text-primary, #1f2937);
+  border: 2px solid #e5e7eb;
+}
+
+.quote-modal__btn--secondary:hover {
+  background: var(--bg-accent, #f1f5f9);
+  border-color: var(--primary-blue, #1e40af);
+}
+
+.quote-modal__spinner {
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Disclaimer */
+.quote-modal__disclaimer {
+  margin: 1.5rem 0 0 0;
+  font-size: 0.75rem;
+  color: var(--text-secondary, #6b7280);
+  text-align: center;
+  line-height: 1.5;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .quote-modal {
+    padding: 0;
+    align-items: flex-end;
+  }
+
+  .quote-modal__content {
+    max-height: 95vh;
+    border-radius: var(--border-radius-lg, 16px) var(--border-radius-lg, 16px) 0 0;
+  }
+
+  .quote-modal__row {
+    grid-template-columns: 1fr;
+  }
+
+  .quote-modal__actions {
+    flex-direction: column-reverse;
+  }
+
+  .quote-modal__field input,
+  .quote-modal__field select,
+  .quote-modal__field textarea {
+    font-size: 16px; /* Prevent iOS zoom */
+  }
+}

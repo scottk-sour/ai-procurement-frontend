@@ -124,6 +124,10 @@ const SearchResults = loadWithFallback(
   () => import("./components/SearchResults"),
   () => <div style={errorStyle}>Failed to load Search Results</div>
 );
+const VendorProfilePage = loadWithFallback(
+  () => import("./components/VendorProfilePage"),
+  () => <div style={errorStyle}>Failed to load Vendor Profile</div>
+);
 
 // User Dashboard
 const UserDashboard = loadWithFallback(
@@ -475,6 +479,7 @@ const router = createBrowserRouter(
         // Supplier Directory routes (GEO-optimized for AI discoverability)
         { path: "/suppliers", element: <SuppliersIndex /> },
         { path: "/suppliers/search", element: <SearchResults /> },
+        { path: "/suppliers/profile/:id", element: <VendorProfilePage /> },
         { path: "/suppliers/:category/:location", element: <SupplierDirectory /> },
 
         // Protected vendor routes

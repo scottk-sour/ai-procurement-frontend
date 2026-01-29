@@ -245,18 +245,97 @@ const LandingPage = () => {
   return (
     <HelmetProvider>
       <div className="landing-page">
-        {/* SEO Meta Tags */}
+        {/* SEO Meta Tags with Open Graph, Twitter Cards, and Schema.org */}
         <Helmet>
           <title>TendorAI - Get 3 Instant Office Equipment Quotes | AI-Powered Procurement UK</title>
           <meta
             name="description"
             content="Get 3 instant office equipment quotes in minutes with TendorAI's AI-powered platform. Compare photocopier, printer & office furniture prices from verified UK suppliers. Free comparison service."
           />
-          <meta 
-            name="keywords" 
-            content="instant office equipment quotes, AI procurement platform, photocopier quotes UK, compare office equipment prices, office equipment supplier comparison, automated procurement quotes, smart procurement software UK, business equipment quotes" 
+          <meta
+            name="keywords"
+            content="instant office equipment quotes, AI procurement platform, photocopier quotes UK, compare office equipment prices, office equipment supplier comparison, automated procurement quotes, smart procurement software UK, business equipment quotes"
           />
           <link rel="canonical" href="https://www.tendorai.com/" />
+
+          {/* Open Graph / Facebook */}
+          <meta property="og:type" content="website" />
+          <meta property="og:url" content="https://www.tendorai.com/" />
+          <meta property="og:title" content="TendorAI - Get 3 Instant Office Equipment Quotes | AI-Powered Procurement UK" />
+          <meta property="og:description" content="Get 3 instant office equipment quotes in minutes. Compare photocopier, printer & office equipment prices from verified UK suppliers. Free AI-powered comparison service." />
+          <meta property="og:image" content="https://www.tendorai.com/assets/images/og-image.png" />
+          <meta property="og:site_name" content="TendorAI" />
+          <meta property="og:locale" content="en_GB" />
+
+          {/* Twitter Card */}
+          <meta name="twitter:card" content="summary_large_image" />
+          <meta name="twitter:url" content="https://www.tendorai.com/" />
+          <meta name="twitter:title" content="TendorAI - Get 3 Instant Office Equipment Quotes" />
+          <meta name="twitter:description" content="Compare office equipment prices from verified UK suppliers in minutes. Free AI-powered procurement platform." />
+          <meta name="twitter:image" content="https://www.tendorai.com/assets/images/twitter-card.png" />
+          <meta name="twitter:site" content="@tendorai" />
+
+          {/* Additional SEO */}
+          <meta name="robots" content="index, follow" />
+          <meta name="googlebot" content="index, follow" />
+          <meta name="author" content="TendorAI" />
+          <meta name="geo.region" content="GB" />
+          <meta name="geo.placename" content="United Kingdom" />
+
+          {/* Schema.org JSON-LD */}
+          <script type="application/ld+json">
+            {JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "Organization",
+              "name": "TendorAI",
+              "url": "https://www.tendorai.com",
+              "logo": "https://www.tendorai.com/assets/images/logo.png",
+              "description": "AI-powered procurement platform for office equipment quotes in the UK",
+              "address": {
+                "@type": "PostalAddress",
+                "addressCountry": "GB",
+                "addressLocality": "London"
+              },
+              "contactPoint": {
+                "@type": "ContactPoint",
+                "telephone": "+44-20-7946-0958",
+                "contactType": "customer service",
+                "email": "hello@tendorai.com"
+              },
+              "sameAs": [
+                "https://www.linkedin.com/company/tendorai",
+                "https://twitter.com/tendorai",
+                "https://www.facebook.com/tendorai"
+              ]
+            })}
+          </script>
+          <script type="application/ld+json">
+            {JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "WebSite",
+              "name": "TendorAI",
+              "url": "https://www.tendorai.com",
+              "potentialAction": {
+                "@type": "SearchAction",
+                "target": "https://www.tendorai.com/suppliers/search?postcode={search_term_string}",
+                "query-input": "required name=search_term_string"
+              }
+            })}
+          </script>
+          <script type="application/ld+json">
+            {JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "FAQPage",
+              "mainEntity": faqItems.map(faq => ({
+                "@type": "Question",
+                "name": faq.question,
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": faq.answer
+                }
+              }))
+            })}
+          </script>
         </Helmet>
 
         {/* Hero Section */}

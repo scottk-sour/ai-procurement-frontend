@@ -98,7 +98,30 @@ const NewsletterSignup = () => {
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
-  
+
+  // GEO Links - Top UK cities for SEO
+  const geoLinks = {
+    photocopiers: [
+      'london', 'birmingham', 'manchester', 'leeds', 'glasgow',
+      'liverpool', 'bristol', 'sheffield', 'edinburgh', 'cardiff'
+    ],
+    telecoms: [
+      'london', 'manchester', 'birmingham', 'leeds', 'glasgow',
+      'newcastle', 'nottingham', 'bristol', 'liverpool', 'belfast'
+    ],
+    cctv: [
+      'london', 'birmingham', 'manchester', 'leeds', 'liverpool',
+      'sheffield', 'bristol', 'newcastle', 'nottingham', 'cardiff'
+    ],
+    'it-services': [
+      'london', 'manchester', 'birmingham', 'edinburgh', 'leeds',
+      'cambridge', 'bristol', 'reading', 'glasgow', 'oxford'
+    ]
+  };
+
+  const formatCityName = (city) =>
+    city.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+
   const footerLinks = {
     company: [
       { label: "About Us", to: "/about-us" },
@@ -265,6 +288,50 @@ const Footer = () => {
           {/* Newsletter Signup */}
           <div className="footer-newsletter">
             <NewsletterSignup />
+          </div>
+        </div>
+
+        {/* GEO Links Section for SEO */}
+        <div className="footer-geo">
+          <div className="footer-geo-section">
+            <h5>Photocopier Suppliers</h5>
+            <div className="footer-geo-links">
+              {geoLinks.photocopiers.map(city => (
+                <Link key={city} to={`/suppliers/photocopiers/${city}`}>
+                  {formatCityName(city)}
+                </Link>
+              ))}
+            </div>
+          </div>
+          <div className="footer-geo-section">
+            <h5>Telecoms Suppliers</h5>
+            <div className="footer-geo-links">
+              {geoLinks.telecoms.map(city => (
+                <Link key={city} to={`/suppliers/telecoms/${city}`}>
+                  {formatCityName(city)}
+                </Link>
+              ))}
+            </div>
+          </div>
+          <div className="footer-geo-section">
+            <h5>CCTV & Security Suppliers</h5>
+            <div className="footer-geo-links">
+              {geoLinks.cctv.map(city => (
+                <Link key={city} to={`/suppliers/cctv/${city}`}>
+                  {formatCityName(city)}
+                </Link>
+              ))}
+            </div>
+          </div>
+          <div className="footer-geo-section">
+            <h5>IT Services Suppliers</h5>
+            <div className="footer-geo-links">
+              {geoLinks['it-services'].map(city => (
+                <Link key={city} to={`/suppliers/it-services/${city}`}>
+                  {formatCityName(city)}
+                </Link>
+              ))}
+            </div>
           </div>
         </div>
 

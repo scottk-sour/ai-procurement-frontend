@@ -1,4 +1,83 @@
+# TendorAI Robots.txt
+# https://www.tendorai.com
+
+# Allow all crawlers
 User-agent: *
 Allow: /
 
+# Allow indexing of main pages
+Allow: /suppliers/
+Allow: /services/
+Allow: /about-us
+Allow: /contact
+Allow: /how-it-works
+Allow: /faq
+
+# Disallow private/authenticated pages
+Disallow: /dashboard
+Disallow: /admin-dashboard
+Disallow: /admin-users
+Disallow: /vendor-dashboard
+Disallow: /quote-request
+Disallow: /quote-comparison/
+Disallow: /manage-account
+Disallow: /quotes-requested
+Disallow: /quote-details/
+
+# Disallow authentication pages from indexing
+Disallow: /login
+Disallow: /signup
+Disallow: /vendor-login
+Disallow: /vendor-signup
+Disallow: /admin-login
+
+# Allow specific bots
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: Slurp
+Allow: /
+
+User-agent: DuckDuckBot
+Allow: /
+
+# AI/LLM Crawlers - Allow for GEO
+User-agent: GPTBot
+Allow: /suppliers/
+Allow: /services/
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /suppliers/
+Allow: /services/
+Allow: /
+
+User-agent: Claude-Web
+Allow: /suppliers/
+Allow: /services/
+Allow: /
+
+User-agent: Anthropic-AI
+Allow: /suppliers/
+Allow: /services/
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /suppliers/
+Allow: /services/
+Allow: /
+
+# Sitemaps
 Sitemap: https://www.tendorai.com/sitemap.xml
+Sitemap: https://ai-procurement-backend-q35u.onrender.com/sitemap.xml
+Sitemap: https://ai-procurement-backend-q35u.onrender.com/sitemap-categories.xml
+Sitemap: https://ai-procurement-backend-q35u.onrender.com/sitemap-locations.xml
+
+# Crawl-delay (optional, for courtesy)
+# Crawl-delay: 1
+
+# Host
+Host: https://www.tendorai.com

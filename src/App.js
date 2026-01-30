@@ -310,7 +310,17 @@ class ErrorBoundary extends React.Component {
   }
 
   componentDidCatch(error, errorInfo) {
-    console.error("❌ ErrorBoundary caught an error:", error, errorInfo);
+    console.error("❌ ErrorBoundary caught an error:");
+    console.error("Error name:", error?.name);
+    console.error("Error message:", error?.message);
+    console.error("Error stack:", error?.stack);
+    console.error("Component stack:", errorInfo?.componentStack);
+
+    // Log to console for debugging
+    if (typeof window !== 'undefined') {
+      window.__REACT_ERROR__ = { error, errorInfo };
+    }
+
     this.setState({
       error,
       errorInfo
@@ -322,7 +332,8 @@ class ErrorBoundary extends React.Component {
       return (
         <div style={errorStyle}>
           <h1>🚨 Application Error</h1>
-          <p><strong>Error:</strong> {this.state.error?.message}</p>
+          <p><strong>Error:</strong> {this.state.error?.message || 'Unknown error'}</p>
+          <p><strong>Name:</strong> {this.state.error?.name || 'Unknown'}</p>
           {this.state.errorInfo && (
             <details style={{ marginTop: '1rem', textAlign: 'left' }}>
               <summary>Error Details</summary>

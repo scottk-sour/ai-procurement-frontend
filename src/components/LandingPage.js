@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Helmet, HelmetProvider } from "react-helmet-async";
+import { Helmet } from "react-helmet-async";
 import { FaCheckCircle, FaBolt, FaShieldAlt, FaChartLine, FaUsers, FaClock, FaAward, FaArrowRight } from "react-icons/fa";
 import HeroSearch from "./HeroSearch";
 import "../styles/LandingPage.css";
@@ -245,7 +245,6 @@ const LandingPage = () => {
   ];
 
   return (
-    <HelmetProvider>
       <div className="landing-page">
         {/* SEO Meta Tags with Open Graph, Twitter Cards, and Schema.org */}
         <Helmet>
@@ -618,7 +617,6 @@ const LandingPage = () => {
           </div>
         </section>
       </div>
-    </HelmetProvider>
   );
 };
 

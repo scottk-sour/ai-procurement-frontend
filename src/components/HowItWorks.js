@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Helmet, HelmetProvider } from "react-helmet-async";
+import { Helmet } from "react-helmet-async";
 import { 
   FaRocket, 
   FaSearch, 
@@ -220,7 +220,6 @@ const HowItWorks = () => {
   }, []);
 
   return (
-    <HelmetProvider>
       <div className="how-it-works-page">
         <Helmet>
           <title>How It Works | TendorAI - AI-Powered Procurement Platform</title>
@@ -424,7 +423,6 @@ const HowItWorks = () => {
           </div>
         </section>
       </div>
-    </HelmetProvider>
   );
 };
 

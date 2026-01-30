@@ -36,7 +36,7 @@
       "headers": [
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https: blob:; connect-src 'self' https://www.google-analytics.com https://region1.analytics.google.com https://stats.g.doubleclick.net https://api.stripe.com https://widget.intercom.io wss://nexus-websocket-a.intercom.io https://ai-procurement-backend-q35u.onrender.com;"
+          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https: blob:; connect-src 'self' https://www.google-analytics.com https://region1.analytics.google.com https://stats.g.doubleclick.net https://api.stripe.com https://widget.intercom.io wss://nexus-websocket-a.intercom.io https://ai-procurement-backend-q35u.onrender.com https://formspree.io;"
         },
         {
           "key": "X-Frame-Options",

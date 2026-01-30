@@ -36,6 +36,18 @@ try {
   // Step 2: Try importing App
   console.log('🚀 Step 2: Importing App component...');
 
+  // First, render a simple component to verify React works
+  root.render(
+    <div style={{ padding: '20px', textAlign: 'center' }}>
+      <h1>🚀 React is loading...</h1>
+      <p>If you see this, React is working. Now loading the app...</p>
+    </div>
+  );
+
+  // Signal basic render success
+  window.dispatchEvent(new Event('tendorai-app-ready'));
+
+  // Now try to load the full App
   import('./App')
     .then((module) => {
       console.log('✅ Step 2 complete: App imported successfully');
@@ -51,8 +63,6 @@ try {
           </React.StrictMode>
         );
 
-        // Signal that the app has loaded successfully
-        window.dispatchEvent(new Event('tendorai-app-ready'));
         console.log('✅ TendorAI app rendered successfully');
       } catch (renderError) {
         showError(`Render Error: ${renderError.message}`, renderError.stack);

@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useMemo } from "react";
+import AIVisibilityScore from './vendor/AIVisibilityScore';
 import { 
   Quote, 
   Upload, 
@@ -627,6 +628,29 @@ const VendorDashboard = () => {
       <main style={{ maxWidth: '1200px', margin: '0 auto', padding: '2rem 1rem' }}>
         {dashboardState.activeTab === "overview" && (
           <div>
+            {/* AI Visibility Score - Key monetisation driver */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '1.5rem', marginBottom: '2rem' }}>
+              <AIVisibilityScore token={auth.token} />
+              <div style={{ background: 'white', padding: '1.5rem', borderRadius: '0.75rem', boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)' }}>
+                <h3 style={{ margin: '0 0 1rem', fontSize: '1.125rem', fontWeight: '600', color: '#1f2937' }}>
+                  What is AI Visibility?
+                </h3>
+                <p style={{ color: '#6b7280', fontSize: '0.9rem', lineHeight: '1.6', margin: '0 0 1rem' }}>
+                  Your AI Visibility Score shows how easily AI assistants (ChatGPT, Google AI, Perplexity) can find
+                  and recommend your business when UK businesses ask for supplier recommendations.
+                </p>
+                <p style={{ color: '#6b7280', fontSize: '0.9rem', lineHeight: '1.6', margin: '0 0 1rem' }}>
+                  <strong>Higher scores = more leads from AI referrals.</strong>
+                </p>
+                <ul style={{ color: '#6b7280', fontSize: '0.875rem', lineHeight: '1.8', paddingLeft: '1.25rem', margin: 0 }}>
+                  <li>Complete your profile for better AI understanding</li>
+                  <li>Upload products so AI can match you to queries</li>
+                  <li>Add certifications to build trust signals</li>
+                  <li>Upgrade for priority placement in AI results</li>
+                </ul>
+              </div>
+            </div>
+
             {/* KPI Cards */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
               <div style={{ background: 'white', padding: '1.5rem', borderRadius: '0.75rem', boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)' }}>

@@ -144,7 +144,7 @@ const SearchResults = () => {
         <title>{seoTitle}</title>
         <meta
           name="description"
-          content={`Find verified ${category || 'business'} suppliers within ${distance}km of ${postcode}. Compare quotes and reviews from ${pagination.total} local suppliers.`}
+          content={`Find verified ${category || 'business'} suppliers within ${distance} miles of ${postcode}. Compare quotes and reviews from ${pagination.total} local suppliers.`}
         />
       </Helmet>
 
@@ -174,7 +174,7 @@ const SearchResults = () => {
                   <strong>{pagination.total}</strong> suppliers found
                   {searchInfo?.postcode && (
                     <span className="search-results__location">
-                      within {searchInfo.maxDistance}km of {searchInfo.postcode}
+                      within {searchInfo.maxDistance} miles of {searchInfo.postcode}
                     </span>
                   )}
                 </>

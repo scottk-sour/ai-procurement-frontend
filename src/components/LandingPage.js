@@ -174,45 +174,46 @@ const LandingPage = () => {
     }
   ];
 
+  // Note: Real testimonials to be added as customers join
   const testimonials = [
     {
-      name: "Sarah Mitchell",
-      company: "WalesWest Construction",
-      role: "Procurement Manager",
-      quote: "TendorAI's instant quote system saved us weeks of procurement time. We got 3 competitive photocopier quotes in minutes and saved £8,000 on our annual contract.",
-      logo: "waleswest.png",
-      savings: "£8K saved on photocopiers"
+      name: "Procurement Manager",
+      company: "UK Construction Firm",
+      role: "Example Outcome",
+      quote: "Getting competitive photocopier quotes used to take weeks. Now we compare prices from multiple suppliers in minutes and make informed decisions faster.",
+      logo: "placeholder-company.png",
+      savings: "Faster procurement"
     },
     {
-      name: "James Thompson",
-      company: "Monhinge Motors",
-      role: "Operations Director",
-      quote: "The AI-powered supplier matching is incredible. We found office furniture suppliers we didn't know existed and got better prices than our usual vendors.",
-      logo: "monmotors.png",
-      savings: "3x faster procurement"
+      name: "Operations Director",
+      company: "Automotive Business",
+      role: "Example Outcome",
+      quote: "The supplier matching helped us discover local telecoms providers we didn't know about. More options means better prices.",
+      logo: "placeholder-company.png",
+      savings: "More supplier options"
     },
     {
-      name: "Maria Santos",
-      company: "Ascari Consulting",
-      role: "CFO",
-      quote: "Getting instant office equipment quotes through TendorAI has transformed our procurement process. The platform pays for itself with the first purchase.",
-      logo: "Ascari.png",
-      savings: "£15K saved annually"
+      name: "Finance Director",
+      company: "Consulting Firm",
+      role: "Example Outcome",
+      quote: "Comparing quotes side-by-side makes budgeting much easier. We can see exactly what we're getting and at what price.",
+      logo: "placeholder-company.png",
+      savings: "Easier budgeting"
     },
     {
-      name: "David Chen",
-      company: "TechFlow Solutions",
-      role: "CEO",
-      quote: "Finally, a procurement platform that understands UK businesses. The instant quotes and verified suppliers have made office equipment purchasing so much easier.",
-      logo: "GoCompare.png",
-      savings: "95% time reduction"
+      name: "IT Manager",
+      company: "Professional Services",
+      role: "Example Outcome",
+      quote: "Having verified UK suppliers in one place saves us the hassle of searching and vetting vendors ourselves.",
+      logo: "placeholder-company.png",
+      savings: "Pre-vetted suppliers"
     }
   ];
 
   const stats = [
-    { number: 2500, suffix: "+", label: "Verified UK Suppliers" },
-    { number: 50000, suffix: "+", label: "Instant Quotes Delivered" },
-    { number: 97, suffix: "%", label: "Client Satisfaction" },
+    { number: 500, suffix: "+", label: "UK Suppliers" },
+    { number: 4, suffix: "", label: "Service Categories" },
+    { number: 100, suffix: "%", label: "UK Based" },
     { number: 5, suffix: " min", label: "Average Quote Time" }
   ];
 
@@ -222,8 +223,8 @@ const LandingPage = () => {
       answer: "With TendorAI's AI-powered platform, you can get 3 instant quotes for office equipment in minutes. Simply tell us what you need or upload your requirements, and our AI matches you with verified UK suppliers instantly."
     },
     {
-      question: "What types of office equipment can I get quotes for?",
-      answer: "TendorAI provides instant quotes for photocopiers, multifunction printers, office printers, desks, chairs, filing cabinets, and other office equipment from verified UK suppliers."
+      question: "What types of equipment can I get quotes for?",
+      answer: "TendorAI connects you with UK suppliers for photocopiers, multifunction printers, telecoms and phone systems, CCTV and security systems, and IT equipment. More categories coming soon."
     },
     {
       question: "Is the AI procurement platform free to use?",
@@ -251,7 +252,7 @@ const LandingPage = () => {
           <title>TendorAI - Get 3 Instant Office Equipment Quotes | AI-Powered Procurement UK</title>
           <meta
             name="description"
-            content="Get 3 instant office equipment quotes in minutes with TendorAI's AI-powered platform. Compare photocopier, printer & office furniture prices from verified UK suppliers. Free comparison service."
+            content="Get instant quotes for photocopiers, telecoms, CCTV, and IT equipment from verified UK suppliers. Free AI-powered comparison service for UK businesses."
           />
           <meta
             name="keywords"
@@ -370,13 +371,13 @@ const LandingPage = () => {
             </h1>
             
             <p className="hero-subtitle hero-subtitle-white">
-              Compare photocopier, printer & office furniture prices from verified UK suppliers in minutes. Free AI-powered comparison service that saves time and money.
+              Compare photocopiers, telecoms, CCTV and IT equipment prices from verified UK suppliers. Free AI-powered comparison service for businesses.
             </p>
             
             <div className="hero-stats hero-stats-white">
               <div className="stat-item stat-item-white">
-                <span className="stat-number stat-number-white">2,500+</span>
-                <span className="stat-label stat-label-white">Verified UK Suppliers</span>
+                <span className="stat-number stat-number-white">500+</span>
+                <span className="stat-label stat-label-white">UK Suppliers</span>
               </div>
               <div className="stat-item stat-item-white">
                 <span className="stat-number stat-number-white">3</span>
@@ -443,7 +444,7 @@ const LandingPage = () => {
             <div className="section-header">
               <h2 className="section-title">Compare Office Equipment Prices Across All Categories</h2>
               <p className="section-subtitle">
-                Get instant quotes for photocopiers, printers, office furniture, and IT equipment from verified UK suppliers
+                Get instant quotes for photocopiers, telecoms, CCTV, and IT equipment from verified UK suppliers
               </p>
             </div>
             

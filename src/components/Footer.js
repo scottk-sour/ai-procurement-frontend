@@ -341,22 +341,22 @@ const Footer = () => {
             <div className="footer-copyright">
               <p>&copy; {currentYear} TendorAI Limited. All rights reserved.</p>
               <p className="company-info">
-                Registered in England and Wales. Company No. 12345678
+                Registered in England and Wales
               </p>
             </div>
-            
+
             <div className="footer-certifications">
               <div className="certification-item">
                 <span className="cert-badge">🔒</span>
-                <span className="cert-text">ISO 27001 Certified</span>
+                <span className="cert-text">Secure Platform</span>
               </div>
               <div className="certification-item">
                 <span className="cert-badge">✓</span>
                 <span className="cert-text">GDPR Compliant</span>
               </div>
               <div className="certification-item">
-                <span className="cert-badge">🛡️</span>
-                <span className="cert-text">Cyber Essentials</span>
+                <span className="cert-badge">🇬🇧</span>
+                <span className="cert-text">UK Based</span>
               </div>
             </div>
 

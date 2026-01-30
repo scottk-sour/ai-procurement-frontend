@@ -1,7 +1,6 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import './index.css';
-import App from './App';
 
 // Unregister stale service workers causing blank screen on first load
 if ('serviceWorker' in navigator) {
@@ -15,29 +14,53 @@ if ('serviceWorker' in navigator) {
 
 const container = document.getElementById('root');
 
-try {
-  const root = createRoot(container);
-  root.render(
-    <React.StrictMode>
-      <App />
-    </React.StrictMode>
-  );
-
-  // Signal that the app has loaded successfully
-  window.dispatchEvent(new Event('tendorai-app-ready'));
-  console.log('✅ TendorAI app rendered successfully');
-} catch (error) {
-  console.error('❌ Failed to render TendorAI app:', error);
-
-  // Show error in the UI
+// Helper function to show error
+function showError(message, stack) {
+  console.error('❌ Error:', message);
   const errorDetails = document.getElementById('error-details');
   if (errorDetails) {
-    errorDetails.textContent = `Render Error: ${error.message}\n\nStack: ${error.stack}`;
+    errorDetails.textContent = `${message}\n\nStack: ${stack || 'N/A'}`;
   }
-
-  // Show the error boundary
   const loadingIndicator = document.getElementById('loading-indicator');
   const errorBoundary = document.getElementById('error-boundary');
   if (loadingIndicator) loadingIndicator.style.display = 'none';
   if (errorBoundary) errorBoundary.style.display = 'block';
+}
+
+// Step 1: Test basic React rendering
+console.log('🚀 Step 1: Testing basic React rendering...');
+
+try {
+  const root = createRoot(container);
+
+  // Step 2: Try importing App
+  console.log('🚀 Step 2: Importing App component...');
+
+  import('./App')
+    .then((module) => {
+      console.log('✅ Step 2 complete: App imported successfully');
+      const App = module.default;
+
+      // Step 3: Render App
+      console.log('🚀 Step 3: Rendering App...');
+
+      try {
+        root.render(
+          <React.StrictMode>
+            <App />
+          </React.StrictMode>
+        );
+
+        // Signal that the app has loaded successfully
+        window.dispatchEvent(new Event('tendorai-app-ready'));
+        console.log('✅ TendorAI app rendered successfully');
+      } catch (renderError) {
+        showError(`Render Error: ${renderError.message}`, renderError.stack);
+      }
+    })
+    .catch((importError) => {
+      showError(`Import Error: ${importError.message}`, importError.stack);
+    });
+} catch (error) {
+  showError(`Init Error: ${error.message}`, error.stack);
 }

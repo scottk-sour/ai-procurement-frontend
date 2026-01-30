@@ -14,9 +14,30 @@ if ('serviceWorker' in navigator) {
 }
 
 const container = document.getElementById('root');
-const root = createRoot(container);
-root.render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>
-);
+
+try {
+  const root = createRoot(container);
+  root.render(
+    <React.StrictMode>
+      <App />
+    </React.StrictMode>
+  );
+
+  // Signal that the app has loaded successfully
+  window.dispatchEvent(new Event('tendorai-app-ready'));
+  console.log('✅ TendorAI app rendered successfully');
+} catch (error) {
+  console.error('❌ Failed to render TendorAI app:', error);
+
+  // Show error in the UI
+  const errorDetails = document.getElementById('error-details');
+  if (errorDetails) {
+    errorDetails.textContent = `Render Error: ${error.message}\n\nStack: ${error.stack}`;
+  }
+
+  // Show the error boundary
+  const loadingIndicator = document.getElementById('loading-indicator');
+  const errorBoundary = document.getElementById('error-boundary');
+  if (loadingIndicator) loadingIndicator.style.display = 'none';
+  if (errorBoundary) errorBoundary.style.display = 'block';
+}

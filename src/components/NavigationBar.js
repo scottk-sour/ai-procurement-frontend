@@ -13,7 +13,6 @@ import React, {
 } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import {
-  FaUser,
   FaStore,
   FaChevronDown,
   FaBars,
@@ -116,11 +115,9 @@ const NavigationBar = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Auth state helpers
-  const isUserLoggedIn = auth?.isAuthenticated && auth.user?.role === "user";
+  // Auth state helpers - only vendor login needed (customers don't need accounts)
   const isVendorLoggedIn =
     auth?.isAuthenticated && auth.user?.role === "vendor";
-  const userName = auth?.user?.name || "User";
 
   // UI state
   const [isScrolled, setIsScrolled] = useState(false);
@@ -150,18 +147,7 @@ const NavigationBar = () => {
     setIsMoreOpen(false);
   }, []);
 
-  // Logout helpers
-  const handleLogout = useCallback(() => {
-    try {
-      logout();
-      closeAll();
-      navigate("/login", { replace: true });
-    } catch (err) {
-      console.error("Logout error:", err);
-      window.location.href = "/login";
-    }
-  }, [logout, closeAll, navigate]);
-
+  // Vendor logout helper
   const handleVendorLogout = useCallback(() => {
     try {
       logout();
@@ -172,12 +158,6 @@ const NavigationBar = () => {
       window.location.href = "/vendor-login";
     }
   }, [logout, closeAll, navigate]);
-
-  // **FIXED: Request Quote Navigation**
-  const handleRequestQuote = useCallback(() => {
-  closeAll();
-  navigate("/quote-request");  // ✅ CHANGED
-}, [closeAll, navigate]);
 
   // Close on route change
   useEffect(() => {
@@ -423,56 +403,8 @@ const NavigationBar = () => {
             )}
           </div>
 
-          {/* AUTH SECTION */}
+          {/* AUTH SECTION - Vendor only (customers don't need accounts) */}
           <div className="navbar-auth" ref={authRef}>
-            {!isUserLoggedIn ? (
-              <div className="user-auth-section">
-                <NavLink
-                  to="/login"
-                  className="auth-link login-link"
-                  onClick={closeAll}
-                >
-                  <FaUser className="auth-icon" /> Login
-                </NavLink>
-
-                <NavLink
-                  to="/signup"
-                  className="auth-link signup-link cta-button"
-                  onClick={closeAll}
-                >
-                  Sign Up
-                </NavLink>
-              </div>
-            ) : (
-              <div className="user-menu authenticated">
-                {/* **FIXED: Request Quote Button** */}
-                <button
-                  className="auth-link request-quote-button cta-button"
-                  onClick={handleRequestQuote}
-                  aria-label="Request a quote"
-                >
-                  Request Quote
-                </button>
-
-                <NavLink
-                  to="/dashboard"
-                  className="auth-link dashboard-link"
-                  onClick={closeAll}
-                >
-                  <FaUser className="auth-icon" />
-                  {userName}
-                </NavLink>
-
-                <button
-                  className="auth-link logout-link"
-                  onClick={handleLogout}
-                  aria-label="Log out"
-                >
-                  Log Out
-                </button>
-              </div>
-            )}
-
             {!isVendorLoggedIn && (
               <div className="vendor-auth-section">
                 <NavLink
@@ -556,30 +488,8 @@ const NavigationBar = () => {
                 </div>
               </nav>
 
-              {/* Mobile Auth */}
+              {/* Mobile Auth - Vendor only (customers don't need accounts) */}
               <div className="mobile-auth-section">
-                <div className="mobile-user-auth">
-                  <h4 className="mobile-section-title"><FaUser className="section-icon" />User Account</h4>
-                  {!isUserLoggedIn ? (
-                    <>
-                      <NavLink to="/login" onClick={closeAll} className="mobile-auth-link login">Login</NavLink>
-                      <NavLink to="/signup" onClick={closeAll} className="mobile-auth-link signup">Sign Up</NavLink>
-                    </>
-                  ) : (
-                    <>
-                      {/* **FIXED: Mobile Request Quote Button** */}
-                      <button 
-                        onClick={() => { handleRequestQuote(); closeAll(); }} 
-                        className="mobile-auth-link request-quote"
-                      >
-                        Request Quote
-                      </button>
-                      <NavLink to="/dashboard" onClick={closeAll} className="mobile-auth-link dashboard">{userName}'s Dashboard</NavLink>
-                      <button onClick={() => { handleLogout(); closeAll(); }} className="mobile-auth-link logout">Log Out</button>
-                    </>
-                  )}
-                </div>
-
                 <div className="mobile-vendor-auth">
                   <h4 className="mobile-section-title"><FaStore className="section-icon" />Vendor Portal</h4>
                   {!isVendorLoggedIn ? (

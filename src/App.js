@@ -135,6 +135,12 @@ const VendorQuoteRequest = loadWithFallback(
   () => <div style={errorStyle}>Failed to load Quote Request Form</div>
 );
 
+// AI Referral Landing Page (public - for AI assistant referrals)
+const AIReferral = loadWithFallback(
+  () => import("./components/AIReferral"),
+  () => <div style={errorStyle}>Failed to load AI Referral Page</div>
+);
+
 // User Dashboard
 const UserDashboard = loadWithFallback(
   () => import("./components/UserDashboard"),
@@ -505,6 +511,10 @@ const router = createBrowserRouter(
 
         // Vendor-specific quote request (public - no auth required)
         { path: "/quote-request/:vendorId", element: <VendorQuoteRequest /> },
+
+        // AI Referral Landing Page (public - for ChatGPT and other AI assistant referrals)
+        { path: "/ai", element: <AIReferral /> },
+        { path: "/find-suppliers", element: <AIReferral /> },
 
         // Protected vendor routes
         {

@@ -41,23 +41,23 @@ const SearchResults = () => {
   const [searchInfo, setSearchInfo] = useState(null);
 
   // Fetch vendors
-  const fetchVendors = useCallback(async (page = 1) => {
-    if (!postcode) {
-      setError('Please enter a postcode to search');
-      setLoading(false);
-      return;
-    }
+  const fetchVendors = useCallback(async (page = 1, fallbackToNationwide = false) => {
+    const isNationwide = distance === '200' || !postcode || fallbackToNationwide;
 
     setLoading(true);
     setError(null);
 
     try {
       const params = new URLSearchParams({
-        postcode,
-        distance,
         page: page.toString(),
         limit: '12'
       });
+
+      // Only include postcode/distance if doing a location-based search
+      if (!isNationwide && postcode) {
+        params.set('postcode', postcode);
+        params.set('distance', distance);
+      }
 
       if (category) {
         params.set('category', category);
@@ -67,18 +67,28 @@ const SearchResults = () => {
       const data = await response.json();
 
       if (!response.ok) {
+        // If postcode lookup failed and we haven't tried nationwide yet, fall back
+        if (!fallbackToNationwide && postcode && data.message?.includes('postcode')) {
+          console.warn('Postcode lookup failed, falling back to nationwide search');
+          return fetchVendors(page, true);
+        }
         throw new Error(data.message || 'Failed to fetch vendors');
       }
 
       if (data.success) {
         setVendors(page === 1 ? data.data.vendors : [...vendors, ...data.data.vendors]);
         setPagination(data.data.pagination);
-        setSearchInfo(data.data.search);
+        setSearchInfo(data.data.search || { nationwide: isNationwide });
       } else {
         throw new Error(data.message || 'No vendors found');
       }
     } catch (err) {
       console.error('Search error:', err);
+      // If this wasn't already a fallback attempt, try nationwide
+      if (!fallbackToNationwide && postcode) {
+        console.warn('Search failed, falling back to nationwide search');
+        return fetchVendors(page, true);
+      }
       setError(err.message || 'Failed to search. Please try again.');
     } finally {
       setLoading(false);
@@ -134,9 +144,15 @@ const SearchResults = () => {
   });
 
   // SEO title
+  const isNationwide = distance === '200' || !postcode;
+  const locationText = isNationwide ? 'UK' : `near ${postcode}`;
   const seoTitle = category
-    ? `${category.charAt(0).toUpperCase() + category.slice(1)} Suppliers near ${postcode} | TendorAI`
-    : `Business Suppliers near ${postcode} | TendorAI`;
+    ? `${category.charAt(0).toUpperCase() + category.slice(1)} Suppliers ${locationText} | TendorAI`
+    : `Business Suppliers ${locationText} | TendorAI`;
+
+  const seoDescription = isNationwide
+    ? `Find verified ${category || 'business'} suppliers across the UK. Compare quotes and reviews from ${pagination.total} suppliers.`
+    : `Find verified ${category || 'business'} suppliers within ${distance} miles of ${postcode}. Compare quotes and reviews from ${pagination.total} local suppliers.`;
 
   return (
     <div className="search-results">
@@ -144,7 +160,7 @@ const SearchResults = () => {
         <title>{seoTitle}</title>
         <meta
           name="description"
-          content={`Find verified ${category || 'business'} suppliers within ${distance} miles of ${postcode}. Compare quotes and reviews from ${pagination.total} local suppliers.`}
+          content={seoDescription}
         />
       </Helmet>
 
@@ -172,11 +188,15 @@ const SearchResults = () => {
               ) : (
                 <>
                   <strong>{pagination.total}</strong> suppliers found
-                  {searchInfo?.postcode && (
+                  {searchInfo?.postcode ? (
                     <span className="search-results__location">
                       within {searchInfo.maxDistance} miles of {searchInfo.postcode}
                     </span>
-                  )}
+                  ) : searchInfo?.nationwide || isNationwide ? (
+                    <span className="search-results__location">
+                      across the UK
+                    </span>
+                  ) : null}
                 </>
               )}
             </div>

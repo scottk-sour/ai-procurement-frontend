@@ -2,14 +2,13 @@
 import React, { useState, useEffect } from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
 
-const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:5000";
+const API_URL = process.env.REACT_APP_API_URL || 'https://ai-procurement-backend-q35u.onrender.com';
 
 const AdminPrivateRoute = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(null);
 
   useEffect(() => {
     const checkAuth = async () => {
-      // Get admin token from localStorage
       const token = localStorage.getItem('adminToken');
       if (!token) {
         setIsAuthenticated(false);
@@ -17,11 +16,20 @@ const AdminPrivateRoute = () => {
       }
 
       try {
-        const res = await fetch(`${API_BASE}/api/auth/admin-verify`, {
+        // Verify token by calling an authenticated admin endpoint
+        const res = await fetch(`${API_URL}/api/admin/stats`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        setIsAuthenticated(res.ok); // True if 2xx
+
+        if (res.ok) {
+          setIsAuthenticated(true);
+        } else {
+          // Token invalid or expired
+          localStorage.removeItem('adminToken');
+          setIsAuthenticated(false);
+        }
       } catch (error) {
+        console.error('Admin auth check failed:', error);
         setIsAuthenticated(false);
       }
     };
@@ -30,11 +38,19 @@ const AdminPrivateRoute = () => {
   }, []);
 
   if (isAuthenticated === null) {
-    // Loading state
-    return <div className="loading-spinner">Loading Admin Dashboard...</div>;
+    return (
+      <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        minHeight: '50vh',
+        color: '#6b7280'
+      }}>
+        Loading Admin Dashboard...
+      </div>
+    );
   }
 
-  // Authenticated: render nested routes. Not: redirect to /admin-login.
   return isAuthenticated ? <Outlet /> : <Navigate to="/admin-login" replace />;
 };
 

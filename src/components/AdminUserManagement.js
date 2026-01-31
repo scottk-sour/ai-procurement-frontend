@@ -1,30 +1,51 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 import '../styles/AdminUserManagement.css';
 
+const API_URL = process.env.REACT_APP_API_URL || 'https://ai-procurement-backend-q35u.onrender.com';
+
 const AdminUserManagement = () => {
+  const navigate = useNavigate();
   const [users, setUsers] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    // Fetch users from the backend
     const fetchUsers = async () => {
       try {
         const token = localStorage.getItem('adminToken');
-        const response = await axios.get('http://localhost:5000/api/admin/users', {
+        if (!token) {
+          navigate('/admin-login');
+          return;
+        }
+
+        const response = await fetch(`${API_URL}/api/admin/users`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        setUsers(response.data);
-        setLoading(false);
-      } catch (error) {
-        console.error('Error fetching users:', error);
+
+        if (response.status === 401) {
+          localStorage.removeItem('adminToken');
+          navigate('/admin-login');
+          return;
+        }
+
+        const data = await response.json();
+        if (data.success) {
+          setUsers(data.data || []);
+        } else {
+          setError(data.message || 'Failed to fetch users');
+        }
+      } catch (err) {
+        console.error('Error fetching users:', err);
+        setError('Failed to connect to server');
+      } finally {
         setLoading(false);
       }
     };
 
     fetchUsers();
-  }, []);
+  }, [navigate]);
 
   const handleSearch = (e) => {
     setSearchTerm(e.target.value);
@@ -32,15 +53,31 @@ const AdminUserManagement = () => {
 
   const filteredUsers = users.filter(
     (user) =>
-      user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchTerm.toLowerCase())
+      (user.name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+      (user.email?.toLowerCase() || '').includes(searchTerm.toLowerCase())
   );
+
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    return new Date(dateString).toLocaleDateString('en-GB', {
+      day: '2-digit', month: 'short', year: 'numeric'
+    });
+  };
+
+  if (error) {
+    return (
+      <div className="admin-user-management">
+        <h1>User Management</h1>
+        <div className="error-message">{error}</div>
+        <button onClick={() => window.location.reload()}>Retry</button>
+      </div>
+    );
+  }
 
   return (
     <div className="admin-user-management">
-      <h1>Admin Dashboard - User Management</h1>
+      <h1>User Management</h1>
 
-      {/* Overview Cards */}
       <div className="overview-cards">
         <div className="card">
           <h3>Total Users</h3>
@@ -48,7 +85,6 @@ const AdminUserManagement = () => {
         </div>
       </div>
 
-      {/* Search Bar */}
       <div className="search-bar">
         <input
           type="text"
@@ -58,7 +94,6 @@ const AdminUserManagement = () => {
         />
       </div>
 
-      {/* User Table */}
       {loading ? (
         <p>Loading users...</p>
       ) : (
@@ -69,22 +104,27 @@ const AdminUserManagement = () => {
               <th>Email</th>
               <th>Company</th>
               <th>Sign-Up Date</th>
-              <th>Actions</th>
+              <th>Last Login</th>
             </tr>
           </thead>
           <tbody>
-            {filteredUsers.map((user) => (
-              <tr key={user._id}>
-                <td>{user.name}</td>
-                <td>{user.email}</td>
-                <td>{user.company || 'N/A'}</td>
-                <td>{new Date(user.createdAt).toLocaleDateString()}</td>
-                <td>
-                  <button className="view-button">View</button>
-                  <button className="delete-button">Delete</button>
+            {filteredUsers.length > 0 ? (
+              filteredUsers.map((user) => (
+                <tr key={user._id}>
+                  <td>{user.name || 'N/A'}</td>
+                  <td>{user.email}</td>
+                  <td>{user.company || 'N/A'}</td>
+                  <td>{formatDate(user.createdAt)}</td>
+                  <td>{formatDate(user.lastLogin)}</td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan="5" style={{ textAlign: 'center', color: '#6b7280' }}>
+                  No users found
                 </td>
               </tr>
-            ))}
+            )}
           </tbody>
         </table>
       )}

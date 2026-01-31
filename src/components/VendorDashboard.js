@@ -821,6 +821,28 @@ const VendorDashboard = () => {
                 )}
               </button>
             ))}
+            {/* Subscription/Upgrade link - navigates to separate page */}
+            <button
+              onClick={() => navigate('/vendor-dashboard/upgrade')}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                padding: '1rem 1.5rem',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                borderBottom: '2px solid transparent',
+                color: '#f59e0b',
+                fontWeight: '500',
+                position: 'relative',
+                transition: 'all 0.2s',
+                marginLeft: 'auto'
+              }}
+            >
+              <Award size={18} />
+              <span>Subscription</span>
+            </button>
           </div>
         </div>
       </nav>
@@ -843,12 +865,30 @@ const VendorDashboard = () => {
                 <p style={{ color: '#6b7280', fontSize: '0.9rem', lineHeight: '1.6', margin: '0 0 1rem' }}>
                   <strong>Higher scores = more leads from AI referrals.</strong>
                 </p>
-                <ul style={{ color: '#6b7280', fontSize: '0.875rem', lineHeight: '1.8', paddingLeft: '1.25rem', margin: 0 }}>
+                <ul style={{ color: '#6b7280', fontSize: '0.875rem', lineHeight: '1.8', paddingLeft: '1.25rem', margin: '0 0 1.5rem' }}>
                   <li>Complete your profile for better AI understanding</li>
                   <li>Upload products so AI can match you to queries</li>
                   <li>Add certifications to build trust signals</li>
                   <li>Upgrade for priority placement in AI results</li>
                 </ul>
+                <button
+                  onClick={() => navigate('/vendor-dashboard/upgrade')}
+                  style={{
+                    background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
+                    color: 'white',
+                    border: 'none',
+                    padding: '0.75rem 1.5rem',
+                    borderRadius: '0.5rem',
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    fontWeight: '600',
+                    fontSize: '0.9rem'
+                  }}
+                >
+                  <TrendingUp size={16} /> View Upgrade Options
+                </button>
               </div>
             </div>
 

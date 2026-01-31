@@ -1,367 +1,359 @@
-import React, { useState, useEffect } from 'react';
-import { Search, Users, Building, CreditCard, DollarSign, TrendingUp, AlertTriangle, CheckCircle, XCircle, Eye, Edit, Trash2, Mail, Filter, Download, Plus, Bell } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
+import {
+  Search, Users, Building, CreditCard, TrendingUp,
+  CheckCircle, XCircle, Eye, Edit, Package,
+  MessageSquare, RefreshCw, LogOut, AlertCircle
+} from 'lucide-react';
+import './AdminDashboard.css';
+
+const API_URL = process.env.REACT_APP_API_URL || 'https://ai-procurement-backend-q35u.onrender.com';
 
 const AdminDashboard = () => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('overview');
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterStatus, setFilterStatus] = useState('all');
-  const [loading, setLoading] = useState(false);
+  const [filterTier, setFilterTier] = useState('all');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [editingVendor, setEditingVendor] = useState(null);
 
-  // Mock data - in real app, this would come from your backend
-  const [dashboardData, setDashboardData] = useState({
-    overview: {
-      totalUsers: 2847,
-      activeVendors: 156,
-      pendingVendors: 23,
-      totalRevenue: 284750,
-      monthlyGrowth: 12.5,
-      unpaidInvoices: 45
-    },
-    users: [
-      { id: 1, name: 'John Smith', email: 'john@example.com', company: 'TechCorp', status: 'active', signupDate: '2024-01-15', lastLogin: '2024-07-07' },
-      { id: 2, name: 'Sarah Johnson', email: 'sarah@design.com', company: 'DesignStudio', status: 'inactive', signupDate: '2024-02-20', lastLogin: '2024-06-15' },
-      { id: 3, name: 'Mike Wilson', email: 'mike@startup.io', company: 'StartupXYZ', status: 'active', signupDate: '2024-03-10', lastLogin: '2024-07-08' },
-      { id: 4, name: 'Emma Davis', email: 'emma@consulting.com', company: 'Davis Consulting', status: 'suspended', signupDate: '2024-01-05', lastLogin: '2024-06-20' }
-    ],
-    vendors: [
-      { id: 1, name: 'Global Supplies Co', email: 'contact@globalsupplies.com', category: 'Manufacturing', status: 'approved', revenue: 45000, joinDate: '2024-01-20' },
-      { id: 2, name: 'TechSolutions Ltd', email: 'info@techsolutions.com', category: 'Technology', status: 'pending', revenue: 0, joinDate: '2024-07-01' },
-      { id: 3, name: 'Creative Services Inc', email: 'hello@creative.com', category: 'Design', status: 'approved', revenue: 28000, joinDate: '2024-03-15' },
-      { id: 4, name: 'DataFlow Systems', email: 'support@dataflow.com', category: 'Technology', status: 'rejected', revenue: 0, joinDate: '2024-06-10' }
-    ],
-    payments: [
-      { id: 1, userName: 'John Smith', userEmail: 'john@example.com', amount: 299, status: 'paid', dueDate: '2024-07-01', paidDate: '2024-06-28', invoiceId: 'INV-001' },
-      { id: 2, userName: 'Sarah Johnson', userEmail: 'sarah@design.com', amount: 499, status: 'overdue', dueDate: '2024-06-15', paidDate: null, invoiceId: 'INV-002' },
-      { id: 3, userName: 'Mike Wilson', userEmail: 'mike@startup.io', amount: 199, status: 'pending', dueDate: '2024-07-15', paidDate: null, invoiceId: 'INV-003' },
-      { id: 4, userName: 'Emma Davis', userEmail: 'emma@consulting.com', amount: 699, status: 'paid', dueDate: '2024-07-05', paidDate: '2024-07-03', invoiceId: 'INV-004' }
-    ]
+  const [stats, setStats] = useState({
+    totalUsers: 0,
+    totalVendors: 0,
+    totalQuotes: 0,
+    totalLeads: 0,
+    totalProducts: 0,
+    activeSubscriptions: 0,
+    recentVendors: 0,
+    tierBreakdown: { free: 0, visible: 0, verified: 0 }
   });
 
-  // Filter functions
-  const getFilteredUsers = () => {
-    return dashboardData.users.filter(user => {
-      const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                           user.email.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesStatus = filterStatus === 'all' || user.status === filterStatus;
-      return matchesSearch && matchesStatus;
+  const [vendors, setVendors] = useState([]);
+  const [leads, setLeads] = useState([]);
+
+  const getToken = () => localStorage.getItem('adminToken');
+
+  const fetchWithAuth = useCallback(async (endpoint) => {
+    const token = getToken();
+    if (!token) {
+      navigate('/admin-login');
+      return null;
+    }
+
+    const response = await fetch(`${API_URL}${endpoint}`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+
+    if (response.status === 401) {
+      localStorage.removeItem('adminToken');
+      navigate('/admin-login');
+      return null;
+    }
+
+    return response.json();
+  }, [navigate]);
+
+  const fetchStats = useCallback(async () => {
+    try {
+      const data = await fetchWithAuth('/api/admin/stats');
+      if (data?.success) {
+        setStats(data.stats);
+      }
+    } catch (err) {
+      console.error('Error fetching stats:', err);
+    }
+  }, [fetchWithAuth]);
+
+  const fetchVendors = useCallback(async () => {
+    try {
+      const data = await fetchWithAuth('/api/admin/vendors');
+      if (data?.success) {
+        setVendors(data.data);
+      }
+    } catch (err) {
+      console.error('Error fetching vendors:', err);
+    }
+  }, [fetchWithAuth]);
+
+  const fetchLeads = useCallback(async () => {
+    try {
+      const data = await fetchWithAuth('/api/admin/leads');
+      if (data?.success) {
+        setLeads(data.data);
+      }
+    } catch (err) {
+      console.error('Error fetching leads:', err);
+    }
+  }, [fetchWithAuth]);
+
+  const loadAllData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      await Promise.all([fetchStats(), fetchVendors(), fetchLeads()]);
+    } catch (err) {
+      setError('Failed to load data');
+    } finally {
+      setLoading(false);
+    }
+  }, [fetchStats, fetchVendors, fetchLeads]);
+
+  useEffect(() => {
+    const token = getToken();
+    if (!token) {
+      navigate('/admin-login');
+      return;
+    }
+    loadAllData();
+  }, [navigate, loadAllData]);
+
+  const handleLogout = () => {
+    localStorage.removeItem('adminToken');
+    navigate('/admin-login');
+  };
+
+  const handleChangeTier = async (vendorId, newTier) => {
+    try {
+      const token = getToken();
+      const response = await fetch(`${API_URL}/api/admin/vendors/${vendorId}/tier`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ tier: newTier })
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        setVendors(prev => prev.map(v =>
+          v.id === vendorId ? { ...v, tier: newTier } : v
+        ));
+        setEditingVendor(null);
+      } else {
+        alert(data.message || 'Failed to update tier');
+      }
+    } catch (err) {
+      console.error('Error updating tier:', err);
+      alert('Failed to update tier');
+    }
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    return new Date(dateString).toLocaleDateString('en-GB', {
+      day: '2-digit', month: 'short', year: 'numeric'
     });
   };
 
-  const getFilteredVendors = () => {
-    return dashboardData.vendors.filter(vendor => {
-      const matchesSearch = vendor.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                           vendor.email.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesStatus = filterStatus === 'all' || vendor.status === filterStatus;
-      return matchesSearch && matchesStatus;
-    });
-  };
-
-  const getFilteredPayments = () => {
-    return dashboardData.payments.filter(payment => {
-      const matchesSearch = payment.userName.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                           payment.userEmail.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesStatus = filterStatus === 'all' || payment.status === filterStatus;
-      return matchesSearch && matchesStatus;
-    });
-  };
-
-  const handleUserAction = (action, userId) => {
-    console.log(`${action} user ${userId}`);
-    // In real app, make API call here
-  };
-
-  const handleVendorAction = (action, vendorId) => {
-    console.log(`${action} vendor ${vendorId}`);
-    // In real app, make API call here
-  };
-
-  const handlePaymentAction = (action, paymentId) => {
-    console.log(`${action} payment ${paymentId}`);
-    // In real app, make API call here
-  };
-
-  const StatusBadge = ({ status }) => {
-    const statusColors = {
-      active: 'bg-green-100 text-green-800',
-      inactive: 'bg-gray-100 text-gray-800',
-      suspended: 'bg-red-100 text-red-800',
-      approved: 'bg-green-100 text-green-800',
-      pending: 'bg-yellow-100 text-yellow-800',
-      rejected: 'bg-red-100 text-red-800',
-      paid: 'bg-green-100 text-green-800',
-      overdue: 'bg-red-100 text-red-800'
+  const getTierBadgeClass = (tier) => {
+    const classes = {
+      free: 'tier-free',
+      visible: 'tier-visible',
+      verified: 'tier-verified',
+      basic: 'tier-visible',
+      managed: 'tier-verified',
+      enterprise: 'tier-verified'
     };
-    
-    return (
-      <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusColors[status]}`}>
-        {status.charAt(0).toUpperCase() + status.slice(1)}
-      </span>
-    );
+    return classes[tier] || 'tier-free';
   };
+
+  const getTierDisplayName = (tier) => {
+    const names = {
+      free: 'Free',
+      visible: 'Visible (£99)',
+      verified: 'Verified (£149)',
+      basic: 'Visible (£99)',
+      managed: 'Verified (£149)',
+      enterprise: 'Enterprise'
+    };
+    return names[tier] || tier;
+  };
+
+  const filteredVendors = vendors.filter(vendor => {
+    const matchesSearch =
+      vendor.company?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      vendor.email?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesTier = filterTier === 'all' || vendor.tier === filterTier;
+    return matchesSearch && matchesTier;
+  });
 
   const OverviewTab = () => (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-white p-6 rounded-lg shadow-sm border">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Total Users</p>
-              <p className="text-2xl font-bold text-gray-900">{dashboardData.overview.totalUsers.toLocaleString()}</p>
-            </div>
-            <Users className="h-8 w-8 text-blue-600" />
+    <div className="admin-overview">
+      <div className="stats-grid">
+        <div className="stat-card">
+          <div className="stat-icon users"><Users size={24} /></div>
+          <div className="stat-content">
+            <span className="stat-value">{stats.totalUsers}</span>
+            <span className="stat-label">Total Users</span>
           </div>
         </div>
-        
-        <div className="bg-white p-6 rounded-lg shadow-sm border">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Active Vendors</p>
-              <p className="text-2xl font-bold text-gray-900">{dashboardData.overview.activeVendors}</p>
-            </div>
-            <Building className="h-8 w-8 text-green-600" />
+
+        <div className="stat-card">
+          <div className="stat-icon vendors"><Building size={24} /></div>
+          <div className="stat-content">
+            <span className="stat-value">{stats.totalVendors}</span>
+            <span className="stat-label">Total Vendors</span>
           </div>
         </div>
-        
-        <div className="bg-white p-6 rounded-lg shadow-sm border">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Total Revenue</p>
-              <p className="text-2xl font-bold text-gray-900">${dashboardData.overview.totalRevenue.toLocaleString()}</p>
-            </div>
-            <DollarSign className="h-8 w-8 text-purple-600" />
+
+        <div className="stat-card">
+          <div className="stat-icon subscriptions"><CreditCard size={24} /></div>
+          <div className="stat-content">
+            <span className="stat-value">{stats.activeSubscriptions}</span>
+            <span className="stat-label">Active Subscriptions</span>
           </div>
         </div>
-        
-        <div className="bg-white p-6 rounded-lg shadow-sm border">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Unpaid Invoices</p>
-              <p className="text-2xl font-bold text-gray-900">{dashboardData.overview.unpaidInvoices}</p>
-            </div>
-            <AlertTriangle className="h-8 w-8 text-red-600" />
+
+        <div className="stat-card">
+          <div className="stat-icon leads"><MessageSquare size={24} /></div>
+          <div className="stat-content">
+            <span className="stat-value">{stats.totalLeads}</span>
+            <span className="stat-label">Total Leads</span>
+          </div>
+        </div>
+
+        <div className="stat-card">
+          <div className="stat-icon products"><Package size={24} /></div>
+          <div className="stat-content">
+            <span className="stat-value">{stats.totalProducts}</span>
+            <span className="stat-label">Products Listed</span>
+          </div>
+        </div>
+
+        <div className="stat-card">
+          <div className="stat-icon recent"><TrendingUp size={24} /></div>
+          <div className="stat-content">
+            <span className="stat-value">{stats.recentVendors}</span>
+            <span className="stat-label">New Vendors (30d)</span>
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white p-6 rounded-lg shadow-sm border">
-          <h3 className="text-lg font-semibold mb-4">Recent Activity</h3>
-          <div className="space-y-3">
-            <div className="flex items-center space-x-3">
-              <CheckCircle className="h-5 w-5 text-green-500" />
-              <span className="text-sm">New vendor "TechSolutions Ltd" applied</span>
+      <div className="tier-breakdown">
+        <h3>Vendor Tier Breakdown</h3>
+        <div className="tier-bars">
+          <div className="tier-bar">
+            <span className="tier-name">Free</span>
+            <div className="tier-progress">
+              <div className="tier-fill free" style={{ width: `${(stats.tierBreakdown.free / stats.totalVendors) * 100 || 0}%` }}></div>
             </div>
-            <div className="flex items-center space-x-3">
-              <DollarSign className="h-5 w-5 text-blue-500" />
-              <span className="text-sm">Payment of $299 received from John Smith</span>
+            <span className="tier-count">{stats.tierBreakdown.free || 0}</span>
+          </div>
+          <div className="tier-bar">
+            <span className="tier-name">Visible (£99)</span>
+            <div className="tier-progress">
+              <div className="tier-fill visible" style={{ width: `${((stats.tierBreakdown.visible + stats.tierBreakdown.basic) / stats.totalVendors) * 100 || 0}%` }}></div>
             </div>
-            <div className="flex items-center space-x-3">
-              <AlertTriangle className="h-5 w-5 text-red-500" />
-              <span className="text-sm">Invoice INV-002 is overdue</span>
+            <span className="tier-count">{(stats.tierBreakdown.visible || 0) + (stats.tierBreakdown.basic || 0)}</span>
+          </div>
+          <div className="tier-bar">
+            <span className="tier-name">Verified (£149)</span>
+            <div className="tier-progress">
+              <div className="tier-fill verified" style={{ width: `${((stats.tierBreakdown.verified + stats.tierBreakdown.managed) / stats.totalVendors) * 100 || 0}%` }}></div>
             </div>
-            <div className="flex items-center space-x-3">
-              <Users className="h-5 w-5 text-purple-500" />
-              <span className="text-sm">5 new users registered today</span>
-            </div>
+            <span className="tier-count">{(stats.tierBreakdown.verified || 0) + (stats.tierBreakdown.managed || 0)}</span>
           </div>
         </div>
-
-        <div className="bg-white p-6 rounded-lg shadow-sm border">
-          <h3 className="text-lg font-semibold mb-4">Quick Actions</h3>
-          <div className="grid grid-cols-2 gap-3">
-            <button className="flex items-center justify-center space-x-2 p-3 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors">
-              <Plus className="h-4 w-4 text-blue-600" />
-              <span className="text-sm font-medium text-blue-600">Add User</span>
-            </button>
-            <button className="flex items-center justify-center space-x-2 p-3 bg-green-50 hover:bg-green-100 rounded-lg transition-colors">
-              <Building className="h-4 w-4 text-green-600" />
-              <span className="text-sm font-medium text-green-600">Review Vendors</span>
-            </button>
-            <button className="flex items-center justify-center space-x-2 p-3 bg-purple-50 hover:bg-purple-100 rounded-lg transition-colors">
-              <Mail className="h-4 w-4 text-purple-600" />
-              <span className="text-sm font-medium text-purple-600">Send Reminders</span>
-            </button>
-            <button className="flex items-center justify-center space-x-2 p-3 bg-orange-50 hover:bg-orange-100 rounded-lg transition-colors">
-              <Download className="h-4 w-4 text-orange-600" />
-              <span className="text-sm font-medium text-orange-600">Export Data</span>
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-
-  const UsersTab = () => (
-    <div className="space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
-        <h2 className="text-xl font-semibold">User Management</h2>
-        <div className="flex items-center space-x-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search users..."
-              className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-          <select
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            value={filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value)}
-          >
-            <option value="all">All Status</option>
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
-            <option value="suspended">Suspended</option>
-          </select>
-        </div>
-      </div>
-
-      <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Company</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Signup Date</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Login</th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {getFilteredUsers().map((user) => (
-              <tr key={user.id} className="hover:bg-gray-50">
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div>
-                    <div className="text-sm font-medium text-gray-900">{user.name}</div>
-                    <div className="text-sm text-gray-500">{user.email}</div>
-                  </div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{user.company}</td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <StatusBadge status={user.status} />
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{user.signupDate}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{user.lastLogin}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <div className="flex items-center justify-end space-x-2">
-                    <button
-                      onClick={() => handleUserAction('view', user.id)}
-                      className="text-blue-600 hover:text-blue-900 p-1"
-                    >
-                      <Eye className="h-4 w-4" />
-                    </button>
-                    <button
-                      onClick={() => handleUserAction('edit', user.id)}
-                      className="text-green-600 hover:text-green-900 p-1"
-                    >
-                      <Edit className="h-4 w-4" />
-                    </button>
-                    <button
-                      onClick={() => handleUserAction('delete', user.id)}
-                      className="text-red-600 hover:text-red-900 p-1"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
       </div>
     </div>
   );
 
   const VendorsTab = () => (
-    <div className="space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
-        <h2 className="text-xl font-semibold">Vendor Management</h2>
-        <div className="flex items-center space-x-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+    <div className="admin-vendors">
+      <div className="vendors-header">
+        <h2>Vendor Management</h2>
+        <div className="vendors-filters">
+          <div className="search-box">
+            <Search size={18} />
             <input
               type="text"
               placeholder="Search vendors..."
-              className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          <select
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            value={filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value)}
-          >
-            <option value="all">All Status</option>
-            <option value="approved">Approved</option>
-            <option value="pending">Pending</option>
-            <option value="rejected">Rejected</option>
+          <select value={filterTier} onChange={(e) => setFilterTier(e.target.value)}>
+            <option value="all">All Tiers</option>
+            <option value="free">Free</option>
+            <option value="visible">Visible</option>
+            <option value="verified">Verified</option>
           </select>
         </div>
       </div>
 
-      <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+      <div className="vendors-table-wrapper">
+        <table className="vendors-table">
+          <thead>
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vendor</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Revenue</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Join Date</th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+              <th>Company</th>
+              <th>Email</th>
+              <th>Tier</th>
+              <th>Subscription</th>
+              <th>Products</th>
+              <th>Location</th>
+              <th>Joined</th>
+              <th>Actions</th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {getFilteredVendors().map((vendor) => (
-              <tr key={vendor.id} className="hover:bg-gray-50">
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div>
-                    <div className="text-sm font-medium text-gray-900">{vendor.name}</div>
-                    <div className="text-sm text-gray-500">{vendor.email}</div>
+          <tbody>
+            {filteredVendors.map(vendor => (
+              <tr key={vendor.id}>
+                <td>
+                  <div className="vendor-company">
+                    <strong>{vendor.company}</strong>
+                    <span className="vendor-name">{vendor.name}</span>
                   </div>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{vendor.category}</td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <StatusBadge status={vendor.status} />
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  ${vendor.revenue.toLocaleString()}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{vendor.joinDate}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <div className="flex items-center justify-end space-x-2">
-                    {vendor.status === 'pending' && (
-                      <>
-                        <button
-                          onClick={() => handleVendorAction('approve', vendor.id)}
-                          className="text-green-600 hover:text-green-900 p-1"
-                        >
-                          <CheckCircle className="h-4 w-4" />
-                        </button>
-                        <button
-                          onClick={() => handleVendorAction('reject', vendor.id)}
-                          className="text-red-600 hover:text-red-900 p-1"
-                        >
-                          <XCircle className="h-4 w-4" />
-                        </button>
-                      </>
-                    )}
-                    <button
-                      onClick={() => handleVendorAction('view', vendor.id)}
-                      className="text-blue-600 hover:text-blue-900 p-1"
+                <td>{vendor.email}</td>
+                <td>
+                  {editingVendor === vendor.id ? (
+                    <select
+                      value={vendor.tier}
+                      onChange={(e) => handleChangeTier(vendor.id, e.target.value)}
+                      onBlur={() => setEditingVendor(null)}
+                      autoFocus
                     >
-                      <Eye className="h-4 w-4" />
+                      <option value="free">Free</option>
+                      <option value="visible">Visible (£99)</option>
+                      <option value="verified">Verified (£149)</option>
+                    </select>
+                  ) : (
+                    <span className={`tier-badge ${getTierBadgeClass(vendor.tier)}`}>
+                      {getTierDisplayName(vendor.tier)}
+                    </span>
+                  )}
+                </td>
+                <td>
+                  <span className={`subscription-status ${vendor.subscriptionStatus}`}>
+                    {vendor.subscriptionStatus === 'active' ? (
+                      <><CheckCircle size={14} /> Active</>
+                    ) : vendor.hasStripe ? (
+                      <><AlertCircle size={14} /> {vendor.subscriptionStatus}</>
+                    ) : (
+                      <><XCircle size={14} /> None</>
+                    )}
+                  </span>
+                </td>
+                <td>{vendor.productCount}</td>
+                <td>{vendor.location}</td>
+                <td>{formatDate(vendor.createdAt)}</td>
+                <td>
+                  <div className="action-buttons">
+                    <button
+                      className="action-btn edit"
+                      onClick={() => setEditingVendor(vendor.id)}
+                      title="Change Tier"
+                    >
+                      <Edit size={16} />
                     </button>
                     <button
-                      onClick={() => handleVendorAction('edit', vendor.id)}
-                      className="text-green-600 hover:text-green-900 p-1"
+                      className="action-btn view"
+                      onClick={() => window.open(`/suppliers/${vendor.id}`, '_blank')}
+                      title="View Profile"
                     >
-                      <Edit className="h-4 w-4" />
+                      <Eye size={16} />
                     </button>
                   </div>
                 </td>
@@ -369,159 +361,124 @@ const AdminDashboard = () => {
             ))}
           </tbody>
         </table>
+        {filteredVendors.length === 0 && (
+          <div className="no-results">No vendors found matching your criteria.</div>
+        )}
       </div>
     </div>
   );
 
-  const PaymentsTab = () => (
-    <div className="space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
-        <h2 className="text-xl font-semibold">Payment Management</h2>
-        <div className="flex items-center space-x-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search payments..."
-              className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-          <select
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            value={filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value)}
-          >
-            <option value="all">All Status</option>
-            <option value="paid">Paid</option>
-            <option value="pending">Pending</option>
-            <option value="overdue">Overdue</option>
-          </select>
-          <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-            Send Reminders
-          </button>
-        </div>
+  const LeadsTab = () => (
+    <div className="admin-leads">
+      <div className="leads-header">
+        <h2>Enquiries / Leads</h2>
+        <span className="leads-count">{leads.length} total</span>
       </div>
 
-      <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+      <div className="leads-table-wrapper">
+        <table className="leads-table">
+          <thead>
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Invoice ID</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Due Date</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Paid Date</th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+              <th>Customer</th>
+              <th>Company</th>
+              <th>Service</th>
+              <th>Vendor</th>
+              <th>Status</th>
+              <th>Source</th>
+              <th>Date</th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {getFilteredPayments().map((payment) => (
-              <tr key={payment.id} className="hover:bg-gray-50">
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div>
-                    <div className="text-sm font-medium text-gray-900">{payment.userName}</div>
-                    <div className="text-sm text-gray-500">{payment.userEmail}</div>
+          <tbody>
+            {leads.map(lead => (
+              <tr key={lead.id}>
+                <td>
+                  <div className="lead-customer">
+                    <strong>{lead.customerName}</strong>
+                    <span>{lead.customerEmail}</span>
                   </div>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{payment.invoiceId}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${payment.amount}</td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <StatusBadge status={payment.status} />
+                <td>{lead.customerCompany}</td>
+                <td>{lead.service}</td>
+                <td>{lead.vendor?.company || 'Unassigned'}</td>
+                <td>
+                  <span className={`status-badge ${lead.status}`}>
+                    {lead.status}
+                  </span>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{payment.dueDate}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {payment.paidDate || 'N/A'}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <div className="flex items-center justify-end space-x-2">
-                    <button
-                      onClick={() => handlePaymentAction('view', payment.id)}
-                      className="text-blue-600 hover:text-blue-900 p-1"
-                    >
-                      <Eye className="h-4 w-4" />
-                    </button>
-                    {payment.status !== 'paid' && (
-                      <button
-                        onClick={() => handlePaymentAction('remind', payment.id)}
-                        className="text-yellow-600 hover:text-yellow-900 p-1"
-                      >
-                        <Bell className="h-4 w-4" />
-                      </button>
-                    )}
-                    <button
-                      onClick={() => handlePaymentAction('download', payment.id)}
-                      className="text-green-600 hover:text-green-900 p-1"
-                    >
-                      <Download className="h-4 w-4" />
-                    </button>
-                  </div>
-                </td>
+                <td>{lead.source}</td>
+                <td>{formatDate(lead.createdAt)}</td>
               </tr>
             ))}
           </tbody>
         </table>
+        {leads.length === 0 && (
+          <div className="no-results">No leads found.</div>
+        )}
       </div>
     </div>
   );
 
-  const tabs = [
-    { id: 'overview', label: 'Overview', icon: TrendingUp },
-    { id: 'users', label: 'Users', icon: Users },
-    { id: 'vendors', label: 'Vendors', icon: Building },
-    { id: 'payments', label: 'Payments', icon: CreditCard }
-  ];
+  if (loading) {
+    return (
+      <div className="admin-loading">
+        <RefreshCw className="spinning" size={32} />
+        <p>Loading admin dashboard...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="admin-error">
+        <AlertCircle size={32} />
+        <p>{error}</p>
+        <button onClick={loadAllData}>Retry</button>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      <div className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <h1 className="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
-            <div className="flex items-center space-x-4">
-              <button className="p-2 text-gray-400 hover:text-gray-500">
-                <Bell className="h-6 w-6" />
-              </button>
-              <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
-                <span className="text-white text-sm font-medium">A</span>
-              </div>
-            </div>
-          </div>
+    <div className="admin-dashboard">
+      <header className="admin-header">
+        <div className="admin-header-left">
+          <h1>TendorAI Admin</h1>
         </div>
-      </div>
+        <div className="admin-header-right">
+          <button className="refresh-btn" onClick={loadAllData} title="Refresh data">
+            <RefreshCw size={18} />
+          </button>
+          <button className="logout-btn" onClick={handleLogout}>
+            <LogOut size={18} /> Logout
+          </button>
+        </div>
+      </header>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <nav className="flex space-x-8">
-            {tabs.map((tab) => {
-              const Icon = tab.icon;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center space-x-2 px-3 py-2 text-sm font-medium rounded-md transition-colors ${
-                    activeTab === tab.id
-                      ? 'bg-blue-100 text-blue-700'
-                      : 'text-gray-500 hover:text-gray-700'
-                  }`}
-                >
-                  <Icon className="h-4 w-4" />
-                  <span>{tab.label}</span>
-                </button>
-              );
-            })}
-          </nav>
-        </div>
+      <nav className="admin-nav">
+        <button
+          className={activeTab === 'overview' ? 'active' : ''}
+          onClick={() => setActiveTab('overview')}
+        >
+          <TrendingUp size={18} /> Overview
+        </button>
+        <button
+          className={activeTab === 'vendors' ? 'active' : ''}
+          onClick={() => setActiveTab('vendors')}
+        >
+          <Building size={18} /> Vendors ({vendors.length})
+        </button>
+        <button
+          className={activeTab === 'leads' ? 'active' : ''}
+          onClick={() => setActiveTab('leads')}
+        >
+          <MessageSquare size={18} /> Leads ({leads.length})
+        </button>
+      </nav>
 
-        <div>
-          {activeTab === 'overview' && <OverviewTab />}
-          {activeTab === 'users' && <UsersTab />}
-          {activeTab === 'vendors' && <VendorsTab />}
-          {activeTab === 'payments' && <PaymentsTab />}
-        </div>
-      </div>
+      <main className="admin-content">
+        {activeTab === 'overview' && <OverviewTab />}
+        {activeTab === 'vendors' && <VendorsTab />}
+        {activeTab === 'leads' && <LeadsTab />}
+      </main>
     </div>
   );
 };

@@ -1,32 +1,34 @@
-import React, { useState, useCallback, useMemo } from "react";
+import React, { useState, useCallback, useMemo, useEffect } from "react";
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import AIVisibilityScore from './vendor/AIVisibilityScore';
-import { 
-  Quote, 
-  Upload, 
-  LogOut, 
-  BarChart3, 
-  Bell, 
-  Cloud, 
-  Gauge, 
-  Users, 
-  PoundSterling, 
-  Clock, 
-  CheckCircle, 
-  X, 
-  Eye, 
-  Star, 
-  Download, 
-  Search, 
-  AlertTriangle, 
-  Info, 
-  ArrowUp, 
-  ArrowRight, 
-  Trash2, 
-  Edit3, 
-  Plus, 
-  Copy, 
-  ToggleLeft, 
-  ToggleRight, 
+import {
+  Quote,
+  Upload,
+  LogOut,
+  BarChart3,
+  Bell,
+  Cloud,
+  Gauge,
+  Users,
+  PoundSterling,
+  Clock,
+  CheckCircle,
+  X,
+  Eye,
+  Star,
+  Download,
+  Search,
+  AlertTriangle,
+  Info,
+  ArrowUp,
+  ArrowRight,
+  Trash2,
+  Edit3,
+  Plus,
+  Copy,
+  ToggleLeft,
+  ToggleRight,
   Save,
   Grid,
   List,
@@ -35,34 +37,40 @@ import {
   TrendingUp,
   TrendingDown,
   Target,
-  Award
+  Award,
+  Mail,
+  Phone,
+  MapPin,
+  Calendar,
+  MessageSquare
 } from "lucide-react";
+
+const API_URL = process.env.REACT_APP_API_URL || 'https://ai-procurement-backend-q35u.onrender.com';
 import { LineChart as RechartsLineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart as RechartsBarChart, Bar, PieChart as RechartsPieChart, Pie, Cell } from 'recharts';
 
 const VendorDashboard = () => {
-  // Mock auth context - cleaned up
-  const auth = {
-    token: "mock-token",
-    user: {
-      name: "",
-      email: "",
-      companyName: "",
-      verified: false,
-      rating: 0,
-      userId: "vendor123"
-    }
-  };
+  const { auth, logout, getToken } = useAuth();
+  const navigate = useNavigate();
 
-  // Enhanced state management - cleaned up
+  // Get vendor info from auth context and localStorage
+  const vendorId = auth?.user?.userId || localStorage.getItem('vendorId');
+  const token = getToken ? getToken() : localStorage.getItem('vendorToken');
+
+  // Vendor data state - will be populated from API
   const [vendorData, setVendorData] = useState({
-    name: auth?.user?.name || "Vendor",
+    name: auth?.user?.name || localStorage.getItem('vendorName') || "Vendor",
     email: auth?.user?.email || "",
-    companyName: auth?.user?.companyName || "",
-    verified: auth?.user?.verified || false,
-    rating: auth?.user?.rating || 0,
+    companyName: "",
+    verified: false,
+    rating: 0,
     totalEarnings: 0,
     monthlyEarnings: 0
   });
+
+  // Leads state for Quote Requests tab
+  const [leads, setLeads] = useState([]);
+  const [leadsLoading, setLeadsLoading] = useState(false);
+  const [selectedLead, setSelectedLead] = useState(null);
 
   const [dashboardState, setDashboardState] = useState({
     loading: false,
@@ -143,31 +151,128 @@ const VendorDashboard = () => {
     comparePeriod: "previous"
   });
 
-  // Enhanced metrics calculation
-  const metrics = useMemo(() => {
-    const quotes = dataState.quotes || [];
-    const products = vendorProducts || [];
-    const today = new Date();
-    const thisMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-    
-    return {
-      totalQuotes: quotes.length,
-      pendingQuotes: quotes.filter(q => q.status === "Pending").length,
-      acceptedQuotes: quotes.filter(q => q.status === "Accepted" || q.status === "Completed").length,
-      completedQuotes: quotes.filter(q => q.status === "Completed").length,
-      thisMonthQuotes: quotes.filter(q => new Date(q.createdAt) >= thisMonth).length,
-      responseRate: quotes.length > 0 ? Math.round((quotes.filter(q => q.status !== "Pending").length / quotes.length) * 100) : 0,
-      successRate: quotes.length > 0 ? Math.round((quotes.filter(q => q.status === "Accepted").length / quotes.length) * 100) : 0,
-      activeProducts: products.filter(p => p.status === "active").length,
-      totalProducts: products.length
-    };
-  }, [dataState.quotes, vendorProducts]);
-
-  // Enhanced error handling
+  // Message display helper - defined first as it's used by other functions
   const showMessage = useCallback((text, type = "info") => {
     setMessage({ text, type, visible: true });
     setTimeout(() => setMessage(prev => ({ ...prev, visible: false })), 5000);
   }, []);
+
+  // Handle logout
+  const handleLogout = useCallback(() => {
+    if (logout) {
+      logout();
+    } else {
+      localStorage.removeItem('vendorToken');
+      localStorage.removeItem('vendorId');
+      localStorage.removeItem('vendorName');
+      localStorage.removeItem('role');
+    }
+    navigate('/vendor-login');
+  }, [logout, navigate]);
+
+  // Fetch leads function
+  const fetchLeads = useCallback(async () => {
+    if (!vendorId) return;
+
+    setLeadsLoading(true);
+    try {
+      const response = await fetch(`${API_URL}/api/vendor-leads/vendor/${vendorId}`, {
+        headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+      });
+      const data = await response.json();
+
+      if (data.success) {
+        setLeads(data.data?.leads || []);
+      }
+    } catch (error) {
+      console.error('Failed to fetch leads:', error);
+      showMessage('Failed to load quote requests', 'error');
+    } finally {
+      setLeadsLoading(false);
+    }
+  }, [vendorId, token, showMessage]);
+
+  // Update lead status
+  const updateLeadStatus = useCallback(async (leadId, newStatus) => {
+    try {
+      const response = await fetch(`${API_URL}/api/vendor-leads/${leadId}/status`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify({ status: newStatus })
+      });
+      const data = await response.json();
+
+      if (data.success) {
+        setLeads(prev => prev.map(lead =>
+          lead._id === leadId ? { ...lead, status: newStatus } : lead
+        ));
+        showMessage(`Lead marked as ${newStatus}`, 'success');
+      }
+    } catch (error) {
+      console.error('Failed to update lead status:', error);
+      showMessage('Failed to update status', 'error');
+    }
+  }, [token, showMessage]);
+
+  // Fetch vendor profile on mount
+  useEffect(() => {
+    const fetchVendorProfile = async () => {
+      if (!vendorId || !token) return;
+
+      try {
+        const response = await fetch(`${API_URL}/api/vendors/profile`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await response.json();
+
+        if (data.success && data.vendor) {
+          setVendorData(prev => ({
+            ...prev,
+            name: data.vendor.name || data.vendor.contactInfo?.name || prev.name,
+            email: data.vendor.email || data.vendor.contactInfo?.email || prev.email,
+            companyName: data.vendor.company || data.vendor.businessProfile?.companyName || "",
+            verified: data.vendor.account?.verificationStatus === 'verified' || false,
+            rating: data.vendor.performance?.rating || data.vendor.rating || 0
+          }));
+        }
+      } catch (error) {
+        console.error('Failed to fetch vendor profile:', error);
+      }
+    };
+
+    fetchVendorProfile();
+  }, [vendorId, token]);
+
+  // Fetch leads when quotes tab is active
+  useEffect(() => {
+    if (dashboardState.activeTab === 'quotes' && vendorId) {
+      fetchLeads();
+    }
+  }, [dashboardState.activeTab, vendorId, fetchLeads]);
+
+  // Enhanced metrics calculation - now using leads
+  const metrics = useMemo(() => {
+    const products = vendorProducts || [];
+    const today = new Date();
+    const thisMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+
+    return {
+      totalQuotes: leads.length,
+      pendingQuotes: leads.filter(l => l.status === "pending").length,
+      viewedQuotes: leads.filter(l => l.status === "viewed").length,
+      contactedQuotes: leads.filter(l => l.status === "contacted").length,
+      quotedQuotes: leads.filter(l => l.status === "quoted").length,
+      wonQuotes: leads.filter(l => l.status === "won").length,
+      thisMonthQuotes: leads.filter(l => new Date(l.createdAt) >= thisMonth).length,
+      responseRate: leads.length > 0 ? Math.round((leads.filter(l => l.status !== "pending").length / leads.length) * 100) : 0,
+      successRate: leads.length > 0 ? Math.round((leads.filter(l => l.status === "won").length / leads.length) * 100) : 0,
+      activeProducts: products.filter(p => p.status === "active").length,
+      totalProducts: products.length
+    };
+  }, [leads, vendorProducts]);
 
   // Product CRUD operations
   const handleAddProduct = useCallback(() => {
@@ -517,9 +622,10 @@ const VendorDashboard = () => {
                 <Settings size={16} /> Settings
               </button>
               
-              <button 
-                style={{ 
-                  background: 'rgba(255,255,255,0.1)', 
+              <button
+                onClick={handleLogout}
+                style={{
+                  background: 'rgba(255,255,255,0.1)',
                   border: 'none',
                   color: 'white',
                   padding: '0.5rem 1rem',
@@ -979,27 +1085,209 @@ const VendorDashboard = () => {
           </div>
         )}
 
-        {/* Other tabs show coming soon message */}
-        {(dashboardState.activeTab === "quotes" || dashboardState.activeTab === "analytics" || dashboardState.activeTab === "notifications") && (
-          <div style={{ 
-            textAlign: 'center', 
+        {/* Quote Requests Tab */}
+        {dashboardState.activeTab === "quotes" && (
+          <div>
+            <div style={{ marginBottom: '1.5rem' }}>
+              <h2 style={{ margin: 0, fontSize: '1.5rem', fontWeight: '600' }}>Quote Requests</h2>
+              <p style={{ margin: '0.5rem 0 0', color: '#6b7280' }}>
+                Manage incoming quote requests from potential customers
+              </p>
+            </div>
+
+            {/* Stats Cards */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
+              {[
+                { label: 'Pending', count: metrics.pendingQuotes, color: '#f59e0b', bg: '#fef3c7' },
+                { label: 'Viewed', count: metrics.viewedQuotes, color: '#3b82f6', bg: '#dbeafe' },
+                { label: 'Contacted', count: metrics.contactedQuotes, color: '#8b5cf6', bg: '#ede9fe' },
+                { label: 'Quoted', count: metrics.quotedQuotes, color: '#06b6d4', bg: '#cffafe' },
+                { label: 'Won', count: metrics.wonQuotes, color: '#10b981', bg: '#d1fae5' }
+              ].map(stat => (
+                <div key={stat.label} style={{ background: 'white', padding: '1rem', borderRadius: '0.5rem', border: '1px solid #e5e7eb' }}>
+                  <div style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: '0.25rem' }}>{stat.label}</div>
+                  <div style={{ fontSize: '1.5rem', fontWeight: '700', color: stat.color }}>{stat.count}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* Leads List */}
+            {leadsLoading ? (
+              <div style={{ textAlign: 'center', padding: '3rem', background: 'white', borderRadius: '0.75rem' }}>
+                <div style={{ width: '40px', height: '40px', border: '4px solid #e5e7eb', borderTopColor: '#3b82f6', borderRadius: '50%', margin: '0 auto', animation: 'spin 1s linear infinite' }} />
+                <p style={{ marginTop: '1rem', color: '#6b7280' }}>Loading quote requests...</p>
+              </div>
+            ) : leads.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '4rem 2rem', background: 'white', borderRadius: '0.75rem', border: '1px solid #e5e7eb' }}>
+                <Quote size={48} style={{ color: '#d1d5db', margin: '0 auto 1rem' }} />
+                <h3 style={{ margin: '0 0 0.5rem', fontSize: '1.125rem', color: '#374151' }}>No Quote Requests Yet</h3>
+                <p style={{ margin: 0, color: '#6b7280' }}>
+                  When customers request quotes from your profile, they'll appear here.
+                </p>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                {leads.map(lead => (
+                  <div
+                    key={lead._id}
+                    style={{
+                      background: 'white',
+                      borderRadius: '0.75rem',
+                      border: '1px solid #e5e7eb',
+                      overflow: 'hidden'
+                    }}
+                  >
+                    {/* Lead Header */}
+                    <div style={{ padding: '1rem 1.5rem', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div>
+                        <h3 style={{ margin: 0, fontSize: '1.125rem', fontWeight: '600', color: '#1f2937' }}>
+                          {lead.customer?.companyName || 'Unknown Company'}
+                        </h3>
+                        <p style={{ margin: '0.25rem 0 0', fontSize: '0.875rem', color: '#6b7280' }}>
+                          {lead.customer?.contactName} • {lead.service}
+                        </p>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                        <span style={{
+                          padding: '0.25rem 0.75rem',
+                          borderRadius: '9999px',
+                          fontSize: '0.75rem',
+                          fontWeight: '500',
+                          background: lead.status === 'pending' ? '#fef3c7' :
+                                     lead.status === 'viewed' ? '#dbeafe' :
+                                     lead.status === 'contacted' ? '#ede9fe' :
+                                     lead.status === 'quoted' ? '#cffafe' :
+                                     lead.status === 'won' ? '#d1fae5' : '#fee2e2',
+                          color: lead.status === 'pending' ? '#d97706' :
+                                 lead.status === 'viewed' ? '#2563eb' :
+                                 lead.status === 'contacted' ? '#7c3aed' :
+                                 lead.status === 'quoted' ? '#0891b2' :
+                                 lead.status === 'won' ? '#059669' : '#dc2626'
+                        }}>
+                          {lead.status.charAt(0).toUpperCase() + lead.status.slice(1)}
+                        </span>
+                        <span style={{ fontSize: '0.75rem', color: '#9ca3af' }}>
+                          <Calendar size={12} style={{ display: 'inline', marginRight: '0.25rem' }} />
+                          {formatDate(lead.createdAt)}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Lead Details */}
+                    <div style={{ padding: '1rem 1.5rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+                      <div>
+                        <div style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: '0.25rem' }}>Contact Details</div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', fontSize: '0.875rem' }}>
+                          <span><Mail size={14} style={{ display: 'inline', marginRight: '0.5rem', color: '#9ca3af' }} />{lead.customer?.email}</span>
+                          <span><Phone size={14} style={{ display: 'inline', marginRight: '0.5rem', color: '#9ca3af' }} />{lead.customer?.phone}</span>
+                          {lead.customer?.postcode && (
+                            <span><MapPin size={14} style={{ display: 'inline', marginRight: '0.5rem', color: '#9ca3af' }} />{lead.customer?.postcode}</span>
+                          )}
+                        </div>
+                      </div>
+
+                      <div>
+                        <div style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: '0.25rem' }}>Requirements</div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', fontSize: '0.875rem' }}>
+                          {lead.monthlyVolume && <span>Volume: {lead.monthlyVolume}</span>}
+                          {lead.timeline && <span>Timeline: {lead.timeline}</span>}
+                          {lead.budgetRange && <span>Budget: {lead.budgetRange}</span>}
+                        </div>
+                      </div>
+
+                      {lead.customer?.message && (
+                        <div style={{ gridColumn: '1 / -1' }}>
+                          <div style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: '0.25rem' }}>Message</div>
+                          <p style={{ margin: 0, fontSize: '0.875rem', color: '#374151', background: '#f9fafb', padding: '0.75rem', borderRadius: '0.375rem' }}>
+                            <MessageSquare size={14} style={{ display: 'inline', marginRight: '0.5rem', color: '#9ca3af' }} />
+                            {lead.customer.message}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Lead Actions */}
+                    <div style={{ padding: '1rem 1.5rem', background: '#f9fafb', display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                      {lead.status === 'pending' && (
+                        <button
+                          onClick={() => updateLeadStatus(lead._id, 'viewed')}
+                          style={{ padding: '0.5rem 1rem', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '0.375rem', cursor: 'pointer', fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                        >
+                          <Eye size={14} /> Mark as Viewed
+                        </button>
+                      )}
+                      {(lead.status === 'pending' || lead.status === 'viewed') && (
+                        <button
+                          onClick={() => updateLeadStatus(lead._id, 'contacted')}
+                          style={{ padding: '0.5rem 1rem', background: '#8b5cf6', color: 'white', border: 'none', borderRadius: '0.375rem', cursor: 'pointer', fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                        >
+                          <Phone size={14} /> Mark as Contacted
+                        </button>
+                      )}
+                      {lead.status === 'contacted' && (
+                        <button
+                          onClick={() => updateLeadStatus(lead._id, 'quoted')}
+                          style={{ padding: '0.5rem 1rem', background: '#06b6d4', color: 'white', border: 'none', borderRadius: '0.375rem', cursor: 'pointer', fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                        >
+                          <Quote size={14} /> Mark as Quoted
+                        </button>
+                      )}
+                      {lead.status === 'quoted' && (
+                        <>
+                          <button
+                            onClick={() => updateLeadStatus(lead._id, 'won')}
+                            style={{ padding: '0.5rem 1rem', background: '#10b981', color: 'white', border: 'none', borderRadius: '0.375rem', cursor: 'pointer', fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                          >
+                            <CheckCircle size={14} /> Won
+                          </button>
+                          <button
+                            onClick={() => updateLeadStatus(lead._id, 'lost')}
+                            style={{ padding: '0.5rem 1rem', background: '#ef4444', color: 'white', border: 'none', borderRadius: '0.375rem', cursor: 'pointer', fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                          >
+                            <X size={14} /> Lost
+                          </button>
+                        </>
+                      )}
+                      <a
+                        href={`mailto:${lead.customer?.email}?subject=Re: Quote Request for ${lead.service}`}
+                        style={{ padding: '0.5rem 1rem', background: 'white', color: '#374151', border: '1px solid #d1d5db', borderRadius: '0.375rem', cursor: 'pointer', fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.5rem', textDecoration: 'none' }}
+                      >
+                        <Mail size={14} /> Send Email
+                      </a>
+                      <a
+                        href={`tel:${lead.customer?.phone}`}
+                        style={{ padding: '0.5rem 1rem', background: 'white', color: '#374151', border: '1px solid #d1d5db', borderRadius: '0.375rem', cursor: 'pointer', fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.5rem', textDecoration: 'none' }}
+                      >
+                        <Phone size={14} /> Call
+                      </a>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Analytics and Notifications tabs show coming soon message */}
+        {(dashboardState.activeTab === "analytics" || dashboardState.activeTab === "notifications") && (
+          <div style={{
+            textAlign: 'center',
             padding: '4rem 2rem',
             background: 'white',
             borderRadius: '0.75rem',
             border: '1px solid #e5e7eb'
           }}>
-            <div style={{ 
-              padding: '1rem', 
-              background: '#f3f4f6', 
-              borderRadius: '50%', 
-              width: '80px', 
-              height: '80px', 
+            <div style={{
+              padding: '1rem',
+              background: '#f3f4f6',
+              borderRadius: '50%',
+              width: '80px',
+              height: '80px',
               margin: '0 auto 1rem',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center'
             }}>
-              {dashboardState.activeTab === "quotes" && <Quote size={32} style={{ color: '#6b7280' }} />}
               {dashboardState.activeTab === "analytics" && <BarChart3 size={32} style={{ color: '#6b7280' }} />}
               {dashboardState.activeTab === "notifications" && <Bell size={32} style={{ color: '#6b7280' }} />}
             </div>
@@ -1007,7 +1295,7 @@ const VendorDashboard = () => {
               {dashboardState.activeTab.charAt(0).toUpperCase() + dashboardState.activeTab.slice(1)} Coming Soon
             </h3>
             <p style={{ margin: 0, color: '#6b7280' }}>
-              This section is under development. Start by adding products to your catalog!
+              This section is under development. Check back soon!
             </p>
           </div>
         )}

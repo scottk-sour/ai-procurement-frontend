@@ -232,7 +232,8 @@ const VendorDashboard = () => {
         });
         const data = await response.json();
 
-        if (data.success && data.vendor) {
+        // Backend returns { vendor: {...} } without success field
+        if (response.ok && data.vendor) {
           setVendorData(prev => ({
             ...prev,
             name: data.vendor.name || data.vendor.contactInfo?.name || prev.name,

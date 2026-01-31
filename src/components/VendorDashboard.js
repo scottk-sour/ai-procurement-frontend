@@ -757,49 +757,8 @@ const VendorDashboard = () => {
               </div>
             </div>
 
-            {/* KPI Cards */}
+            {/* KPI Cards - Focus on visibility and profile completeness */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
-              <div style={{ background: 'white', padding: '1.5rem', borderRadius: '0.75rem', boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                  <div style={{ padding: '0.75rem', background: '#dbeafe', borderRadius: '0.5rem', color: '#1d4ed8' }}>
-                    <Quote size={24} />
-                  </div>
-                  <div>
-                    <h3 style={{ margin: 0, fontSize: '0.875rem', color: '#6b7280' }}>Total Quotes</h3>
-                    <div style={{ fontSize: '2rem', fontWeight: '700', color: '#1f2937', margin: '0.25rem 0' }}>{metrics.totalQuotes}</div>
-                    <div style={{ fontSize: '0.875rem', color: '#10b981', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                      <ArrowUp size={14} /> +{metrics.thisMonthQuotes} this month
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div style={{ background: 'white', padding: '1.5rem', borderRadius: '0.75rem', boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                  <div style={{ padding: '0.75rem', background: '#fef3c7', borderRadius: '0.5rem', color: '#d97706' }}>
-                    <Clock size={24} />
-                  </div>
-                  <div>
-                    <h3 style={{ margin: 0, fontSize: '0.875rem', color: '#6b7280' }}>Pending Responses</h3>
-                    <div style={{ fontSize: '2rem', fontWeight: '700', color: '#1f2937', margin: '0.25rem 0' }}>{metrics.pendingQuotes}</div>
-                    <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>Awaiting your response</div>
-                  </div>
-                </div>
-              </div>
-
-              <div style={{ background: 'white', padding: '1.5rem', borderRadius: '0.75rem', boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                  <div style={{ padding: '0.75rem', background: '#dcfce7', borderRadius: '0.5rem', color: '#16a34a' }}>
-                    <CheckCircle size={24} />
-                  </div>
-                  <div>
-                    <h3 style={{ margin: 0, fontSize: '0.875rem', color: '#6b7280' }}>Success Rate</h3>
-                    <div style={{ fontSize: '2rem', fontWeight: '700', color: '#1f2937', margin: '0.25rem 0' }}>{metrics.successRate}%</div>
-                    <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>Accepted quotes</div>
-                  </div>
-                </div>
-              </div>
-
               <div style={{ background: 'white', padding: '1.5rem', borderRadius: '0.75rem', boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                   <div style={{ padding: '0.75rem', background: '#e0e7ff', borderRadius: '0.5rem', color: '#4338ca' }}>
@@ -808,7 +767,24 @@ const VendorDashboard = () => {
                   <div>
                     <h3 style={{ margin: 0, fontSize: '0.875rem', color: '#6b7280' }}>Products Listed</h3>
                     <div style={{ fontSize: '2rem', fontWeight: '700', color: '#1f2937', margin: '0.25rem 0' }}>{metrics.totalProducts}</div>
-                    <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>In your catalog</div>
+                    <div style={{ fontSize: '0.875rem', color: metrics.activeProducts > 0 ? '#10b981' : '#6b7280' }}>
+                      {metrics.activeProducts} active in catalog
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ background: 'white', padding: '1.5rem', borderRadius: '0.75rem', boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                  <div style={{ padding: '0.75rem', background: '#dbeafe', borderRadius: '0.5rem', color: '#1d4ed8' }}>
+                    <Quote size={24} />
+                  </div>
+                  <div>
+                    <h3 style={{ margin: 0, fontSize: '0.875rem', color: '#6b7280' }}>Enquiries Received</h3>
+                    <div style={{ fontSize: '2rem', fontWeight: '700', color: '#1f2937', margin: '0.25rem 0' }}>{metrics.totalQuotes}</div>
+                    <div style={{ fontSize: '0.875rem', color: metrics.pendingQuotes > 0 ? '#f59e0b' : '#6b7280' }}>
+                      {metrics.pendingQuotes > 0 ? `${metrics.pendingQuotes} pending` : 'All responded'}
+                    </div>
                   </div>
                 </div>
               </div>

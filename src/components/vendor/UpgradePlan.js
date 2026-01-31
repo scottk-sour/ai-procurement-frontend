@@ -1,86 +1,14 @@
 // src/components/vendor/UpgradePlan.js
-// Subscription upgrade page for vendors
+// AI Visibility-focused subscription upgrade page for vendors
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
-import {
-  FaCheck,
-  FaCrown,
-  FaStar,
-  FaRocket,
-  FaArrowRight,
-  FaShieldAlt,
-  FaChartLine,
-  FaHeadset,
-} from 'react-icons/fa';
+import { Check, X, Shield, Bot, Eye, TrendingUp } from 'lucide-react';
 import { useToast } from '../../context/ToastContext';
 import './UpgradePlan.css';
 
 const API_URL = process.env.REACT_APP_API_URL || 'https://ai-procurement-backend-q35u.onrender.com';
-
-// Plan configurations
-const PLANS = [
-  {
-    id: 'basic',
-    name: 'Basic',
-    price: 49,
-    description: 'Perfect for small suppliers getting started',
-    icon: FaStar,
-    color: '#3b82f6',
-    features: [
-      'Up to 20 leads per month',
-      'Basic profile listing',
-      'Email notifications',
-      'Standard support',
-    ],
-    notIncluded: [
-      'Featured profile listing',
-      'Priority lead matching',
-      'Analytics dashboard',
-      'API access',
-    ],
-  },
-  {
-    id: 'managed',
-    name: 'Managed',
-    price: 149,
-    description: 'For growing businesses seeking more leads',
-    icon: FaRocket,
-    color: '#f97316',
-    popular: true,
-    features: [
-      'Up to 50 leads per month',
-      'Featured profile listing',
-      'Priority lead matching',
-      'Analytics dashboard',
-      'Priority support',
-    ],
-    notIncluded: [
-      'Unlimited leads',
-      'Premium profile placement',
-      'Dedicated account manager',
-    ],
-  },
-  {
-    id: 'enterprise',
-    name: 'Enterprise',
-    price: 299,
-    description: 'Maximum visibility for established suppliers',
-    icon: FaCrown,
-    color: '#1e40af',
-    features: [
-      'Unlimited leads',
-      'Premium profile placement',
-      'Exclusive lead access',
-      'Advanced analytics',
-      'Dedicated account manager',
-      'API access',
-      '24/7 support',
-    ],
-    notIncluded: [],
-  },
-];
 
 const UpgradePlan = () => {
   const navigate = useNavigate();
@@ -90,13 +18,104 @@ const UpgradePlan = () => {
   const [subscription, setSubscription] = useState(null);
   const [loading, setLoading] = useState(true);
   const [processingPlan, setProcessingPlan] = useState(null);
+  const [openFaq, setOpenFaq] = useState(null);
+
+  const plans = [
+    {
+      id: 'free',
+      name: 'Listed',
+      price: 'Free',
+      period: '',
+      description: 'Basic listing for suppliers wanting to be found',
+      scoreMax: 30,
+      features: [
+        { text: 'Basic company listing', included: true },
+        { text: 'Appear in search results', included: true },
+        { text: 'AI Visibility Score (capped at 30)', included: true },
+        { text: 'Full profile & description', included: false },
+        { text: 'Product catalog', included: false },
+        { text: 'Verified badge', included: false },
+        { text: 'Priority in AI recommendations', included: false },
+        { text: 'Receive enquiries', included: false },
+      ],
+      ctaStyle: 'outlined',
+      popular: false
+    },
+    {
+      id: 'basic',
+      name: 'Visible',
+      price: '£99',
+      period: '/month',
+      description: 'Get found by AI assistants and potential customers',
+      scoreMax: 80,
+      features: [
+        { text: 'Everything in Listed', included: true },
+        { text: 'Full company profile', included: true },
+        { text: 'Upload product catalog', included: true },
+        { text: 'AI Visibility Score up to 80', included: true },
+        { text: 'Appear in AI recommendations', included: true },
+        { text: 'Receive customer enquiries', included: true },
+        { text: 'Email notifications', included: true },
+        { text: 'Verified badge', included: false },
+        { text: 'Priority placement', included: false },
+      ],
+      ctaStyle: 'primary',
+      popular: true
+    },
+    {
+      id: 'managed',
+      name: 'Verified',
+      price: '£149',
+      period: '/month',
+      description: 'Maximum visibility with verified trust signals',
+      scoreMax: 100,
+      features: [
+        { text: 'Everything in Visible', included: true },
+        { text: 'Verified Supplier badge', included: true },
+        { text: 'Priority in search results', included: true },
+        { text: 'Priority in AI recommendations', included: true },
+        { text: 'AI Visibility Score up to 100', included: true },
+        { text: 'We optimise your profile for AI', included: true },
+        { text: 'Analytics dashboard', included: true },
+        { text: 'Priority support', included: true },
+      ],
+      ctaStyle: 'premium',
+      popular: false
+    }
+  ];
+
+  const faqs = [
+    {
+      q: 'What is AI Visibility?',
+      a: 'AI Visibility measures how easily AI assistants like ChatGPT, Google AI, and Perplexity can find and recommend your business. When someone asks an AI "Who are the best photocopier suppliers in Cardiff?", a higher score means you\'re more likely to be in the answer.'
+    },
+    {
+      q: 'Do you guarantee leads or enquiries?',
+      a: 'No. We guarantee visibility, not leads. We make your business discoverable to AI assistants and customers searching our platform. Whether they contact you depends on your profile quality, pricing, and fit for their needs.'
+    },
+    {
+      q: 'Can I change plans later?',
+      a: 'Yes. Upgrade anytime and get immediate access to new features. Downgrades take effect at the end of your billing cycle.'
+    },
+    {
+      q: 'Is there a contract?',
+      a: 'No contracts. All plans are month-to-month. Cancel anytime.'
+    },
+    {
+      q: 'What payment methods do you accept?',
+      a: 'We accept all major credit and debit cards through Stripe, our secure payment partner.'
+    },
+    {
+      q: 'How do I improve my AI Visibility Score?',
+      a: 'Complete your profile, add your product catalog, upload accreditations, and ensure your information is accurate and detailed. The more AI assistants know about you, the better they can recommend you.'
+    }
+  ];
 
   // Check for subscription status from URL params
   useEffect(() => {
     const subscriptionStatus = searchParams.get('subscription');
     if (subscriptionStatus === 'success') {
       success('Your subscription has been activated!');
-      // Clear the URL params
       navigate('/vendor-dashboard/upgrade', { replace: true });
     } else if (subscriptionStatus === 'cancelled') {
       info('Subscription checkout was cancelled.');
@@ -125,7 +144,7 @@ const UpgradePlan = () => {
 
       if (response.ok) {
         const data = await response.json();
-        setCurrentPlan(data.plan);
+        setCurrentPlan(data.plan || 'free');
         setSubscription(data.subscription);
       }
     } catch (err) {
@@ -136,7 +155,6 @@ const UpgradePlan = () => {
   };
 
   const handleSelectPlan = async (planId) => {
-    // Prevent downgrading through this UI
     const planOrder = ['free', 'basic', 'managed', 'enterprise'];
     if (planOrder.indexOf(planId) <= planOrder.indexOf(currentPlan)) {
       if (planId === currentPlan) {
@@ -169,7 +187,6 @@ const UpgradePlan = () => {
       const data = await response.json();
 
       if (data.success && data.url) {
-        // Redirect to Stripe Checkout
         window.location.href = data.url;
       } else {
         error(data.message || 'Failed to create checkout session');
@@ -208,103 +225,77 @@ const UpgradePlan = () => {
 
   if (loading) {
     return (
-      <div className="upgrade-plan upgrade-plan--loading">
-        <div className="upgrade-plan__spinner" />
+      <div className="pricing-page pricing-page--loading">
+        <div className="pricing-spinner" />
         <p>Loading subscription details...</p>
       </div>
     );
   }
 
   return (
-    <div className="upgrade-plan">
+    <div className="pricing-page">
       <Helmet>
-        <title>Upgrade Your Plan | TendorAI Partner Program</title>
+        <title>Get Found by AI | TendorAI Supplier Plans</title>
         <meta
           name="description"
-          content="Choose the right TendorAI plan for your business. Get more leads, better visibility, and grow your supplier business."
+          content="Increase your AI visibility and get found by businesses using ChatGPT, Google AI, and other AI assistants to find suppliers."
         />
       </Helmet>
 
-      {/* Header */}
-      <div className="upgrade-plan__header">
-        <h1>Choose Your Plan</h1>
+      <header className="pricing-header">
+        <h1>Get Found by AI</h1>
         <p>
-          Unlock more leads and grow your business with TendorAI's supplier program.
-          {currentPlan !== 'free' && subscription && (
-            <span className="upgrade-plan__current">
-              Currently on <strong>{currentPlan}</strong> plan
-            </span>
-          )}
+          Businesses increasingly use AI assistants to find suppliers.
+          Make sure your company is visible when they ask.
         </p>
-      </div>
+        {currentPlan !== 'free' && subscription && (
+          <p className="pricing-current-plan">
+            Currently on <strong>{currentPlan === 'basic' ? 'Visible' : currentPlan === 'managed' ? 'Verified' : currentPlan}</strong> plan
+          </p>
+        )}
+        <div className="trust-badges">
+          <span><Shield size={16} /> Secure payments via Stripe</span>
+          <span><Check size={16} /> Cancel anytime</span>
+          <span><Check size={16} /> UK-based support</span>
+        </div>
+      </header>
 
-      {/* Trust badges */}
-      <div className="upgrade-plan__trust">
-        <div className="upgrade-plan__trust-item">
-          <FaShieldAlt />
-          <span>Secure payments via Stripe</span>
-        </div>
-        <div className="upgrade-plan__trust-item">
-          <FaChartLine />
-          <span>Cancel anytime</span>
-        </div>
-        <div className="upgrade-plan__trust-item">
-          <FaHeadset />
-          <span>UK-based support</span>
-        </div>
-      </div>
-
-      {/* Plans grid */}
-      <div className="upgrade-plan__grid">
-        {PLANS.map((plan) => {
-          const Icon = plan.icon;
+      <div className="plans-grid">
+        {plans.map((plan) => {
           const isCurrentPlan = currentPlan === plan.id;
           const planOrder = ['free', 'basic', 'managed', 'enterprise'];
           const canUpgrade = planOrder.indexOf(plan.id) > planOrder.indexOf(currentPlan);
 
           return (
-            <div
-              key={plan.id}
-              className={`upgrade-plan__card ${plan.popular ? 'upgrade-plan__card--popular' : ''} ${isCurrentPlan ? 'upgrade-plan__card--current' : ''}`}
-            >
-              {plan.popular && (
-                <div className="upgrade-plan__badge">Most Popular</div>
-              )}
-              {isCurrentPlan && (
-                <div className="upgrade-plan__badge upgrade-plan__badge--current">
-                  Current Plan
-                </div>
-              )}
+            <div key={plan.id} className={`plan-card ${plan.popular ? 'popular' : ''} ${isCurrentPlan ? 'current' : ''}`}>
+              {plan.popular && <span className="popular-badge">Most Popular</span>}
+              {isCurrentPlan && <span className="current-badge">Current Plan</span>}
 
-              <div className="upgrade-plan__card-header" style={{ '--plan-color': plan.color }}>
-                <Icon className="upgrade-plan__icon" />
+              <div className="plan-header">
                 <h2>{plan.name}</h2>
-                <p className="upgrade-plan__description">{plan.description}</p>
+                <div className="plan-price">
+                  <span className="price">{plan.price}</span>
+                  <span className="period">{plan.period}</span>
+                </div>
+                <p className="plan-description">{plan.description}</p>
               </div>
 
-              <div className="upgrade-plan__price">
-                <span className="upgrade-plan__currency">£</span>
-                <span className="upgrade-plan__amount">{plan.price}</span>
-                <span className="upgrade-plan__period">/month</span>
+              <div className="score-indicator">
+                <Bot size={16} />
+                <span>AI Score up to <strong>{plan.scoreMax}/100</strong></span>
               </div>
 
-              <ul className="upgrade-plan__features">
-                {plan.features.map((feature, index) => (
-                  <li key={index} className="upgrade-plan__feature">
-                    <FaCheck className="upgrade-plan__feature-icon" />
-                    {feature}
-                  </li>
-                ))}
-                {plan.notIncluded.map((feature, index) => (
-                  <li key={`not-${index}`} className="upgrade-plan__feature upgrade-plan__feature--disabled">
-                    <span className="upgrade-plan__feature-icon upgrade-plan__feature-icon--disabled">×</span>
-                    {feature}
+              <ul className="plan-features">
+                {plan.features.map((feature, i) => (
+                  <li key={i} className={feature.included ? 'included' : 'excluded'}>
+                    {feature.included ? <Check size={16} /> : <X size={16} />}
+                    <span>{feature.text}</span>
                   </li>
                 ))}
               </ul>
 
               <button
-                className={`upgrade-plan__cta ${canUpgrade ? '' : 'upgrade-plan__cta--disabled'}`}
+                className={`plan-cta ${plan.ctaStyle} ${!canUpgrade && !isCurrentPlan ? 'disabled' : ''}`}
                 onClick={() => handleSelectPlan(plan.id)}
                 disabled={!canUpgrade || processingPlan === plan.id}
               >
@@ -313,9 +304,7 @@ const UpgradePlan = () => {
                 ) : isCurrentPlan ? (
                   'Current Plan'
                 ) : canUpgrade ? (
-                  <>
-                    Upgrade to {plan.name} <FaArrowRight />
-                  </>
+                  `Upgrade to ${plan.name}`
                 ) : (
                   'Contact Support'
                 )}
@@ -327,52 +316,56 @@ const UpgradePlan = () => {
 
       {/* Manage subscription link */}
       {subscription && (
-        <div className="upgrade-plan__manage">
+        <div className="pricing-manage">
           <p>
             Need to update payment method, view invoices, or cancel?{' '}
-            <button
-              onClick={handleManageSubscription}
-              className="upgrade-plan__manage-link"
-            >
+            <button onClick={handleManageSubscription} className="pricing-manage-link">
               Manage Subscription
             </button>
           </p>
         </div>
       )}
 
-      {/* FAQ section */}
-      <div className="upgrade-plan__faq">
-        <h3>Frequently Asked Questions</h3>
-        <div className="upgrade-plan__faq-grid">
-          <div className="upgrade-plan__faq-item">
-            <h4>Can I change plans later?</h4>
-            <p>
-              Yes! You can upgrade your plan at any time. Downgrades take effect at the
-              end of your billing cycle.
-            </p>
+      <section className="why-visibility">
+        <h2>Why AI Visibility Matters</h2>
+        <div className="visibility-points">
+          <div className="point">
+            <Bot size={32} />
+            <h3>AI Is Changing Search</h3>
+            <p>More businesses ask ChatGPT and Google AI for supplier recommendations instead of Googling. If AI can't find you, you're invisible.</p>
           </div>
-          <div className="upgrade-plan__faq-item">
-            <h4>What payment methods do you accept?</h4>
-            <p>
-              We accept all major credit and debit cards through our secure payment
-              partner, Stripe.
-            </p>
+          <div className="point">
+            <Eye size={32} />
+            <h3>Be In The Answer</h3>
+            <p>When someone asks "Who supplies photocopiers in Bristol?", your business needs to be in the AI's knowledge base to be recommended.</p>
           </div>
-          <div className="upgrade-plan__faq-item">
-            <h4>Is there a contract?</h4>
-            <p>
-              No contracts! All plans are month-to-month and you can cancel anytime.
-            </p>
-          </div>
-          <div className="upgrade-plan__faq-item">
-            <h4>How do leads work?</h4>
-            <p>
-              Leads are quote requests from businesses in your service area. You
-              receive their details and can respond with your best offer.
-            </p>
+          <div className="point">
+            <TrendingUp size={32} />
+            <h3>Stay Ahead</h3>
+            <p>Early adopters who optimise for AI visibility now will dominate as AI search becomes the norm. Don't get left behind.</p>
           </div>
         </div>
-      </div>
+      </section>
+
+      <section className="faqs">
+        <h2>Frequently Asked Questions</h2>
+        <div className="faq-list">
+          {faqs.map((faq, i) => (
+            <details
+              key={i}
+              className="faq-item"
+              open={openFaq === i}
+              onClick={(e) => {
+                e.preventDefault();
+                setOpenFaq(openFaq === i ? null : i);
+              }}
+            >
+              <summary>{faq.q}</summary>
+              <p>{faq.a}</p>
+            </details>
+          ))}
+        </div>
+      </section>
     </div>
   );
 };

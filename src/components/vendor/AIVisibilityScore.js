@@ -203,8 +203,8 @@ const AIVisibilityScore = ({ token }) => {
         </div>
       )}
 
-      {/* Upgrade CTA for free tier */}
-      {tier === 'free' && (
+      {/* Upgrade CTA for free/listed tier */}
+      {(tier === 'free' || tier === 'listed') && (
         <div className="upgrade-cta">
           <p className="cta-text">
             <strong>Unlock +60 more points</strong> with product uploads, trust badges, and AI optimisation
@@ -218,17 +218,17 @@ const AIVisibilityScore = ({ token }) => {
         </div>
       )}
 
-      {/* Upgrade CTA for basic tier */}
-      {tier === 'basic' && (
+      {/* Upgrade CTA for basic/visible tier - can still upgrade to verified */}
+      {(tier === 'basic' || tier === 'visible') && (
         <div className="upgrade-cta secondary">
           <p className="cta-text">
-            <strong>Get Verified Badge</strong> and real-time AI sync with Managed tier
+            <strong>Get Verified Badge</strong> and priority AI placement for maximum visibility
           </p>
           <button
             className="upgrade-btn secondary"
             onClick={() => navigate('/vendor-dashboard/upgrade')}
           >
-            Upgrade to Managed
+            Upgrade to Verified
           </button>
         </div>
       )}

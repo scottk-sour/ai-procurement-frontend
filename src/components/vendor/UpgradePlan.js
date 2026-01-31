@@ -128,6 +128,20 @@ const UpgradePlan = () => {
     fetchSubscriptionStatus();
   }, []);
 
+  // Map backend plan names to frontend plan IDs
+  const normalizePlanName = (backendPlan) => {
+    const planMapping = {
+      'listed': 'free',
+      'free': 'free',
+      'visible': 'basic',
+      'basic': 'basic',
+      'verified': 'managed',
+      'managed': 'managed',
+      'enterprise': 'enterprise'
+    };
+    return planMapping[backendPlan?.toLowerCase()] || 'free';
+  };
+
   const fetchSubscriptionStatus = async () => {
     try {
       const token = localStorage.getItem('vendorToken');
@@ -144,7 +158,9 @@ const UpgradePlan = () => {
 
       if (response.ok) {
         const data = await response.json();
-        setCurrentPlan(data.plan || 'free');
+        // Normalize the plan name from backend to frontend format
+        const normalizedPlan = normalizePlanName(data.plan);
+        setCurrentPlan(normalizedPlan);
         setSubscription(data.subscription);
       }
     } catch (err) {
@@ -250,7 +266,7 @@ const UpgradePlan = () => {
         </p>
         {currentPlan !== 'free' && subscription && (
           <p className="pricing-current-plan">
-            Currently on <strong>{currentPlan === 'basic' ? 'Visible' : currentPlan === 'managed' ? 'Verified' : currentPlan}</strong> plan
+            Currently on <strong>{currentPlan === 'basic' ? 'Visible (£99/mo)' : currentPlan === 'managed' ? 'Verified (£149/mo)' : currentPlan}</strong> plan
           </p>
         )}
         <div className="trust-badges">

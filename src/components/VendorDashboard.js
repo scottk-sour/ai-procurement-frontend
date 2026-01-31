@@ -682,9 +682,28 @@ const VendorDashboard = () => {
                 <div style={{ fontSize: '1.25rem', fontWeight: '600' }}>{formatCurrency(vendorData.totalEarnings)}</div>
               </div>
               
-              <button 
-                style={{ 
-                  background: 'rgba(255,255,255,0.2)', 
+              <button
+                onClick={() => navigate('/vendor-dashboard/upgrade')}
+                style={{
+                  background: 'linear-gradient(135deg, #f59e0b, #d97706)',
+                  border: 'none',
+                  color: 'white',
+                  padding: '0.5rem 1rem',
+                  borderRadius: '0.5rem',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  fontWeight: '600',
+                  boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                }}
+              >
+                <ArrowUp size={16} /> Upgrade
+              </button>
+
+              <button
+                style={{
+                  background: 'rgba(255,255,255,0.2)',
                   border: '1px solid rgba(255,255,255,0.3)',
                   color: 'white',
                   padding: '0.5rem 1rem',
@@ -697,7 +716,7 @@ const VendorDashboard = () => {
               >
                 <Settings size={16} /> Settings
               </button>
-              
+
               <button
                 onClick={handleLogout}
                 style={{

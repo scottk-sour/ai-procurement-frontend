@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { Search, Building2, MapPin, Star, ArrowRight, MessageSquare, Shield, Clock } from 'lucide-react';
+import { Search, Building2, MapPin, Star, ArrowRight, MessageSquare, Shield, Clock, Award, CheckCircle } from 'lucide-react';
 import '../styles/AIReferral.css';
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://ai-procurement-backend-q35u.onrender.com';
@@ -165,8 +165,14 @@ const AIReferral = () => {
               <>
                 <h2>{suppliers.length} Supplier{suppliers.length !== 1 ? 's' : ''} Found</h2>
                 <div className="ai-supplier-grid">
-                  {suppliers.map(supplier => (
-                    <div key={supplier.id} className="ai-supplier-card">
+                  {suppliers.map((supplier, index) => (
+                    <div key={supplier.id} className={`ai-supplier-card ${index === 0 ? 'best-match' : ''}`}>
+                      {index === 0 && (
+                        <div className="ai-best-match-badge">
+                          <Award size={14} />
+                          Best Match
+                        </div>
+                      )}
                       <div className="ai-supplier-header">
                         <Building2 size={24} />
                         <div>
@@ -178,6 +184,11 @@ const AIReferral = () => {
                             </p>
                           )}
                         </div>
+                        {supplier.tier === 'verified' && (
+                          <span className="ai-tier-badge verified">
+                            <CheckCircle size={12} /> Verified
+                          </span>
+                        )}
                       </div>
 
                       {supplier.services && supplier.services.length > 0 && (
@@ -188,7 +199,7 @@ const AIReferral = () => {
                         </div>
                       )}
 
-                      {supplier.rating && (
+                      {supplier.rating > 0 && (
                         <div className="ai-supplier-rating">
                           <Star size={16} fill="#fbbf24" stroke="#fbbf24" />
                           <span>{supplier.rating.toFixed(1)}</span>
@@ -198,6 +209,12 @@ const AIReferral = () => {
                             </span>
                           )}
                         </div>
+                      )}
+
+                      {supplier.brands && supplier.brands.length > 0 && (
+                        <p className="ai-supplier-brands">
+                          Brands: {supplier.brands.slice(0, 3).join(', ')}
+                        </p>
                       )}
 
                       <div className="ai-supplier-actions">

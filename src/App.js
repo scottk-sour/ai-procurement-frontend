@@ -514,6 +514,7 @@ const router = createBrowserRouter(
 
         // AI Referral Landing Page (public - for ChatGPT and other AI assistant referrals)
         { path: "/ai", element: <AIReferral /> },
+        { path: "/from-ai", element: <AIReferral /> },
         { path: "/find-suppliers", element: <AIReferral /> },
 
         // Protected vendor routes

@@ -7,7 +7,7 @@ import { Helmet } from 'react-helmet-async';
 import {
   FaStar, FaMapMarkerAlt, FaClock, FaPhone, FaGlobe, FaEnvelope,
   FaCheck, FaShieldAlt, FaAward, FaCrown, FaArrowLeft, FaSpinner,
-  FaBuilding, FaUsers, FaCalendarAlt
+  FaBuilding, FaUsers, FaCalendarAlt, FaTag, FaLock
 } from 'react-icons/fa';
 import QuickQuoteForm from './QuickQuoteForm';
 import '../styles/VendorProfilePage.css';
@@ -15,9 +15,10 @@ import '../styles/VendorProfilePage.css';
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://ai-procurement-backend-q35u.onrender.com';
 
 const TIER_CONFIG = {
-  enterprise: { label: 'Enterprise Partner', icon: FaCrown, color: '#7c3aed' },
-  managed: { label: 'Premium Partner', icon: FaAward, color: '#f59e0b' },
-  basic: { label: 'Verified Partner', icon: FaShieldAlt, color: '#10b981' },
+  enterprise: { label: 'Enterprise Partner', icon: FaCrown, color: '#7c3aed', isPremium: true },
+  managed: { label: 'Premium Partner', icon: FaAward, color: '#f59e0b', isPremium: true },
+  basic: { label: 'Verified Partner', icon: FaShieldAlt, color: '#10b981', isVerified: true },
+  standard: { label: 'Verified', icon: FaShieldAlt, color: '#10b981', isVerified: true },
   free: { label: 'Listed', icon: FaCheck, color: '#6b7280' }
 };
 
@@ -211,14 +212,23 @@ const VendorProfilePage = () => {
 
             {/* CTA */}
             <div className="vendor-profile__cta">
-              <button
-                onClick={() => setShowQuoteForm(true)}
-                className="vendor-profile__quote-btn"
-              >
-                Get a Quote
-              </button>
+              {vendor.canReceiveQuotes !== false ? (
+                <Link
+                  to={`/quote-request/${id}`}
+                  className="vendor-profile__quote-btn"
+                >
+                  Get a Quote
+                </Link>
+              ) : (
+                <button
+                  className="vendor-profile__quote-btn vendor-profile__quote-btn--disabled"
+                  disabled
+                >
+                  <FaLock /> Quotes Unavailable
+                </button>
+              )}
 
-              {vendor.showPricing && vendor.website && (
+              {vendor.website && (
                 <a
                   href={vendor.website}
                   target="_blank"
@@ -257,6 +267,20 @@ const VendorProfilePage = () => {
                   ))}
                 </div>
               </section>
+
+              {/* Brands */}
+              {vendor.brands?.length > 0 && (
+                <section className="vendor-profile__section">
+                  <h2>Brands We Supply</h2>
+                  <div className="vendor-profile__brands">
+                    {vendor.brands.map((brand, index) => (
+                      <span key={index} className="vendor-profile__brand-tag">
+                        <FaTag /> {brand}
+                      </span>
+                    ))}
+                  </div>
+                </section>
+              )}
 
               {/* Coverage Areas */}
               {vendor.location?.coverage?.length > 0 && (
@@ -308,12 +332,12 @@ const VendorProfilePage = () => {
               <div className="vendor-profile__stats-card">
                 <h3>Quick Facts</h3>
 
-                {vendor.yearEstablished && (
+                {(vendor.yearsInBusiness || vendor.yearEstablished) && (
                   <div className="vendor-profile__stat">
                     <FaCalendarAlt />
                     <div>
-                      <span className="vendor-profile__stat-label">Established</span>
-                      <span className="vendor-profile__stat-value">{vendor.yearEstablished}</span>
+                      <span className="vendor-profile__stat-label">Years in Business</span>
+                      <span className="vendor-profile__stat-value">{vendor.yearsInBusiness || vendor.yearEstablished}+ years</span>
                     </div>
                   </div>
                 )}
@@ -384,12 +408,16 @@ const VendorProfilePage = () => {
               <div className="vendor-profile__cta-card">
                 <h3>Interested in this supplier?</h3>
                 <p>Request a free quote to compare pricing and services.</p>
-                <button
-                  onClick={() => setShowQuoteForm(true)}
-                  className="vendor-profile__cta-btn"
-                >
-                  Request Quote
-                </button>
+                {vendor.canReceiveQuotes !== false ? (
+                  <Link to={`/quote-request/${id}`} className="vendor-profile__cta-btn">
+                    Request Quote
+                  </Link>
+                ) : (
+                  <div className="vendor-profile__upgrade-prompt">
+                    <FaLock />
+                    <p>This supplier is not currently accepting quotes through TendorAI.</p>
+                  </div>
+                )}
               </div>
             </aside>
           </div>

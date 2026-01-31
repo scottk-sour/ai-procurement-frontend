@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://ai-procurement-backend-q35u.onrender.com';
+
 const SubmitRequestForm = () => {
   const [formData, setFormData] = useState({
     serviceType: "CCTV",
@@ -29,7 +31,7 @@ const SubmitRequestForm = () => {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch('/api/submit-request', {
+      const response = await fetch(`${API_BASE_URL}/api/vendor-leads`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),

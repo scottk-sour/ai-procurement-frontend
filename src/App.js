@@ -129,6 +129,12 @@ const VendorProfilePage = loadWithFallback(
   () => <div style={errorStyle}>Failed to load Vendor Profile</div>
 );
 
+// Vendor-specific quote request (public - no auth required)
+const VendorQuoteRequest = loadWithFallback(
+  () => import("./components/VendorQuoteRequest"),
+  () => <div style={errorStyle}>Failed to load Quote Request Form</div>
+);
+
 // User Dashboard
 const UserDashboard = loadWithFallback(
   () => import("./components/UserDashboard"),
@@ -497,6 +503,9 @@ const router = createBrowserRouter(
         { path: "/suppliers/profile/:id", element: <VendorProfilePage /> },
         { path: "/suppliers/:category/:location", element: <SupplierDirectory /> },
 
+        // Vendor-specific quote request (public - no auth required)
+        { path: "/quote-request/:vendorId", element: <VendorQuoteRequest /> },
+
         // Protected vendor routes
         {
           element: <VendorPrivateRoute />,
@@ -528,7 +537,6 @@ const router = createBrowserRouter(
             // Quote details routes
             { path: "/quote-details", element: <QuoteDetails /> },
             { path: "/quote-details/:id", element: <QuoteDetails /> },
-            { path: "/quote-request/:id", element: <QuoteDetails /> },
           ],
         },
 

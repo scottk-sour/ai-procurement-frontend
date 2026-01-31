@@ -11,19 +11,29 @@ const TIER_CONFIG = {
     label: 'Enterprise Partner',
     icon: FaCrown,
     color: '#7c3aed',
-    bgColor: '#f5f3ff'
+    bgColor: '#f5f3ff',
+    isPremium: true
   },
   managed: {
     label: 'Premium Partner',
     icon: FaAward,
     color: '#f59e0b',
-    bgColor: '#fffbeb'
+    bgColor: '#fffbeb',
+    isPremium: true
   },
   basic: {
     label: 'Verified Partner',
     icon: FaShieldAlt,
     color: '#10b981',
-    bgColor: '#ecfdf5'
+    bgColor: '#ecfdf5',
+    isVerified: true
+  },
+  standard: {
+    label: 'Verified',
+    icon: FaShieldAlt,
+    color: '#10b981',
+    bgColor: '#ecfdf5',
+    isVerified: true
   },
   free: {
     label: 'Listed',
@@ -49,16 +59,21 @@ const VendorCard = ({
     reviewCount = 0,
     responseTime,
     tier = 'free',
+    badges = {},
     description,
     accreditations = [],
+    brands = [],
     logoUrl,
     website,
-    showPricing
+    showPricing,
+    canReceiveQuotes
   } = vendor;
 
   const tierConfig = TIER_CONFIG[tier] || TIER_CONFIG.free;
   const TierIcon = tierConfig.icon;
-  const isFeatured = tier === 'enterprise' || tier === 'managed';
+  const isPremium = badges.premium || tierConfig.isPremium;
+  const isVerified = badges.verified || tierConfig.isVerified || showPricing;
+  const isFeatured = isPremium;
 
   const renderStars = (rating) => {
     const stars = [];
@@ -196,12 +211,18 @@ const VendorCard = ({
           View Profile
         </Link>
 
-        <button
-          onClick={handleQuoteClick}
-          className="vendor-card__btn vendor-card__btn--primary"
-        >
-          Get Quote
-        </button>
+        {canReceiveQuotes !== false ? (
+          <Link
+            to={`/quote-request/${id}`}
+            className="vendor-card__btn vendor-card__btn--primary"
+          >
+            Get Quote
+          </Link>
+        ) : (
+          <span className="vendor-card__btn vendor-card__btn--disabled">
+            Upgrade Required
+          </span>
+        )}
       </div>
 
       {/* Quick Links (for premium tiers) */}

@@ -76,15 +76,20 @@ const QuickQuoteForm = ({ vendor, onClose, onSuccess }) => {
         }
       }
 
-      // Submit quote request
-      const response = await fetch(`${API_BASE_URL}/api/submit-request`, {
+      // Submit quote request to vendor-leads endpoint
+      const response = await fetch(`${API_BASE_URL}/api/vendor-leads`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          ...formData,
           vendorId: vendor?.id,
-          vendorName: vendor?.company,
-          source: 'vendor_profile'
+          service: formData.service,
+          companyName: formData.companyName,
+          contactName: formData.contactName,
+          email: formData.email,
+          phone: formData.phone,
+          postcode: formData.postcode,
+          message: formData.message,
+          source: { page: window.location.pathname, type: 'quick_quote' }
         })
       });
 

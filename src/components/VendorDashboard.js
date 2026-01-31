@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useMemo, useEffect } from "react";
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import AIVisibilityScore from './vendor/AIVisibilityScore';
 import {
@@ -51,10 +51,14 @@ const API_URL = process.env.REACT_APP_API_URL || 'https://ai-procurement-backend
 const VendorDashboard = () => {
   const { auth, logout, getToken } = useAuth();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   // Get vendor info from auth context and localStorage
   const vendorId = auth?.user?.userId || localStorage.getItem('vendorId');
   const token = getToken ? getToken() : localStorage.getItem('vendorToken');
+
+  // Upgrade success modal state
+  const [showUpgradeSuccess, setShowUpgradeSuccess] = useState(false);
 
   // Vendor data state - will be populated from API
   const [vendorData, setVendorData] = useState({
@@ -252,6 +256,18 @@ const VendorDashboard = () => {
       fetchLeads();
     }
   }, [dashboardState.activeTab, vendorId, fetchLeads]);
+
+  // Handle upgrade success from Stripe redirect
+  useEffect(() => {
+    const upgradeStatus = searchParams.get('upgrade');
+    if (upgradeStatus === 'success') {
+      setShowUpgradeSuccess(true);
+      // Remove the query parameter from URL
+      searchParams.delete('upgrade');
+      searchParams.delete('session_id');
+      setSearchParams(searchParams, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
 
   // Enhanced metrics calculation - now using leads
   const metrics = useMemo(() => {
@@ -551,6 +567,66 @@ const VendorDashboard = () => {
 
   return (
     <div style={{ minHeight: '100vh', background: '#f8fafc' }}>
+      {/* Upgrade Success Modal */}
+      {showUpgradeSuccess && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000
+        }}>
+          <div style={{
+            background: 'white',
+            borderRadius: '1rem',
+            padding: '2rem',
+            maxWidth: '450px',
+            width: '90%',
+            textAlign: 'center',
+            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)'
+          }}>
+            <div style={{
+              width: '64px',
+              height: '64px',
+              borderRadius: '50%',
+              background: '#dcfce7',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 1.5rem'
+            }}>
+              <CheckCircle size={32} color="#16a34a" />
+            </div>
+            <h2 style={{ margin: '0 0 0.5rem', color: '#1f2937', fontSize: '1.5rem' }}>
+              Subscription Activated!
+            </h2>
+            <p style={{ color: '#6b7280', marginBottom: '1.5rem', lineHeight: '1.6' }}>
+              Your plan has been upgraded successfully. You now have access to enhanced AI visibility features.
+            </p>
+            <button
+              onClick={() => setShowUpgradeSuccess(false)}
+              style={{
+                background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
+                color: 'white',
+                border: 'none',
+                padding: '0.75rem 2rem',
+                borderRadius: '0.5rem',
+                fontSize: '1rem',
+                fontWeight: '600',
+                cursor: 'pointer'
+              }}
+            >
+              Get Started
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Enhanced Header */}
       <header style={{ 
         background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', 

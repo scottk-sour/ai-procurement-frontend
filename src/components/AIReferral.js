@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Search, Building2, MapPin, Star, ArrowRight, MessageSquare, Shield, Clock, Award, CheckCircle } from 'lucide-react';
 import '../styles/AIReferral.css';
@@ -9,77 +9,101 @@ const AIReferral = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
-  const [service, setService] = useState(searchParams.get('service') || '');
-  const [location, setLocation] = useState(searchParams.get('location') || '');
+  // Get URL params
+  const urlService = searchParams.get('service') || '';
+  const urlLocation = searchParams.get('location') || '';
+  const urlRef = searchParams.get('ref') || searchParams.get('source') || searchParams.get('utm_source') || 'ai-assistant';
+
+  const [service, setService] = useState(urlService);
+  const [location, setLocation] = useState(urlLocation);
   const [suppliers, setSuppliers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
-  const [referralTracked, setReferralTracked] = useState(false);
+  const [referralSource, setReferralSource] = useState(urlRef);
+
+  // Search function that takes parameters directly
+  const performSearch = useCallback(async (searchService, searchLocation) => {
+    setLoading(true);
+    setSearched(true);
+
+    try {
+      const params = new URLSearchParams();
+      if (searchService) params.append('service', searchService);
+      if (searchLocation) params.append('location', searchLocation);
+      params.append('limit', '10');
+
+      console.log('Searching with:', { service: searchService, location: searchLocation });
+
+      const response = await fetch(`${API_BASE_URL}/api/ai/suppliers?${params}`);
+      const data = await response.json();
+
+      console.log('API Response:', data);
+
+      if (data.success) {
+        setSuppliers(data.suppliers || []);
+      } else {
+        setSuppliers([]);
+      }
+    } catch (error) {
+      console.error('Search failed:', error);
+      setSuppliers([]);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   // Track referral on page load
-  useEffect(() => {
-    const source = searchParams.get('source') || searchParams.get('utm_source') || 'ai-assistant';
-    const vendorId = searchParams.get('vendor');
-
-    if (!referralTracked) {
-      trackReferral(source, vendorId);
-      setReferralTracked(true);
-    }
-
-    // Auto-search if service is provided
-    if (searchParams.get('service')) {
-      handleSearch();
-    }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const trackReferral = async (source, vendorId) => {
+  const trackReferral = useCallback(async (source) => {
     try {
       await fetch(`${API_BASE_URL}/api/analytics/ai-referral`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           source,
-          vendorId,
-          page: window.location.pathname,
+          page: window.location.pathname + window.location.search,
+          action: 'pageview',
+          searchParams: {
+            service: urlService,
+            location: urlLocation
+          },
           timestamp: new Date().toISOString()
         })
       });
     } catch (error) {
       console.error('Failed to track referral:', error);
     }
-  };
+  }, [urlService, urlLocation]);
 
-  const handleSearch = async () => {
-    setLoading(true);
-    setSearched(true);
+  // Auto-search on page load
+  useEffect(() => {
+    // Track the referral
+    trackReferral(urlRef);
 
-    try {
-      const params = new URLSearchParams();
-      if (service) params.append('service', service);
-      if (location) params.append('location', location);
-      params.append('limit', '10');
+    // Determine what to search for
+    // If service param provided, use it; otherwise default to "photocopiers"
+    const searchService = urlService || 'photocopiers';
+    const searchLocation = urlLocation || '';
 
-      const response = await fetch(`${API_BASE_URL}/api/ai/suppliers?${params}`);
-      const data = await response.json();
+    // Update state to match what we're searching
+    setService(searchService);
+    setLocation(searchLocation);
+    setReferralSource(urlRef);
 
-      if (data.success) {
-        setSuppliers(data.suppliers || []);
-      }
-    } catch (error) {
-      console.error('Search failed:', error);
-    } finally {
-      setLoading(false);
-    }
+    // Perform the search
+    performSearch(searchService, searchLocation);
+  }, [urlService, urlLocation, urlRef, performSearch, trackReferral]);
+
+  // Handle manual search button click
+  const handleSearch = () => {
+    performSearch(service, location);
   };
 
   const handleViewSupplier = (supplier) => {
-    const source = searchParams.get('source') || 'ai-assistant';
-    navigate(`/suppliers/${supplier.slug || supplier.id}?source=${source}`);
+    navigate(`/suppliers/${supplier.slug || supplier.id}?source=${referralSource}`);
   };
 
   const handleRequestQuote = (supplier) => {
-    const source = searchParams.get('source') || 'ai-assistant';
-    navigate(`/suppliers/${supplier.slug || supplier.id}?quote=true&source=${source}`);
+    navigate(`/suppliers/${supplier.slug || supplier.id}?quote=true&source=${referralSource}`);
   };
 
   const services = [
@@ -98,7 +122,7 @@ const AIReferral = () => {
         <div className="ai-hero-content">
           <div className="ai-badge">
             <MessageSquare size={16} />
-            <span>Recommended by AI Assistant</span>
+            <span>Recommended by {referralSource === 'chatgpt' ? 'ChatGPT' : referralSource === 'claude' ? 'Claude' : 'AI Assistant'}</span>
           </div>
           <h1>Find Trusted UK Office Equipment Suppliers</h1>
           <p>
@@ -136,6 +160,7 @@ const AIReferral = () => {
                   placeholder="City, region or postcode"
                   value={location}
                   onChange={(e) => setLocation(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
                 />
               </div>
             </div>
@@ -163,7 +188,10 @@ const AIReferral = () => {
               </div>
             ) : suppliers.length > 0 ? (
               <>
-                <h2>{suppliers.length} Supplier{suppliers.length !== 1 ? 's' : ''} Found</h2>
+                <h2>
+                  {suppliers.length} Supplier{suppliers.length !== 1 ? 's' : ''} Found
+                  {location && ` in ${location}`}
+                </h2>
                 <div className="ai-supplier-grid">
                   {suppliers.map((supplier, index) => (
                     <div key={supplier.id} className={`ai-supplier-card ${index === 0 ? 'best-match' : ''}`}>
@@ -184,9 +212,9 @@ const AIReferral = () => {
                             </p>
                           )}
                         </div>
-                        {supplier.tier === 'verified' && (
-                          <span className="ai-tier-badge verified">
-                            <CheckCircle size={12} /> Verified
+                        {(supplier.tier === 'verified' || supplier.tier === 'visible') && (
+                          <span className={`ai-tier-badge ${supplier.tier}`}>
+                            <CheckCircle size={12} /> {supplier.tier === 'verified' ? 'Verified' : 'Visible'}
                           </span>
                         )}
                       </div>
@@ -197,6 +225,12 @@ const AIReferral = () => {
                             <span key={svc} className="ai-service-tag">{svc}</span>
                           ))}
                         </div>
+                      )}
+
+                      {supplier.coverage && supplier.coverage.length > 0 && (
+                        <p className="ai-supplier-coverage">
+                          Covers: {supplier.coverage.slice(0, 3).join(', ')}
+                        </p>
                       )}
 
                       {supplier.rating > 0 && (
@@ -224,12 +258,19 @@ const AIReferral = () => {
                         >
                           View Profile
                         </button>
-                        {supplier.canReceiveQuotes && (
+                        {supplier.canReceiveQuotes ? (
                           <button
                             className="ai-btn-primary"
                             onClick={() => handleRequestQuote(supplier)}
                           >
                             Get Quote <ArrowRight size={16} />
+                          </button>
+                        ) : (
+                          <button
+                            className="ai-btn-secondary"
+                            onClick={() => handleViewSupplier(supplier)}
+                          >
+                            Contact
                           </button>
                         )}
                       </div>

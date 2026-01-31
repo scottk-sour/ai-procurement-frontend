@@ -271,17 +271,22 @@ const VendorQuoteRequest = () => {
     setError(null);
 
     try {
+      const requestBody = {
+        vendorId,
+        ...formData,
+        source: {
+          page: window.location.pathname,
+          referrer: document.referrer
+        }
+      };
+
+      // Debug: Log request body before sending
+      console.log('[VendorQuoteRequest] Submitting:', JSON.stringify(requestBody, null, 2));
+
       const response = await fetch(`${API_BASE_URL}/api/vendor-leads`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          vendorId,
-          ...formData,
-          source: {
-            page: window.location.pathname,
-            referrer: document.referrer
-          }
-        })
+        body: JSON.stringify(requestBody)
       });
 
       const data = await response.json();

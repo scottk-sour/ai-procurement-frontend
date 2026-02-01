@@ -121,7 +121,8 @@ const VendorDashboard = () => {
     services: [],
     brands: [],
     certifications: [],
-    accreditations: []
+    accreditations: [],
+    tier: 'listed' // listed (free), visible (£99), verified (£149)
   });
   const [profileLoading, setProfileLoading] = useState(false);
   const [profileSaving, setProfileSaving] = useState(false);
@@ -259,6 +260,15 @@ const VendorDashboard = () => {
       const data = await response.json();
 
       if (data.success && data.vendor) {
+        // Normalize tier names to: listed, visible, verified
+        const rawTier = data.vendor.tier || 'free';
+        const tierMapping = {
+          'free': 'listed', 'listed': 'listed',
+          'basic': 'visible', 'visible': 'visible', 'bronze': 'visible', 'standard': 'visible',
+          'managed': 'verified', 'verified': 'verified', 'silver': 'verified', 'gold': 'verified', 'enterprise': 'verified', 'platinum': 'verified'
+        };
+        const normalizedTier = tierMapping[rawTier.toLowerCase()] || 'listed';
+
         setProfileData({
           company: data.vendor.company || '',
           name: data.vendor.name || '',
@@ -273,7 +283,8 @@ const VendorDashboard = () => {
           services: data.vendor.services || [],
           brands: data.vendor.brands || [],
           certifications: data.vendor.certifications || [],
-          accreditations: data.vendor.accreditations || []
+          accreditations: data.vendor.accreditations || [],
+          tier: normalizedTier
         });
       }
     } catch (error) {
@@ -453,12 +464,16 @@ const VendorDashboard = () => {
     }
   }, [dashboardState.activeTab, vendorId, fetchFullProfile]);
 
-  // Fetch analytics when analytics tab is active
+  // Fetch analytics and profile (for tier) when analytics tab is active
   useEffect(() => {
     if (dashboardState.activeTab === 'analytics' && token) {
       fetchAnalytics();
+      // Also fetch profile to get tier for gating
+      if (!profileData.tier || profileData.tier === 'listed') {
+        fetchFullProfile();
+      }
     }
-  }, [dashboardState.activeTab, token, fetchAnalytics]);
+  }, [dashboardState.activeTab, token, fetchAnalytics, fetchFullProfile, profileData.tier]);
 
   // Handle upgrade success from Stripe redirect
   useEffect(() => {
@@ -2014,367 +2029,637 @@ const VendorDashboard = () => {
         )}
 
         {/* Analytics Tab */}
-        {dashboardState.activeTab === "analytics" && (
-          <div>
-            {/* Header with date range selector */}
-            <div style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              marginBottom: '1.5rem'
-            }}>
-              <div>
-                <h2 style={{ margin: 0, fontSize: '1.5rem', fontWeight: '600', color: '#111827' }}>
-                  Analytics
-                </h2>
-                <p style={{ margin: '0.25rem 0 0', color: '#6b7280', fontSize: '0.875rem' }}>
-                  Track your profile performance and engagement
-                </p>
-              </div>
-              <select
-                value={analyticsData.dateRange}
-                onChange={(e) => {
-                  setAnalyticsData(prev => ({ ...prev, dateRange: e.target.value }));
-                }}
-                style={{
-                  padding: '0.5rem 1rem',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '0.5rem',
-                  background: 'white',
-                  fontSize: '0.875rem',
-                  cursor: 'pointer'
-                }}
-              >
-                <option value="7">Last 7 days</option>
-                <option value="30">Last 30 days</option>
-                <option value="90">Last 90 days</option>
-              </select>
-            </div>
+        {dashboardState.activeTab === "analytics" && (() => {
+          const tier = profileData.tier || 'listed';
+          const isVisible = tier === 'visible' || tier === 'verified';
+          const isVerified = tier === 'verified';
 
-            {analyticsData.loading ? (
+          // Locked card component
+          const LockedCard = ({ icon: Icon, iconBg, iconColor, title, fakeValue, subtitle, upgradeText, upgradeTier }) => (
+            <div style={{
+              background: 'white',
+              borderRadius: '0.75rem',
+              padding: '1.5rem',
+              border: '1px solid #e5e7eb',
+              position: 'relative',
+              overflow: 'hidden'
+            }}>
+              <div style={{ filter: 'blur(4px)', pointerEvents: 'none' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
+                  <div style={{
+                    width: '40px',
+                    height: '40px',
+                    background: iconBg,
+                    borderRadius: '0.5rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}>
+                    <Icon size={20} style={{ color: iconColor }} />
+                  </div>
+                  <span style={{ color: '#6b7280', fontSize: '0.875rem' }}>{title}</span>
+                </div>
+                <div style={{ fontSize: '2rem', fontWeight: '700', color: '#111827' }}>{fakeValue}</div>
+                <div style={{ color: '#6b7280', fontSize: '0.75rem', marginTop: '0.25rem' }}>{subtitle}</div>
+              </div>
+              {/* Lock overlay */}
               <div style={{
+                position: 'absolute',
+                inset: 0,
+                background: 'rgba(255,255,255,0.7)',
+                backdropFilter: 'blur(2px)',
                 display: 'flex',
-                justifyContent: 'center',
+                flexDirection: 'column',
                 alignItems: 'center',
-                padding: '4rem',
-                background: 'white',
-                borderRadius: '0.75rem',
-                border: '1px solid #e5e7eb'
+                justifyContent: 'center',
+                padding: '1rem'
               }}>
                 <div style={{
-                  width: '40px',
-                  height: '40px',
-                  border: '4px solid #e5e7eb',
-                  borderTopColor: '#3b82f6',
+                  width: '32px',
+                  height: '32px',
+                  background: '#f3f4f6',
                   borderRadius: '50%',
-                  animation: 'spin 1s linear infinite'
-                }} />
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginBottom: '0.5rem'
+                }}>
+                  <svg width="16" height="16" fill="none" stroke="#6b7280" strokeWidth="2" viewBox="0 0 24 24">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                    <path d="M7 11V7a5 5 0 0110 0v4"/>
+                  </svg>
+                </div>
+                <span style={{ fontSize: '0.75rem', color: '#374151', textAlign: 'center', fontWeight: '500' }}>
+                  {upgradeText}
+                </span>
               </div>
-            ) : analyticsData.error ? (
+            </div>
+          );
+
+          return (
+            <div>
+              {/* Header with tier badge and date range */}
               <div style={{
-                textAlign: 'center',
-                padding: '4rem 2rem',
-                background: 'white',
-                borderRadius: '0.75rem',
-                border: '1px solid #e5e7eb'
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: '1.5rem',
+                flexWrap: 'wrap',
+                gap: '1rem'
               }}>
-                <p style={{ color: '#ef4444', marginBottom: '1rem' }}>{analyticsData.error}</p>
-                <button
-                  onClick={fetchAnalytics}
-                  style={{
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                    <h2 style={{ margin: 0, fontSize: '1.5rem', fontWeight: '600', color: '#111827' }}>
+                      Analytics
+                    </h2>
+                    <span style={{
+                      padding: '0.25rem 0.75rem',
+                      borderRadius: '9999px',
+                      fontSize: '0.75rem',
+                      fontWeight: '600',
+                      background: tier === 'verified' ? '#fef3c7' : tier === 'visible' ? '#dbeafe' : '#f3f4f6',
+                      color: tier === 'verified' ? '#92400e' : tier === 'visible' ? '#1e40af' : '#6b7280'
+                    }}>
+                      {tier === 'verified' ? 'Verified' : tier === 'visible' ? 'Visible' : 'Listed (Free)'}
+                    </span>
+                  </div>
+                  <p style={{ margin: '0.25rem 0 0', color: '#6b7280', fontSize: '0.875rem' }}>
+                    Track your profile performance and engagement
+                  </p>
+                </div>
+                {isVisible && (
+                  <select
+                    value={analyticsData.dateRange}
+                    onChange={(e) => setAnalyticsData(prev => ({ ...prev, dateRange: e.target.value }))}
+                    style={{
+                      padding: '0.5rem 1rem',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '0.5rem',
+                      background: 'white',
+                      fontSize: '0.875rem',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <option value="7">Last 7 days</option>
+                    <option value="30">Last 30 days</option>
+                    {isVerified && <option value="90">Last 90 days</option>}
+                  </select>
+                )}
+              </div>
+
+              {analyticsData.loading ? (
+                <div style={{
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  padding: '4rem',
+                  background: 'white',
+                  borderRadius: '0.75rem',
+                  border: '1px solid #e5e7eb'
+                }}>
+                  <div style={{
+                    width: '40px',
+                    height: '40px',
+                    border: '4px solid #e5e7eb',
+                    borderTopColor: '#3b82f6',
+                    borderRadius: '50%',
+                    animation: 'spin 1s linear infinite'
+                  }} />
+                </div>
+              ) : analyticsData.error ? (
+                <div style={{
+                  textAlign: 'center',
+                  padding: '4rem 2rem',
+                  background: 'white',
+                  borderRadius: '0.75rem',
+                  border: '1px solid #e5e7eb'
+                }}>
+                  <p style={{ color: '#ef4444', marginBottom: '1rem' }}>{analyticsData.error}</p>
+                  <button onClick={fetchAnalytics} style={{
                     padding: '0.5rem 1rem',
                     background: '#3b82f6',
                     color: 'white',
                     border: 'none',
                     borderRadius: '0.5rem',
                     cursor: 'pointer'
-                  }}
-                >
-                  Try Again
-                </button>
-              </div>
-            ) : (
-              <>
-                {/* Key Metrics Cards */}
-                <div style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-                  gap: '1rem',
-                  marginBottom: '1.5rem'
-                }}>
-                  {/* Profile Views */}
-                  <div style={{
-                    background: 'white',
-                    borderRadius: '0.75rem',
-                    padding: '1.5rem',
-                    border: '1px solid #e5e7eb'
                   }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
-                      <div style={{
-                        width: '40px',
-                        height: '40px',
-                        background: '#dbeafe',
-                        borderRadius: '0.5rem',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center'
-                      }}>
-                        <Eye size={20} style={{ color: '#3b82f6' }} />
-                      </div>
-                      <span style={{ color: '#6b7280', fontSize: '0.875rem' }}>Profile Views</span>
-                    </div>
-                    <div style={{ fontSize: '2rem', fontWeight: '700', color: '#111827' }}>
-                      {analyticsData.stats?.views || 0}
-                    </div>
-                    <div style={{ color: '#6b7280', fontSize: '0.75rem', marginTop: '0.25rem' }}>
-                      {analyticsData.stats?.uniqueViews || 0} unique visitors
-                    </div>
-                  </div>
-
-                  {/* Quote Requests */}
-                  <div style={{
-                    background: 'white',
-                    borderRadius: '0.75rem',
-                    padding: '1.5rem',
-                    border: '1px solid #e5e7eb'
-                  }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
-                      <div style={{
-                        width: '40px',
-                        height: '40px',
-                        background: '#d1fae5',
-                        borderRadius: '0.5rem',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center'
-                      }}>
-                        <FileText size={20} style={{ color: '#059669' }} />
-                      </div>
-                      <span style={{ color: '#6b7280', fontSize: '0.875rem' }}>Quote Requests</span>
-                    </div>
-                    <div style={{ fontSize: '2rem', fontWeight: '700', color: '#111827' }}>
-                      {analyticsData.stats?.quoteRequests || 0}
-                    </div>
-                    <div style={{ color: '#059669', fontSize: '0.75rem', marginTop: '0.25rem' }}>
-                      {analyticsData.stats?.conversionRate || '0%'} conversion rate
-                    </div>
-                  </div>
-
-                  {/* Website Clicks */}
-                  <div style={{
-                    background: 'white',
-                    borderRadius: '0.75rem',
-                    padding: '1.5rem',
-                    border: '1px solid #e5e7eb'
-                  }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
-                      <div style={{
-                        width: '40px',
-                        height: '40px',
-                        background: '#fef3c7',
-                        borderRadius: '0.5rem',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center'
-                      }}>
-                        <ExternalLink size={20} style={{ color: '#d97706' }} />
-                      </div>
-                      <span style={{ color: '#6b7280', fontSize: '0.875rem' }}>Website Clicks</span>
-                    </div>
-                    <div style={{ fontSize: '2rem', fontWeight: '700', color: '#111827' }}>
-                      {analyticsData.stats?.websiteClicks || 0}
-                    </div>
-                    <div style={{ color: '#6b7280', fontSize: '0.75rem', marginTop: '0.25rem' }}>
-                      Outbound traffic
-                    </div>
-                  </div>
-
-                  {/* Phone Clicks */}
-                  <div style={{
-                    background: 'white',
-                    borderRadius: '0.75rem',
-                    padding: '1.5rem',
-                    border: '1px solid #e5e7eb'
-                  }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
-                      <div style={{
-                        width: '40px',
-                        height: '40px',
-                        background: '#ede9fe',
-                        borderRadius: '0.5rem',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center'
-                      }}>
-                        <Phone size={20} style={{ color: '#7c3aed' }} />
-                      </div>
-                      <span style={{ color: '#6b7280', fontSize: '0.875rem' }}>Phone Clicks</span>
-                    </div>
-                    <div style={{ fontSize: '2rem', fontWeight: '700', color: '#111827' }}>
-                      {analyticsData.stats?.phoneClicks || 0}
-                    </div>
-                    <div style={{ color: '#6b7280', fontSize: '0.75rem', marginTop: '0.25rem' }}>
-                      Call inquiries
-                    </div>
-                  </div>
+                    Try Again
+                  </button>
                 </div>
-
-                {/* Daily Activity Chart */}
-                <div style={{
-                  background: 'white',
-                  borderRadius: '0.75rem',
-                  padding: '1.5rem',
-                  border: '1px solid #e5e7eb',
-                  marginBottom: '1.5rem'
-                }}>
-                  <h3 style={{ margin: '0 0 1rem', fontSize: '1rem', fontWeight: '600', color: '#374151' }}>
-                    Daily Activity
-                  </h3>
-                  {analyticsData.daily.length > 0 ? (
-                    <div style={{ display: 'flex', alignItems: 'flex-end', gap: '4px', height: '150px', padding: '0.5rem 0' }}>
-                      {analyticsData.daily.slice(-14).map((day, index) => {
-                        const totalEvents = day.events?.reduce((sum, e) => sum + e.count, 0) || 0;
-                        const maxEvents = Math.max(...analyticsData.daily.slice(-14).map(d =>
-                          d.events?.reduce((sum, e) => sum + e.count, 0) || 0
-                        ), 1);
-                        const height = (totalEvents / maxEvents) * 100;
-
-                        return (
-                          <div
-                            key={day.date}
-                            style={{
-                              flex: 1,
-                              display: 'flex',
-                              flexDirection: 'column',
-                              alignItems: 'center',
-                              gap: '0.25rem'
-                            }}
-                            title={`${day.date}: ${totalEvents} events`}
-                          >
-                            <div
-                              style={{
-                                width: '100%',
-                                height: `${Math.max(height, 5)}%`,
-                                background: 'linear-gradient(180deg, #3b82f6 0%, #60a5fa 100%)',
-                                borderRadius: '4px 4px 0 0',
-                                minHeight: '4px',
-                                transition: 'height 0.3s ease'
-                              }}
-                            />
-                            <span style={{
-                              fontSize: '0.625rem',
-                              color: '#9ca3af',
-                              transform: 'rotate(-45deg)',
-                              whiteSpace: 'nowrap'
-                            }}>
-                              {new Date(day.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
-                            </span>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  ) : (
+              ) : (
+                <>
+                  {/* Key Metrics Cards */}
+                  <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                    gap: '1rem',
+                    marginBottom: '1.5rem'
+                  }}>
+                    {/* Profile Views - Always visible */}
                     <div style={{
-                      height: '150px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      color: '#9ca3af',
-                      fontSize: '0.875rem'
+                      background: 'white',
+                      borderRadius: '0.75rem',
+                      padding: '1.5rem',
+                      border: '1px solid #e5e7eb'
                     }}>
-                      No activity data yet
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
+                        <div style={{
+                          width: '40px',
+                          height: '40px',
+                          background: '#dbeafe',
+                          borderRadius: '0.5rem',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}>
+                          <Eye size={20} style={{ color: '#3b82f6' }} />
+                        </div>
+                        <span style={{ color: '#6b7280', fontSize: '0.875rem' }}>Profile Views</span>
+                      </div>
+                      <div style={{ fontSize: '2rem', fontWeight: '700', color: '#111827' }}>
+                        {analyticsData.stats?.views || 0}
+                      </div>
+                      <div style={{ color: '#6b7280', fontSize: '0.75rem', marginTop: '0.25rem' }}>
+                        {isVisible ? `${analyticsData.stats?.uniqueViews || 0} unique visitors` : 'Total views'}
+                      </div>
                     </div>
-                  )}
-                </div>
 
-                {/* Traffic Sources */}
-                <div style={{
-                  background: 'white',
-                  borderRadius: '0.75rem',
-                  padding: '1.5rem',
-                  border: '1px solid #e5e7eb'
-                }}>
-                  <h3 style={{ margin: '0 0 1rem', fontSize: '1rem', fontWeight: '600', color: '#374151' }}>
-                    Traffic Sources
-                  </h3>
-                  {analyticsData.sources.length > 0 ? (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                      {analyticsData.sources.map((source, index) => {
-                        const maxCount = analyticsData.sources[0]?.count || 1;
-                        const percentage = (source.count / maxCount) * 100;
-
-                        return (
-                          <div key={source.source} style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                            <span style={{
-                              width: '80px',
-                              fontSize: '0.875rem',
-                              color: '#374151',
-                              textTransform: 'capitalize'
-                            }}>
-                              {source.source}
-                            </span>
-                            <div style={{
-                              flex: 1,
-                              height: '24px',
-                              background: '#f3f4f6',
-                              borderRadius: '4px',
-                              overflow: 'hidden'
-                            }}>
-                              <div style={{
-                                width: `${percentage}%`,
-                                height: '100%',
-                                background: index === 0 ? '#3b82f6' : index === 1 ? '#60a5fa' : '#93c5fd',
-                                borderRadius: '4px',
-                                transition: 'width 0.5s ease'
-                              }} />
-                            </div>
-                            <span style={{
-                              width: '50px',
-                              textAlign: 'right',
-                              fontSize: '0.875rem',
-                              fontWeight: '600',
-                              color: '#374151'
-                            }}>
-                              {source.count}
-                            </span>
+                    {/* Quote Requests - Locked for free */}
+                    {isVisible ? (
+                      <div style={{
+                        background: 'white',
+                        borderRadius: '0.75rem',
+                        padding: '1.5rem',
+                        border: '1px solid #e5e7eb'
+                      }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
+                          <div style={{
+                            width: '40px',
+                            height: '40px',
+                            background: '#d1fae5',
+                            borderRadius: '0.5rem',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center'
+                          }}>
+                            <FileText size={20} style={{ color: '#059669' }} />
                           </div>
-                        );
-                      })}
-                    </div>
-                  ) : (
+                          <span style={{ color: '#6b7280', fontSize: '0.875rem' }}>Quote Requests</span>
+                        </div>
+                        <div style={{ fontSize: '2rem', fontWeight: '700', color: '#111827' }}>
+                          {analyticsData.stats?.quoteRequests || 0}
+                        </div>
+                        <div style={{ color: '#059669', fontSize: '0.75rem', marginTop: '0.25rem' }}>
+                          {analyticsData.stats?.conversionRate || '0%'} conversion rate
+                        </div>
+                      </div>
+                    ) : (
+                      <LockedCard
+                        icon={FileText}
+                        iconBg="#d1fae5"
+                        iconColor="#059669"
+                        title="Quote Requests"
+                        fakeValue="12"
+                        subtitle="8.5% conversion"
+                        upgradeText="Upgrade to Visible (£99/mo)"
+                      />
+                    )}
+
+                    {/* Website Clicks - Locked for free */}
+                    {isVisible ? (
+                      <div style={{
+                        background: 'white',
+                        borderRadius: '0.75rem',
+                        padding: '1.5rem',
+                        border: '1px solid #e5e7eb'
+                      }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
+                          <div style={{
+                            width: '40px',
+                            height: '40px',
+                            background: '#fef3c7',
+                            borderRadius: '0.5rem',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center'
+                          }}>
+                            <ExternalLink size={20} style={{ color: '#d97706' }} />
+                          </div>
+                          <span style={{ color: '#6b7280', fontSize: '0.875rem' }}>Website Clicks</span>
+                        </div>
+                        <div style={{ fontSize: '2rem', fontWeight: '700', color: '#111827' }}>
+                          {analyticsData.stats?.websiteClicks || 0}
+                        </div>
+                        <div style={{ color: '#6b7280', fontSize: '0.75rem', marginTop: '0.25rem' }}>
+                          Outbound traffic
+                        </div>
+                      </div>
+                    ) : (
+                      <LockedCard
+                        icon={ExternalLink}
+                        iconBg="#fef3c7"
+                        iconColor="#d97706"
+                        title="Website Clicks"
+                        fakeValue="28"
+                        subtitle="Outbound traffic"
+                        upgradeText="Upgrade to Visible (£99/mo)"
+                      />
+                    )}
+
+                    {/* Phone Clicks - Locked for free */}
+                    {isVisible ? (
+                      <div style={{
+                        background: 'white',
+                        borderRadius: '0.75rem',
+                        padding: '1.5rem',
+                        border: '1px solid #e5e7eb'
+                      }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
+                          <div style={{
+                            width: '40px',
+                            height: '40px',
+                            background: '#ede9fe',
+                            borderRadius: '0.5rem',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center'
+                          }}>
+                            <Phone size={20} style={{ color: '#7c3aed' }} />
+                          </div>
+                          <span style={{ color: '#6b7280', fontSize: '0.875rem' }}>Phone Clicks</span>
+                        </div>
+                        <div style={{ fontSize: '2rem', fontWeight: '700', color: '#111827' }}>
+                          {analyticsData.stats?.phoneClicks || 0}
+                        </div>
+                        <div style={{ color: '#6b7280', fontSize: '0.75rem', marginTop: '0.25rem' }}>
+                          Call inquiries
+                        </div>
+                      </div>
+                    ) : (
+                      <LockedCard
+                        icon={Phone}
+                        iconBg="#ede9fe"
+                        iconColor="#7c3aed"
+                        title="Phone Clicks"
+                        fakeValue="7"
+                        subtitle="Call inquiries"
+                        upgradeText="Upgrade to Visible (£99/mo)"
+                      />
+                    )}
+                  </div>
+
+                  {/* Daily Activity Chart */}
+                  <div style={{
+                    background: 'white',
+                    borderRadius: '0.75rem',
+                    padding: '1.5rem',
+                    border: '1px solid #e5e7eb',
+                    marginBottom: '1.5rem',
+                    position: 'relative',
+                    overflow: 'hidden'
+                  }}>
+                    <h3 style={{ margin: '0 0 1rem', fontSize: '1rem', fontWeight: '600', color: '#374151' }}>
+                      Daily Activity
+                    </h3>
+                    {isVisible ? (
+                      analyticsData.daily.length > 0 ? (
+                        <div style={{ display: 'flex', alignItems: 'flex-end', gap: '4px', height: '150px', padding: '0.5rem 0' }}>
+                          {analyticsData.daily.slice(isVerified ? -30 : -14).map((day) => {
+                            const totalEvents = day.events?.reduce((sum, e) => sum + e.count, 0) || 0;
+                            const maxEvents = Math.max(...analyticsData.daily.slice(isVerified ? -30 : -14).map(d =>
+                              d.events?.reduce((sum, e) => sum + e.count, 0) || 0
+                            ), 1);
+                            const height = (totalEvents / maxEvents) * 100;
+
+                            return (
+                              <div
+                                key={day.date}
+                                style={{
+                                  flex: 1,
+                                  display: 'flex',
+                                  flexDirection: 'column',
+                                  alignItems: 'center',
+                                  gap: '0.25rem'
+                                }}
+                                title={`${day.date}: ${totalEvents} events`}
+                              >
+                                <div style={{
+                                  width: '100%',
+                                  height: `${Math.max(height, 5)}%`,
+                                  background: 'linear-gradient(180deg, #3b82f6 0%, #60a5fa 100%)',
+                                  borderRadius: '4px 4px 0 0',
+                                  minHeight: '4px',
+                                  transition: 'height 0.3s ease'
+                                }} />
+                                <span style={{
+                                  fontSize: '0.5rem',
+                                  color: '#9ca3af',
+                                  transform: 'rotate(-45deg)',
+                                  whiteSpace: 'nowrap'
+                                }}>
+                                  {new Date(day.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+                                </span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <div style={{
+                          height: '150px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          color: '#9ca3af',
+                          fontSize: '0.875rem'
+                        }}>
+                          No activity data yet
+                        </div>
+                      )
+                    ) : (
+                      <>
+                        {/* Fake blurred chart for free tier */}
+                        <div style={{ filter: 'blur(6px)', pointerEvents: 'none' }}>
+                          <div style={{ display: 'flex', alignItems: 'flex-end', gap: '4px', height: '150px', padding: '0.5rem 0' }}>
+                            {[35, 48, 25, 60, 42, 55, 70, 45, 38, 65, 52, 40, 58, 50].map((h, i) => (
+                              <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                <div style={{
+                                  width: '100%',
+                                  height: `${h}%`,
+                                  background: 'linear-gradient(180deg, #3b82f6 0%, #60a5fa 100%)',
+                                  borderRadius: '4px 4px 0 0'
+                                }} />
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                        {/* Lock overlay */}
+                        <div style={{
+                          position: 'absolute',
+                          inset: 0,
+                          background: 'rgba(255,255,255,0.8)',
+                          backdropFilter: 'blur(2px)',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}>
+                          <div style={{
+                            width: '48px',
+                            height: '48px',
+                            background: '#f3f4f6',
+                            borderRadius: '50%',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            marginBottom: '0.75rem'
+                          }}>
+                            <svg width="24" height="24" fill="none" stroke="#6b7280" strokeWidth="2" viewBox="0 0 24 24">
+                              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                              <path d="M7 11V7a5 5 0 0110 0v4"/>
+                            </svg>
+                          </div>
+                          <span style={{ fontSize: '0.875rem', color: '#374151', fontWeight: '600' }}>
+                            Upgrade to unlock activity insights
+                          </span>
+                          <span style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '0.25rem' }}>
+                            Visible tier (£99/mo) or higher
+                          </span>
+                        </div>
+                      </>
+                    )}
+                  </div>
+
+                  {/* Traffic Sources - Locked for free and visible */}
+                  <div style={{
+                    background: 'white',
+                    borderRadius: '0.75rem',
+                    padding: '1.5rem',
+                    border: '1px solid #e5e7eb',
+                    position: 'relative',
+                    overflow: 'hidden'
+                  }}>
+                    <h3 style={{ margin: '0 0 1rem', fontSize: '1rem', fontWeight: '600', color: '#374151' }}>
+                      Traffic Sources
+                    </h3>
+                    {isVerified ? (
+                      analyticsData.sources.length > 0 ? (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                          {analyticsData.sources.map((source, index) => {
+                            const maxCount = analyticsData.sources[0]?.count || 1;
+                            const percentage = (source.count / maxCount) * 100;
+                            return (
+                              <div key={source.source} style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                                <span style={{ width: '80px', fontSize: '0.875rem', color: '#374151', textTransform: 'capitalize' }}>
+                                  {source.source}
+                                </span>
+                                <div style={{ flex: 1, height: '24px', background: '#f3f4f6', borderRadius: '4px', overflow: 'hidden' }}>
+                                  <div style={{
+                                    width: `${percentage}%`,
+                                    height: '100%',
+                                    background: index === 0 ? '#3b82f6' : index === 1 ? '#60a5fa' : '#93c5fd',
+                                    borderRadius: '4px',
+                                    transition: 'width 0.5s ease'
+                                  }} />
+                                </div>
+                                <span style={{ width: '50px', textAlign: 'right', fontSize: '0.875rem', fontWeight: '600', color: '#374151' }}>
+                                  {source.count}
+                                </span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <div style={{ padding: '2rem', textAlign: 'center', color: '#9ca3af', fontSize: '0.875rem' }}>
+                          No traffic source data yet
+                        </div>
+                      )
+                    ) : (
+                      <>
+                        {/* Fake blurred sources */}
+                        <div style={{ filter: 'blur(6px)', pointerEvents: 'none' }}>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                            {['Google', 'Direct', 'LinkedIn', 'TendorAI'].map((s, i) => (
+                              <div key={s} style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                                <span style={{ width: '80px', fontSize: '0.875rem', color: '#374151' }}>{s}</span>
+                                <div style={{ flex: 1, height: '24px', background: '#f3f4f6', borderRadius: '4px', overflow: 'hidden' }}>
+                                  <div style={{ width: `${[80, 60, 40, 30][i]}%`, height: '100%', background: '#3b82f6', borderRadius: '4px' }} />
+                                </div>
+                                <span style={{ width: '50px', textAlign: 'right', fontSize: '0.875rem', fontWeight: '600', color: '#374151' }}>
+                                  {[45, 32, 18, 12][i]}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                        {/* Lock overlay */}
+                        <div style={{
+                          position: 'absolute',
+                          inset: 0,
+                          background: 'rgba(255,255,255,0.8)',
+                          backdropFilter: 'blur(2px)',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}>
+                          <div style={{
+                            width: '48px',
+                            height: '48px',
+                            background: '#f3f4f6',
+                            borderRadius: '50%',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            marginBottom: '0.75rem'
+                          }}>
+                            <svg width="24" height="24" fill="none" stroke="#6b7280" strokeWidth="2" viewBox="0 0 24 24">
+                              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                              <path d="M7 11V7a5 5 0 0110 0v4"/>
+                            </svg>
+                          </div>
+                          <span style={{ fontSize: '0.875rem', color: '#374151', fontWeight: '600' }}>
+                            Upgrade to Verified (£149/mo)
+                          </span>
+                          <span style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '0.25rem' }}>
+                            See where your traffic comes from
+                          </span>
+                        </div>
+                      </>
+                    )}
+                  </div>
+
+                  {/* Upgrade CTA for free tier */}
+                  {!isVisible && (
                     <div style={{
+                      marginTop: '1.5rem',
                       padding: '2rem',
-                      textAlign: 'center',
-                      color: '#9ca3af',
-                      fontSize: '0.875rem'
+                      background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
+                      borderRadius: '0.75rem',
+                      border: '1px solid #fcd34d',
+                      textAlign: 'center'
                     }}>
-                      No traffic source data yet
+                      <h4 style={{ margin: '0 0 0.5rem', color: '#92400e', fontSize: '1.125rem' }}>
+                        Unlock Full Analytics
+                      </h4>
+                      <p style={{ margin: '0 0 1rem', color: '#a16207', fontSize: '0.875rem' }}>
+                        See quote requests, click tracking, daily activity charts and more.
+                      </p>
+                      <button
+                        onClick={() => navigate('/vendor-dashboard/upgrade')}
+                        style={{
+                          padding: '0.75rem 2rem',
+                          background: 'linear-gradient(135deg, #f97316, #ea580c)',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '0.5rem',
+                          fontWeight: '600',
+                          fontSize: '0.9rem',
+                          cursor: 'pointer',
+                          boxShadow: '0 4px 12px rgba(249, 115, 22, 0.3)'
+                        }}
+                      >
+                        Upgrade to Visible - £99/mo
+                      </button>
                     </div>
                   )}
-                </div>
 
-                {/* Empty state if no data at all */}
-                {!analyticsData.stats?.views && !analyticsData.daily.length && (
-                  <div style={{
-                    marginTop: '1.5rem',
-                    padding: '2rem',
-                    background: '#f0f9ff',
-                    borderRadius: '0.75rem',
-                    border: '1px solid #bae6fd',
-                    textAlign: 'center'
-                  }}>
-                    <BarChart3 size={40} style={{ color: '#0284c7', marginBottom: '1rem' }} />
-                    <h4 style={{ margin: '0 0 0.5rem', color: '#0369a1' }}>No Analytics Data Yet</h4>
-                    <p style={{ margin: 0, color: '#0284c7', fontSize: '0.875rem' }}>
-                      Analytics will appear here as visitors view your profile.
-                      <br />Complete your profile and add products to increase visibility.
-                    </p>
-                  </div>
-                )}
-              </>
-            )}
-          </div>
-        )}
+                  {/* Upgrade CTA for visible tier */}
+                  {isVisible && !isVerified && (
+                    <div style={{
+                      marginTop: '1.5rem',
+                      padding: '1.5rem',
+                      background: 'linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%)',
+                      borderRadius: '0.75rem',
+                      border: '1px solid #93c5fd',
+                      textAlign: 'center'
+                    }}>
+                      <h4 style={{ margin: '0 0 0.5rem', color: '#1e40af', fontSize: '1rem' }}>
+                        Want deeper insights?
+                      </h4>
+                      <p style={{ margin: '0 0 1rem', color: '#1e3a8a', fontSize: '0.875rem' }}>
+                        Verified tier unlocks traffic sources, 90-day history, and AI referral tracking.
+                      </p>
+                      <button
+                        onClick={() => navigate('/vendor-dashboard/upgrade')}
+                        style={{
+                          padding: '0.5rem 1.5rem',
+                          background: 'linear-gradient(135deg, #3b82f6, #1e40af)',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '0.5rem',
+                          fontWeight: '600',
+                          fontSize: '0.875rem',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        Upgrade to Verified - £149/mo
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Empty state if no data at all */}
+                  {!analyticsData.stats?.views && !analyticsData.daily.length && isVisible && (
+                    <div style={{
+                      marginTop: '1.5rem',
+                      padding: '2rem',
+                      background: '#f0f9ff',
+                      borderRadius: '0.75rem',
+                      border: '1px solid #bae6fd',
+                      textAlign: 'center'
+                    }}>
+                      <BarChart3 size={40} style={{ color: '#0284c7', marginBottom: '1rem' }} />
+                      <h4 style={{ margin: '0 0 0.5rem', color: '#0369a1' }}>No Analytics Data Yet</h4>
+                      <p style={{ margin: 0, color: '#0284c7', fontSize: '0.875rem' }}>
+                        Analytics will appear here as visitors view your profile.
+                        <br />Complete your profile and add products to increase visibility.
+                      </p>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          );
+        })()}
 
         {/* Notifications Tab - Coming Soon */}
         {dashboardState.activeTab === "notifications" && (

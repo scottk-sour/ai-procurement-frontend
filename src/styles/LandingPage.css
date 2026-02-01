@@ -771,7 +771,7 @@
 /* CTA Section */
 .cta-section {
   padding: 6rem 0;
-  background: linear-gradient(135deg, var(--primary-blue) 0%, var(--secondary-blue) 100%);
+  background: #0f172a;
   color: var(--text-white);
   text-align: center;
 }
@@ -786,11 +786,12 @@
   font-weight: 800;
   margin-bottom: 1rem;
   line-height: 1.2;
+  color: #ffffff;
 }
 
 .cta-subtitle {
   font-size: 1.25rem;
-  opacity: 0.9;
+  color: #94a3b8;
   margin-bottom: 2.5rem;
 }
 
@@ -807,10 +808,11 @@
   align-items: center;
   gap: 0.5rem;
   font-size: 0.875rem;
+  color: #ffffff;
 }
 
 .benefit-icon {
-  color: var(--accent-orange);
+  color: #10b981;
 }
 
 .cta-actions {
@@ -819,6 +821,50 @@
   gap: 1rem;
   margin-bottom: 3rem;
   flex-wrap: wrap;
+}
+
+/* CTA Primary Button - Purple Gradient */
+.btn-cta-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #ffffff;
+  border: none;
+  padding: 1rem 2rem;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+}
+
+.btn-cta-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+}
+
+/* CTA Secondary Button - Transparent with White Border */
+.btn-cta-secondary {
+  background: transparent;
+  color: #ffffff;
+  border: 2px solid #ffffff;
+  padding: 1rem 2rem;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+}
+
+.btn-cta-secondary:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateY(-2px);
 }
 
 /* Newsletter Signup */

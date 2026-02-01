@@ -60,7 +60,7 @@ const NewsletterSignup = () => {
           className="newsletter-button"
           disabled={loading}
         >
-          {loading ? "Subscribing..." : "Get Early Access"}
+          {loading ? "Subscribing..." : "Subscribe"}
         </button>
       </div>
     </form>
@@ -583,35 +583,35 @@ const LandingPage = () => {
         <section className="cta-section" data-animation="fadeInUp" data-visible={isVisible}>
           <div className="container">
             <div className="cta-content">
-              <h2 className="cta-title">Ready to Get Your 3 Instant Office Equipment Quotes?</h2>
+              <h2 className="cta-title">Find the Right Office Equipment Supplier</h2>
               <p className="cta-subtitle">
-                Join thousands of UK businesses already saving time and money with AI-powered procurement
+                Compare verified UK suppliers for photocopiers, telecoms, CCTV and IT services. Get competitive quotes tailored to your needs.
               </p>
-              
+
               <div className="cta-benefits">
                 <div className="benefit-item">
-                  <FaClock className="benefit-icon" />
-                  <span>3 quotes in minutes</span>
+                  <FaCheckCircle className="benefit-icon" />
+                  <span>Free to use</span>
                 </div>
                 <div className="benefit-item">
-                  <FaAward className="benefit-icon" />
-                  <span>Free comparison service</span>
-                </div>
-                <div className="benefit-item">
-                  <FaUsers className="benefit-icon" />
+                  <FaCheckCircle className="benefit-icon" />
                   <span>Verified UK suppliers</span>
                 </div>
+                <div className="benefit-item">
+                  <FaCheckCircle className="benefit-icon" />
+                  <span>AI-powered matching</span>
+                </div>
               </div>
-              
+
               <div className="cta-actions">
-                <Link to="/request-quote" className="btn btn-primary btn-xl">
-                  Get Instant Quotes Now <FaArrowRight />
+                <Link to="/suppliers" className="btn btn-cta-primary btn-xl">
+                  Find Suppliers <FaArrowRight />
                 </Link>
-                <Link to="/contact" className="btn btn-outline btn-xl">
+                <Link to="/how-it-works" className="btn btn-cta-secondary btn-xl">
                   Learn More
                 </Link>
               </div>
-              
+
               <NewsletterSignup />
             </div>
           </div>

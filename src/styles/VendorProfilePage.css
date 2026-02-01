@@ -536,19 +536,32 @@
 }
 
 @media (max-width: 768px) {
+  .vendor-profile__container {
+    padding: 0 1rem;
+  }
+
+  .vendor-profile__header {
+    padding: 2rem 0;
+  }
+
   .vendor-profile__header-content {
     flex-direction: column;
     text-align: center;
   }
 
   .vendor-profile__logo {
-    width: 100px;
-    height: 100px;
+    width: 80px;
+    height: 80px;
     margin: 0 auto;
+    padding: 0.75rem;
+  }
+
+  .vendor-profile__logo--placeholder {
+    font-size: 2rem;
   }
 
   .vendor-profile__title {
-    font-size: 1.75rem;
+    font-size: 1.5rem;
   }
 
   .vendor-profile__tier {
@@ -561,23 +574,109 @@
 
   .vendor-profile__location {
     justify-content: center;
+    font-size: 0.875rem;
   }
 
   .vendor-profile__cta {
     align-items: center;
     width: 100%;
+    gap: 0.5rem;
   }
 
-  .vendor-profile__quote-btn,
+  .vendor-profile__quote-btn {
+    width: 100%;
+    min-height: 48px;
+    padding: 0.875rem 1.5rem;
+    font-size: 1rem;
+  }
+
   .vendor-profile__website-btn {
     width: 100%;
+    min-height: 44px;
+    padding: 0.625rem 1rem;
+    font-size: 0.875rem;
+  }
+
+  .vendor-profile__main {
+    padding: 1.5rem 0;
   }
 
   .vendor-profile__sidebar {
     flex-direction: column;
+    gap: 1rem;
+  }
+
+  .vendor-profile__stats-card,
+  .vendor-profile__contact-card,
+  .vendor-profile__cta-card {
+    padding: 1.25rem;
   }
 
   .vendor-profile__section {
-    padding: 1.5rem;
+    padding: 1.25rem;
+    border-radius: 10px;
+  }
+
+  .vendor-profile__section h2 {
+    font-size: 1.25rem;
+  }
+
+  .vendor-profile__services {
+    gap: 0.5rem;
+  }
+
+  .vendor-profile__service-tag {
+    padding: 0.375rem 0.75rem;
+    font-size: 0.8125rem;
+  }
+
+  .vendor-profile__cta-btn {
+    min-height: 48px;
+    padding: 0.875rem;
+  }
+
+  .vendor-profile__contact-item {
+    min-height: 44px;
+    padding: 0.625rem;
+  }
+
+  .vendor-profile__back-btn {
+    min-height: 44px;
+    padding: 0.625rem 1.25rem;
+  }
+
+  .vendor-profile__accreditations {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .vendor-profile__container {
+    padding: 0 0.75rem;
+  }
+
+  .vendor-profile__header {
+    padding: 1.5rem 0;
+  }
+
+  .vendor-profile__title {
+    font-size: 1.25rem;
+  }
+
+  .vendor-profile__logo {
+    width: 64px;
+    height: 64px;
+  }
+
+  .vendor-profile__logo--placeholder {
+    font-size: 1.5rem;
+  }
+
+  .vendor-profile__section {
+    padding: 1rem;
+  }
+
+  .vendor-profile__main {
+    padding: 1rem 0;
   }
 }

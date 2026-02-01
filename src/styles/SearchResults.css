@@ -360,30 +360,53 @@
   padding: 1.5rem;
 }
 
-/* Responsive */
-@media (max-width: 768px) {
+/* =========================================================
+   MOBILE RESPONSIVE DESIGN
+========================================================= */
+
+/* Tablet */
+@media (max-width: 1024px) {
   .search-results__container {
     padding: 0 1rem;
   }
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .search-results {
+    overflow-x: hidden;
+  }
+
+  .search-results__container {
+    padding: 0 0.75rem;
+    max-width: 100%;
+  }
 
   .search-results__header {
-    padding: 1.5rem 0 2rem;
+    padding: 1.25rem 0 1.5rem;
   }
 
   .search-results__header-title {
-    font-size: 1.5rem;
+    font-size: 1.25rem;
+    padding: 0 0.5rem;
+  }
+
+  .search-results__header-subtitle {
+    font-size: 0.875rem;
+    padding: 0 0.5rem;
   }
 
   .search-results__toolbar {
     flex-direction: column;
-    align-items: flex-start;
-    padding: 1rem;
+    align-items: stretch;
+    padding: 0.75rem;
     gap: 0.75rem;
   }
 
   .search-results__controls {
     width: 100%;
-    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.5rem;
   }
 
   .search-results__sort-pills {
@@ -392,29 +415,91 @@
 
   .search-results__filter-toggle {
     display: flex;
+    flex: 1;
+    min-height: 44px;
+    justify-content: center;
+  }
+
+  .search-results__sort-select {
+    flex: 1;
+    min-height: 44px;
+    font-size: 16px; /* Prevent iOS zoom */
   }
 
   .search-results__grid {
-    padding: 1rem 0;
+    padding: 0.75rem 0;
+    gap: 0.75rem;
+  }
+
+  /* Empty/Loading/Error states */
+  .search-results__loading,
+  .search-results__error,
+  .search-results__empty {
+    margin: 0.75rem 0;
+    padding: 2rem 1rem;
+    border-radius: 12px;
+  }
+
+  .search-results__error button {
+    min-height: 44px;
+    padding: 0.75rem 1.5rem;
+  }
+
+  .search-results__load-more-btn {
+    min-height: 48px;
+    width: 100%;
+    max-width: 300px;
+  }
+
+  /* Mobile Filters Overlay */
+  .search-results__filters-content {
+    max-height: 85vh;
+    border-radius: 20px 20px 0 0;
+  }
+
+  .search-results__filters-header {
+    padding: 1rem;
+  }
+
+  .search-results__filters-header button {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .search-results__filters-body {
+    padding: 1rem;
   }
 }
 
+/* Small mobile */
 @media (max-width: 480px) {
+  .search-results__container {
+    padding: 0 0.5rem;
+  }
+
   .search-results__header {
-    padding: 1rem 0 1.5rem;
+    padding: 1rem 0;
+  }
+
+  .search-results__header-title {
+    font-size: 1.125rem;
   }
 
   .search-results__count {
-    font-size: 0.875rem;
+    font-size: 0.8rem;
   }
 
   .search-results__count strong {
-    font-size: 1rem;
+    font-size: 0.9rem;
   }
 
   .search-results__location {
     display: block;
     margin-left: 0;
     margin-top: 0.25rem;
+  }
+
+  .search-results__toolbar {
+    padding: 0.5rem;
   }
 }

@@ -240,9 +240,21 @@
     flex: none;
   }
 
+  .hero-search__input {
+    min-height: 48px;
+    padding: 0.75rem 1rem 0.75rem 2.75rem;
+  }
+
+  .hero-search__select {
+    min-height: 48px;
+    padding: 0.75rem 2.25rem 0.75rem 1rem;
+  }
+
   .hero-search__button {
     width: 100%;
+    min-height: 48px;
     padding: 0.875rem;
+    font-size: 1rem;
   }
 
   /* Compact stays horizontal on mobile with wrap */
@@ -262,10 +274,20 @@
 
   .hero-search--compact .hero-search__button {
     flex: 1 1 45%;
+    min-height: 44px;
+  }
+
+  .hero-search--compact .hero-search__input,
+  .hero-search--compact .hero-search__select {
+    min-height: 44px;
   }
 }
 
 @media (max-width: 480px) {
+  .hero-search__form {
+    padding: 0.5rem;
+  }
+
   .hero-search__input,
   .hero-search__select {
     font-size: 16px; /* Prevent iOS zoom */

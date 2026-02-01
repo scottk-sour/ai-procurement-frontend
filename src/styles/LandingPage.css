@@ -960,135 +960,388 @@
   animation: slideInUp 0.8s ease-out;
 }
 
-/* Mobile responsiveness */
+/* =========================================================
+   MOBILE RESPONSIVE DESIGN
+   Comprehensive mobile fixes for iPhone and small devices
+========================================================= */
+
+/* Tablet breakpoint */
+@media (max-width: 1024px) {
+  .features-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .services-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .testimonials-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .faq-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Mobile breakpoint */
 @media (max-width: 768px) {
-  .hero-stats,
-  .hero-stats-white {
-    gap: 1rem;
-    flex-direction: column;
-    align-items: center;
-  }
-  
-  .stat-item-white {
+  /* Prevent horizontal scroll */
+  .landing-page {
+    overflow-x: hidden;
     width: 100%;
-    max-width: 250px;
   }
-  
-  .stat-number-white {
-    font-size: 2rem;
+
+  .container {
+    padding: 0 1rem;
+    max-width: 100%;
   }
-  
+
+  /* Hero Section */
+  .hero-section,
+  .hero-section-white {
+    min-height: auto;
+    padding: 6rem 0 4rem;
+  }
+
+  .hero-content,
+  .hero-content-white {
+    padding: 1rem;
+  }
+
+  .hero-title,
+  .hero-title-white {
+    font-size: 1.75rem;
+    line-height: 1.2;
+    margin-bottom: 1rem;
+  }
+
+  .hero-subtitle,
+  .hero-subtitle-white {
+    font-size: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .hero-badge,
   .hero-badge-white {
     padding: 0.5rem 1rem;
-    font-size: 0.85rem;
+    font-size: 0.8rem;
+    margin-bottom: 1.5rem;
   }
-  
+
+  .hero-stats,
+  .hero-stats-white {
+    gap: 0.75rem;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .stat-item-white {
+    flex: 1 1 auto;
+    min-width: 90px;
+    padding: 0.75rem 1rem;
+  }
+
+  .stat-number-white {
+    font-size: 1.5rem;
+  }
+
+  .stat-label-white {
+    font-size: 0.75rem;
+  }
+
   .hero-actions {
     flex-direction: column;
-    align-items: center;
+    align-items: stretch;
+    gap: 0.75rem;
   }
 
   .hero-actions-secondary {
     flex-direction: column;
-    align-items: center;
+    align-items: stretch;
+    gap: 0.75rem;
   }
 
   .hero-search-wrapper {
-    padding: 0 0.5rem;
+    padding: 0;
+    margin-bottom: 1.5rem;
   }
 
   .hero-search-wrapper .hero-search--hero {
-    padding: 0.25rem;
+    padding: 0.5rem;
+    border-radius: 12px;
   }
 
+  .hero-note,
+  .hero-note-white {
+    font-size: 0.75rem;
+    padding: 0 0.5rem;
+  }
+
+  /* Buttons - 44px minimum tap target */
   .btn {
     width: 100%;
-    max-width: 280px;
+    min-height: 48px;
+    padding: 0.875rem 1.5rem;
+    font-size: 1rem;
   }
-  
-  .features-grid,
-  .services-grid,
-  .testimonials-grid {
+
+  .btn-lg {
+    padding: 1rem 1.5rem;
+    min-height: 52px;
+  }
+
+  .btn-xl {
+    padding: 1rem 1.5rem;
+    min-height: 52px;
+    font-size: 1rem;
+  }
+
+  /* Section Spacing */
+  .features-section,
+  .services-section,
+  .testimonials-section,
+  .faq-section,
+  .cta-section {
+    padding: 3rem 0;
+  }
+
+  .section-header {
+    margin-bottom: 2rem;
+  }
+
+  .section-title {
+    font-size: 1.5rem;
+  }
+
+  .section-subtitle {
+    font-size: 1rem;
+  }
+
+  /* Feature Cards */
+  .features-grid {
     grid-template-columns: 1fr;
+    gap: 1rem;
   }
-  
-  .faq-grid {
-    grid-template-columns: 1fr;
-    gap: 1.5rem;
-    margin-top: 2.5rem;
-  }
-  
-  .faq-item {
+
+  .feature-card {
     padding: 1.5rem;
   }
-  
-  .faq-item h3 {
-    font-size: 1.125rem;
+
+  .feature-icon {
+    width: 3rem;
+    height: 3rem;
+    font-size: 1.25rem;
   }
-  
-  .faq-section {
-    padding: 4rem 0;
+
+  .feature-title {
+    font-size: 1.25rem;
   }
-  
-  .stats-grid {
-    grid-template-columns: repeat(2, 1fr);
+
+  .feature-description {
+    font-size: 0.9rem;
   }
-  
-  .cta-benefits {
-    flex-direction: column;
+
+  /* Services Grid */
+  .services-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .service-card {
+    margin: 0;
+  }
+
+  .service-image {
+    height: 160px;
+  }
+
+  .service-content {
+    padding: 1.25rem;
+  }
+
+  .service-title {
+    font-size: 1.25rem;
+  }
+
+  .service-description {
+    font-size: 0.875rem;
+  }
+
+  /* Testimonials / Coverage Cards */
+  .testimonials-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .testimonial-card {
+    padding: 1.5rem;
+  }
+
+  .testimonial-author {
+    flex-direction: row;
     align-items: center;
   }
-  
-  .input-group {
-    flex-direction: column;
-  }
-  
-  .newsletter-button {
-    width: 100%;
-  }
-}
 
-@media (max-width: 480px) {
-  .container {
-    padding: 0 1rem;
+  /* Stats Section */
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
   }
-  
-  .hero-stats-white {
-    gap: 0.75rem;
+
+  .stat-card {
+    padding: 1.25rem 1rem;
   }
-  
-  .stat-item-white {
-    padding: 0.75rem 1rem;
+
+  .stat-card .stat-number {
+    font-size: 2rem;
   }
-  
-  .stat-number-white {
-    font-size: 1.75rem;
-  }
-  
-  .stat-label-white {
+
+  .stat-card .stat-label {
     font-size: 0.8rem;
   }
-  
+
+  /* FAQ Section */
+  .faq-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    margin-top: 1.5rem;
+  }
+
   .faq-item {
     padding: 1.25rem;
   }
-  
+
   .faq-item h3 {
     font-size: 1rem;
     margin-bottom: 0.75rem;
   }
-  
+
   .faq-item p {
+    font-size: 0.875rem;
+    line-height: 1.5;
+  }
+
+  /* CTA Section */
+  .cta-content {
+    padding: 0 1rem;
+  }
+
+  .cta-title {
+    font-size: 1.5rem;
+  }
+
+  .cta-subtitle {
+    font-size: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .cta-benefits {
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .benefit-item {
+    font-size: 0.875rem;
+  }
+
+  .cta-actions {
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 2rem;
+  }
+
+  /* Newsletter */
+  .newsletter-form {
+    max-width: 100%;
+  }
+
+  .input-group {
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.75rem;
+  }
+
+  .newsletter-input {
+    padding: 1rem;
+    font-size: 16px; /* Prevent iOS zoom */
+    min-height: 48px;
+  }
+
+  .newsletter-button {
+    width: 100%;
+    min-height: 48px;
+    padding: 0.875rem 1.5rem;
+  }
+}
+
+/* Small mobile breakpoint */
+@media (max-width: 480px) {
+  .container {
+    padding: 0 0.75rem;
+  }
+
+  .hero-section,
+  .hero-section-white {
+    padding: 5rem 0 3rem;
+  }
+
+  .hero-title,
+  .hero-title-white {
+    font-size: 1.5rem;
+  }
+
+  .hero-subtitle,
+  .hero-subtitle-white {
     font-size: 0.9rem;
   }
-  
-  .stats-grid {
-    grid-template-columns: 1fr;
+
+  .hero-stats,
+  .hero-stats-white {
+    gap: 0.5rem;
   }
-  
-  .testimonial-author {
-    flex-direction: column;
-    text-align: center;
+
+  .stat-item-white {
+    min-width: 80px;
+    padding: 0.5rem 0.75rem;
+  }
+
+  .stat-number-white {
+    font-size: 1.25rem;
+  }
+
+  .stat-label-white {
+    font-size: 0.7rem;
+  }
+
+  .section-title {
+    font-size: 1.25rem;
+  }
+
+  .section-subtitle {
+    font-size: 0.9rem;
+  }
+
+  .feature-card,
+  .testimonial-card,
+  .faq-item {
+    padding: 1rem;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+
+  .stat-card .stat-number {
+    font-size: 1.75rem;
+  }
+
+  .cta-title {
+    font-size: 1.25rem;
   }
 }
 

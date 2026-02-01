@@ -296,23 +296,28 @@ const SupplierDirectory = () => {
 
 // Vendor Card Component
 const VendorCard = ({ vendor, category }) => {
+  // Updated tier badges with new color scheme
   const tierBadge = {
-    enterprise: { label: 'Enterprise', color: '#7c3aed' },
-    managed: { label: 'Managed', color: '#2563eb' },
-    basic: { label: 'Verified', color: '#059669' },
-    free: { label: '', color: 'transparent' }
+    enterprise: { label: 'Verified', className: 'verified' },
+    managed: { label: 'Verified', className: 'verified' },
+    verified: { label: 'Verified', className: 'verified' },
+    basic: { label: 'Visible', className: 'visible' },
+    visible: { label: 'Visible', className: 'visible' },
+    free: { label: '', className: '' },
+    listed: { label: '', className: '' }
   };
 
   const badge = tierBadge[vendor.tier] || tierBadge.free;
+  const isPaidTier = ['enterprise', 'managed', 'verified', 'basic', 'visible'].includes(vendor.tier);
 
   return (
     <article className={styles.vendorCard}>
       {badge.label && (
-        <div className={styles.tierBadge} style={{ backgroundColor: badge.color }}>
-          {badge.label}
+        <div className={`${styles.tierBadge} ${styles[badge.className]}`}>
+          <CheckCircle size={12} /> {badge.label}
         </div>
       )}
-      
+
       <div className={styles.vendorHeader}>
         <div className={styles.vendorLogo}>
           {vendor.logoUrl ? (
@@ -326,7 +331,10 @@ const VendorCard = ({ vendor, category }) => {
           {vendor.city && (
             <p className={styles.location}>
               <MapPin size={14} />
-              {vendor.city}
+              <span>{vendor.city}</span>
+              {vendor.distance && (
+                <span className={styles.distance}>• {vendor.distance} miles</span>
+              )}
             </p>
           )}
         </div>
@@ -353,6 +361,13 @@ const VendorCard = ({ vendor, category }) => {
         ))}
       </div>
 
+      {vendor.brands?.length > 0 && (
+        <p className={styles.brands}>
+          <strong>Brands:</strong> {vendor.brands.slice(0, 3).join(', ')}
+          {vendor.brands.length > 3 && ` +${vendor.brands.length - 3} more`}
+        </p>
+      )}
+
       {vendor.accreditations?.length > 0 && (
         <div className={styles.accreditations}>
           <Award size={14} />
@@ -361,37 +376,14 @@ const VendorCard = ({ vendor, category }) => {
       )}
 
       <div className={styles.vendorActions}>
-        {vendor.showPricing ? (
-          <>
-            {vendor.phone && (
-              <a href={`tel:${vendor.phone}`} className={styles.phoneButton}>
-                <Phone size={16} />
-                {vendor.phone}
-              </a>
-            )}
-            {vendor.website && (
-              <a 
-                href={vendor.website} 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className={styles.websiteButton}
-              >
-                <Globe size={16} />
-                Website
-              </a>
-            )}
-          </>
-        ) : (
-          <a 
-            href={vendor.website || '#'} 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className={styles.websiteButton}
-          >
-            <Globe size={16} />
-            Visit Website
-          </a>
+        {isPaidTier && (
+          <Link to={`/quote-request/${vendor.id}`} className={styles.quoteButton}>
+            Get Quote
+          </Link>
         )}
+        <Link to={`/suppliers/profile/${vendor.id}`} className={styles.profileButton}>
+          View Profile
+        </Link>
       </div>
 
       {/* Schema.org for individual vendor */}

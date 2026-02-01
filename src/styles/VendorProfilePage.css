@@ -1,13 +1,13 @@
 /* src/styles/VendorProfilePage.css */
-/* TendorAI Design System - Vendor Profile Page */
+/* TendorAI Purple Theme - Vendor Profile Page */
 
 .vendor-profile {
   min-height: 100vh;
-  background: var(--bg-secondary, #f8fafc);
+  background: #f8fafc;
 }
 
 .vendor-profile__container {
-  max-width: var(--max-width, 1280px);
+  max-width: 1280px;
   margin: 0 auto;
   padding: 0 1.5rem;
 }
@@ -26,7 +26,7 @@
 
 .vendor-profile__spinner {
   font-size: 3rem;
-  color: var(--primary-blue, #1e40af);
+  color: #667eea;
   animation: spin 1s linear infinite;
   margin-bottom: 1rem;
 }
@@ -37,12 +37,12 @@
 
 .vendor-profile--error h2 {
   font-size: 1.5rem;
-  color: var(--text-primary, #1f2937);
+  color: #111827;
   margin-bottom: 0.5rem;
 }
 
 .vendor-profile--error p {
-  color: var(--text-secondary, #6b7280);
+  color: #6b7280;
   margin-bottom: 1.5rem;
 }
 
@@ -51,21 +51,22 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1.5rem;
-  background: var(--primary-blue, #1e40af);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: #ffffff;
-  border-radius: var(--border-radius, 12px);
+  border-radius: 12px;
   text-decoration: none;
   font-weight: 600;
   transition: all 0.3s ease;
 }
 
 .vendor-profile__back-btn:hover {
-  background: #1e3a8a;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
 }
 
 /* Navigation */
 .vendor-profile__nav {
-  background: var(--bg-primary, #ffffff);
+  background: #ffffff;
   border-bottom: 1px solid #e5e7eb;
   padding: 1rem 0;
 }
@@ -74,19 +75,19 @@
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  color: var(--text-secondary, #6b7280);
+  color: #6b7280;
   text-decoration: none;
   font-size: 0.875rem;
   transition: color 0.2s ease;
 }
 
 .vendor-profile__back:hover {
-  color: var(--primary-blue, #1e40af);
+  color: #667eea;
 }
 
-/* Header */
+/* Header - Purple Gradient Banner */
 .vendor-profile__header {
-  background: linear-gradient(135deg, var(--primary-blue, #1e40af) 0%, var(--secondary-blue, #3b82f6) 100%);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   padding: 3rem 0;
   color: #ffffff;
 }
@@ -104,7 +105,7 @@
 .vendor-profile__logo {
   width: 120px;
   height: 120px;
-  border-radius: var(--border-radius-lg, 16px);
+  border-radius: 16px;
   object-fit: contain;
   background: #ffffff;
   padding: 1rem;
@@ -116,13 +117,14 @@
   justify-content: center;
   font-size: 3rem;
   font-weight: 700;
-  color: var(--primary-blue, #1e40af);
+  color: #667eea;
 }
 
 .vendor-profile__info {
   flex: 1;
 }
 
+/* Tier Badge in Header */
 .vendor-profile__tier {
   display: inline-flex;
   align-items: center;
@@ -135,11 +137,22 @@
   margin-bottom: 0.75rem;
 }
 
+.vendor-profile__tier--verified {
+  background: rgba(16, 185, 129, 0.3);
+  color: #ffffff;
+}
+
+.vendor-profile__tier--visible {
+  background: rgba(59, 130, 246, 0.3);
+  color: #ffffff;
+}
+
 .vendor-profile__title {
   font-size: 2.5rem;
   font-weight: 800;
   margin: 0 0 1rem 0;
   line-height: 1.2;
+  color: #ffffff;
 }
 
 .vendor-profile__rating {
@@ -179,6 +192,7 @@
   opacity: 0.9;
 }
 
+/* CTA Buttons in Header */
 .vendor-profile__cta {
   display: flex;
   flex-direction: column;
@@ -187,19 +201,32 @@
 
 .vendor-profile__quote-btn {
   padding: 1rem 2rem;
-  background: linear-gradient(135deg, var(--accent-orange, #f97316) 0%, var(--accent-orange-dark, #ea580c) 100%);
-  color: #ffffff;
+  background: #ffffff;
+  color: #667eea;
   border: none;
-  border-radius: var(--border-radius, 12px);
+  border-radius: 12px;
   font-size: 1.125rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
+  text-decoration: none;
+  text-align: center;
 }
 
 .vendor-profile__quote-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 10px 25px rgba(249, 115, 22, 0.3);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+
+.vendor-profile__quote-btn--disabled {
+  background: rgba(255, 255, 255, 0.3);
+  color: rgba(255, 255, 255, 0.7);
+  cursor: not-allowed;
+}
+
+.vendor-profile__quote-btn--disabled:hover {
+  transform: none;
+  box-shadow: none;
 }
 
 .vendor-profile__website-btn {
@@ -208,17 +235,18 @@
   justify-content: center;
   gap: 0.5rem;
   padding: 0.75rem 1.5rem;
-  background: rgba(255, 255, 255, 0.2);
+  background: transparent;
   color: #ffffff;
-  border: 2px solid rgba(255, 255, 255, 0.4);
-  border-radius: var(--border-radius, 12px);
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  border-radius: 12px;
   text-decoration: none;
   font-weight: 600;
   transition: all 0.3s ease;
 }
 
 .vendor-profile__website-btn:hover {
-  background: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.8);
 }
 
 /* Main Content */
@@ -238,28 +266,28 @@
   gap: 2rem;
 }
 
-/* Sections */
+/* Section Cards */
 .vendor-profile__section {
-  background: var(--bg-primary, #ffffff);
+  background: #ffffff;
   padding: 2rem;
-  border-radius: var(--border-radius-lg, 16px);
-  box-shadow: var(--shadow-light, 0 4px 6px rgba(0, 0, 0, 0.05));
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 .vendor-profile__section h2 {
   font-size: 1.5rem;
   font-weight: 700;
-  color: var(--text-primary, #1f2937);
+  color: #111827;
   margin: 0 0 1rem 0;
 }
 
 .vendor-profile__section p {
-  color: var(--text-secondary, #6b7280);
+  color: #374151;
   line-height: 1.7;
   margin: 0;
 }
 
-/* Services Tags */
+/* Service Tags - Purple Style */
 .vendor-profile__services {
   display: flex;
   flex-wrap: wrap;
@@ -268,9 +296,28 @@
 
 .vendor-profile__service-tag {
   padding: 0.5rem 1rem;
-  background: linear-gradient(135deg, var(--primary-blue, #1e40af) 0%, var(--secondary-blue, #3b82f6) 100%);
-  color: #ffffff;
+  background: #f5f3ff;
+  color: #667eea;
   border-radius: 50px;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+/* Brand Tags */
+.vendor-profile__brands {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.vendor-profile__brand-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.5rem 0.75rem;
+  background: #f1f5f9;
+  color: #374151;
+  border-radius: 8px;
   font-size: 0.875rem;
   font-weight: 500;
 }
@@ -287,8 +334,8 @@
   align-items: center;
   gap: 0.375rem;
   padding: 0.375rem 0.75rem;
-  background: var(--bg-accent, #f1f5f9);
-  color: var(--text-secondary, #6b7280);
+  background: #f5f3ff;
+  color: #667eea;
   border-radius: 50px;
   font-size: 0.8rem;
 }
@@ -319,20 +366,20 @@
 
 .vendor-profile__product {
   padding: 1rem;
-  background: var(--bg-secondary, #f8fafc);
-  border-radius: var(--border-radius, 12px);
+  background: #f8fafc;
+  border-radius: 12px;
 }
 
 .vendor-profile__product h4 {
   margin: 0 0 0.25rem 0;
   font-size: 1rem;
-  color: var(--text-primary, #1f2937);
+  color: #111827;
 }
 
 .vendor-profile__product p {
   margin: 0;
   font-size: 0.875rem;
-  color: var(--text-secondary, #6b7280);
+  color: #6b7280;
 }
 
 /* Sidebar */
@@ -345,10 +392,10 @@
 .vendor-profile__stats-card,
 .vendor-profile__contact-card,
 .vendor-profile__cta-card {
-  background: var(--bg-primary, #ffffff);
+  background: #ffffff;
   padding: 1.5rem;
-  border-radius: var(--border-radius-lg, 16px);
-  box-shadow: var(--shadow-light, 0 4px 6px rgba(0, 0, 0, 0.05));
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 .vendor-profile__stats-card h3,
@@ -356,7 +403,7 @@
 .vendor-profile__cta-card h3 {
   font-size: 1.125rem;
   font-weight: 700;
-  color: var(--text-primary, #1f2937);
+  color: #111827;
   margin: 0 0 1rem 0;
 }
 
@@ -375,20 +422,20 @@
 
 .vendor-profile__stat svg {
   font-size: 1.25rem;
-  color: var(--primary-blue, #1e40af);
+  color: #667eea;
 }
 
 .vendor-profile__stat-label {
   display: block;
   font-size: 0.75rem;
-  color: var(--text-secondary, #6b7280);
+  color: #6b7280;
 }
 
 .vendor-profile__stat-value {
   display: block;
   font-size: 1rem;
   font-weight: 600;
-  color: var(--text-primary, #1f2937);
+  color: #111827;
 }
 
 /* Contact Card */
@@ -397,9 +444,9 @@
   align-items: center;
   gap: 0.75rem;
   padding: 0.75rem;
-  background: var(--bg-secondary, #f8fafc);
-  border-radius: var(--border-radius, 12px);
-  color: var(--text-primary, #1f2937);
+  background: #f8fafc;
+  border-radius: 12px;
+  color: #374151;
   text-decoration: none;
   font-size: 0.875rem;
   margin-bottom: 0.5rem;
@@ -407,37 +454,66 @@
 }
 
 .vendor-profile__contact-item:hover {
-  background: var(--bg-accent, #f1f5f9);
-  color: var(--primary-blue, #1e40af);
+  background: #f5f3ff;
+  color: #667eea;
 }
 
 .vendor-profile__contact-item:last-child {
   margin-bottom: 0;
 }
 
+.vendor-profile__contact-item svg {
+  color: #667eea;
+}
+
 /* CTA Card */
 .vendor-profile__cta-card p {
-  color: var(--text-secondary, #6b7280);
+  color: #6b7280;
   font-size: 0.875rem;
   margin: 0 0 1rem 0;
 }
 
 .vendor-profile__cta-btn {
+  display: block;
   width: 100%;
   padding: 1rem;
-  background: linear-gradient(135deg, var(--accent-orange, #f97316) 0%, var(--accent-orange-dark, #ea580c) 100%);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: #ffffff;
   border: none;
-  border-radius: var(--border-radius, 12px);
+  border-radius: 12px;
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
+  text-decoration: none;
+  text-align: center;
 }
 
 .vendor-profile__cta-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 10px 25px rgba(249, 115, 22, 0.3);
+  box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+}
+
+/* Upgrade Prompt */
+.vendor-profile__upgrade-prompt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem;
+  background: #f8fafc;
+  border-radius: 12px;
+  text-align: center;
+}
+
+.vendor-profile__upgrade-prompt svg {
+  color: #6b7280;
+}
+
+.vendor-profile__upgrade-prompt p {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #6b7280;
 }
 
 /* Responsive */
@@ -475,6 +551,10 @@
     font-size: 1.75rem;
   }
 
+  .vendor-profile__tier {
+    justify-content: center;
+  }
+
   .vendor-profile__rating {
     justify-content: center;
   }
@@ -485,6 +565,12 @@
 
   .vendor-profile__cta {
     align-items: center;
+    width: 100%;
+  }
+
+  .vendor-profile__quote-btn,
+  .vendor-profile__website-btn {
+    width: 100%;
   }
 
   .vendor-profile__sidebar {

@@ -15,11 +15,14 @@ import '../styles/VendorProfilePage.css';
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://ai-procurement-backend-q35u.onrender.com';
 
 const TIER_CONFIG = {
-  enterprise: { label: 'Enterprise Partner', icon: FaCrown, color: '#7c3aed', isPremium: true },
-  managed: { label: 'Premium Partner', icon: FaAward, color: '#f59e0b', isPremium: true },
-  basic: { label: 'Verified Partner', icon: FaShieldAlt, color: '#10b981', isVerified: true },
-  standard: { label: 'Verified', icon: FaShieldAlt, color: '#10b981', isVerified: true },
-  free: { label: 'Listed', icon: FaCheck, color: '#6b7280' }
+  enterprise: { label: 'Verified', icon: FaShieldAlt, color: '#10b981', isVerified: true },
+  managed: { label: 'Verified', icon: FaShieldAlt, color: '#10b981', isVerified: true },
+  verified: { label: 'Verified', icon: FaShieldAlt, color: '#10b981', isVerified: true },
+  basic: { label: 'Visible', icon: FaCheck, color: '#3b82f6', isVisible: true },
+  visible: { label: 'Visible', icon: FaCheck, color: '#3b82f6', isVisible: true },
+  standard: { label: 'Visible', icon: FaCheck, color: '#3b82f6', isVisible: true },
+  free: { label: 'Listed', icon: FaCheck, color: '#6b7280' },
+  listed: { label: 'Listed', icon: FaCheck, color: '#6b7280' }
 };
 
 const VendorProfilePage = () => {
@@ -217,7 +220,7 @@ const VendorProfilePage = () => {
                   to={`/quote-request/${id}`}
                   className="vendor-profile__quote-btn"
                 >
-                  Get a Quote
+                  Request a Quote
                 </Link>
               ) : (
                 <button

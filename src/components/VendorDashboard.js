@@ -2028,7 +2028,7 @@ const VendorDashboard = () => {
           </div>
         )}
 
-        {/* Analytics Tab */}
+        {/* Analytics Tab - Tier-gated features */}
         {dashboardState.activeTab === "analytics" && (() => {
           const tier = profileData.tier || 'listed';
           const isVisible = tier === 'visible' || tier === 'verified';

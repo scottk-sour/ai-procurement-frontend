@@ -2661,34 +2661,57 @@ const VendorDashboard = () => {
           );
         })()}
 
-        {/* Notifications Tab - Coming Soon */}
+        {/* Notifications Tab */}
         {dashboardState.activeTab === "notifications" && (
-          <div style={{
-            textAlign: 'center',
-            padding: '4rem 2rem',
-            background: 'white',
-            borderRadius: '0.75rem',
-            border: '1px solid #e5e7eb'
-          }}>
-            <div style={{
-              padding: '1rem',
-              background: '#f3f4f6',
-              borderRadius: '50%',
-              width: '80px',
-              height: '80px',
-              margin: '0 auto 1rem',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}>
-              <Bell size={32} style={{ color: '#6b7280' }} />
+          <div>
+            <div style={{ marginBottom: '1.5rem' }}>
+              <h2 style={{ margin: 0, fontSize: '1.5rem', fontWeight: '600', color: '#111827' }}>
+                Notifications
+              </h2>
+              <p style={{ margin: '0.25rem 0 0', color: '#6b7280', fontSize: '0.875rem' }}>
+                Stay updated on your account activity
+              </p>
             </div>
-            <h3 style={{ margin: '0 0 0.5rem', fontSize: '1.125rem', color: '#374151' }}>
-              Notifications Coming Soon
-            </h3>
-            <p style={{ margin: 0, color: '#6b7280' }}>
-              This section is under development. Check back soon!
-            </p>
+
+            <div style={{
+              background: 'white',
+              borderRadius: '0.75rem',
+              border: '1px solid #e5e7eb',
+              padding: '4rem 2rem',
+              textAlign: 'center'
+            }}>
+              <div style={{
+                width: '64px',
+                height: '64px',
+                background: '#f3f4f6',
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                margin: '0 auto 1.5rem'
+              }}>
+                <Bell size={28} style={{ color: '#9ca3af' }} />
+              </div>
+              <h3 style={{
+                margin: '0 0 0.5rem',
+                fontSize: '1.125rem',
+                fontWeight: '600',
+                color: '#374151'
+              }}>
+                No Notifications Yet
+              </h3>
+              <p style={{
+                margin: 0,
+                color: '#6b7280',
+                fontSize: '0.875rem',
+                maxWidth: '320px',
+                marginLeft: 'auto',
+                marginRight: 'auto',
+                lineHeight: '1.5'
+              }}>
+                You'll receive notifications here when you get quote requests, profile views, and AI referrals.
+              </p>
+            </div>
           </div>
         )}
       </main>

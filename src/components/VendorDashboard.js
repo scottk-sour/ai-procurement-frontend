@@ -196,6 +196,24 @@ const VendorDashboard = () => {
     }
   }, [vendorId, token, showMessage]);
 
+  // Fetch vendor products
+  const fetchVendorProducts = useCallback(async () => {
+    if (!vendorId || !token) return;
+
+    try {
+      const response = await fetch(`${API_URL}/api/vendors/products`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await response.json();
+
+      if (data.success) {
+        setVendorProducts(data.data || []);
+      }
+    } catch (error) {
+      console.error('Failed to fetch products:', error);
+    }
+  }, [vendorId, token]);
+
   // Update lead status
   const updateLeadStatus = useCallback(async (leadId, newStatus) => {
     try {
@@ -250,6 +268,13 @@ const VendorDashboard = () => {
 
     fetchVendorProfile();
   }, [vendorId, token]);
+
+  // Fetch products on mount
+  useEffect(() => {
+    if (vendorId && token) {
+      fetchVendorProducts();
+    }
+  }, [vendorId, token, fetchVendorProducts]);
 
   // Fetch leads when quotes tab is active
   useEffect(() => {
@@ -510,9 +535,9 @@ const VendorDashboard = () => {
       });
 
       showMessage(`✅ Successfully uploaded ${savedProducts} products!`, "success");
-      
-      // Optionally refresh the product list if you have one
-      // fetchVendorProducts();
+
+      // Refresh the product list after upload
+      fetchVendorProducts();
 
     } catch (error) {
       console.error('❌ Upload error:', error);

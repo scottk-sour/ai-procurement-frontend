@@ -441,7 +441,17 @@
         
         // Only remove loading when React signals it's ready
         window.addEventListener('tendorai-app-ready', removeLoading);
-        
+
+        // Fallback: Remove loading after page load if React hasn't signaled yet (5s delay)
+        window.addEventListener('load', () => {
+          setTimeout(() => {
+            if (loadingIndicator && loadingIndicator.style.opacity !== '0') {
+              console.log('Fallback: Removing loading indicator after load event');
+              removeLoading();
+            }
+          }, 5000);
+        });
+
         window.addEventListener('error', (event) => {
           console.error('Global error:', event.error);
           var errorDetails = document.getElementById('error-details');

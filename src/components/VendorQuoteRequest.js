@@ -280,9 +280,6 @@ const VendorQuoteRequest = () => {
         }
       };
 
-      // Debug: Log request body before sending
-      console.log('[VendorQuoteRequest] Submitting:', JSON.stringify(requestBody, null, 2));
-
       const response = await fetch(`${API_BASE_URL}/api/vendor-leads`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

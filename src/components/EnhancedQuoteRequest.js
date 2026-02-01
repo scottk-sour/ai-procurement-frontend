@@ -655,9 +655,7 @@ const EnhancedQuoteRequest = () => {
         threeYearVision: formData.threeYearVision,
         reasonsForQuote: formData.reasonsForQuote
       };
-      
-      console.log('📤 Submitting quote request:', submissionData);
-      
+
       let response;
       
       if (uploadedFiles.length > 0) {
@@ -694,8 +692,7 @@ const EnhancedQuoteRequest = () => {
       }
       
       const result = await response.json();
-      console.log('✅ Quote request submitted:', result);
-      
+
       setSubmissionStatus('success');
       
       // ✅ FIXED: Navigate to comparison page with proper quote request ID

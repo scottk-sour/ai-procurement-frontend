@@ -23,8 +23,7 @@ const AccountSettings = () => {
 
   const handleFormSubmit = (e) => {
     e.preventDefault();
-    // Logic for submitting updated details to the backend
-    console.log("Updated Vendor Details:", vendorDetails);
+    // TODO: Implement API call to save updated details to the backend
   };
 
   return (

@@ -74,11 +74,9 @@ const CompareVendors = () => {
       if (quoteRequestId) {
         endpoint = `${API_BASE_URL}/api/quotes/requests/${quoteRequestId}`;
         fetchDescription = `specific quote request: ${quoteRequestId}`;
-        console.log('🎯 Fetching', fetchDescription);
       } else {
         endpoint = `${API_BASE_URL}/api/quotes/user/${userId}`;
         fetchDescription = `all quotes for user: ${userId}`;
-        console.log('🔍 Fetching', fetchDescription);
       }
 
       const quotesResponse = await fetch(endpoint, {
@@ -104,7 +102,6 @@ const CompareVendors = () => {
       }
 
       const responseData = await quotesResponse.json();
-      console.log('📋 API Response:', JSON.stringify(responseData, null, 2));
 
       if (!responseData.success) {
         throw new Error(responseData.message || 'Failed to fetch quotes');
@@ -117,11 +114,9 @@ const CompareVendors = () => {
         const quoteRequest = responseData.quoteRequest || responseData.data;
         quotes = quoteRequest?.quotes || [];
         companyName = quoteRequest?.companyName || passedCompanyName || 'Your Company';
-        console.log(`✅ Loaded ${quotes.length} quotes from request ${quoteRequestId}`);
       } else {
         quotes = responseData.quotes || [];
         companyName = quotes[0]?.companyName || 'Your Company';
-        console.log(`✅ Found ${quotes.length} user quotes`);
       }
 
       if (quotes.length === 0) {
@@ -216,8 +211,6 @@ const CompareVendors = () => {
       setRecommendationType('user_generated_quotes');
       setAiPowered(true);
       setHasFetched(true);
-
-      console.log('✅ Successfully loaded', vendorsFromQuotes.length, 'quotes for comparison');
     } catch (error) {
       console.error("❌ Error fetching quotes:", error);
       setError(error.message);

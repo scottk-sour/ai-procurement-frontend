@@ -126,9 +126,6 @@ const Login = () => {
     const timeoutId = setTimeout(() => controller.abort(), API_CONFIG.timeout);
 
     try {
-      console.log("🔍 Making login request to:", loginEndpoint);
-      console.log("🔧 API Config:", API_CONFIG);
-
       const response = await fetch(loginEndpoint, {
         method: "POST",
         headers: { 
@@ -142,9 +139,6 @@ const Login = () => {
       });
 
       clearTimeout(timeoutId);
-
-      console.log("📡 Response status:", response.status);
-      console.log("📡 Response headers:", Object.fromEntries(response.headers.entries()));
 
       // Check if response is actually JSON
       const contentType = response.headers.get("content-type");
@@ -183,7 +177,6 @@ const Login = () => {
       if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
         // Retry logic for network errors
         if (retryCount < API_CONFIG.retries) {
-          console.log(`🔄 Retrying login request (attempt ${retryCount + 1}/${API_CONFIG.retries})`);
           await new Promise(resolve => setTimeout(resolve, 1000 * (retryCount + 1))); // Exponential backoff
           return makeLoginRequest(email, password, retryCount + 1);
         }
@@ -220,12 +213,6 @@ const Login = () => {
     setUiState(prev => ({ ...prev, loading: true }));
 
     try {
-      console.log("🔍 Attempting login:", {
-        endpoint: loginEndpoint,
-        email: formData.email,
-        timestamp: new Date().toISOString()
-      });
-
       const result = await makeLoginRequest(formData.email, formData.password);
 
       if (result.success) {
@@ -253,12 +240,6 @@ const Login = () => {
           userId,
           role,
           name: name || "User",
-          email: email || formData.email
-        });
-
-        console.log("✅ Login successful:", {
-          userId,
-          role,
           email: email || formData.email
         });
 

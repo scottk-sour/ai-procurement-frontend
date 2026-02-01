@@ -28,8 +28,6 @@ const ManageListings = () => {
         const response = await axios.get(API_BASE_URL, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        // Log the API response to verify its format
-        console.log("API Response for listings:", response.data);
         // If your API returns an object like { listings: [...] }, then use:
         // setListings(response.data.listings);
         // Otherwise, if it returns an array directly:

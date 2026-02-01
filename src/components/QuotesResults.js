@@ -84,12 +84,6 @@ const QuoteResults = () => {
     search: searchParams.get('search') || '',
   });
 
-  console.log('🔍 QuotesResults fetching with:', { 
-    userId: user?.userId || user?.id, 
-    status: filters.status, 
-    individualQuote: undefined 
-  });
-
   // Redirect if not authenticated
   useEffect(() => {
     if (!isAuthenticated) {
@@ -132,14 +126,9 @@ const QuoteResults = () => {
       }
 
       const data = await response.json();
-      console.log('📄 API Response:', data);
-      
       setQuoteRequests(data.quoteRequests || []);
       setLastFetchTime(Date.now());
-      
-      const extractedQuotes = (data.quoteRequests || []).flatMap(req => req.quotes || []);
-      console.log('📋 Extracted quotes:', extractedQuotes);
-      
+
     } catch (err) {
       console.error('Error fetching quote requests:', err);
       setError(err.message);
@@ -160,17 +149,14 @@ const QuoteResults = () => {
 
     let interval;
     if (hasProcessingRequests && quoteRequests.length > 0) {
-      console.log('📊 Setting up polling for processing requests...');
       interval = setInterval(() => {
-        console.log("🔄 Polling for quote updates...");
         fetchQuotes(true);
       }, 30000);
     }
-    
+
     return () => {
       if (interval) {
         clearInterval(interval);
-        console.log('🛑 Cleared polling interval');
       }
     };
   }, [lastFetchTime, fetchQuotes, quoteRequests]); // ✅ Added fetchQuotes and quoteRequests

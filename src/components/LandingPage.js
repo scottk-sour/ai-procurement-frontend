@@ -349,7 +349,6 @@ const LandingPage = () => {
               className="hero-bg-image-visible"
               loading="eager"
               onError={(e) => {
-                console.error('❌ Image failed to load:', e.target.src);
                 e.target.style.display = 'none';
                 e.target.parentElement.style.background = `
                   linear-gradient(135deg, #1e40af 0%, #3b82f6 100%),

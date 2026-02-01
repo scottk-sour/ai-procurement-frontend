@@ -98,9 +98,6 @@ const getUserId = (record) => {
 // UserDashboard.js - Part 2: Component Initialization and State
 
 const UserDashboard = () => {
-  console.log("✅ UserDashboard component initialized");
-  console.log("🔧 API_BASE_URL:", API_BASE_URL);
-
   const navigate = useNavigate();
   const { auth, logout: authLogout } = useAuth();
 
@@ -161,7 +158,6 @@ const UserDashboard = () => {
   // Authentication check
   useEffect(() => {
     if (!auth?.isAuthenticated || auth.user?.role !== "user") {
-      console.log("❌ Authentication failed, redirecting to login");
       navigate("/login", { replace: true, state: { from: "/dashboard" } });
     }
   }, [auth?.isAuthenticated, auth.user?.role, navigate]);
@@ -184,7 +180,6 @@ const UserDashboard = () => {
       const profileName = data.user?.name || data.name || "User";
       setUserName(profileName);
       localStorage.setItem("userName", profileName);
-      console.log("✅ User profile loaded:", profileName);
     } catch (error) {
       console.error("❌ Profile fetch error:", error);
       setGlobalError("Failed to load user profile. Please try again.");
@@ -193,16 +188,7 @@ const UserDashboard = () => {
 
   // FIXED: Fetch dashboard data with proper error handling
   const fetchDashboardData = useCallback(async () => {
-    console.log("=== DASHBOARD FETCH DEBUG ===");
-    console.log("🔍 Auth state:", {
-      isAuthenticated: auth?.isAuthenticated,
-      hasToken: !!auth?.token,
-      currentUserId: currentUserId,
-      userRole: auth?.user?.role
-    });
-
     if (!auth?.isAuthenticated || !auth?.token || !currentUserId) {
-      console.log("❌ Early return - missing auth data");
       return;
     }
 
@@ -210,7 +196,6 @@ const UserDashboard = () => {
     setGlobalError(null);
 
     try {
-      console.log("🚀 Making parallel API calls...");
       
       // Make multiple API calls in parallel
       const [
@@ -240,19 +225,10 @@ const UserDashboard = () => {
         })
       ]);
 
-      console.log("📡 API responses status:", {
-        quoteRequests: quoteRequestsResponse.status === 'fulfilled' ? quoteRequestsResponse.value.status : 'failed',
-        notifications: notificationsResponse.status === 'fulfilled' ? notificationsResponse.value.status : 'failed',
-        recentActivity: recentActivityResponse.status === 'fulfilled' ? recentActivityResponse.value.status : 'failed',
-        uploadedFiles: uploadedFilesResponse.status === 'fulfilled' ? uploadedFilesResponse.value.status : 'failed'
-      });
-
-      // Process quote requests - CRITICAL FIX
+      // Process quote requests
       let requests = [];
       if (quoteRequestsResponse.status === 'fulfilled' && quoteRequestsResponse.value.ok) {
         const requestsData = await quoteRequestsResponse.value.json();
-        console.log("📊 Quote requests response:", requestsData);
-        // ENSURE IT'S ALWAYS AN ARRAY
         requests = Array.isArray(requestsData.quoteRequests) ? requestsData.quoteRequests : [];
       }
 
@@ -276,13 +252,6 @@ const UserDashboard = () => {
         const filesData = await uploadedFilesResponse.value.json();
         files = Array.isArray(filesData.files) ? filesData.files : [];
       }
-
-      console.log("🔍 Data extraction results:", {
-        requests: requests.length,
-        activities: activities.length,
-        files: files.length,
-        notifications: notifications.length
-      });
 
       // Update state with validated arrays
       setQuoteRequests(requests);
@@ -322,9 +291,6 @@ const UserDashboard = () => {
       };
 
       setQuoteFunnelData(funnelData);
-
-      console.log("✅ Dashboard data processed successfully");
-      console.log("📈 Final KPIs:", { totalQuotes, totalSavings, pendingNotifications, activeRequests });
 
     } catch (error) {
       console.error("❌ Dashboard fetch error:", error);
@@ -385,7 +351,6 @@ const UserDashboard = () => {
 
     setFile(selectedFile);
     setUploadMessage(`Selected: ${selectedFile.name}`);
-    console.log("📄 File selected:", selectedFile.name);
   }, []);
 
   const handleUpload = useCallback(async () => {
@@ -443,8 +408,6 @@ const UserDashboard = () => {
       setFile(null);
       setUploadProgress(100);
 
-      console.log("✅ File uploaded successfully:", file.name);
-
       // Refresh dashboard data
       fetchDashboardData();
 
@@ -483,7 +446,6 @@ const UserDashboard = () => {
       }
 
       setUploadMessage(`✅ Quote from ${vendorName} accepted successfully!`);
-      console.log("✅ Quote accepted:", { quoteId, vendorName });
       fetchDashboardData();
     } catch (error) {
       console.error("❌ Accept quote error:", error);
@@ -512,7 +474,6 @@ const UserDashboard = () => {
       }
 
       setUploadMessage(`✅ Contact request sent to ${vendorName}!`);
-      console.log("✅ Vendor contacted:", { quoteId, vendorName });
       fetchDashboardData();
     } catch (error) {
       console.error("❌ Contact vendor error:", error);
@@ -523,12 +484,10 @@ const UserDashboard = () => {
   // Navigation handlers
   const handleNewQuoteRequest = useCallback(() => {
     navigate("/quote-request");
-    console.log("🎯 Navigating to quote request form");
   }, [navigate]);
 
   const handleQuotesNavigation = useCallback((status = 'all') => {
     navigate(`/quotes?status=${status}`);
-    console.log("🎯 Navigating to quotes with status:", status);
   }, [navigate]);
 
   const handleLogout = useCallback(() => {
@@ -537,7 +496,6 @@ const UserDashboard = () => {
       logout();
       localStorage.removeItem("userName");
       navigate("/login", { replace: true });
-      console.log("✅ User logged out successfully");
     } catch (error) {
       console.error("❌ Logout error:", error);
       setGlobalError("Failed to logout. Please try again.");
@@ -564,7 +522,6 @@ const UserDashboard = () => {
       );
 
       if (response.ok) {
-        console.log("✅ Notification marked as read:", notificationId);
         fetchDashboardData();
       } else {
         throw new Error(`Failed to mark notification as read: ${response.status}`);
@@ -600,8 +557,6 @@ const UserDashboard = () => {
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
-
-      console.log("✅ File downloaded:", { fileId, fileName });
     } catch (error) {
       console.error("❌ Download error:", error);
       setUploadMessage(`❌ Failed to download file: ${error.message}`);
@@ -645,13 +600,11 @@ const UserDashboard = () => {
   // Pagination handlers
   const handleNextPage = useCallback((setPage, currentPage) => {
     setPage(currentPage + 1);
-    console.log("➡️ Next page:", currentPage + 1);
   }, []);
 
   const handlePrevPage = useCallback((setPage, currentPage) => {
     if (currentPage > 1) {
       setPage(currentPage - 1);
-      console.log("⬅️ Previous page:", currentPage - 1);
     }
   }, []);
   // UserDashboard.js - Part 5: JSX Render - Loading and Header

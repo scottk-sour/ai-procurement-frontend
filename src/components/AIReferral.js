@@ -32,12 +32,8 @@ const AIReferral = () => {
       if (searchLocation) params.append('location', searchLocation);
       params.append('limit', '10');
 
-      console.log('Searching with:', { service: searchService, location: searchLocation });
-
       const response = await fetch(`${API_BASE_URL}/api/ai/suppliers?${params}`);
       const data = await response.json();
-
-      console.log('API Response:', data);
 
       if (data.success) {
         setSuppliers(data.suppliers || []);

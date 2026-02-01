@@ -39,12 +39,9 @@ const QuoteDetails = () => {
         const navigationUserProfile = location.state?.userProfile;
         const navigationQuotes = location.state?.quotes;
         const navigationQuoteData = location.state?.quoteData;
-        
-        console.log('Navigation state:', location.state);
-        
+
         // If we have quotes from navigation state and a specific quote ID, use those
         if (quoteId && navigationQuotes && navigationQuotes.length > 0) {
-          console.log('Using quotes from navigation state:', navigationQuotes);
           setQuotes(navigationQuotes);
           setLoading(false);
           return;
@@ -52,7 +49,6 @@ const QuoteDetails = () => {
         
         // If we have a single quote from navigation state, use that
         if (quoteId && navigationQuoteData) {
-          console.log('Using single quote from navigation state:', navigationQuoteData);
           setQuotes([navigationQuoteData]);
           setLoading(false);
           return;
@@ -62,15 +58,12 @@ const QuoteDetails = () => {
         
         // Use userProfile from navigation state if available
         if (navigationUserProfile) {
-          console.log('Using userProfile from navigation state:', navigationUserProfile);
           currentUserId = navigationUserProfile._id || navigationUserProfile.userId || navigationUserProfile.id;
         } else {
           // Fallback to auth context
           currentUserId = auth?.user?.userId;
-          
+
           if (!currentUserId) {
-            console.log('Getting user profile from API...');
-            
             const userResponse = await fetch(`${API_URL}/api/users/profile`, {
               headers: {
                 'Authorization': `Bearer ${auth?.token || localStorage.getItem('token')}`,
@@ -83,19 +76,13 @@ const QuoteDetails = () => {
             }
 
             const userData = await userResponse.json();
-            console.log('Complete userData structure:', JSON.stringify(userData, null, 2));
-            
             const profileUserId = userData.user?.userId || userData.user?._id || userData.userId || userData._id || userData.id;
             
             if (!profileUserId) {
-              console.error('User data structure:', userData);
               throw new Error('User ID not found in profile. Please log in again.');
             }
-            
-            console.log('Got userId from profile:', profileUserId);
+
             currentUserId = profileUserId;
-          } else {
-            console.log('Got userId from auth context:', currentUserId);
           }
         }
 
@@ -106,7 +93,6 @@ const QuoteDetails = () => {
         // If we have a specific quote ID, try to fetch just that quote first
         if (quoteId) {
           try {
-            console.log(`Fetching specific quote: ${quoteId}`);
             const specificQuoteResponse = await fetch(`${API_URL}/api/quotes/requests/${quoteId}`, {
               method: 'GET',
               headers: {
@@ -117,8 +103,7 @@ const QuoteDetails = () => {
 
             if (specificQuoteResponse.ok) {
               const specificQuoteData = await specificQuoteResponse.json();
-              console.log('Specific quote data:', specificQuoteData);
-              
+
               // Check if this quote belongs to the current user
               const quoteUserId = getUserId(specificQuoteData);
               if (quoteUserId === currentUserId) {
@@ -127,14 +112,13 @@ const QuoteDetails = () => {
                 return;
               }
             }
-          } catch (err) {
-            console.log('Failed to fetch specific quote, falling back to general fetch');
+          } catch {
+            // Failed to fetch specific quote, fall back to general fetch
           }
         }
 
         // Fallback: fetch all quotes for the user
         const endpoint = `/api/quotes/requests?userId=${currentUserId}&submittedBy=${currentUserId}&page=1&limit=100`;
-        console.log(`Fetching quotes from: ${API_URL}${endpoint}`);
 
         const response = await fetch(`${API_URL}${endpoint}`, {
           method: 'GET',
@@ -149,8 +133,6 @@ const QuoteDetails = () => {
         }
 
         const data = await response.json();
-        console.log('Raw response data:', data);
-
         let quotesData = data.requests || data.data || data.quotes || data || [];
         
         // Filter quotes to only show user's own requests
@@ -164,8 +146,7 @@ const QuoteDetails = () => {
         if (status && status !== 'all') {
           filteredQuotes = userQuotes.filter(quote => quote.status === status);
         }
-        
-        console.log(`Filtered quotes (status: ${status}):`, filteredQuotes);
+
         setQuotes(Array.isArray(filteredQuotes) ? filteredQuotes : []);
 
       } catch (err) {

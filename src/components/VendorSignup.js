@@ -15,10 +15,6 @@ const servicesOptions = [
 // Force production URL to avoid CSP issues
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://ai-procurement-backend-q35u.onrender.com';
 
-console.log('API Base URL:', API_BASE_URL);
-console.log('Current hostname:', window.location.hostname);
-console.log('Environment:', process.env.NODE_ENV);
-
 const VendorSignup = () => {
   const [formData, setFormData] = useState({
     name: "",
@@ -95,7 +91,6 @@ const VendorSignup = () => {
     }
 
     try {
-      console.log('Making request to:', `${API_BASE_URL}/api/vendors/signup`);
       const response = await axios.post(
         `${API_BASE_URL}/api/vendors/signup`,
         {
@@ -115,7 +110,6 @@ const VendorSignup = () => {
         }
       );
 
-      console.log("Signup response:", response.data);
       setMessage("Vendor registration successful! Redirecting to login...");
       setTimeout(() => navigate("/vendor-login"), 2000);
     } catch (error) {

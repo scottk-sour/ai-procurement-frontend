@@ -24,10 +24,8 @@ const QuoteFunnel = ({
     completed: Math.max(Number(data.completed) || 0, 0),
   }), [data]);
 
-  // Handle navigation on click with analytics tracking
+  // Handle navigation on click
   const handleNavigation = useCallback((status) => {
-    // Track interaction (e.g., send to analytics service)
-    console.log(`Tracking funnel click: ${status}`);
     navigate(`/quotes?status=${status}`);
   }, [navigate]);
 

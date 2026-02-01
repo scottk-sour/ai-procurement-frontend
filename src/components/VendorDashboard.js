@@ -693,9 +693,6 @@ const VendorDashboard = () => {
       const formData = new FormData();
       formData.append('file', file);
 
-      console.log('🚀 Starting real upload to /api/vendors/upload');
-      console.log('📁 File:', file.name, file.size, 'bytes');
-
       // Make the actual API call to your backend
       const response = await fetch('/api/vendors/upload', {
         method: 'POST',
@@ -705,10 +702,7 @@ const VendorDashboard = () => {
         }
       });
 
-      console.log('📡 Response status:', response.status);
-      
       const result = await response.json();
-      console.log('📄 Response data:', result);
 
       if (!response.ok) {
         throw new Error(result.message || result.errors?.[0] || `Upload failed with status ${response.status}`);

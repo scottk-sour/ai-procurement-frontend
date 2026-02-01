@@ -42,8 +42,6 @@ const SubmitRequestForm = () => {
       }
 
       const data = await response.json();
-      console.log('Form submitted successfully:', data);
-
       alert('Request submitted successfully!');
       // Reset the form
       setFormData({

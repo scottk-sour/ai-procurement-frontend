@@ -127,6 +127,21 @@ const SearchResults = () => {
   };
 
   // Sort vendors
+  // Tier order: Verified (100) > Visible (50) > Free (0)
+  const TIER_ORDER = {
+    // Verified tiers (highest priority)
+    enterprise: 100,
+    managed: 100,
+    verified: 100,
+    // Visible tiers (medium priority)
+    basic: 50,
+    visible: 50,
+    standard: 50,
+    // Free tiers (lowest priority)
+    free: 0,
+    listed: 0
+  };
+
   const sortedVendors = [...vendors].sort((a, b) => {
     switch (sortBy) {
       case 'distance':
@@ -136,8 +151,9 @@ const SearchResults = () => {
       case 'rating':
         return (b.rating || 0) - (a.rating || 0);
       case 'tier':
-        const tierOrder = { enterprise: 4, managed: 3, basic: 2, free: 1 };
-        return (tierOrder[b.tier] || 0) - (tierOrder[a.tier] || 0);
+        const tierA = TIER_ORDER[a.tier] ?? 0;
+        const tierB = TIER_ORDER[b.tier] ?? 0;
+        return tierB - tierA;
       default:
         return 0;
     }

@@ -311,7 +311,7 @@ const VendorDashboard = () => {
       thisMonthQuotes: leads.filter(l => new Date(l.createdAt) >= thisMonth).length,
       responseRate: leads.length > 0 ? Math.round((leads.filter(l => l.status !== "pending").length / leads.length) * 100) : 0,
       successRate: leads.length > 0 ? Math.round((leads.filter(l => l.status === "won").length / leads.length) * 100) : 0,
-      activeProducts: products.filter(p => p.status === "active").length,
+      activeProducts: products.filter(p => (p.status || "active") === "active").length,
       totalProducts: products.length
     };
   }, [leads, vendorProducts]);
@@ -1188,37 +1188,141 @@ const VendorDashboard = () => {
               </div>
             </div>
 
-            {/* Empty State for Products */}
-            <div style={{ 
-              textAlign: 'center', 
-              padding: '4rem 2rem',
-              background: 'white',
-              borderRadius: '0.75rem',
-              border: '1px solid #e5e7eb'
-            }}>
-              <Package size={64} style={{ color: '#d1d5db', margin: '0 auto 1rem' }} />
-              <h3 style={{ margin: '0 0 0.5rem', fontSize: '1.125rem', color: '#374151' }}>No Products in Catalog</h3>
-              <p style={{ margin: '0 0 1.5rem', color: '#6b7280' }}>
-                Get started by adding your first product or uploading a catalog
-              </p>
-              <button
-                onClick={handleAddProduct}
-                style={{
-                  background: '#3b82f6',
-                  color: 'white',
-                  border: 'none',
-                  padding: '0.75rem 1.5rem',
-                  borderRadius: '0.5rem',
-                  cursor: 'pointer',
-                  display: 'inline-flex',
+            {/* Product List or Empty State */}
+            {vendorProducts.length > 0 ? (
+              <div style={{
+                background: 'white',
+                borderRadius: '0.75rem',
+                border: '1px solid #e5e7eb',
+                overflow: 'hidden'
+              }}>
+                {/* Product List Header */}
+                <div style={{
+                  padding: '1rem 1.5rem',
+                  borderBottom: '1px solid #e5e7eb',
+                  display: 'flex',
+                  justifyContent: 'space-between',
                   alignItems: 'center',
-                  gap: '0.5rem',
-                  fontWeight: '500'
-                }}
-              >
-                <Plus size={16} /> Add Your First Product
-              </button>
-            </div>
+                  background: '#f9fafb'
+                }}>
+                  <span style={{ fontWeight: '600', color: '#374151' }}>
+                    {vendorProducts.length} Product{vendorProducts.length !== 1 ? 's' : ''} in Catalog
+                  </span>
+                </div>
+
+                {/* Product Grid */}
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
+                  gap: '1rem',
+                  padding: '1.5rem'
+                }}>
+                  {vendorProducts.map(product => (
+                    <div
+                      key={product._id}
+                      style={{
+                        background: '#fafafa',
+                        borderRadius: '0.5rem',
+                        padding: '1rem',
+                        border: '1px solid #e5e7eb',
+                        transition: 'all 0.2s'
+                      }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
+                        <div>
+                          <h4 style={{ margin: '0 0 0.25rem', fontSize: '1rem', fontWeight: '600', color: '#1f2937' }}>
+                            {product.manufacturer} {product.model}
+                          </h4>
+                          <span style={{
+                            fontSize: '0.75rem',
+                            background: '#dbeafe',
+                            color: '#1d4ed8',
+                            padding: '0.125rem 0.5rem',
+                            borderRadius: '9999px'
+                          }}>
+                            {product.category}
+                          </span>
+                        </div>
+                        <span style={{
+                          fontSize: '0.75rem',
+                          padding: '0.125rem 0.5rem',
+                          borderRadius: '9999px',
+                          background: (product.status || 'active') === 'active' ? '#dcfce7' : '#f3f4f6',
+                          color: (product.status || 'active') === 'active' ? '#166534' : '#6b7280'
+                        }}>
+                          {(product.status || 'active') === 'active' ? 'Active' : 'Inactive'}
+                        </span>
+                      </div>
+
+                      <div style={{ fontSize: '0.875rem', color: '#6b7280', marginBottom: '0.5rem' }}>
+                        <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+                          <span><strong>Speed:</strong> {product.speed}ppm</span>
+                          <span><strong>Volume:</strong> {product.minVolume?.toLocaleString()}-{product.maxVolume?.toLocaleString()}/mo</span>
+                        </div>
+                      </div>
+
+                      {product.costs?.cpcRates && (
+                        <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>
+                          <strong>CPC:</strong> {product.costs.cpcRates.A4Mono}p mono, {product.costs.cpcRates.A4Colour}p colour
+                        </div>
+                      )}
+
+                      {product.features && product.features.length > 0 && (
+                        <div style={{ marginTop: '0.5rem', display: 'flex', flexWrap: 'wrap', gap: '0.25rem' }}>
+                          {product.features.slice(0, 4).map((feature, i) => (
+                            <span key={i} style={{
+                              fontSize: '0.625rem',
+                              background: '#f1f5f9',
+                              color: '#475569',
+                              padding: '0.125rem 0.375rem',
+                              borderRadius: '0.25rem'
+                            }}>
+                              {feature}
+                            </span>
+                          ))}
+                          {product.features.length > 4 && (
+                            <span style={{ fontSize: '0.625rem', color: '#6b7280' }}>
+                              +{product.features.length - 4} more
+                            </span>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div style={{
+                textAlign: 'center',
+                padding: '4rem 2rem',
+                background: 'white',
+                borderRadius: '0.75rem',
+                border: '1px solid #e5e7eb'
+              }}>
+                <Package size={64} style={{ color: '#d1d5db', margin: '0 auto 1rem' }} />
+                <h3 style={{ margin: '0 0 0.5rem', fontSize: '1.125rem', color: '#374151' }}>No Products in Catalog</h3>
+                <p style={{ margin: '0 0 1.5rem', color: '#6b7280' }}>
+                  Get started by adding your first product or uploading a catalog
+                </p>
+                <button
+                  onClick={handleAddProduct}
+                  style={{
+                    background: '#3b82f6',
+                    color: 'white',
+                    border: 'none',
+                    padding: '0.75rem 1.5rem',
+                    borderRadius: '0.5rem',
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    fontWeight: '500'
+                  }}
+                >
+                  <Plus size={16} /> Add Your First Product
+                </button>
+              </div>
+            )}
           </div>
         )}
 

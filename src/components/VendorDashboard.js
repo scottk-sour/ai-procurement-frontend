@@ -42,7 +42,9 @@ import {
   Phone,
   MapPin,
   Calendar,
-  MessageSquare
+  MessageSquare,
+  ExternalLink,
+  FileText
 } from "lucide-react";
 import { LineChart as RechartsLineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart as RechartsBarChart, Bar, PieChart as RechartsPieChart, Pie, Cell } from 'recharts';
 
@@ -124,6 +126,16 @@ const VendorDashboard = () => {
   const [profileLoading, setProfileLoading] = useState(false);
   const [profileSaving, setProfileSaving] = useState(false);
   const [newTag, setNewTag] = useState({ brands: '', certifications: '', accreditations: '', coverage: '' });
+
+  // Analytics state
+  const [analyticsData, setAnalyticsData] = useState({
+    stats: null,
+    daily: [],
+    sources: [],
+    loading: false,
+    error: null,
+    dateRange: '30' // days
+  });
 
   // Enhanced product management state - cleaned up
   const [vendorProducts, setVendorProducts] = useState([]);
@@ -305,6 +317,48 @@ const VendorDashboard = () => {
     }
   }, [token, profileData, showMessage]);
 
+  // Fetch analytics data
+  const fetchAnalytics = useCallback(async () => {
+    if (!token) return;
+
+    setAnalyticsData(prev => ({ ...prev, loading: true, error: null }));
+    try {
+      // Fetch all analytics data in parallel
+      const [statsRes, dailyRes, sourcesRes] = await Promise.all([
+        fetch(`${API_URL}/api/analytics/stats`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        }),
+        fetch(`${API_URL}/api/analytics/daily?days=${analyticsData.dateRange}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        }),
+        fetch(`${API_URL}/api/analytics/sources?limit=5`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        })
+      ]);
+
+      const [statsData, dailyData, sourcesData] = await Promise.all([
+        statsRes.json(),
+        dailyRes.json(),
+        sourcesRes.json()
+      ]);
+
+      setAnalyticsData(prev => ({
+        ...prev,
+        stats: statsData.success ? statsData.data : null,
+        daily: dailyData.success ? dailyData.data.stats : [],
+        sources: sourcesData.success ? sourcesData.data : [],
+        loading: false
+      }));
+    } catch (error) {
+      console.error('Failed to fetch analytics:', error);
+      setAnalyticsData(prev => ({
+        ...prev,
+        loading: false,
+        error: 'Failed to load analytics data'
+      }));
+    }
+  }, [token, analyticsData.dateRange]);
+
   // Add tag helper
   const addTag = useCallback((field, value) => {
     if (!value.trim()) return;
@@ -398,6 +452,13 @@ const VendorDashboard = () => {
       fetchFullProfile();
     }
   }, [dashboardState.activeTab, vendorId, fetchFullProfile]);
+
+  // Fetch analytics when analytics tab is active
+  useEffect(() => {
+    if (dashboardState.activeTab === 'analytics' && token) {
+      fetchAnalytics();
+    }
+  }, [dashboardState.activeTab, token, fetchAnalytics]);
 
   // Handle upgrade success from Stripe redirect
   useEffect(() => {
@@ -1952,7 +2013,371 @@ const VendorDashboard = () => {
           </div>
         )}
 
-        {(dashboardState.activeTab === "analytics" || dashboardState.activeTab === "notifications") && (
+        {/* Analytics Tab */}
+        {dashboardState.activeTab === "analytics" && (
+          <div>
+            {/* Header with date range selector */}
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '1.5rem'
+            }}>
+              <div>
+                <h2 style={{ margin: 0, fontSize: '1.5rem', fontWeight: '600', color: '#111827' }}>
+                  Analytics
+                </h2>
+                <p style={{ margin: '0.25rem 0 0', color: '#6b7280', fontSize: '0.875rem' }}>
+                  Track your profile performance and engagement
+                </p>
+              </div>
+              <select
+                value={analyticsData.dateRange}
+                onChange={(e) => {
+                  setAnalyticsData(prev => ({ ...prev, dateRange: e.target.value }));
+                }}
+                style={{
+                  padding: '0.5rem 1rem',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '0.5rem',
+                  background: 'white',
+                  fontSize: '0.875rem',
+                  cursor: 'pointer'
+                }}
+              >
+                <option value="7">Last 7 days</option>
+                <option value="30">Last 30 days</option>
+                <option value="90">Last 90 days</option>
+              </select>
+            </div>
+
+            {analyticsData.loading ? (
+              <div style={{
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                padding: '4rem',
+                background: 'white',
+                borderRadius: '0.75rem',
+                border: '1px solid #e5e7eb'
+              }}>
+                <div style={{
+                  width: '40px',
+                  height: '40px',
+                  border: '4px solid #e5e7eb',
+                  borderTopColor: '#3b82f6',
+                  borderRadius: '50%',
+                  animation: 'spin 1s linear infinite'
+                }} />
+              </div>
+            ) : analyticsData.error ? (
+              <div style={{
+                textAlign: 'center',
+                padding: '4rem 2rem',
+                background: 'white',
+                borderRadius: '0.75rem',
+                border: '1px solid #e5e7eb'
+              }}>
+                <p style={{ color: '#ef4444', marginBottom: '1rem' }}>{analyticsData.error}</p>
+                <button
+                  onClick={fetchAnalytics}
+                  style={{
+                    padding: '0.5rem 1rem',
+                    background: '#3b82f6',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '0.5rem',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Try Again
+                </button>
+              </div>
+            ) : (
+              <>
+                {/* Key Metrics Cards */}
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                  gap: '1rem',
+                  marginBottom: '1.5rem'
+                }}>
+                  {/* Profile Views */}
+                  <div style={{
+                    background: 'white',
+                    borderRadius: '0.75rem',
+                    padding: '1.5rem',
+                    border: '1px solid #e5e7eb'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
+                      <div style={{
+                        width: '40px',
+                        height: '40px',
+                        background: '#dbeafe',
+                        borderRadius: '0.5rem',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}>
+                        <Eye size={20} style={{ color: '#3b82f6' }} />
+                      </div>
+                      <span style={{ color: '#6b7280', fontSize: '0.875rem' }}>Profile Views</span>
+                    </div>
+                    <div style={{ fontSize: '2rem', fontWeight: '700', color: '#111827' }}>
+                      {analyticsData.stats?.views || 0}
+                    </div>
+                    <div style={{ color: '#6b7280', fontSize: '0.75rem', marginTop: '0.25rem' }}>
+                      {analyticsData.stats?.uniqueViews || 0} unique visitors
+                    </div>
+                  </div>
+
+                  {/* Quote Requests */}
+                  <div style={{
+                    background: 'white',
+                    borderRadius: '0.75rem',
+                    padding: '1.5rem',
+                    border: '1px solid #e5e7eb'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
+                      <div style={{
+                        width: '40px',
+                        height: '40px',
+                        background: '#d1fae5',
+                        borderRadius: '0.5rem',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}>
+                        <FileText size={20} style={{ color: '#059669' }} />
+                      </div>
+                      <span style={{ color: '#6b7280', fontSize: '0.875rem' }}>Quote Requests</span>
+                    </div>
+                    <div style={{ fontSize: '2rem', fontWeight: '700', color: '#111827' }}>
+                      {analyticsData.stats?.quoteRequests || 0}
+                    </div>
+                    <div style={{ color: '#059669', fontSize: '0.75rem', marginTop: '0.25rem' }}>
+                      {analyticsData.stats?.conversionRate || '0%'} conversion rate
+                    </div>
+                  </div>
+
+                  {/* Website Clicks */}
+                  <div style={{
+                    background: 'white',
+                    borderRadius: '0.75rem',
+                    padding: '1.5rem',
+                    border: '1px solid #e5e7eb'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
+                      <div style={{
+                        width: '40px',
+                        height: '40px',
+                        background: '#fef3c7',
+                        borderRadius: '0.5rem',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}>
+                        <ExternalLink size={20} style={{ color: '#d97706' }} />
+                      </div>
+                      <span style={{ color: '#6b7280', fontSize: '0.875rem' }}>Website Clicks</span>
+                    </div>
+                    <div style={{ fontSize: '2rem', fontWeight: '700', color: '#111827' }}>
+                      {analyticsData.stats?.websiteClicks || 0}
+                    </div>
+                    <div style={{ color: '#6b7280', fontSize: '0.75rem', marginTop: '0.25rem' }}>
+                      Outbound traffic
+                    </div>
+                  </div>
+
+                  {/* Phone Clicks */}
+                  <div style={{
+                    background: 'white',
+                    borderRadius: '0.75rem',
+                    padding: '1.5rem',
+                    border: '1px solid #e5e7eb'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
+                      <div style={{
+                        width: '40px',
+                        height: '40px',
+                        background: '#ede9fe',
+                        borderRadius: '0.5rem',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}>
+                        <Phone size={20} style={{ color: '#7c3aed' }} />
+                      </div>
+                      <span style={{ color: '#6b7280', fontSize: '0.875rem' }}>Phone Clicks</span>
+                    </div>
+                    <div style={{ fontSize: '2rem', fontWeight: '700', color: '#111827' }}>
+                      {analyticsData.stats?.phoneClicks || 0}
+                    </div>
+                    <div style={{ color: '#6b7280', fontSize: '0.75rem', marginTop: '0.25rem' }}>
+                      Call inquiries
+                    </div>
+                  </div>
+                </div>
+
+                {/* Daily Activity Chart */}
+                <div style={{
+                  background: 'white',
+                  borderRadius: '0.75rem',
+                  padding: '1.5rem',
+                  border: '1px solid #e5e7eb',
+                  marginBottom: '1.5rem'
+                }}>
+                  <h3 style={{ margin: '0 0 1rem', fontSize: '1rem', fontWeight: '600', color: '#374151' }}>
+                    Daily Activity
+                  </h3>
+                  {analyticsData.daily.length > 0 ? (
+                    <div style={{ display: 'flex', alignItems: 'flex-end', gap: '4px', height: '150px', padding: '0.5rem 0' }}>
+                      {analyticsData.daily.slice(-14).map((day, index) => {
+                        const totalEvents = day.events?.reduce((sum, e) => sum + e.count, 0) || 0;
+                        const maxEvents = Math.max(...analyticsData.daily.slice(-14).map(d =>
+                          d.events?.reduce((sum, e) => sum + e.count, 0) || 0
+                        ), 1);
+                        const height = (totalEvents / maxEvents) * 100;
+
+                        return (
+                          <div
+                            key={day.date}
+                            style={{
+                              flex: 1,
+                              display: 'flex',
+                              flexDirection: 'column',
+                              alignItems: 'center',
+                              gap: '0.25rem'
+                            }}
+                            title={`${day.date}: ${totalEvents} events`}
+                          >
+                            <div
+                              style={{
+                                width: '100%',
+                                height: `${Math.max(height, 5)}%`,
+                                background: 'linear-gradient(180deg, #3b82f6 0%, #60a5fa 100%)',
+                                borderRadius: '4px 4px 0 0',
+                                minHeight: '4px',
+                                transition: 'height 0.3s ease'
+                              }}
+                            />
+                            <span style={{
+                              fontSize: '0.625rem',
+                              color: '#9ca3af',
+                              transform: 'rotate(-45deg)',
+                              whiteSpace: 'nowrap'
+                            }}>
+                              {new Date(day.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div style={{
+                      height: '150px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: '#9ca3af',
+                      fontSize: '0.875rem'
+                    }}>
+                      No activity data yet
+                    </div>
+                  )}
+                </div>
+
+                {/* Traffic Sources */}
+                <div style={{
+                  background: 'white',
+                  borderRadius: '0.75rem',
+                  padding: '1.5rem',
+                  border: '1px solid #e5e7eb'
+                }}>
+                  <h3 style={{ margin: '0 0 1rem', fontSize: '1rem', fontWeight: '600', color: '#374151' }}>
+                    Traffic Sources
+                  </h3>
+                  {analyticsData.sources.length > 0 ? (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                      {analyticsData.sources.map((source, index) => {
+                        const maxCount = analyticsData.sources[0]?.count || 1;
+                        const percentage = (source.count / maxCount) * 100;
+
+                        return (
+                          <div key={source.source} style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                            <span style={{
+                              width: '80px',
+                              fontSize: '0.875rem',
+                              color: '#374151',
+                              textTransform: 'capitalize'
+                            }}>
+                              {source.source}
+                            </span>
+                            <div style={{
+                              flex: 1,
+                              height: '24px',
+                              background: '#f3f4f6',
+                              borderRadius: '4px',
+                              overflow: 'hidden'
+                            }}>
+                              <div style={{
+                                width: `${percentage}%`,
+                                height: '100%',
+                                background: index === 0 ? '#3b82f6' : index === 1 ? '#60a5fa' : '#93c5fd',
+                                borderRadius: '4px',
+                                transition: 'width 0.5s ease'
+                              }} />
+                            </div>
+                            <span style={{
+                              width: '50px',
+                              textAlign: 'right',
+                              fontSize: '0.875rem',
+                              fontWeight: '600',
+                              color: '#374151'
+                            }}>
+                              {source.count}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div style={{
+                      padding: '2rem',
+                      textAlign: 'center',
+                      color: '#9ca3af',
+                      fontSize: '0.875rem'
+                    }}>
+                      No traffic source data yet
+                    </div>
+                  )}
+                </div>
+
+                {/* Empty state if no data at all */}
+                {!analyticsData.stats?.views && !analyticsData.daily.length && (
+                  <div style={{
+                    marginTop: '1.5rem',
+                    padding: '2rem',
+                    background: '#f0f9ff',
+                    borderRadius: '0.75rem',
+                    border: '1px solid #bae6fd',
+                    textAlign: 'center'
+                  }}>
+                    <BarChart3 size={40} style={{ color: '#0284c7', marginBottom: '1rem' }} />
+                    <h4 style={{ margin: '0 0 0.5rem', color: '#0369a1' }}>No Analytics Data Yet</h4>
+                    <p style={{ margin: 0, color: '#0284c7', fontSize: '0.875rem' }}>
+                      Analytics will appear here as visitors view your profile.
+                      <br />Complete your profile and add products to increase visibility.
+                    </p>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        )}
+
+        {/* Notifications Tab - Coming Soon */}
+        {dashboardState.activeTab === "notifications" && (
           <div style={{
             textAlign: 'center',
             padding: '4rem 2rem',
@@ -1971,11 +2396,10 @@ const VendorDashboard = () => {
               alignItems: 'center',
               justifyContent: 'center'
             }}>
-              {dashboardState.activeTab === "analytics" && <BarChart3 size={32} style={{ color: '#6b7280' }} />}
-              {dashboardState.activeTab === "notifications" && <Bell size={32} style={{ color: '#6b7280' }} />}
+              <Bell size={32} style={{ color: '#6b7280' }} />
             </div>
             <h3 style={{ margin: '0 0 0.5rem', fontSize: '1.125rem', color: '#374151' }}>
-              {dashboardState.activeTab.charAt(0).toUpperCase() + dashboardState.activeTab.slice(1)} Coming Soon
+              Notifications Coming Soon
             </h3>
             <p style={{ margin: 0, color: '#6b7280' }}>
               This section is under development. Check back soon!

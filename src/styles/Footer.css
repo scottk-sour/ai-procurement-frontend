@@ -23,7 +23,7 @@
 
 /* Main Footer */
 .footer {
-  background: linear-gradient(135deg, var(--primary-blue) 0%, var(--secondary-blue) 100%);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: var(--text-white);
   position: relative;
   overflow: hidden;

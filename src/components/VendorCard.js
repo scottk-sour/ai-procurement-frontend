@@ -1,10 +1,11 @@
 // src/components/VendorCard.js
 // Individual vendor card with premium purple theme
 // Tier-based visual priority: Verified > Visible > Listed
+// Verified cards are expanded with full details
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { FaStar, FaMapMarkerAlt, FaClock, FaCheck, FaGlobe, FaPhone } from 'react-icons/fa';
+import { FaStar, FaMapMarkerAlt, FaClock, FaCheck, FaGlobe, FaTag } from 'react-icons/fa';
 import '../styles/VendorCard.css';
 
 // Tier configuration with new color scheme
@@ -12,50 +13,66 @@ const TIER_CONFIG = {
   enterprise: {
     label: 'Verified',
     tierClass: 'verified',
-    badgeClass: 'vendor-card__tier-badge--verified',
-    isPaid: true
+    sponsoredLabel: 'Sponsored · Verified',
+    sponsoredClass: 'vendor-card__sponsored--verified',
+    isPaid: true,
+    isVerified: true
   },
   managed: {
     label: 'Verified',
     tierClass: 'verified',
-    badgeClass: 'vendor-card__tier-badge--verified',
-    isPaid: true
+    sponsoredLabel: 'Sponsored · Verified',
+    sponsoredClass: 'vendor-card__sponsored--verified',
+    isPaid: true,
+    isVerified: true
   },
   verified: {
     label: 'Verified',
     tierClass: 'verified',
-    badgeClass: 'vendor-card__tier-badge--verified',
-    isPaid: true
+    sponsoredLabel: 'Sponsored · Verified',
+    sponsoredClass: 'vendor-card__sponsored--verified',
+    isPaid: true,
+    isVerified: true
   },
   basic: {
     label: 'Visible',
     tierClass: 'visible',
-    badgeClass: 'vendor-card__tier-badge--visible',
-    isPaid: true
+    sponsoredLabel: 'Sponsored',
+    sponsoredClass: 'vendor-card__sponsored--visible',
+    isPaid: true,
+    isVerified: false
   },
   visible: {
     label: 'Visible',
     tierClass: 'visible',
-    badgeClass: 'vendor-card__tier-badge--visible',
-    isPaid: true
+    sponsoredLabel: 'Sponsored',
+    sponsoredClass: 'vendor-card__sponsored--visible',
+    isPaid: true,
+    isVerified: false
   },
   standard: {
     label: 'Visible',
     tierClass: 'visible',
-    badgeClass: 'vendor-card__tier-badge--visible',
-    isPaid: true
+    sponsoredLabel: 'Sponsored',
+    sponsoredClass: 'vendor-card__sponsored--visible',
+    isPaid: true,
+    isVerified: false
   },
   free: {
     label: 'Listed',
     tierClass: 'free',
-    badgeClass: 'vendor-card__tier-badge--free',
-    isPaid: false
+    sponsoredLabel: null,
+    sponsoredClass: null,
+    isPaid: false,
+    isVerified: false
   },
   listed: {
     label: 'Listed',
     tierClass: 'listed',
-    badgeClass: 'vendor-card__tier-badge--listed',
-    isPaid: false
+    sponsoredLabel: null,
+    sponsoredClass: null,
+    isPaid: false,
+    isVerified: false
   }
 };
 
@@ -77,6 +94,7 @@ const VendorCard = ({
     tier = 'free',
     description,
     accreditations = [],
+    brands = [],
     logoUrl,
     website,
     showPricing,
@@ -85,10 +103,24 @@ const VendorCard = ({
 
   const tierConfig = TIER_CONFIG[tier] || TIER_CONFIG.free;
   const isPaidVendor = tierConfig.isPaid || showPricing;
-  const isFeatured = tierConfig.isPaid;
+  const isVerified = tierConfig.isVerified;
+  const isVisible = tierConfig.isPaid && !tierConfig.isVerified;
+  const isFree = !tierConfig.isPaid;
 
-  // Determine if we should show the description
-  const showDescription = description && description.length > 20 && variant !== 'compact';
+  // Coverage areas from location
+  const coverageAreas = location?.coverage || [];
+
+  // Determine what content to show based on tier
+  // Verified: full description, brands, coverage
+  // Visible: truncated description, no brands/coverage
+  // Free: no description
+  const showFullDescription = isVerified && description && description.length > 20;
+  const showTruncatedDescription = isVisible && description && description.length > 20;
+  const showBrands = isVerified && brands.length > 0;
+  const showCoverage = isVerified && coverageAreas.length > 0;
+
+  // Only show rating if vendor has at least 1 review
+  const hasReviews = reviewCount > 0 && rating > 0;
 
   const renderStars = (rating) => {
     const stars = [];
@@ -111,11 +143,19 @@ const VendorCard = ({
     'vendor-card',
     `vendor-card--${variant}`,
     `vendor-card--${tierConfig.tierClass}`,
-    isFeatured ? 'vendor-card--featured' : ''
+    isVerified ? 'vendor-card--expanded' : '',
+    tierConfig.isPaid ? 'vendor-card--featured' : ''
   ].filter(Boolean).join(' ');
 
   return (
     <div className={cardClasses}>
+      {/* Sponsored Label - Only for paid tiers */}
+      {tierConfig.sponsoredLabel && (
+        <div className={`vendor-card__sponsored ${tierConfig.sponsoredClass}`}>
+          <FaCheck /> {tierConfig.sponsoredLabel}
+        </div>
+      )}
+
       {/* Header */}
       <div className="vendor-card__header">
         {logoUrl ? (
@@ -148,21 +188,17 @@ const VendorCard = ({
             )}
           </div>
 
-          {/* Rating */}
-          <div className="vendor-card__rating">
-            {rating > 0 ? (
-              <>
-                <div className="vendor-card__stars">
-                  {renderStars(rating)}
-                </div>
-                <span className="vendor-card__rating-text">
-                  {rating.toFixed(1)} ({reviewCount} reviews)
-                </span>
-              </>
-            ) : (
-              <span className="vendor-card__no-reviews">No reviews yet</span>
-            )}
-          </div>
+          {/* Rating - Only show if vendor has reviews */}
+          {hasReviews && (
+            <div className="vendor-card__rating">
+              <div className="vendor-card__stars">
+                {renderStars(rating)}
+              </div>
+              <span className="vendor-card__rating-text">
+                {rating.toFixed(1)} ({reviewCount} reviews)
+              </span>
+            </div>
+          )}
         </div>
       </div>
 
@@ -180,11 +216,46 @@ const VendorCard = ({
         )}
       </div>
 
-      {/* Description - only if longer than 20 chars */}
-      {showDescription && (
+      {/* Description - Verified: full, Visible: truncated, Free: none */}
+      {showFullDescription && (
+        <p className="vendor-card__description vendor-card__description--full">
+          {description}
+        </p>
+      )}
+      {showTruncatedDescription && (
         <p className="vendor-card__description">
           {description.length > 150 ? `${description.substring(0, 150)}...` : description}
         </p>
+      )}
+
+      {/* Brands - Verified only */}
+      {showBrands && (
+        <div className="vendor-card__brands">
+          <span className="vendor-card__brands-label">Brands:</span>
+          {brands.slice(0, 5).map((brand, index) => (
+            <span key={index} className="vendor-card__brand-tag">
+              <FaTag /> {brand}
+            </span>
+          ))}
+          {brands.length > 5 && (
+            <span className="vendor-card__brand-more">+{brands.length - 5} more</span>
+          )}
+        </div>
+      )}
+
+      {/* Coverage Areas - Verified only */}
+      {showCoverage && (
+        <div className="vendor-card__coverage">
+          <span className="vendor-card__coverage-label">Coverage:</span>
+          {coverageAreas.slice(0, 4).map((area, index) => (
+            <span key={index} className="vendor-card__coverage-tag">
+              {area}
+            </span>
+          ))}
+          {coverageAreas.length > 4 && (
+            <span className="vendor-card__coverage-more">+{coverageAreas.length - 4} more</span>
+          )}
+        </div>
       )}
 
       {/* Meta Info */}

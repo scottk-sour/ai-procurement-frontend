@@ -17,6 +17,11 @@
   box-shadow: 0 8px 24px rgba(102, 126, 234, 0.15);
 }
 
+/* Expanded card for Verified vendors */
+.vendor-card--expanded {
+  padding: 32px;
+}
+
 /* Tier-based left border and visual priority */
 .vendor-card--verified {
   border-left-color: #10b981;
@@ -29,17 +34,50 @@
 .vendor-card--listed,
 .vendor-card--free {
   border-left-color: transparent;
-  opacity: 0.95;
+  opacity: 0.9;
 }
 
 /* Featured cards (premium) */
-.vendor-card--featured {
-  border-left-color: #10b981;
-  box-shadow: 0 4px 16px rgba(16, 185, 129, 0.12);
+.vendor-card--featured.vendor-card--verified {
+  box-shadow: 0 4px 20px rgba(16, 185, 129, 0.15);
 }
 
-.vendor-card--featured:hover {
-  box-shadow: 0 8px 28px rgba(16, 185, 129, 0.2);
+.vendor-card--featured.vendor-card--verified:hover {
+  box-shadow: 0 8px 32px rgba(16, 185, 129, 0.22);
+}
+
+.vendor-card--featured.vendor-card--visible {
+  box-shadow: 0 4px 16px rgba(59, 130, 246, 0.12);
+}
+
+.vendor-card--featured.vendor-card--visible:hover {
+  box-shadow: 0 8px 28px rgba(59, 130, 246, 0.18);
+}
+
+/* Sponsored Label */
+.vendor-card__sponsored {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+
+.vendor-card__sponsored svg {
+  font-size: 10px;
+}
+
+.vendor-card__sponsored--verified {
+  background: #ecfdf5;
+  color: #059669;
+}
+
+.vendor-card__sponsored--visible {
+  background: #eff6ff;
+  color: #2563eb;
 }
 
 /* Header */
@@ -207,11 +245,85 @@
   margin: 0 0 12px 0;
   font-size: 14px;
   color: #374151;
-  line-height: 1.5;
+  line-height: 1.6;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+/* Full description for Verified vendors */
+.vendor-card__description--full {
+  display: block;
+  -webkit-line-clamp: unset;
+  overflow: visible;
+}
+
+/* Brands Section - Verified only */
+.vendor-card__brands {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.vendor-card__brands-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b7280;
+}
+
+.vendor-card__brand-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  background: #f1f5f9;
+  color: #475569;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.vendor-card__brand-tag svg {
+  font-size: 10px;
+  color: #9ca3af;
+}
+
+.vendor-card__brand-more {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+/* Coverage Section - Verified only */
+.vendor-card__coverage {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.vendor-card__coverage-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b7280;
+}
+
+.vendor-card__coverage-tag {
+  display: inline-block;
+  padding: 4px 10px;
+  background: #f5f3ff;
+  color: #667eea;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.vendor-card__coverage-more {
+  font-size: 12px;
+  color: #6b7280;
 }
 
 /* Meta Info */

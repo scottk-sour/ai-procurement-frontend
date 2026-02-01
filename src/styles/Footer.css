@@ -239,7 +239,7 @@
 }
 
 .footer-link {
-  color: var(--text-gray-200);
+  color: #111827;
   text-decoration: none;
   transition: var(--transition);
   font-size: 0.95rem;
@@ -257,12 +257,12 @@
   transform: translateY(-50%);
   width: 0;
   height: 2px;
-  background: var(--accent-orange);
+  background: #667eea;
   transition: var(--transition);
 }
 
 .footer-link:hover {
-  color: var(--accent-orange);
+  color: #667eea;
   transform: translateX(8px);
 }
 

@@ -1,51 +1,67 @@
 // src/components/VendorCard.js
-// Individual vendor card with tier badges and rating display
+// Individual vendor card with premium purple theme
+// Tier-based visual priority: Verified > Visible > Listed
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { FaStar, FaMapMarkerAlt, FaClock, FaCheck, FaGlobe, FaPhone, FaCrown, FaAward, FaShieldAlt } from 'react-icons/fa';
+import { FaStar, FaMapMarkerAlt, FaClock, FaCheck, FaGlobe, FaPhone } from 'react-icons/fa';
 import '../styles/VendorCard.css';
 
+// Tier configuration with new color scheme
 const TIER_CONFIG = {
   enterprise: {
-    label: 'Enterprise Partner',
-    icon: FaCrown,
-    color: '#7c3aed',
-    bgColor: '#f5f3ff',
-    isPremium: true
+    label: 'Verified',
+    tierClass: 'verified',
+    badgeClass: 'vendor-card__tier-badge--verified',
+    isPaid: true
   },
   managed: {
-    label: 'Premium Partner',
-    icon: FaAward,
-    color: '#f59e0b',
-    bgColor: '#fffbeb',
-    isPremium: true
+    label: 'Verified',
+    tierClass: 'verified',
+    badgeClass: 'vendor-card__tier-badge--verified',
+    isPaid: true
+  },
+  verified: {
+    label: 'Verified',
+    tierClass: 'verified',
+    badgeClass: 'vendor-card__tier-badge--verified',
+    isPaid: true
   },
   basic: {
-    label: 'Verified Partner',
-    icon: FaShieldAlt,
-    color: '#10b981',
-    bgColor: '#ecfdf5',
-    isVerified: true
+    label: 'Visible',
+    tierClass: 'visible',
+    badgeClass: 'vendor-card__tier-badge--visible',
+    isPaid: true
+  },
+  visible: {
+    label: 'Visible',
+    tierClass: 'visible',
+    badgeClass: 'vendor-card__tier-badge--visible',
+    isPaid: true
   },
   standard: {
-    label: 'Verified',
-    icon: FaShieldAlt,
-    color: '#10b981',
-    bgColor: '#ecfdf5',
-    isVerified: true
+    label: 'Visible',
+    tierClass: 'visible',
+    badgeClass: 'vendor-card__tier-badge--visible',
+    isPaid: true
   },
   free: {
     label: 'Listed',
-    icon: FaCheck,
-    color: '#6b7280',
-    bgColor: '#f9fafb'
+    tierClass: 'free',
+    badgeClass: 'vendor-card__tier-badge--free',
+    isPaid: false
+  },
+  listed: {
+    label: 'Listed',
+    tierClass: 'listed',
+    badgeClass: 'vendor-card__tier-badge--listed',
+    isPaid: false
   }
 };
 
 const VendorCard = ({
   vendor,
-  variant = 'default', // 'default' | 'compact' | 'featured'
+  variant = 'default',
   onQuoteRequest,
   showDistance = false
 }) => {
@@ -59,10 +75,8 @@ const VendorCard = ({
     reviewCount = 0,
     responseTime,
     tier = 'free',
-    badges = {},
     description,
     accreditations = [],
-    brands = [],
     logoUrl,
     website,
     showPricing,
@@ -70,10 +84,11 @@ const VendorCard = ({
   } = vendor;
 
   const tierConfig = TIER_CONFIG[tier] || TIER_CONFIG.free;
-  const TierIcon = tierConfig.icon;
-  const isPremium = badges.premium || tierConfig.isPremium;
-  const isVerified = badges.verified || tierConfig.isVerified || showPricing;
-  const isFeatured = isPremium;
+  const isPaidVendor = tierConfig.isPaid || showPricing;
+  const isFeatured = tierConfig.isPaid;
+
+  // Determine if we should show the description
+  const showDescription = description && description.length > 20 && variant !== 'compact';
 
   const renderStars = (rating) => {
     const stars = [];
@@ -92,24 +107,15 @@ const VendorCard = ({
     return stars;
   };
 
-  const handleQuoteClick = (e) => {
-    if (onQuoteRequest) {
-      e.preventDefault();
-      onQuoteRequest(vendor);
-    }
-  };
+  const cardClasses = [
+    'vendor-card',
+    `vendor-card--${variant}`,
+    `vendor-card--${tierConfig.tierClass}`,
+    isFeatured ? 'vendor-card--featured' : ''
+  ].filter(Boolean).join(' ');
 
   return (
-    <div className={`vendor-card vendor-card--${variant} ${isFeatured ? 'vendor-card--featured' : ''}`}>
-      {/* Tier Badge */}
-      <div
-        className="vendor-card__tier-badge"
-        style={{ backgroundColor: tierConfig.bgColor, color: tierConfig.color }}
-      >
-        <TierIcon />
-        <span>{tierConfig.label}</span>
-      </div>
-
+    <div className={cardClasses}>
       {/* Header */}
       <div className="vendor-card__header">
         {logoUrl ? (
@@ -119,6 +125,7 @@ const VendorCard = ({
             className="vendor-card__logo"
             onError={(e) => {
               e.target.style.display = 'none';
+              e.target.nextSibling && (e.target.nextSibling.style.display = 'flex');
             }}
           />
         ) : (
@@ -128,18 +135,33 @@ const VendorCard = ({
         )}
 
         <div className="vendor-card__info">
-          <h3 className="vendor-card__company">
-            <Link to={`/suppliers/profile/${id}`}>{company}</Link>
-          </h3>
+          {/* Company name with tier badge inline */}
+          <div className="vendor-card__company-row">
+            <h3 className="vendor-card__company">
+              <Link to={`/suppliers/profile/${id}`}>{company}</Link>
+            </h3>
+            {/* Tier badge - hide for free/listed tier */}
+            {tierConfig.isPaid && (
+              <span className={`vendor-card__tier-badge ${tierConfig.badgeClass}`}>
+                <FaCheck /> {tierConfig.label}
+              </span>
+            )}
+          </div>
 
           {/* Rating */}
           <div className="vendor-card__rating">
-            <div className="vendor-card__stars">
-              {renderStars(rating)}
-            </div>
-            <span className="vendor-card__rating-text">
-              {rating.toFixed(1)} ({reviewCount} reviews)
-            </span>
+            {rating > 0 ? (
+              <>
+                <div className="vendor-card__stars">
+                  {renderStars(rating)}
+                </div>
+                <span className="vendor-card__rating-text">
+                  {rating.toFixed(1)} ({reviewCount} reviews)
+                </span>
+              </>
+            ) : (
+              <span className="vendor-card__no-reviews">No reviews yet</span>
+            )}
           </div>
         </div>
       </div>
@@ -158,8 +180,8 @@ const VendorCard = ({
         )}
       </div>
 
-      {/* Description */}
-      {description && variant !== 'compact' && (
+      {/* Description - only if longer than 20 chars */}
+      {showDescription && (
         <p className="vendor-card__description">
           {description.length > 150 ? `${description.substring(0, 150)}...` : description}
         </p>
@@ -184,7 +206,7 @@ const VendorCard = ({
 
         {/* Response Time */}
         {responseTime && (
-          <div className="vendor-card__meta-item">
+          <div className="vendor-card__response-badge">
             <FaClock />
             <span>{responseTime}</span>
           </div>
@@ -211,33 +233,28 @@ const VendorCard = ({
           View Profile
         </Link>
 
-        {canReceiveQuotes !== false ? (
+        {/* Only show Get Quote for paid vendors */}
+        {isPaidVendor && canReceiveQuotes !== false && (
           <Link
             to={`/quote-request/${id}`}
             className="vendor-card__btn vendor-card__btn--primary"
           >
             Get Quote
           </Link>
-        ) : (
-          <span className="vendor-card__btn vendor-card__btn--disabled">
-            Upgrade Required
-          </span>
         )}
       </div>
 
       {/* Quick Links (for premium tiers) */}
-      {showPricing && (
+      {showPricing && website && (
         <div className="vendor-card__quick-links">
-          {website && (
-            <a
-              href={website}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="vendor-card__quick-link"
-            >
-              <FaGlobe /> Website
-            </a>
-          )}
+          <a
+            href={website}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="vendor-card__quick-link"
+          >
+            <FaGlobe /> Website
+          </a>
         </div>
       )}
     </div>

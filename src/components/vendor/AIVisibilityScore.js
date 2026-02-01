@@ -2,6 +2,11 @@
  * AI Visibility Score Component
  * Shows vendors how visible they are to AI assistants
  * and encourages them to complete profile / upgrade tier
+ *
+ * Scoring: Profile (25) + Products (25) + Trust (20) + Tier Bonus (30) = 100
+ * - Listed (free): max 70/100
+ * - Visible (£99): max 85/100
+ * - Verified (£149): max 100/100
  */
 
 import React, { useState, useEffect } from 'react';
@@ -69,7 +74,7 @@ const AIVisibilityScore = ({ token }) => {
 
   if (!scoreData) return null;
 
-  const { score, maxScore, label, colour, breakdown, recommendations, nextMilestone, tier } = scoreData;
+  const { score, maxScore, maxPossibleForTier, label, colour, breakdown, recommendations, nextMilestone, tier, tierDisplayName } = scoreData;
   const percentage = (score / maxScore) * 100;
   const circumference = 2 * Math.PI * 54;
   const strokeDashoffset = circumference - (percentage / 100) * circumference;
@@ -78,16 +83,17 @@ const AIVisibilityScore = ({ token }) => {
     setExpandedSection(expandedSection === section ? null : section);
   };
 
+  // Format section name for display
+  const formatSectionName = (key) => {
+    if (key === 'tierBonus') return 'Tier Bonus';
+    return key.charAt(0).toUpperCase() + key.slice(1);
+  };
+
   return (
     <div className="visibility-score-card">
       <div className="score-header">
         <h3>AI Visibility Score</h3>
-        <span
-          className="score-info-icon"
-          title="This score shows how visible your business is to AI assistants like ChatGPT, Google AI, and Perplexity"
-        >
-          ?
-        </span>
+        <span className="tier-badge" data-tier={tier}>{tierDisplayName || 'Listed (Free)'}</span>
       </div>
 
       <div className="score-main">
@@ -122,14 +128,24 @@ const AIVisibilityScore = ({ token }) => {
           </div>
         </div>
         <div className="score-label" style={{ color: colour }}>{label}</div>
+
+        {/* Show max possible for current tier */}
+        {tier !== 'verified' && maxPossibleForTier && (
+          <p className="tier-limit-note">
+            Your tier max: {maxPossibleForTier}/100
+          </p>
+        )}
+
         <p className="score-description">
           {score <= 30
             ? "AI assistants struggle to find your business. Complete your profile to improve discoverability."
             : score <= 50
             ? "Basic visibility. Add more details and consider upgrading for better AI placement."
             : score <= 70
-            ? "Good visibility! Complete remaining items or upgrade to reach more AI queries."
-            : "Excellent! Your business is well-positioned for AI discovery."
+            ? "Good visibility! Upgrade your tier to unlock higher scores and reach more AI queries."
+            : score <= 85
+            ? "Strong visibility! Upgrade to Verified to reach 100/100."
+            : "Excellent! Your business is maximally visible to AI assistants."
           }
         </p>
 
@@ -147,15 +163,14 @@ const AIVisibilityScore = ({ token }) => {
         {Object.entries(breakdown).map(([key, section]) => (
           <div
             key={key}
-            className={`breakdown-section ${section.locked ? 'locked' : ''} ${expandedSection === key ? 'expanded' : ''}`}
+            className={`breakdown-section ${expandedSection === key ? 'expanded' : ''}`}
           >
             <div
               className="breakdown-header"
               onClick={() => toggleSection(key)}
             >
               <span className="breakdown-title">
-                {key.charAt(0).toUpperCase() + key.slice(1)}
-                {section.locked && <span className="lock-icon">🔒</span>}
+                {formatSectionName(key)}
               </span>
               <span className="breakdown-score">{section.earned}/{section.max}</span>
             </div>
@@ -164,7 +179,7 @@ const AIVisibilityScore = ({ token }) => {
                 className="breakdown-bar-fill"
                 style={{
                   width: `${(section.earned / section.max) * 100}%`,
-                  backgroundColor: section.locked ? '#9ca3af' : colour
+                  backgroundColor: colour
                 }}
               ></div>
             </div>
@@ -172,12 +187,14 @@ const AIVisibilityScore = ({ token }) => {
             {expandedSection === key && section.items && (
               <div className="breakdown-items">
                 {section.items.map((item, i) => (
-                  <div key={i} className={`breakdown-item ${item.completed ? 'completed' : ''}`}>
-                    <span className="item-icon">{item.completed ? '✅' : '○'}</span>
+                  <div key={i} className={`breakdown-item ${item.completed ? 'completed' : ''} ${item.upgrade ? 'upgrade-item' : ''}`}>
+                    <span className="item-icon">
+                      {item.completed ? '✅' : item.upgrade ? '⬆️' : '○'}
+                    </span>
                     <span className="item-name">{item.name}</span>
                     <span className="item-points">+{item.points}</span>
-                    {item.requiresTier && !item.completed && (
-                      <span className="item-tier-badge">{item.requiresTier}</span>
+                    {item.price && !item.completed && (
+                      <span className="item-price">{item.price}</span>
                     )}
                   </div>
                 ))}
@@ -192,10 +209,10 @@ const AIVisibilityScore = ({ token }) => {
         <div className="score-actions">
           <h4>Improve Your Score</h4>
           {recommendations.slice(0, 3).map((rec, i) => (
-            <div key={i} className="action-item">
+            <div key={i} className={`action-item ${rec.section === 'tierBonus' ? 'upgrade-action' : ''}`}>
               <span className="action-text">{rec.action}</span>
               <span className="action-points">+{rec.points} pts</span>
-              {rec.tier !== 'free' && rec.price && (
+              {rec.price && (
                 <span className="action-tier">{rec.price}</span>
               )}
             </div>
@@ -203,26 +220,30 @@ const AIVisibilityScore = ({ token }) => {
         </div>
       )}
 
-      {/* Upgrade CTA for free/listed tier */}
-      {(tier === 'free' || tier === 'listed') && (
+      {/* Upgrade CTA for Listed (free) tier */}
+      {tier === 'listed' && (
         <div className="upgrade-cta">
           <p className="cta-text">
-            <strong>Unlock +60 more points</strong> with product uploads, trust badges, and AI optimisation
+            <strong>Upgrade to Visible (+15 pts)</strong>
+            <br />
+            <span className="cta-subtext">Or Verified (+30 pts) for maximum AI visibility</span>
           </p>
           <button
             className="upgrade-btn"
             onClick={() => navigate('/vendor-dashboard/upgrade')}
           >
-            View Upgrade Options
+            View Plans
           </button>
         </div>
       )}
 
-      {/* Upgrade CTA for basic/visible tier - can still upgrade to verified */}
-      {(tier === 'basic' || tier === 'visible') && (
+      {/* Upgrade CTA for Visible tier */}
+      {tier === 'visible' && (
         <div className="upgrade-cta secondary">
           <p className="cta-text">
-            <strong>Get Verified Badge</strong> and priority AI placement for maximum visibility
+            <strong>Upgrade to Verified (+15 pts)</strong>
+            <br />
+            <span className="cta-subtext">Reach 100/100 with priority AI placement</span>
           </p>
           <button
             className="upgrade-btn secondary"
@@ -230,6 +251,14 @@ const AIVisibilityScore = ({ token }) => {
           >
             Upgrade to Verified
           </button>
+        </div>
+      )}
+
+      {/* Success message for Verified tier */}
+      {tier === 'verified' && score >= 90 && (
+        <div className="verified-success">
+          <span className="success-icon">🏆</span>
+          <p>You're at maximum AI visibility!</p>
         </div>
       )}
     </div>

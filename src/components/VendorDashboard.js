@@ -104,6 +104,27 @@ const VendorDashboard = () => {
   const [message, setMessage] = useState({ text: "", type: "", visible: false });
   const [uploadResults, setUploadResults] = useState(null);
 
+  // Profile editing state
+  const [profileData, setProfileData] = useState({
+    company: '',
+    name: '',
+    email: '',
+    phone: '',
+    website: '',
+    city: '',
+    postcode: '',
+    coverage: [],
+    description: '',
+    yearsInBusiness: 0,
+    services: [],
+    brands: [],
+    certifications: [],
+    accreditations: []
+  });
+  const [profileLoading, setProfileLoading] = useState(false);
+  const [profileSaving, setProfileSaving] = useState(false);
+  const [newTag, setNewTag] = useState({ brands: '', certifications: '', accreditations: '', coverage: '' });
+
   // Enhanced product management state - cleaned up
   const [vendorProducts, setVendorProducts] = useState([]);
 
@@ -214,6 +235,94 @@ const VendorDashboard = () => {
     }
   }, [vendorId, token]);
 
+  // Fetch full profile for settings tab
+  const fetchFullProfile = useCallback(async () => {
+    if (!vendorId || !token) return;
+
+    setProfileLoading(true);
+    try {
+      const response = await fetch(`${API_URL}/api/vendors/profile`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await response.json();
+
+      if (data.success && data.vendor) {
+        setProfileData({
+          company: data.vendor.company || '',
+          name: data.vendor.name || '',
+          email: data.vendor.email || '',
+          phone: data.vendor.phone || '',
+          website: data.vendor.website || '',
+          city: data.vendor.city || '',
+          postcode: data.vendor.postcode || '',
+          coverage: data.vendor.coverage || [],
+          description: data.vendor.description || '',
+          yearsInBusiness: data.vendor.yearsInBusiness || 0,
+          services: data.vendor.services || [],
+          brands: data.vendor.brands || [],
+          certifications: data.vendor.certifications || [],
+          accreditations: data.vendor.accreditations || []
+        });
+      }
+    } catch (error) {
+      console.error('Failed to fetch profile:', error);
+      showMessage('Failed to load profile', 'error');
+    } finally {
+      setProfileLoading(false);
+    }
+  }, [vendorId, token, showMessage]);
+
+  // Save profile
+  const saveProfile = useCallback(async () => {
+    if (!token) return;
+
+    setProfileSaving(true);
+    try {
+      const response = await fetch(`${API_URL}/api/vendors/profile`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(profileData)
+      });
+      const data = await response.json();
+
+      if (data.success) {
+        showMessage('Profile saved successfully!', 'success');
+        // Update vendor name in header if changed
+        if (data.vendor?.company) {
+          setVendorData(prev => ({ ...prev, companyName: data.vendor.company }));
+        }
+      } else {
+        showMessage(data.message || 'Failed to save profile', 'error');
+      }
+    } catch (error) {
+      console.error('Failed to save profile:', error);
+      showMessage('Failed to save profile', 'error');
+    } finally {
+      setProfileSaving(false);
+    }
+  }, [token, profileData, showMessage]);
+
+  // Add tag helper
+  const addTag = useCallback((field, value) => {
+    if (!value.trim()) return;
+    setProfileData(prev => ({
+      ...prev,
+      [field]: [...(prev[field] || []), value.trim()]
+    }));
+    setNewTag(prev => ({ ...prev, [field]: '' }));
+  }, []);
+
+  // Remove tag helper
+  const removeTag = useCallback((field, index) => {
+    setProfileData(prev => ({
+      ...prev,
+      [field]: prev[field].filter((_, i) => i !== index)
+    }));
+  }, []);
+
   // Update lead status
   const updateLeadStatus = useCallback(async (leadId, newStatus) => {
     try {
@@ -282,6 +391,13 @@ const VendorDashboard = () => {
       fetchLeads();
     }
   }, [dashboardState.activeTab, vendorId, fetchLeads]);
+
+  // Fetch profile when settings tab is active
+  useEffect(() => {
+    if (dashboardState.activeTab === 'settings' && vendorId) {
+      fetchFullProfile();
+    }
+  }, [dashboardState.activeTab, vendorId, fetchFullProfile]);
 
   // Handle upgrade success from Stripe redirect
   useEffect(() => {
@@ -728,6 +844,7 @@ const VendorDashboard = () => {
               </button>
 
               <button
+                onClick={() => setDashboardState(prev => ({ ...prev, activeTab: 'settings' }))}
                 style={{
                   background: 'rgba(255,255,255,0.2)',
                   border: '1px solid rgba(255,255,255,0.3)',
@@ -807,7 +924,8 @@ const VendorDashboard = () => {
               { id: "quotes", label: "Quote Requests", icon: <Quote size={18} />, badge: metrics.pendingQuotes },
               { id: "files", label: "Product Catalog", icon: <Package size={18} />, badge: metrics.totalProducts },
               { id: "analytics", label: "Analytics", icon: <BarChart3 size={18} /> },
-              { id: "notifications", label: "Notifications", icon: <Bell size={18} />, badge: dataState.notifications.filter(n => !n.read).length }
+              { id: "notifications", label: "Notifications", icon: <Bell size={18} />, badge: dataState.notifications.filter(n => !n.read).length },
+              { id: "settings", label: "Settings", icon: <Settings size={18} /> }
             ].map(tab => (
               <button
                 key={tab.id}
@@ -1510,6 +1628,330 @@ const VendorDashboard = () => {
         )}
 
         {/* Analytics and Notifications tabs show coming soon message */}
+        {/* Settings Tab */}
+        {dashboardState.activeTab === "settings" && (
+          <div>
+            <div style={{ marginBottom: '2rem' }}>
+              <h2 style={{ margin: 0, fontSize: '1.5rem', fontWeight: '600' }}>Profile Settings</h2>
+              <p style={{ margin: '0.5rem 0 0', color: '#6b7280' }}>
+                Complete your profile to improve your AI Visibility Score
+              </p>
+            </div>
+
+            {profileLoading ? (
+              <div style={{ textAlign: 'center', padding: '4rem', background: 'white', borderRadius: '0.75rem' }}>
+                <div style={{ width: '40px', height: '40px', border: '4px solid #e5e7eb', borderTopColor: '#3b82f6', borderRadius: '50%', margin: '0 auto', animation: 'spin 1s linear infinite' }} />
+                <p style={{ marginTop: '1rem', color: '#6b7280' }}>Loading profile...</p>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                {/* Section 1: Basic Info */}
+                <div style={{ background: 'white', borderRadius: '0.75rem', padding: '1.5rem', border: '1px solid #e5e7eb' }}>
+                  <h3 style={{ margin: '0 0 1rem', fontSize: '1.125rem', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <Users size={20} style={{ color: '#3b82f6' }} /> Basic Information
+                  </h3>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1rem' }}>
+                    <div>
+                      <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: '500', color: '#374151' }}>
+                        Company Name
+                      </label>
+                      <input
+                        type="text"
+                        value={profileData.company}
+                        onChange={(e) => setProfileData(prev => ({ ...prev, company: e.target.value }))}
+                        style={{ width: '100%', padding: '0.625rem', border: '1px solid #d1d5db', borderRadius: '0.375rem', fontSize: '0.875rem' }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: '500', color: '#374151' }}>
+                        Contact Name
+                      </label>
+                      <input
+                        type="text"
+                        value={profileData.name}
+                        onChange={(e) => setProfileData(prev => ({ ...prev, name: e.target.value }))}
+                        style={{ width: '100%', padding: '0.625rem', border: '1px solid #d1d5db', borderRadius: '0.375rem', fontSize: '0.875rem' }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: '500', color: '#374151' }}>
+                        Phone Number <span style={{ color: '#10b981', fontSize: '0.75rem' }}>+5 pts</span>
+                      </label>
+                      <input
+                        type="tel"
+                        value={profileData.phone}
+                        onChange={(e) => setProfileData(prev => ({ ...prev, phone: e.target.value }))}
+                        placeholder="020 1234 5678"
+                        style={{ width: '100%', padding: '0.625rem', border: '1px solid #d1d5db', borderRadius: '0.375rem', fontSize: '0.875rem' }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: '500', color: '#374151' }}>
+                        Email (read-only)
+                      </label>
+                      <input
+                        type="email"
+                        value={profileData.email}
+                        disabled
+                        style={{ width: '100%', padding: '0.625rem', border: '1px solid #d1d5db', borderRadius: '0.375rem', fontSize: '0.875rem', background: '#f9fafb', color: '#6b7280' }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: '500', color: '#374151' }}>
+                        City
+                      </label>
+                      <input
+                        type="text"
+                        value={profileData.city}
+                        onChange={(e) => setProfileData(prev => ({ ...prev, city: e.target.value }))}
+                        placeholder="London"
+                        style={{ width: '100%', padding: '0.625rem', border: '1px solid #d1d5db', borderRadius: '0.375rem', fontSize: '0.875rem' }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: '500', color: '#374151' }}>
+                        Postcode <span style={{ color: '#10b981', fontSize: '0.75rem' }}>+5 pts</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={profileData.postcode}
+                        onChange={(e) => setProfileData(prev => ({ ...prev, postcode: e.target.value.toUpperCase() }))}
+                        placeholder="SW1A 1AA"
+                        style={{ width: '100%', padding: '0.625rem', border: '1px solid #d1d5db', borderRadius: '0.375rem', fontSize: '0.875rem' }}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Section 2: Business Details */}
+                <div style={{ background: 'white', borderRadius: '0.75rem', padding: '1.5rem', border: '1px solid #e5e7eb' }}>
+                  <h3 style={{ margin: '0 0 1rem', fontSize: '1.125rem', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <Info size={20} style={{ color: '#3b82f6' }} /> Business Details
+                  </h3>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1rem' }}>
+                    <div>
+                      <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: '500', color: '#374151' }}>
+                        Website <span style={{ color: '#10b981', fontSize: '0.75rem' }}>+5 pts</span>
+                      </label>
+                      <input
+                        type="url"
+                        value={profileData.website}
+                        onChange={(e) => setProfileData(prev => ({ ...prev, website: e.target.value }))}
+                        placeholder="https://www.yourcompany.co.uk"
+                        style={{ width: '100%', padding: '0.625rem', border: '1px solid #d1d5db', borderRadius: '0.375rem', fontSize: '0.875rem' }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: '500', color: '#374151' }}>
+                        Years in Business <span style={{ color: '#10b981', fontSize: '0.75rem' }}>+5 pts</span>
+                      </label>
+                      <input
+                        type="number"
+                        min="0"
+                        value={profileData.yearsInBusiness}
+                        onChange={(e) => setProfileData(prev => ({ ...prev, yearsInBusiness: parseInt(e.target.value) || 0 }))}
+                        style={{ width: '100%', padding: '0.625rem', border: '1px solid #d1d5db', borderRadius: '0.375rem', fontSize: '0.875rem' }}
+                      />
+                    </div>
+                  </div>
+                  <div style={{ marginTop: '1rem' }}>
+                    <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: '500', color: '#374151' }}>
+                      Description / About Us
+                    </label>
+                    <textarea
+                      value={profileData.description}
+                      onChange={(e) => setProfileData(prev => ({ ...prev, description: e.target.value }))}
+                      placeholder="Tell potential customers about your business, experience, and what makes you unique..."
+                      rows={4}
+                      style={{ width: '100%', padding: '0.625rem', border: '1px solid #d1d5db', borderRadius: '0.375rem', fontSize: '0.875rem', resize: 'vertical' }}
+                    />
+                  </div>
+                  <div style={{ marginTop: '1rem' }}>
+                    <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: '500', color: '#374151' }}>
+                      Services Offered <span style={{ color: '#10b981', fontSize: '0.75rem' }}>+5 pts</span>
+                    </label>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                      {['Photocopiers', 'Telecoms', 'CCTV', 'IT Support', 'Security', 'Software', 'Managed Print'].map(service => (
+                        <label key={service} style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', padding: '0.5rem 0.75rem', background: profileData.services.includes(service) ? '#dbeafe' : '#f3f4f6', borderRadius: '0.375rem', cursor: 'pointer', fontSize: '0.875rem', color: profileData.services.includes(service) ? '#1d4ed8' : '#374151' }}>
+                          <input
+                            type="checkbox"
+                            checked={profileData.services.includes(service)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setProfileData(prev => ({ ...prev, services: [...prev.services, service] }));
+                              } else {
+                                setProfileData(prev => ({ ...prev, services: prev.services.filter(s => s !== service) }));
+                              }
+                            }}
+                            style={{ display: 'none' }}
+                          />
+                          {service}
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                  <div style={{ marginTop: '1rem' }}>
+                    <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: '500', color: '#374151' }}>
+                      Coverage Areas <span style={{ color: '#10b981', fontSize: '0.75rem' }}>+5 pts</span>
+                    </label>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                      {profileData.coverage.map((area, i) => (
+                        <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', padding: '0.25rem 0.5rem', background: '#e0e7ff', color: '#4338ca', borderRadius: '9999px', fontSize: '0.75rem' }}>
+                          {area}
+                          <button onClick={() => removeTag('coverage', i)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: '#4338ca' }}><X size={12} /></button>
+                        </span>
+                      ))}
+                    </div>
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                      <input
+                        type="text"
+                        value={newTag.coverage}
+                        onChange={(e) => setNewTag(prev => ({ ...prev, coverage: e.target.value }))}
+                        onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addTag('coverage', newTag.coverage))}
+                        placeholder="Add coverage area (e.g., London, South East)"
+                        style={{ flex: 1, padding: '0.5rem', border: '1px solid #d1d5db', borderRadius: '0.375rem', fontSize: '0.875rem' }}
+                      />
+                      <button onClick={() => addTag('coverage', newTag.coverage)} style={{ padding: '0.5rem 1rem', background: '#e5e7eb', border: 'none', borderRadius: '0.375rem', cursor: 'pointer', fontSize: '0.875rem' }}>Add</button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Section 3: Products & Brands */}
+                <div style={{ background: 'white', borderRadius: '0.75rem', padding: '1.5rem', border: '1px solid #e5e7eb' }}>
+                  <h3 style={{ margin: '0 0 1rem', fontSize: '1.125rem', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <Package size={20} style={{ color: '#3b82f6' }} /> Products & Brands
+                  </h3>
+                  <div>
+                    <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: '500', color: '#374151' }}>
+                      Brands You Carry
+                    </label>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                      {profileData.brands.map((brand, i) => (
+                        <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', padding: '0.25rem 0.5rem', background: '#dcfce7', color: '#166534', borderRadius: '9999px', fontSize: '0.75rem' }}>
+                          {brand}
+                          <button onClick={() => removeTag('brands', i)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: '#166534' }}><X size={12} /></button>
+                        </span>
+                      ))}
+                    </div>
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                      <input
+                        type="text"
+                        value={newTag.brands}
+                        onChange={(e) => setNewTag(prev => ({ ...prev, brands: e.target.value }))}
+                        onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addTag('brands', newTag.brands))}
+                        placeholder="Add brand (e.g., Canon, Ricoh, Konica Minolta)"
+                        style={{ flex: 1, padding: '0.5rem', border: '1px solid #d1d5db', borderRadius: '0.375rem', fontSize: '0.875rem' }}
+                      />
+                      <button onClick={() => addTag('brands', newTag.brands)} style={{ padding: '0.5rem 1rem', background: '#e5e7eb', border: 'none', borderRadius: '0.375rem', cursor: 'pointer', fontSize: '0.875rem' }}>Add</button>
+                    </div>
+                  </div>
+                  <div style={{ marginTop: '1rem', padding: '1rem', background: '#f0f9ff', borderRadius: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div>
+                      <strong style={{ color: '#1d4ed8' }}>Product Catalog</strong>
+                      <p style={{ margin: '0.25rem 0 0', fontSize: '0.875rem', color: '#6b7280' }}>
+                        Upload your products with pricing to earn +30 visibility points
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => setDashboardState(prev => ({ ...prev, activeTab: 'files' }))}
+                      style={{ padding: '0.5rem 1rem', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '0.375rem', cursor: 'pointer', fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                    >
+                      <Package size={14} /> Manage Products
+                    </button>
+                  </div>
+                </div>
+
+                {/* Section 4: Trust & Credentials */}
+                <div style={{ background: 'white', borderRadius: '0.75rem', padding: '1.5rem', border: '1px solid #e5e7eb' }}>
+                  <h3 style={{ margin: '0 0 1rem', fontSize: '1.125rem', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <Award size={20} style={{ color: '#3b82f6' }} /> Trust & Credentials
+                  </h3>
+                  <div>
+                    <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: '500', color: '#374151' }}>
+                      Certifications <span style={{ color: '#10b981', fontSize: '0.75rem' }}>+5 pts</span>
+                    </label>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                      {profileData.certifications.map((cert, i) => (
+                        <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', padding: '0.25rem 0.5rem', background: '#fef3c7', color: '#92400e', borderRadius: '9999px', fontSize: '0.75rem' }}>
+                          {cert}
+                          <button onClick={() => removeTag('certifications', i)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: '#92400e' }}><X size={12} /></button>
+                        </span>
+                      ))}
+                    </div>
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                      <input
+                        type="text"
+                        value={newTag.certifications}
+                        onChange={(e) => setNewTag(prev => ({ ...prev, certifications: e.target.value }))}
+                        onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addTag('certifications', newTag.certifications))}
+                        placeholder="Add certification (e.g., ISO 9001, Cyber Essentials)"
+                        style={{ flex: 1, padding: '0.5rem', border: '1px solid #d1d5db', borderRadius: '0.375rem', fontSize: '0.875rem' }}
+                      />
+                      <button onClick={() => addTag('certifications', newTag.certifications)} style={{ padding: '0.5rem 1rem', background: '#e5e7eb', border: 'none', borderRadius: '0.375rem', cursor: 'pointer', fontSize: '0.875rem' }}>Add</button>
+                    </div>
+                  </div>
+                  <div style={{ marginTop: '1rem' }}>
+                    <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: '500', color: '#374151' }}>
+                      Accreditations & Partnerships <span style={{ color: '#10b981', fontSize: '0.75rem' }}>+5 pts</span>
+                    </label>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                      {profileData.accreditations.map((acc, i) => (
+                        <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', padding: '0.25rem 0.5rem', background: '#fae8ff', color: '#86198f', borderRadius: '9999px', fontSize: '0.75rem' }}>
+                          {acc}
+                          <button onClick={() => removeTag('accreditations', i)} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: '#86198f' }}><X size={12} /></button>
+                        </span>
+                      ))}
+                    </div>
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                      <input
+                        type="text"
+                        value={newTag.accreditations}
+                        onChange={(e) => setNewTag(prev => ({ ...prev, accreditations: e.target.value }))}
+                        onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addTag('accreditations', newTag.accreditations))}
+                        placeholder="Add accreditation (e.g., Canon Partner, Ricoh Dealer)"
+                        style={{ flex: 1, padding: '0.5rem', border: '1px solid #d1d5db', borderRadius: '0.375rem', fontSize: '0.875rem' }}
+                      />
+                      <button onClick={() => addTag('accreditations', newTag.accreditations)} style={{ padding: '0.5rem 1rem', background: '#e5e7eb', border: 'none', borderRadius: '0.375rem', cursor: 'pointer', fontSize: '0.875rem' }}>Add</button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Save Button */}
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
+                  <button
+                    onClick={saveProfile}
+                    disabled={profileSaving}
+                    style={{
+                      padding: '0.75rem 2rem',
+                      background: profileSaving ? '#9ca3af' : '#3b82f6',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '0.5rem',
+                      cursor: profileSaving ? 'not-allowed' : 'pointer',
+                      fontSize: '1rem',
+                      fontWeight: '600',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.5rem'
+                    }}
+                  >
+                    {profileSaving ? (
+                      <>
+                        <div style={{ width: '16px', height: '16px', border: '2px solid white', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+                        Saving...
+                      </>
+                    ) : (
+                      <>
+                        <Save size={18} /> Save Profile
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
         {(dashboardState.activeTab === "analytics" || dashboardState.activeTab === "notifications") && (
           <div style={{
             textAlign: 'center',

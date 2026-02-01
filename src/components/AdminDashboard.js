@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import {
   Search, Users, Building, CreditCard, TrendingUp,
   CheckCircle, XCircle, Eye, Edit, Package,
-  MessageSquare, RefreshCw, LogOut, AlertCircle
+  MessageSquare, RefreshCw, LogOut, AlertCircle,
+  DollarSign, Clock, Download
 } from 'lucide-react';
 import './AdminDashboard.css';
 
@@ -14,6 +15,8 @@ const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [searchTerm, setSearchTerm] = useState('');
   const [filterTier, setFilterTier] = useState('all');
+  const [filterClaimed, setFilterClaimed] = useState('all');
+  const [filterService, setFilterService] = useState('all');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [editingVendor, setEditingVendor] = useState(null);
@@ -25,12 +28,16 @@ const AdminDashboard = () => {
     totalLeads: 0,
     totalProducts: 0,
     activeSubscriptions: 0,
+    monthlyRevenue: 0,
+    pendingClaims: 0,
     recentVendors: 0,
-    tierBreakdown: { free: 0, visible: 0, verified: 0 }
+    tierBreakdown: { free: 0, visible: 0, verified: 0 },
+    roleBreakdown: { user: 0, admin: 0, vendor: 0 }
   });
 
   const [vendors, setVendors] = useState([]);
   const [leads, setLeads] = useState([]);
+  const [users, setUsers] = useState([]);
 
   const getToken = () => localStorage.getItem('adminToken');
 
@@ -87,17 +94,28 @@ const AdminDashboard = () => {
     }
   }, [fetchWithAuth]);
 
+  const fetchUsers = useCallback(async () => {
+    try {
+      const data = await fetchWithAuth('/api/admin/users');
+      if (data?.success) {
+        setUsers(data.data);
+      }
+    } catch (err) {
+      console.error('Error fetching users:', err);
+    }
+  }, [fetchWithAuth]);
+
   const loadAllData = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      await Promise.all([fetchStats(), fetchVendors(), fetchLeads()]);
+      await Promise.all([fetchStats(), fetchVendors(), fetchLeads(), fetchUsers()]);
     } catch (err) {
       setError('Failed to load data');
     } finally {
       setLoading(false);
     }
-  }, [fetchStats, fetchVendors, fetchLeads]);
+  }, [fetchStats, fetchVendors, fetchLeads, fetchUsers]);
 
   useEffect(() => {
     const token = getToken();
@@ -176,41 +194,60 @@ const AdminDashboard = () => {
       vendor.company?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       vendor.email?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesTier = filterTier === 'all' || vendor.tier === filterTier;
-    return matchesSearch && matchesTier;
+    const matchesClaimed = filterClaimed === 'all' ||
+      (filterClaimed === 'claimed' && vendor.isClaimed) ||
+      (filterClaimed === 'unclaimed' && !vendor.isClaimed);
+    const matchesService = filterService === 'all' ||
+      vendor.services?.some(s => s.toLowerCase().includes(filterService.toLowerCase()));
+    return matchesSearch && matchesTier && matchesClaimed && matchesService;
   });
+
+  const exportToCSV = () => {
+    const headers = ['Company', 'Email', 'Tier', 'Services', 'City', 'Postcode Areas', 'Status', 'Created'];
+    const rows = filteredVendors.map(v => [
+      v.company,
+      v.email,
+      v.tier,
+      (v.services || []).join('; '),
+      v.city || '',
+      (v.postcodeAreas || []).join('; '),
+      v.isClaimed ? 'Claimed' : 'Unclaimed',
+      formatDate(v.createdAt)
+    ]);
+
+    const csvContent = [headers, ...rows]
+      .map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+      .join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `vendors-export-${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+  };
 
   const OverviewTab = () => (
     <div className="admin-overview">
       <div className="stats-grid">
         <div className="stat-card">
-          <div className="stat-icon users"><Users size={24} /></div>
-          <div className="stat-content">
-            <span className="stat-value">{stats.totalUsers}</span>
-            <span className="stat-label">Total Users</span>
-          </div>
-        </div>
-
-        <div className="stat-card">
           <div className="stat-icon vendors"><Building size={24} /></div>
           <div className="stat-content">
             <span className="stat-value">{stats.totalVendors}</span>
             <span className="stat-label">Total Vendors</span>
+            <span className="stat-breakdown">
+              {stats.tierBreakdown?.free || 0} free / {(stats.tierBreakdown?.visible || 0) + (stats.tierBreakdown?.basic || 0)} visible / {(stats.tierBreakdown?.verified || 0) + (stats.tierBreakdown?.managed || 0)} verified
+            </span>
           </div>
         </div>
 
         <div className="stat-card">
-          <div className="stat-icon subscriptions"><CreditCard size={24} /></div>
+          <div className="stat-icon users"><Users size={24} /></div>
           <div className="stat-content">
-            <span className="stat-value">{stats.activeSubscriptions}</span>
-            <span className="stat-label">Active Subscriptions</span>
-          </div>
-        </div>
-
-        <div className="stat-card">
-          <div className="stat-icon leads"><MessageSquare size={24} /></div>
-          <div className="stat-content">
-            <span className="stat-value">{stats.totalLeads}</span>
-            <span className="stat-label">Total Leads</span>
+            <span className="stat-value">{stats.totalUsers}</span>
+            <span className="stat-label">Total Users</span>
+            <span className="stat-breakdown">
+              {stats.roleBreakdown?.user || stats.totalUsers} customers
+            </span>
           </div>
         </div>
 
@@ -223,10 +260,27 @@ const AdminDashboard = () => {
         </div>
 
         <div className="stat-card">
-          <div className="stat-icon recent"><TrendingUp size={24} /></div>
+          <div className="stat-icon subscriptions"><CreditCard size={24} /></div>
           <div className="stat-content">
-            <span className="stat-value">{stats.recentVendors}</span>
-            <span className="stat-label">New Vendors (30d)</span>
+            <span className="stat-value">{stats.activeSubscriptions}</span>
+            <span className="stat-label">Paid Subscriptions</span>
+          </div>
+        </div>
+
+        <div className="stat-card">
+          <div className="stat-icon revenue"><DollarSign size={24} /></div>
+          <div className="stat-content">
+            <span className="stat-value">£{stats.monthlyRevenue || 0}</span>
+            <span className="stat-label">Monthly Revenue</span>
+          </div>
+        </div>
+
+        <div className="stat-card">
+          <div className="stat-icon pending"><Clock size={24} /></div>
+          <div className="stat-content">
+            <span className="stat-value">{stats.pendingClaims || 0}</span>
+            <span className="stat-label">Pending Claims</span>
+            <span className="stat-breakdown">unclaimed vendor listings</span>
           </div>
         </div>
       </div>
@@ -237,23 +291,23 @@ const AdminDashboard = () => {
           <div className="tier-bar">
             <span className="tier-name">Free</span>
             <div className="tier-progress">
-              <div className="tier-fill free" style={{ width: `${(stats.tierBreakdown.free / stats.totalVendors) * 100 || 0}%` }}></div>
+              <div className="tier-fill free" style={{ width: `${(stats.tierBreakdown?.free / stats.totalVendors) * 100 || 0}%` }}></div>
             </div>
-            <span className="tier-count">{stats.tierBreakdown.free || 0}</span>
+            <span className="tier-count">{stats.tierBreakdown?.free || 0}</span>
           </div>
           <div className="tier-bar">
-            <span className="tier-name">Visible (£99)</span>
+            <span className="tier-name">Visible (£99/mo)</span>
             <div className="tier-progress">
-              <div className="tier-fill visible" style={{ width: `${((stats.tierBreakdown.visible + stats.tierBreakdown.basic) / stats.totalVendors) * 100 || 0}%` }}></div>
+              <div className="tier-fill visible" style={{ width: `${((stats.tierBreakdown?.visible || 0) + (stats.tierBreakdown?.basic || 0)) / stats.totalVendors * 100 || 0}%` }}></div>
             </div>
-            <span className="tier-count">{(stats.tierBreakdown.visible || 0) + (stats.tierBreakdown.basic || 0)}</span>
+            <span className="tier-count">{(stats.tierBreakdown?.visible || 0) + (stats.tierBreakdown?.basic || 0)}</span>
           </div>
           <div className="tier-bar">
-            <span className="tier-name">Verified (£149)</span>
+            <span className="tier-name">Verified (£149/mo)</span>
             <div className="tier-progress">
-              <div className="tier-fill verified" style={{ width: `${((stats.tierBreakdown.verified + stats.tierBreakdown.managed) / stats.totalVendors) * 100 || 0}%` }}></div>
+              <div className="tier-fill verified" style={{ width: `${((stats.tierBreakdown?.verified || 0) + (stats.tierBreakdown?.managed || 0)) / stats.totalVendors * 100 || 0}%` }}></div>
             </div>
-            <span className="tier-count">{(stats.tierBreakdown.verified || 0) + (stats.tierBreakdown.managed || 0)}</span>
+            <span className="tier-count">{(stats.tierBreakdown?.verified || 0) + (stats.tierBreakdown?.managed || 0)}</span>
           </div>
         </div>
       </div>
@@ -280,6 +334,22 @@ const AdminDashboard = () => {
             <option value="visible">Visible</option>
             <option value="verified">Verified</option>
           </select>
+          <select value={filterService} onChange={(e) => setFilterService(e.target.value)}>
+            <option value="all">All Services</option>
+            <option value="Photocopiers">Photocopiers</option>
+            <option value="Telecoms">Telecoms</option>
+            <option value="IT">IT</option>
+            <option value="CCTV">CCTV</option>
+            <option value="Security">Security</option>
+          </select>
+          <select value={filterClaimed} onChange={(e) => setFilterClaimed(e.target.value)}>
+            <option value="all">All Status</option>
+            <option value="claimed">Claimed</option>
+            <option value="unclaimed">Unclaimed</option>
+          </select>
+          <button className="export-btn" onClick={exportToCSV} title="Export to CSV">
+            <Download size={16} /> Export
+          </button>
         </div>
       </div>
 
@@ -290,23 +360,27 @@ const AdminDashboard = () => {
               <th>Company</th>
               <th>Email</th>
               <th>Tier</th>
-              <th>Subscription</th>
-              <th>Products</th>
-              <th>Location</th>
+              <th>Services</th>
+              <th>City</th>
+              <th>Postcodes</th>
               <th>Joined</th>
               <th>Actions</th>
             </tr>
           </thead>
           <tbody>
             {filteredVendors.map(vendor => (
-              <tr key={vendor.id}>
+              <tr key={vendor.id} className={vendor.isClaimed ? 'row-claimed' : 'row-unclaimed'}>
                 <td>
                   <div className="vendor-company">
                     <strong>{vendor.company}</strong>
                     <span className="vendor-name">{vendor.name}</span>
                   </div>
                 </td>
-                <td>{vendor.email}</td>
+                <td className="email-cell">
+                  <span className={vendor.isClaimed ? '' : 'unclaimed-email'}>
+                    {vendor.email}
+                  </span>
+                </td>
                 <td>
                   {editingVendor === vendor.id ? (
                     <select
@@ -326,18 +400,22 @@ const AdminDashboard = () => {
                   )}
                 </td>
                 <td>
-                  <span className={`subscription-status ${vendor.subscriptionStatus}`}>
-                    {vendor.subscriptionStatus === 'active' ? (
-                      <><CheckCircle size={14} /> Active</>
-                    ) : vendor.hasStripe ? (
-                      <><AlertCircle size={14} /> {vendor.subscriptionStatus}</>
-                    ) : (
-                      <><XCircle size={14} /> None</>
+                  <div className="services-tags">
+                    {(vendor.services || []).slice(0, 2).map((s, i) => (
+                      <span key={i} className="service-tag">{s}</span>
+                    ))}
+                    {(vendor.services || []).length > 2 && (
+                      <span className="service-more">+{vendor.services.length - 2}</span>
                     )}
+                  </div>
+                </td>
+                <td>{vendor.city || 'N/A'}</td>
+                <td>
+                  <span className="postcode-areas" title={(vendor.postcodeAreas || []).join(', ')}>
+                    {(vendor.postcodeAreas || []).slice(0, 3).join(', ')}
+                    {(vendor.postcodeAreas || []).length > 3 && '...'}
                   </span>
                 </td>
-                <td>{vendor.productCount}</td>
-                <td>{vendor.location}</td>
                 <td>{formatDate(vendor.createdAt)}</td>
                 <td>
                   <div className="action-buttons">
@@ -350,7 +428,7 @@ const AdminDashboard = () => {
                     </button>
                     <button
                       className="action-btn view"
-                      onClick={() => window.open(`/suppliers/${vendor.id}`, '_blank')}
+                      onClick={() => window.open(`/suppliers/profile/${vendor.id}`, '_blank')}
                       title="View Profile"
                     >
                       <Eye size={16} />
@@ -364,6 +442,9 @@ const AdminDashboard = () => {
         {filteredVendors.length === 0 && (
           <div className="no-results">No vendors found matching your criteria.</div>
         )}
+        <div className="table-footer">
+          Showing {filteredVendors.length} of {vendors.length} vendors
+        </div>
       </div>
     </div>
   );
@@ -418,6 +499,49 @@ const AdminDashboard = () => {
     </div>
   );
 
+  const UsersTab = () => (
+    <div className="admin-users">
+      <div className="users-header">
+        <h2>User Management</h2>
+        <span className="users-count">{users.length} total</span>
+      </div>
+
+      <div className="users-table-wrapper">
+        <table className="users-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Company</th>
+              <th>Role</th>
+              <th>Joined</th>
+              <th>Last Login</th>
+            </tr>
+          </thead>
+          <tbody>
+            {users.map(user => (
+              <tr key={user._id}>
+                <td><strong>{user.name || 'N/A'}</strong></td>
+                <td>{user.email}</td>
+                <td>{user.company || 'N/A'}</td>
+                <td>
+                  <span className={`role-badge role-${user.role || 'user'}`}>
+                    {user.role || 'user'}
+                  </span>
+                </td>
+                <td>{formatDate(user.createdAt)}</td>
+                <td>{formatDate(user.lastLogin)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        {users.length === 0 && (
+          <div className="no-results">No users found.</div>
+        )}
+      </div>
+    </div>
+  );
+
   if (loading) {
     return (
       <div className="admin-loading">
@@ -467,6 +591,12 @@ const AdminDashboard = () => {
           <Building size={18} /> Vendors ({vendors.length})
         </button>
         <button
+          className={activeTab === 'users' ? 'active' : ''}
+          onClick={() => setActiveTab('users')}
+        >
+          <Users size={18} /> Users ({users.length})
+        </button>
+        <button
           className={activeTab === 'leads' ? 'active' : ''}
           onClick={() => setActiveTab('leads')}
         >
@@ -477,6 +607,7 @@ const AdminDashboard = () => {
       <main className="admin-content">
         {activeTab === 'overview' && <OverviewTab />}
         {activeTab === 'vendors' && <VendorsTab />}
+        {activeTab === 'users' && <UsersTab />}
         {activeTab === 'leads' && <LeadsTab />}
       </main>
     </div>

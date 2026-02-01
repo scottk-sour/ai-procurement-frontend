@@ -49,13 +49,13 @@ import { LineChart as RechartsLineChart, Line, XAxis, YAxis, CartesianGrid, Tool
 const API_URL = process.env.REACT_APP_API_URL || 'https://ai-procurement-backend-q35u.onrender.com';
 
 const VendorDashboard = () => {
-  const { auth, logout, getToken } = useAuth();
+  const { auth, logout, getCurrentToken } = useAuth();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
 
   // Get vendor info from auth context and localStorage
   const vendorId = auth?.user?.userId || localStorage.getItem('vendorId');
-  const token = getToken ? getToken() : localStorage.getItem('vendorToken');
+  const token = getCurrentToken ? getCurrentToken() : localStorage.getItem('vendorToken');
 
   // Upgrade success modal state
   const [showUpgradeSuccess, setShowUpgradeSuccess] = useState(false);

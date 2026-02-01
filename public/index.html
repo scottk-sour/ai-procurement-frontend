@@ -439,10 +439,8 @@
           }
         }
         
+        // Only remove loading when React signals it's ready
         window.addEventListener('tendorai-app-ready', removeLoading);
-        window.addEventListener('load', () => {
-          setTimeout(removeLoading, 1000);
-        });
         
         window.addEventListener('error', (event) => {
           console.error('Global error:', event.error);

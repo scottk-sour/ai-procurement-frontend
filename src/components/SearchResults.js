@@ -12,9 +12,9 @@ import '../styles/SearchResults.css';
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://ai-procurement-backend-q35u.onrender.com';
 
 const SORT_OPTIONS = [
+  { value: 'tier', label: 'Premium First' },
   { value: 'distance', label: 'Nearest First' },
   { value: 'rating', label: 'Highest Rated' },
-  { value: 'tier', label: 'Premium First' },
 ];
 
 const SearchResults = () => {
@@ -36,7 +36,7 @@ const SearchResults = () => {
     total: 0,
     hasMore: false
   });
-  const [sortBy, setSortBy] = useState('distance');
+  const [sortBy, setSortBy] = useState('tier');
   const [showFilters, setShowFilters] = useState(false);
   const [searchInfo, setSearchInfo] = useState(null);
 

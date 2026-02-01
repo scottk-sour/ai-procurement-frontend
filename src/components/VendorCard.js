@@ -5,7 +5,7 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { FaStar, FaMapMarkerAlt, FaClock, FaCheck, FaGlobe, FaTag } from 'react-icons/fa';
+import { FaStar, FaMapMarkerAlt, FaClock, FaCheck, FaGlobe, FaTag, FaBox } from 'react-icons/fa';
 import '../styles/VendorCard.css';
 
 // Tier configuration with new color scheme
@@ -98,7 +98,8 @@ const VendorCard = ({
     logoUrl,
     website,
     showPricing,
-    canReceiveQuotes
+    canReceiveQuotes,
+    productCount = 0
   } = vendor;
 
   const tierConfig = TIER_CONFIG[tier] || TIER_CONFIG.free;
@@ -280,6 +281,14 @@ const VendorCard = ({
           <div className="vendor-card__response-badge">
             <FaClock />
             <span>{responseTime}</span>
+          </div>
+        )}
+
+        {/* Product Count */}
+        {productCount > 0 && (
+          <div className="vendor-card__product-count">
+            <FaBox />
+            <span>{productCount} products listed</span>
           </div>
         )}
       </div>

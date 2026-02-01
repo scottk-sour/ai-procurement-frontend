@@ -587,40 +587,328 @@
   color: #166534;
 }
 
-/* Responsive */
+/* =========================================================
+   MOBILE RESPONSIVE DESIGN
+========================================================= */
+
+/* Tablet */
+@media (max-width: 1024px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+
+  .tier-name {
+    width: 100px;
+  }
+}
+
+/* Mobile */
 @media (max-width: 768px) {
   .admin-header {
     padding: 1rem;
+    flex-direction: column;
+    gap: 1rem;
+    text-align: center;
   }
 
+  .admin-header h1 {
+    font-size: 1.25rem;
+  }
+
+  .admin-header-right {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .refresh-btn, .logout-btn {
+    min-height: 44px;
+    padding: 0.625rem 1rem;
+  }
+
+  /* Tab Navigation - Horizontal Scroll */
   .admin-nav {
-    padding: 0 1rem;
+    padding: 0;
     overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .admin-nav::-webkit-scrollbar {
+    display: none;
+  }
+
+  .admin-nav button {
+    min-height: 48px;
+    padding: 0.75rem 1rem;
+    font-size: 0.8125rem;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .admin-nav button svg {
+    display: none;
   }
 
   .admin-content {
     padding: 1rem;
   }
 
+  /* Stats Grid - 2 columns on tablet, 1 on small mobile */
   .stats-grid {
     grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
   }
 
-  .vendors-header, .leads-header {
+  .stat-card {
+    padding: 1rem;
     flex-direction: column;
-    align-items: flex-start;
+    text-align: center;
+    gap: 0.75rem;
   }
 
+  .stat-icon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .stat-value {
+    font-size: 1.5rem;
+  }
+
+  .stat-label {
+    font-size: 0.8125rem;
+  }
+
+  .stat-breakdown {
+    font-size: 0.625rem;
+  }
+
+  /* Tier Breakdown */
+  .tier-breakdown {
+    padding: 1rem;
+  }
+
+  .tier-bar {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .tier-name {
+    width: 100%;
+    font-size: 0.8125rem;
+  }
+
+  .tier-progress {
+    flex: 1;
+    min-width: 60%;
+  }
+
+  /* Vendors/Leads Headers */
+  .vendors-header, .leads-header, .users-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+  }
+
+  .vendors-header h2, .leads-header h2, .users-header h2 {
+    font-size: 1.125rem;
+  }
+
+  /* Filters - Stack Vertically */
   .vendors-filters {
     width: 100%;
     flex-direction: column;
+    gap: 0.75rem;
   }
 
   .search-box {
     width: 100%;
+    min-height: 44px;
   }
 
   .search-box input {
     width: 100%;
+    min-height: 44px;
+    font-size: 16px; /* Prevent iOS zoom */
+  }
+
+  .vendors-filters select {
+    width: 100%;
+    min-height: 44px;
+    font-size: 16px; /* Prevent iOS zoom */
+    padding: 0.625rem 1rem;
+  }
+
+  .export-btn {
+    width: 100%;
+    min-height: 44px;
+    justify-content: center;
+  }
+
+  /* Tables - Horizontal Scroll */
+  .vendors-table-wrapper,
+  .leads-table-wrapper,
+  .users-table-wrapper {
+    border-radius: 0.5rem;
+    margin: 0 -1rem;
+    width: calc(100% + 2rem);
+  }
+
+  .vendors-table,
+  .leads-table,
+  .users-table {
+    min-width: 700px;
+  }
+
+  .vendors-table th,
+  .leads-table th,
+  .users-table th {
+    padding: 0.625rem 0.75rem;
+    font-size: 0.6875rem;
+  }
+
+  .vendors-table td,
+  .leads-table td,
+  .users-table td {
+    padding: 0.75rem;
+    font-size: 0.8125rem;
+  }
+
+  /* Action Buttons */
+  .action-buttons {
+    gap: 0.375rem;
+  }
+
+  .action-btn {
+    min-width: 36px;
+    min-height: 36px;
+    padding: 0.5rem;
+  }
+
+  .leads-count, .users-count {
+    align-self: flex-start;
+  }
+
+  .no-results {
+    padding: 2rem 1rem;
+  }
+
+  .table-footer {
+    font-size: 0.6875rem;
+    padding: 0.625rem 0.75rem;
+  }
+}
+
+/* Small Mobile (375px) */
+@media (max-width: 480px) {
+  .admin-header {
+    padding: 0.75rem;
+  }
+
+  .admin-header h1 {
+    font-size: 1.125rem;
+  }
+
+  .admin-header-right {
+    gap: 0.5rem;
+  }
+
+  .refresh-btn, .logout-btn {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8125rem;
+  }
+
+  .logout-btn span {
+    display: none;
+  }
+
+  .admin-content {
+    padding: 0.75rem;
+  }
+
+  /* Stats - Single Column */
+  .stats-grid {
+    grid-template-columns: 1fr;
+    gap: 0.625rem;
+  }
+
+  .stat-card {
+    flex-direction: row;
+    text-align: left;
+    padding: 0.875rem;
+  }
+
+  .stat-icon {
+    width: 36px;
+    height: 36px;
+  }
+
+  .stat-icon svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .stat-value {
+    font-size: 1.25rem;
+  }
+
+  .stat-label {
+    font-size: 0.75rem;
+  }
+
+  /* Tier Breakdown */
+  .tier-breakdown h3 {
+    font-size: 0.875rem;
+  }
+
+  /* Tables */
+  .vendors-table-wrapper,
+  .leads-table-wrapper,
+  .users-table-wrapper {
+    margin: 0 -0.75rem;
+    width: calc(100% + 1.5rem);
+  }
+
+  .vendors-table,
+  .leads-table,
+  .users-table {
+    min-width: 600px;
+  }
+
+  /* Vendor Company Cell */
+  .vendor-company strong,
+  .lead-customer strong {
+    font-size: 0.8125rem;
+  }
+
+  .vendor-name,
+  .lead-customer span {
+    font-size: 0.6875rem;
+  }
+
+  /* Badges */
+  .tier-badge,
+  .status-badge,
+  .role-badge {
+    font-size: 0.6875rem;
+    padding: 0.1875rem 0.5rem;
+  }
+
+  .service-tag {
+    font-size: 0.5625rem;
+    padding: 0.125rem 0.375rem;
+  }
+
+  /* Admin Error/Loading */
+  .admin-loading, .admin-error {
+    min-height: 40vh;
+    padding: 2rem 1rem;
+  }
+
+  .admin-error button {
+    min-height: 44px;
+    padding: 0.625rem 1.25rem;
   }
 }

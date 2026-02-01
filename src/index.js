@@ -21,5 +21,4 @@ root.render(
   </React.StrictMode>
 );
 
-// Signal app ready
-window.dispatchEvent(new Event('tendorai-app-ready'));
+// Note: App component will dispatch 'tendorai-app-ready' after mounting

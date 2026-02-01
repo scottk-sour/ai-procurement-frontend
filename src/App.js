@@ -575,8 +575,12 @@ const router = createBrowserRouter(
 
 // Main App component
 function App() {
-  // Global error handler
+  // Signal app ready and set up global error handlers
   useEffect(() => {
+    // Signal that the app has mounted and is ready
+    console.log('✅ TendorAI App mounted');
+    window.dispatchEvent(new Event('tendorai-app-ready'));
+
     const handleUnhandledRejection = (event) => {
       console.error('🚨 Unhandled promise rejection:', event.reason);
     };

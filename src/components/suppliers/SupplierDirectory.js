@@ -22,6 +22,7 @@ import {
   ArrowLeft
 } from 'lucide-react';
 import styles from './SupplierDirectory.module.css';
+import { trackSearchImpressions, trackWebsiteClick, trackPhoneClick } from '../../utils/analytics';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://ai-procurement-backend-q35u.onrender.com';
 
@@ -64,9 +65,15 @@ const SupplierDirectory = () => {
         const data = await response.json();
 
         if (data.success) {
-          setVendors(data.data.vendors || []);
+          const vendorList = data.data.vendors || [];
+          setVendors(vendorList);
           setMeta(data.data.meta || {});
           setPagination(data.data.pagination || {});
+
+          // Track search impressions for analytics
+          if (vendorList.length > 0) {
+            trackSearchImpressions(vendorList, `${categoryDisplay} in ${locationDisplay}`, category, location);
+          }
         }
 
         // Fetch related locations

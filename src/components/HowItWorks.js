@@ -207,9 +207,8 @@ const HowItWorks = () => {
     return () => observerRef.current?.disconnect();
   }, [handleIntersection]);
 
-  // Enhanced error handling
+  // Fallback for background image
   const handleImageError = useCallback((e) => {
-    console.warn("Failed to load background image");
     e.target.style.display = 'none';
     e.target.parentElement.style.background = "linear-gradient(135deg, var(--primary-blue) 0%, var(--secondary-blue) 100%)";
   }, []);

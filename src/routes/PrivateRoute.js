@@ -33,12 +33,10 @@ const PrivateRoute = () => {
 
   // Redirect to login if not authenticated
   if (!auth.isAuthenticated) {
-    console.log('🔒 User not authenticated, redirecting to login');
     return <Navigate to="/login" replace />;
   }
 
   // User is authenticated, render the protected route
-  console.log('✅ User authenticated, rendering protected route');
   return <Outlet />;
 };
 

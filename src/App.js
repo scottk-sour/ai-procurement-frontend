@@ -34,7 +34,6 @@ const loadWithFallback = (importFn, fallbackComponent) =>
   lazy(() =>
     importFn()
       .then((module) => {
-        console.log(`✅ Successfully loaded component`);
         return module;
       })
       .catch((error) => {
@@ -438,15 +437,8 @@ const LoadingSpinner = () => (
   </div>
 );
 
-// Navigation Tracker for debugging
+// Navigation Tracker (production: no-op)
 const NavigationTracker = () => {
-  const location = useLocation();
-  
-  useEffect(() => {
-    console.log(`📍 Navigation: ${location.pathname}${location.search}${location.hash}`);
-    console.log(`🔍 Location state:`, location.state);
-  }, [location]);
-  
   return null;
 };
 
@@ -578,7 +570,6 @@ function App() {
   // Signal app ready and set up global error handlers
   useEffect(() => {
     // Signal that the app has mounted and is ready
-    console.log('✅ TendorAI App mounted');
     window.dispatchEvent(new Event('tendorai-app-ready'));
 
     const handleUnhandledRejection = (event) => {

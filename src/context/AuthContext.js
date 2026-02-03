@@ -14,8 +14,6 @@ export const AuthProvider = ({ children }) => {
   // Initialize auth state from localStorage on app load
   useEffect(() => {
     const initializeAuth = async () => {
-      console.log('🔍 Starting token verification at:', new Date().toISOString());
-      
       // Check for vendor token first
       const vendorToken = localStorage.getItem('vendorToken');
       const role = localStorage.getItem('role');
@@ -27,13 +25,10 @@ export const AuthProvider = ({ children }) => {
       const userId = localStorage.getItem('userId');
 
       if (vendorToken && role === 'vendor') {
-        console.log('🔍 Found vendor token, verifying...');
         await verifyVendorToken(vendorToken, vendorId, userName);
       } else if (userToken) {
-        console.log('🔍 Found user token, verifying...');
         await verifyUserToken(userToken, userId);
       } else {
-        console.log('🔍 Token: Not found');
         setAuth(prev => ({ ...prev, isLoading: false }));
       }
     };
@@ -54,8 +49,6 @@ export const AuthProvider = ({ children }) => {
 
       if (response.ok) {
         const data = await response.json();
-        console.log('✅ Vendor token verified successfully');
-        
         setAuth({
           isAuthenticated: true,
           user: {
@@ -68,7 +61,6 @@ export const AuthProvider = ({ children }) => {
           isLoading: false
         });
       } else {
-        console.log('❌ Vendor token verification failed');
         // Clear invalid tokens
         localStorage.removeItem('vendorToken');
         localStorage.removeItem('role');
@@ -106,8 +98,6 @@ export const AuthProvider = ({ children }) => {
 
       if (response.ok) {
         const data = await response.json();
-        console.log('✅ User token verified successfully');
-        
         setAuth({
           isAuthenticated: true,
           user: {
@@ -120,7 +110,6 @@ export const AuthProvider = ({ children }) => {
           isLoading: false
         });
       } else {
-        console.log('❌ User token verification failed');
         // Clear invalid tokens
         localStorage.removeItem('token');
         localStorage.removeItem('userId');
@@ -145,8 +134,6 @@ export const AuthProvider = ({ children }) => {
 
   // Login function (works for both users and vendors)
   const login = useCallback((token, userData) => {
-    console.log('🔐 Login called with:', { hasToken: !!token, userRole: userData?.role });
-    
     setAuth({
       isAuthenticated: true,
       user: userData,
@@ -169,8 +156,6 @@ export const AuthProvider = ({ children }) => {
 
   // Logout function
   const logout = useCallback(() => {
-    console.log('🚪 Logging out...');
-    
     // Clear all auth-related localStorage items
     localStorage.removeItem('token');
     localStorage.removeItem('vendorToken');

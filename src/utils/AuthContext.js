@@ -55,13 +55,9 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     const checkToken = async () => {
-      console.log('🔄 Starting token verification at:', new Date().toISOString());
-      
       const token = getAuthToken();
-      console.log('🔍 Token:', token ? 'Found' : 'Not found');
-      
+
       if (!token) {
-        console.log('❌ No token found, setting unauthenticated state');
         setAuth({
           isAuthenticated: false,
           isLoading: false,
@@ -72,9 +68,7 @@ export const AuthProvider = ({ children }) => {
       }
 
       try {
-        console.log('🔍 Verifying token with backend...');
-        
-        // ✅ FIXED: Try user verification with correct endpoint
+        // Try user verification with correct endpoint
         try {
           const userResponse = await fetch(`${API_URL}/api/auth/verify`, {
             method: 'GET',
@@ -86,8 +80,6 @@ export const AuthProvider = ({ children }) => {
 
           if (userResponse.ok) {
             const userData = await userResponse.json();
-            console.log('✅ User token verified:', userData);
-            
             if (userData?.user) {
               setAuth({
                 isAuthenticated: true,
@@ -105,10 +97,10 @@ export const AuthProvider = ({ children }) => {
             }
           }
         } catch (userError) {
-          console.log('⚠️ User verification failed:', userError.message);
+          // User verification failed, try vendor
         }
 
-        // ✅ FIXED: Try vendor verification with correct endpoint
+        // Try vendor verification with correct endpoint
         try {
           const vendorResponse = await fetch(`${API_URL}/api/vendors/verify`, {
             method: 'GET',
@@ -120,8 +112,6 @@ export const AuthProvider = ({ children }) => {
 
           if (vendorResponse.ok) {
             const vendorData = await vendorResponse.json();
-            console.log('✅ Vendor token verified:', vendorData);
-            
             if (vendorData?.vendor) {
               setAuth({
                 isAuthenticated: true,
@@ -138,11 +128,10 @@ export const AuthProvider = ({ children }) => {
             }
           }
         } catch (vendorError) {
-          console.log('⚠️ Vendor verification failed:', vendorError.message);
+          // Vendor verification also failed
         }
 
-        // Both verifications failed
-        console.log('❌ Token verification failed, clearing auth');
+        // Both verifications failed, clear auth
         setAuth({
           isAuthenticated: false,
           isLoading: false,
@@ -167,7 +156,6 @@ export const AuthProvider = ({ children }) => {
   }, [API_URL]);
 
   const login = useCallback((token, user) => {
-    console.log('✅ Login successful, setting auth state for:', user);
     setToken(token);
     setAuth({
       isAuthenticated: true,
@@ -178,7 +166,6 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const logout = useCallback(() => {
-    console.log('🔄 Logging out, clearing auth state');
     clearLocalAuth();
     setAuth({
       isAuthenticated: false,

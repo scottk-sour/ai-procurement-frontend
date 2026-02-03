@@ -2,6 +2,7 @@ import React, { useState, useCallback, useMemo, useEffect } from "react";
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import AIVisibilityScore from './vendor/AIVisibilityScore';
+import AIMentionsCard from './vendor/AIMentionsCard';
 import {
   Quote,
   Upload,
@@ -1104,6 +1105,14 @@ const VendorDashboard = () => {
                   <TrendingUp size={16} /> View Upgrade Options
                 </button>
               </div>
+            </div>
+
+            {/* AI Mentions Card - Shows AI referral performance */}
+            <div style={{ marginBottom: '2rem' }}>
+              <AIMentionsCard
+                vendorId={vendorId}
+                token={token}
+              />
             </div>
 
             {/* KPI Cards - Focus on visibility and profile completeness */}

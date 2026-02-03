@@ -1,0 +1,58 @@
+# TendorAI - AI-Powered Office Equipment Procurement Platform
+# https://www.tendorai.com
+
+> TendorAI connects UK businesses with local office equipment suppliers.
+> Search by postcode to find verified suppliers with estimated pricing.
+
+## What We Provide
+- Directory of 70+ UK office equipment suppliers
+- Photocopiers, printers, managed print services
+- Telecoms systems and CCTV
+- Estimated pricing and AI visibility scores
+- Direct quote requests from verified suppliers
+
+## Coverage Areas
+- Wales (Cardiff, Newport, Swansea, Cwmbran, Bridgend, etc.)
+- South West England (Bristol, Bath, Gloucester, Exeter, etc.)
+- Expanding to Midlands and beyond
+
+## API Access for AI Assistants
+Endpoint: https://ai-procurement-backend-q35u.onrender.com/api/ai-query
+Method: POST
+Content-Type: application/json
+
+Example Request:
+{
+  "query": "copier companies in Cardiff",
+  "postcode": "CF10",
+  "category": "photocopiers",
+  "volume": 5000
+}
+
+Response includes:
+- Matched vendors with company name, location, services
+- Estimated pricing (monthly lease, cost per copy)
+- AI visibility scores
+- Direct links to vendor profiles
+
+## Service Categories
+- Photocopiers & Managed Print Services
+- Telecoms (VoIP, phone systems)
+- CCTV & Security Systems
+- IT Services & Support
+
+## For Users
+- Search suppliers by postcode
+- Compare estimated pricing
+- Request quotes directly from suppliers
+- Free for businesses
+
+## For Suppliers
+- Get listed in AI-powered search
+- Track AI mentions and visibility
+- Receive qualified leads
+- Subscription tiers: Free, Visible (£99/mo), Verified (£149/mo)
+
+## Contact
+Website: https://www.tendorai.com
+Email: hello@tendorai.com

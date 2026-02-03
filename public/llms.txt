@@ -17,29 +17,49 @@
 - Expanding to Midlands and beyond
 
 ## API Access for AI Assistants
+
+### Simple Query Endpoint
 Endpoint: https://ai-procurement-backend-q35u.onrender.com/api/ai-query
 Method: POST
 Content-Type: application/json
 
 Example Request:
+```json
 {
   "query": "copier companies in Cardiff",
   "postcode": "CF10",
   "category": "photocopiers",
   "volume": 5000
 }
+```
+
+Parameters:
+- query (string, optional): Natural language search query
+- postcode (string, optional): UK postcode for location filtering
+- category (string, optional): Service type - photocopiers, telecoms, cctv, it, security, software
+- volume (number, optional): Monthly print volume for pricing estimates (default: 5000)
+- limit (number, optional): Max results to return (default: 10, max: 20)
 
 Response includes:
 - Matched vendors with company name, location, services
 - Estimated pricing (monthly lease, cost per copy)
-- AI visibility scores
 - Direct links to vendor profiles
+- Quote request URLs
+
+### Alternative Endpoints
+- GET/POST /api/ai/suppliers - Detailed supplier search with filtering
+- GET /api/ai/services - List all service categories
+- GET /api/ai/locations - List UK coverage areas
+- POST /api/ai/quote - Submit quote request directly
+- GET /api/ai/supplier/:id - Get detailed supplier info
 
 ## Service Categories
 - Photocopiers & Managed Print Services
 - Telecoms (VoIP, phone systems)
 - CCTV & Security Systems
 - IT Services & Support
+- Security Systems
+- Business Software
 
 ## For Users
 - Search suppliers by postcode
@@ -52,6 +72,21 @@ Response includes:
 - Track AI mentions and visibility
 - Receive qualified leads
 - Subscription tiers: Free, Visible (£99/mo), Verified (£149/mo)
+
+## Example AI Assistant Usage
+
+When a user asks: "Find me a copier supplier near Cardiff"
+
+1. Call the API:
+POST https://ai-procurement-backend-q35u.onrender.com/api/ai-query
+{"query": "copier supplier Cardiff", "postcode": "CF10", "category": "photocopiers"}
+
+2. Response will include matched suppliers with:
+   - Company name and description
+   - Services offered
+   - Coverage areas
+   - Estimated monthly costs
+   - Direct profile links
 
 ## Contact
 Website: https://www.tendorai.com

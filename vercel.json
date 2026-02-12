@@ -1,4 +1,26 @@
 {
+  "redirects": [
+    {
+      "source": "/login",
+      "destination": "https://tendorai.com/vendor-login",
+      "permanent": true
+    },
+    {
+      "source": "/signup",
+      "destination": "https://tendorai.com/vendor-signup",
+      "permanent": true
+    },
+    {
+      "source": "/dashboard/:path*",
+      "destination": "https://tendorai.com/vendor-dashboard/:path*",
+      "permanent": true
+    },
+    {
+      "source": "/:path*",
+      "destination": "https://tendorai.com/:path*",
+      "permanent": true
+    }
+  ],
   "rewrites": [
     {
       "source": "/api/(.*)",
